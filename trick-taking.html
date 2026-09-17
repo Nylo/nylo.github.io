@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trick-Taking Collection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f1117;
+  --surface:#1a1f2e;
+  --surface-raised:#232840;
+  --surface-hover:#2a3050;
+  --accent:#5b8dd9;
+  --accent-soft:rgba(91,141,217,0.13);
+  --text:#e8eaf0;
+  --text-soft:#8892aa;
+  --success:#4caf7d;
+  --warn:#e0a44a;
+  --danger:#d96b6b;
+  --border:rgba(255,255,255,0.07);
+  --radius:10px;
+  --sidebar:270px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;overflow:hidden}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface)}
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* ── SIDEBAR ── */
+.sidebar-header{padding:16px;border-bottom:1px solid var(--border)}
+.logo{font-family:'Libre Baskerville',serif;font-size:17px;color:var(--text);line-height:1.2}
+.logo span{color:var(--accent);font-style:italic}
+.sidebar-section{padding:14px 16px;border-bottom:1px solid var(--border)}
+.sidebar-label{font-size:11px;font-weight:600;color:var(--text-soft);margin-bottom:10px;letter-spacing:0.04em}
+.filter-group{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.filter-group:last-child{margin-bottom:0}
+select,input[type=text],input[type=number]{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 9px;font-family:'Inter',sans-serif;font-size:13px;width:100%;outline:none}
+select:focus,input:focus{border-color:var(--accent)}
+select option{background:var(--surface)}
+.filter-row{display:flex;gap:6px}
+.filter-row input{width:0;flex:1}
+.filter-row span{line-height:30px;color:var(--text-soft)}
+.sidebar-actions{padding:14px 16px;margin-top:auto;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border)}
+.btn{border:none;border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:7px;justify-content:center;transition:background 0.15s,transform 0.07s}
+.btn:active{transform:scale(0.96)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#4a7cc5}
+.btn-secondary{background:var(--surface-raised);color:var(--text)}
+.btn-secondary:hover{background:var(--surface-hover)}
+.btn-ghost{background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface-raised);color:var(--text)}
+.btn-danger{background:rgba(217,107,107,0.15);color:var(--danger);border:1px solid rgba(217,107,107,0.25)}
+.btn-danger:hover{background:rgba(217,107,107,0.25)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.sort-row{display:flex;gap:6px}
+.sort-row select:first-child{flex:1}
+
+/* ── TOPBAR ── */
+.search-wrap{flex:1;position:relative}
+.search-wrap input{background:var(--surface-raised);border-color:transparent;padding-left:32px;border-radius:8px}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-soft);font-size:14px;pointer-events:none}
+.count-badge{background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;white-space:nowrap}
+
+/* ── GRID ── */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.game-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:background 0.15s,border-color 0.15s;position:relative;display:flex;flex-direction:column;gap:10px}
+.game-card::before{content:'';position:absolute;top:0;left:16px;right:16px;height:2px;border-radius:0 0 2px 2px;background:linear-gradient(90deg,transparent,rgba(91,141,217,0.4),transparent)}
+.game-card:hover{background:var(--surface-hover);border-color:rgba(91,141,217,0.3)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.card-title{font-family:'Libre Baskerville',serif;font-size:15px;line-height:1.35;color:var(--text)}
+.status-badge{flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;white-space:nowrap}
+.status-Owned{background:rgba(76,175,125,0.15);color:var(--success)}
+.status-PNP{background:rgba(224,164,74,0.15);color:var(--warn)}
+.status-WTB,.status-WTB\ Essen,.status-WTB\ Gen,.status-WTB\ altri{background:rgba(91,141,217,0.15);color:var(--accent)}
+.status-Proxy,.status-Proxy\ Rage{background:rgba(217,107,107,0.15);color:var(--danger)}
+.status-Preordered{background:rgba(150,100,200,0.15);color:#b388d6}
+.card-meta{display:flex;gap:10px;flex-wrap:wrap}
+.meta-pill{font-size:11px;color:var(--text-soft);display:flex;align-items:center;gap:3px}
+.card-flags{display:flex;gap:5px;flex-wrap:wrap}
+.flag{font-size:11px;padding:2px 6px;border-radius:4px;font-weight:500}
+.flag-yes{background:rgba(76,175,125,0.12);color:var(--success)}
+.flag-no{background:rgba(217,107,107,0.08);color:var(--danger)}
+.flag-part{background:rgba(224,164,74,0.12);color:var(--warn)}
+.card-ratings{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.rating-row{display:flex;align-items:center;gap:6px}
+.rating-label{font-size:10px;color:var(--text-soft);width:64px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pips{display:flex;gap:2px}
+.pip{width:7px;height:7px;border-radius:50%;background:var(--border)}
+.pip.filled{background:var(--accent)}
+.card-hook{font-size:12px;color:var(--text-soft);line-height:1.5;border:none;background:transparent;width:100%;resize:none;font-family:'Inter',sans-serif;cursor:text;padding:0;outline:none;border-top:1px solid var(--border);padding-top:8px;transition:color 0.15s}
+.card-hook:focus{color:var(--text)}
+.card-hook::placeholder{color:rgba(136,146,170,0.45);font-style:italic}
+.empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-soft)}
+.empty-state p{font-family:'Libre Baskerville',serif;font-size:18px;margin-bottom:8px;color:var(--text)}
+.empty-state small{font-size:13px}
+
+/* ── DETAIL PANEL ── */
+.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;display:none;align-items:stretch;justify-content:flex-end}
+.panel-overlay.open{display:flex}
+.panel{width:min(560px,100%);background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;animation:slideIn 0.2s ease}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.panel-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px}
+.panel-header-text{flex:1}
+.panel-title{font-family:'Libre Baskerville',serif;font-size:20px;line-height:1.3;margin-bottom:6px}
+.panel-close{background:var(--surface-raised);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.panel-close:hover{background:var(--surface-hover)}
+.panel-body{padding:24px;display:flex;flex-direction:column;gap:24px;flex:1}
+.panel-section-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.04em;margin-bottom:12px}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field.full{grid-column:1/-1}
+.field label{font-size:11px;color:var(--text-soft);font-weight:500}
+.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:13px;width:100%;outline:none;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.flag-toggles{display:flex;gap:8px;flex-wrap:wrap}
+.flag-toggle{background:var(--bg);border:1px solid var(--border);color:var(--text-soft);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s}
+.flag-toggle.active-yes{background:rgba(76,175,125,0.15);border-color:rgba(76,175,125,0.4);color:var(--success)}
+.flag-toggle.active-no{background:rgba(217,107,107,0.1);border-color:rgba(217,107,107,0.3);color:var(--danger)}
+.flag-toggle.active-part{background:rgba(224,164,74,0.15);border-color:rgba(224,164,74,0.35);color:var(--warn)}
+.ratings-edit{display:flex;flex-direction:column;gap:10px}
+.rating-edit-row{display:flex;align-items:center;gap:10px}
+.rating-edit-label{font-size:12px;color:var(--text-soft);width:130px;flex-shrink:0}
+.star-picker{display:flex;gap:4px}
+.star-pip{width:18px;height:18px;border-radius:50%;border:1px solid var(--border);background:var(--bg);cursor:pointer;transition:background 0.1s,border-color 0.1s}
+.star-pip:hover,.star-pip.lit{background:var(--accent);border-color:var(--accent)}
+.panel-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+/* ── MODAL (CSV import) ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(600px,95vw);padding:28px;display:flex;flex-direction:column;gap:18px}
+.modal h2{font-family:'Libre Baskerville',serif;font-size:18px}
+.modal p,.modal li{font-size:13px;color:var(--text-soft);line-height:1.6}
+.modal ol{padding-left:18px}
+.modal textarea{width:100%;height:160px;resize:vertical;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:'Inter',monospace;font-size:12px;color:var(--text);outline:none}
+.modal textarea:focus{border-color:var(--accent)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end}
+#csvFileInput{display:none}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── MOBILE ── */
+@media(max-width:700px){
+  .app{flex-direction:column}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--border)}
+  .sidebar-section,.sidebar-header{display:none}
+  .sidebar-actions{flex-direction:row;border-top:none;padding:10px 12px;flex-wrap:wrap}
+  .content{padding:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">Trick-Taking <span>Collection</span></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Filtra per stato</div>
+      <select id="filterStatus">
+        <option value="">Tutti gli stati</option>
+        <option>Owned</option>
+        <option>PNP</option>
+        <option>WTB Essen</option>
+        <option>WTB Gen</option>
+        <option>WTB altri</option>
+        <option>Proxy Rage</option>
+        <option>Preordered</option>
+      </select>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Filtra per giocatori</div>
+      <div class="filter-row">
+        <input type="number" id="filterPlMin" placeholder="min" min="1" max="12">
+        <span>—</span>
+        <input type="number" id="filterPlMax" placeholder="max" min="1" max="12">
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Filtra per caratteristiche</div>
+      <div class="filter-group">
+        <select id="filterMustFollow">
+          <option value="">Must-follow (qualsiasi)</option>
+          <option value="yes">Sì</option>
+          <option value="no">No</option>
+        </select>
+        <select id="filterTrump">
+          <option value="">Trump/briscola (qualsiasi)</option>
+          <option value="yes">Sì</option>
+          <option value="no">No</option>
+          <option value="part">Parziale</option>
+        </select>
+        <select id="filterPrediction">
+          <option value="">Prediction (qualsiasi)</option>
+          <option value="yes">Sì</option>
+          <option value="no">No</option>
+        </select>
+        <select id="filterPlayed">
+          <option value="">Giocato (qualsiasi)</option>
+          <option value="yes">Giocato</option>
+          <option value="no">Non ancora</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Ordina per</div>
+      <div class="sort-row">
+        <select id="sortField">
+          <option value="title">Titolo</option>
+          <option value="players">Giocatori (best)</option>
+          <option value="time">Durata</option>
+          <option value="divertimento">Divertimento</option>
+          <option value="difficolta">Difficoltà</option>
+          <option value="scalabilita">Scalabilità</option>
+          <option value="longevita">Longevità</option>
+          <option value="originalita">Originalità</option>
+          <option value="apprendimento">Apprendimento</option>
+        </select>
+        <select id="sortDir" style="width:70px">
+          <option value="asc">↑</option>
+          <option value="desc">↓</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sidebar-actions">
+      <button class="btn btn-primary" onclick="openNewGame()">+ Aggiungi gioco</button>
+      <button class="btn btn-secondary" onclick="openImportModal()">⬆ Importa CSV</button>
+      <button class="btn btn-ghost" onclick="exportJSON()">⬇ Esporta JSON</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('jsonFileInput').click()">⬆ Importa JSON</button>
+      <input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="importJSON(event)">
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Cerca gioco…">
+      </div>
+      <div class="count-badge" id="countBadge">0 giochi</div>
+    </div>
+    <div class="content">
+      <div class="game-grid" id="gameGrid"></div>
+    </div>
+  </main>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="panel-overlay" id="panelOverlay" onclick="maybeClosePanel(event)">
+  <div class="panel" id="panel">
+    <div class="panel-header">
+      <div class="panel-header-text">
+        <div class="panel-title" id="panelTitle">–</div>
+        <div id="panelStatusBadge"></div>
+      </div>
+      <button class="panel-close" onclick="closePanel()">✕</button>
+    </div>
+    <div class="panel-body">
+
+      <div>
+        <div class="panel-section-title">Informazioni generali</div>
+        <div class="field-grid">
+          <div class="field full">
+            <label>Titolo</label>
+            <input type="text" id="fTitle">
+          </div>
+          <div class="field">
+            <label>Giocatori (es. 2-5)</label>
+            <input type="text" id="fPlayers" placeholder="es. 2-5">
+          </div>
+          <div class="field">
+            <label>Best in</label>
+            <input type="text" id="fBestIn" placeholder="es. 3-4">
+          </div>
+          <div class="field">
+            <label>Durata (min)</label>
+            <input type="text" id="fTime" placeholder="es. 30">
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select id="fStatus">
+              <option>Owned</option>
+              <option>PNP</option>
+              <option>WTB Essen</option>
+              <option>WTB Gen</option>
+              <option>WTB altri</option>
+              <option>Proxy Rage</option>
+              <option>Preordered</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Link regole</label>
+            <input type="text" id="fRules" placeholder="URL o ITA/ENG">
+          </div>
+          <div class="field full">
+            <label>Hook <span style="color:var(--text-soft);font-weight:400">(descrizione breve sulla card)</span></label>
+            <textarea id="fHook" rows="2" placeholder="Es. Devi dichiarare quante prese prenderai, ma il numero varia ogni mano…"></textarea>
+          </div>
+          <div class="field full">
+            <label>Note</label>
+            <textarea id="fNotes" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-section-title">Meccaniche</div>
+        <div class="field-grid">
+          <div class="field full">
+            <label>Must-follow</label>
+            <div class="flag-toggles" id="togMustFollow" data-field="mustFollow">
+              <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'mustFollow')">Sì</button>
+              <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'mustFollow')">No</button>
+            </div>
+          </div>
+          <div class="field full">
+            <label>Trump / briscola</label>
+            <div class="flag-toggles" id="togTrump" data-field="trump">
+              <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'trump')">Sì</button>
+              <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'trump')">No</button>
+              <button class="flag-toggle" data-val="part" onclick="toggleFlag(this,'trump')">Parziale</button>
+            </div>
+          </div>
+          <div class="field full">
+            <label>Prediction / dichiarazione prese</label>
+            <div class="flag-toggles" id="togPrediction" data-field="prediction">
+              <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'prediction')">Sì</button>
+              <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'prediction')">No</button>
+            </div>
+          </div>
+          <div class="field full">
+            <label>Giocato</label>
+            <div class="flag-toggles" id="togPlayed" data-field="played">
+              <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'played')">Sì</button>
+              <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'played')">No</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-section-title">Valutazione personale</div>
+        <div class="ratings-edit" id="ratingsEdit"></div>
+      </div>
+
+    </div>
+    <div class="panel-footer">
+      <button class="btn btn-danger btn-sm" id="btnDelete" onclick="deleteGame()">Elimina</button>
+      <button class="btn btn-ghost btn-sm" onclick="closePanel()">Annulla</button>
+      <button class="btn btn-primary btn-sm" onclick="saveGame()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- CSV IMPORT MODAL -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <h2>Importa da CSV / Google Sheets</h2>
+    <div>
+      <p>Esporta il tuo Google Sheet in formato CSV (<em>File → Scarica → CSV</em>), poi incolla il contenuto qui sotto oppure carica il file.</p>
+      <ol>
+        <li>La prima riga deve essere l'intestazione.</li>
+        <li>Colonne riconosciute: <strong>Titolo, Players, Best in, Playing time, Must-follow, Trump, Prediction, Rules, Played, Status, Notes</strong></li>
+        <li>I dati esistenti non vengono cancellati: i giochi con lo stesso titolo vengono aggiornati.</li>
+      </ol>
+    </div>
+    <button class="btn btn-secondary" onclick="document.getElementById('csvFileInput').click()">📄 Carica file CSV…</button>
+    <input type="file" id="csvFileInput" accept=".csv,.txt" onchange="loadCSVFile(event)">
+    <textarea id="csvTextarea" placeholder="…oppure incolla qui il CSV"></textarea>
+    <div id="csvPreview" style="font-size:12px;color:var(--text-soft)"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeImportModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="doImportCSV()">Importa</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────── DATA ───────────────
+const STORAGE_KEY = 'trick-collection-v2';
+const RATINGS = ['divertimento','difficolta','scalabilita','longevita','originalita','apprendimento'];
+const RATING_LABELS = {
+  divertimento:'Divertimento',
+  difficolta:'Difficoltà',
+  scalabilita:'Scalabilità',
+  longevita:'Longevità',
+  originalita:'Originalità mec.',
+  apprendimento:'Velocità appren.'
+};
+
+let games = [];
+let currentId = null;
+let currentRatings = {};
+let currentFlags = {};
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) games = JSON.parse(raw);
+  }catch(e){ games = []; }
+}
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(games)); }catch(e){}
+}
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+// ─────────────── RENDER ───────────────
+function flagVal(v){
+  if(v==='yes'||v===true||v==='v'||v==='V') return 'yes';
+  if(v==='part'||v==='~') return 'part';
+  return 'no';
+}
+function flagLabel(field,v){
+  const labels={mustFollow:'Must-follow',trump:'Trump',prediction:'Prediction',played:'Giocato'};
+  const short={yes:'✓',no:'✗',part:'~'};
+  return `${labels[field]}: ${short[v]||'?'}`;
+}
+function flagClass(v){
+  return v==='yes'?'flag-yes':v==='part'?'flag-part':'flag-no';
+}
+function pipsHtml(val,n=5){
+  let h='<div class="pips">';
+  for(let i=1;i<=n;i++) h+=`<div class="pip${i<=val?' filled':''}"></div>`;
+  return h+'</div>';
+}
+function getStatusClass(st){
+  if(!st) return '';
+  return 'status-'+st.replace(/\s+/g,'\\ ');
+}
+
+function renderGrid(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const fStatus = document.getElementById('filterStatus').value;
+  const fPlMin = parseInt(document.getElementById('filterPlMin').value)||0;
+  const fPlMax = parseInt(document.getElementById('filterPlMax').value)||99;
+  const fMF = document.getElementById('filterMustFollow').value;
+  const fTr = document.getElementById('filterTrump').value;
+  const fPr = document.getElementById('filterPrediction').value;
+  const fPl = document.getElementById('filterPlayed').value;
+  const sortF = document.getElementById('sortField').value;
+  const sortD = document.getElementById('sortDir').value;
+
+  let list = games.filter(g=>{
+    if(q && !(g.title||'').toLowerCase().includes(q)) return false;
+    if(fStatus && g.status !== fStatus) return false;
+    if(fMF && flagVal(g.mustFollow)!==fMF) return false;
+    if(fTr && flagVal(g.trump)!==fTr) return false;
+    if(fPr && flagVal(g.prediction)!==fPr) return false;
+    if(fPl && flagVal(g.played)!==fPl) return false;
+    // player filter on bestIn or players
+    const best = parseInt(g.bestIn)||parseInt((g.players||'').split('-')[0])||0;
+    if(fPlMin>0 && best<fPlMin) return false;
+    if(fPlMax<99 && best>fPlMax) return false;
+    return true;
+  });
+
+  list.sort((a,b)=>{
+    let va,vb;
+    if(RATINGS.includes(sortF)){
+      va=parseInt((a.ratings||{})[sortF])||0;
+      vb=parseInt((b.ratings||{})[sortF])||0;
+    } else if(sortF==='players'){
+      va=parseInt(a.bestIn)||0;
+      vb=parseInt(b.bestIn)||0;
+    } else if(sortF==='time'){
+      va=parseInt(a.playingTime)||0;
+      vb=parseInt(b.playingTime)||0;
+    } else {
+      va=(a.title||'').toLowerCase();
+      vb=(b.title||'').toLowerCase();
+    }
+    if(va<vb) return sortD==='asc'?-1:1;
+    if(va>vb) return sortD==='asc'?1:-1;
+    return 0;
+  });
+
+  const grid = document.getElementById('gameGrid');
+  document.getElementById('countBadge').textContent = list.length+(list.length===1?' gioco':' giochi');
+
+  if(!list.length){
+    grid.innerHTML='<div class="empty-state"><p>Nessun gioco trovato</p><small>Prova a modificare i filtri o aggiungi il tuo primo gioco.</small></div>';
+    return;
+  }
+
+  grid.innerHTML = list.map(g=>{
+    const hasRatings = RATINGS.some(r=>(g.ratings||{})[r]>0);
+    const stClass = g.status ? 'status-'+g.status.replace(/\s/g,'_') : '';
+    const stStyle = getStatusBadgeStyle(g.status);
+    return `<div class="game-card" onclick="openGame('${g.id}')">
+      <div class="card-top">
+        <div class="card-title">${esc(g.title||'—')}</div>
+        ${g.status?`<span class="status-badge" style="${stStyle}">${esc(g.status)}</span>`:''}
+      </div>
+      <div class="card-meta">
+        ${g.players?`<span class="meta-pill">👥 ${esc(g.players)}</span>`:''}
+        ${g.bestIn?`<span class="meta-pill">⭐ best: ${esc(g.bestIn)}</span>`:''}
+        ${g.playingTime?`<span class="meta-pill">⏱ ${esc(g.playingTime)} min</span>`:''}
+      </div>
+      <div class="card-flags">
+        ${['mustFollow','trump','prediction','played'].map(f=>{
+          const v=flagVal(g[f]);
+          const labels={mustFollow:'Must-follow',trump:'Trump',prediction:'Prediction',played:'Giocato'};
+          const short={yes:'✓',no:'✗',part:'~'};
+          return `<span class="flag ${flagClass(v)}">${labels[f]}: ${short[v]}</span>`;
+        }).join('')}
+      </div>
+      ${hasRatings?`<div class="card-ratings">
+        ${RATINGS.map(r=>{
+          const v=parseInt((g.ratings||{})[r])||0;
+          if(!v) return '';
+          return `<div class="rating-row"><span class="rating-label">${RATING_LABELS[r]}</span>${pipsHtml(v)}</div>`;
+        }).join('')}
+      </div>`:''}
+      <textarea class="card-hook" rows="2" placeholder="Hook — descrivi il gioco in una riga…" data-id="${g.id}" onclick="event.stopPropagation()" oninput="saveHook(event)">${esc(g.hook||'')}</textarea>
+    </div>`;
+  }).join('');
+}
+
+function getStatusBadgeStyle(st){
+  const map={
+    'Owned':'background:rgba(76,175,125,0.15);color:#4caf7d',
+    'PNP':'background:rgba(224,164,74,0.15);color:#e0a44a',
+    'WTB Essen':'background:rgba(91,141,217,0.15);color:#5b8dd9',
+    'WTB Gen':'background:rgba(91,141,217,0.15);color:#5b8dd9',
+    'WTB altri':'background:rgba(91,141,217,0.15);color:#5b8dd9',
+    'Proxy Rage':'background:rgba(217,107,107,0.15);color:#d96b6b',
+    'Preordered':'background:rgba(150,100,200,0.15);color:#b388d6',
+  };
+  return map[st]||'background:rgba(255,255,255,0.07);color:#8892aa';
+}
+
+function esc(s){ 
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─────────────── PANEL ───────────────
+function openNewGame(){
+  currentId = null;
+  currentFlags = {mustFollow:'no',trump:'no',prediction:'no',played:'no'};
+  currentRatings = {};
+  fillPanel({title:'',players:'',bestIn:'',playingTime:'',status:'Owned',rules:'',notes:'',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
+  document.getElementById('btnDelete').style.display='none';
+  document.getElementById('panelOverlay').classList.add('open');
+}
+
+function openGame(id){
+  const g = games.find(x=>x.id===id);
+  if(!g) return;
+  currentId = id;
+  currentFlags = {mustFollow:flagVal(g.mustFollow),trump:flagVal(g.trump),prediction:flagVal(g.prediction),played:flagVal(g.played)};
+  currentRatings = Object.assign({},g.ratings||{});
+  fillPanel(g);
+  document.getElementById('btnDelete').style.display='';
+  document.getElementById('panelOverlay').classList.add('open');
+}
+
+function fillPanel(g){
+  document.getElementById('panelTitle').textContent = g.title||'Nuovo gioco';
+  const sb = document.getElementById('panelStatusBadge');
+  sb.innerHTML = g.status?`<span class="status-badge" style="${getStatusBadgeStyle(g.status)}">${esc(g.status)}</span>`:'';
+
+  document.getElementById('fTitle').value = g.title||'';
+  document.getElementById('fPlayers').value = g.players||'';
+  document.getElementById('fBestIn').value = g.bestIn||'';
+  document.getElementById('fTime').value = g.playingTime||'';
+  document.getElementById('fStatus').value = g.status||'Owned';
+  document.getElementById('fRules').value = g.rules||'';
+  document.getElementById('fHook').value = g.hook||'';
+  document.getElementById('fNotes').value = g.notes||'';
+
+  // flags
+  ['mustFollow','trump','prediction','played'].forEach(f=>{
+    const v = currentFlags[f]||'no';
+    const cont = document.getElementById('tog'+f.charAt(0).toUpperCase()+f.slice(1));
+    if(!cont) return;
+    cont.querySelectorAll('.flag-toggle').forEach(btn=>{
+      btn.className='flag-toggle';
+      if(btn.dataset.val===v) btn.classList.add('active-'+v);
+    });
+  });
+
+  // ratings
+  const re = document.getElementById('ratingsEdit');
+  re.innerHTML = RATINGS.map(r=>{
+    const v = parseInt((g.ratings||{})[r])||0;
+    const pips = [1,2,3,4,5].map(i=>`<div class="star-pip${i<=v?' lit':''}" data-rating="${r}" data-val="${i}" onclick="setRating('${r}',${i})"></div>`).join('');
+    return `<div class="rating-edit-row"><span class="rating-edit-label">${RATING_LABELS[r]}</span><div class="star-picker">${pips}</div></div>`;
+  }).join('');
+}
+
+function setRating(field, val){
+  currentRatings[field] = (currentRatings[field]===val)?0:val;
+  const v = currentRatings[field];
+  document.querySelectorAll(`.star-pip[data-rating="${field}"]`).forEach(p=>{
+    p.classList.toggle('lit', parseInt(p.dataset.val)<=v);
+  });
+}
+
+function toggleFlag(btn, field){
+  const val = btn.dataset.val;
+  currentFlags[field] = val;
+  const cont = btn.closest('.flag-toggles');
+  cont.querySelectorAll('.flag-toggle').forEach(b=>{
+    b.className='flag-toggle';
+    if(b.dataset.val===val) b.classList.add('active-'+val);
+  });
+}
+
+function saveGame(){
+  const title = document.getElementById('fTitle').value.trim();
+  if(!title){ alert('Il titolo è obbligatorio.'); return; }
+  const data = {
+    title,
+    players: document.getElementById('fPlayers').value.trim(),
+    bestIn: document.getElementById('fBestIn').value.trim(),
+    playingTime: document.getElementById('fTime').value.trim(),
+    status: document.getElementById('fStatus').value,
+    rules: document.getElementById('fRules').value.trim(),
+    hook: document.getElementById('fHook').value.trim(),
+    notes: document.getElementById('fNotes').value.trim(),
+    mustFollow: currentFlags.mustFollow||'no',
+    trump: currentFlags.trump||'no',
+    prediction: currentFlags.prediction||'no',
+    played: currentFlags.played||'no',
+    ratings: Object.assign({},currentRatings),
+  };
+  if(currentId){
+    const idx = games.findIndex(x=>x.id===currentId);
+    games[idx] = Object.assign(games[idx],data);
+  } else {
+    data.id = genId();
+    games.push(data);
+  }
+  save();
+  renderGrid();
+  closePanel();
+}
+
+function deleteGame(){
+  if(!currentId) return;
+  if(!confirm('Eliminare questo gioco dalla collezione?')) return;
+  games = games.filter(x=>x.id!==currentId);
+  save();
+  renderGrid();
+  closePanel();
+}
+
+function closePanel(){ document.getElementById('panelOverlay').classList.remove('open'); }
+function maybeClosePanel(e){ if(e.target===document.getElementById('panelOverlay')) closePanel(); }
+
+// ─────────────── CSV IMPORT ───────────────
+function openImportModal(){ document.getElementById('importModal').classList.add('open'); }
+function closeImportModal(){ document.getElementById('importModal').classList.remove('open'); document.getElementById('csvTextarea').value=''; document.getElementById('csvPreview').textContent=''; }
+
+function loadCSVFile(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev=>{ document.getElementById('csvTextarea').value=ev.target.result; };
+  r.readAsText(f);
+  e.target.value='';
+}
+
+function parseCSV(text){
+  const lines = text.split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2) return [];
+  const sep = lines[0].includes('\t')?'\t':',';
+  const headers = lines[0].split(sep).map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
+  const col = h => headers.indexOf(h);
+  return lines.slice(1).map(line=>{
+    // naive CSV parse (handles quoted commas basic)
+    const cells=[];let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){inQ=!inQ;}
+      else if((c===sep)&&!inQ){cells.push(cur.trim());cur='';}
+      else cur+=c;
+    }
+    cells.push(cur.trim());
+    const get=h=>{ const i=col(h); return i>=0?(cells[i]||'').replace(/^"|"$/g,'').trim():''; };
+    const fv=v=>{
+      v=v.toLowerCase();
+      if(v==='v'||v==='yes'||v==='sì'||v==='si') return 'yes';
+      if(v==='~'||v==='part'||v==='parziale') return 'part';
+      return 'no';
+    };
+    return {
+      id: genId(),
+      title: get('titolo')||get('title'),
+      players: get('players'),
+      bestIn: get('best in')||get('best_in'),
+      playingTime: get('playing time')||get('playing_time'),
+      mustFollow: fv(get('must-follow')||get('must follow')||get('mustfollow')),
+      trump: fv(get('trump')),
+      prediction: fv(get('prediction')),
+      rules: get('rules'),
+      played: fv(get('played')),
+      status: get('status'),
+      notes: get('notes')||get('note'),
+      ratings: {},
+    };
+  }).filter(g=>g.title);
+}
+
+function doImportCSV(){
+  const text = document.getElementById('csvTextarea').value.trim();
+  if(!text){ alert('Nessun dato da importare.'); return; }
+  const parsed = parseCSV(text);
+  if(!parsed.length){ alert('Nessun gioco riconosciuto. Controlla che la prima riga contenga le intestazioni corrette.'); return; }
+  let added=0,updated=0;
+  parsed.forEach(p=>{
+    const idx = games.findIndex(g=>g.title.toLowerCase()===p.title.toLowerCase());
+    if(idx>=0){ Object.assign(games[idx],p,{id:games[idx].id,ratings:games[idx].ratings}); updated++; }
+    else{ games.push(p); added++; }
+  });
+  save();
+  renderGrid();
+  closeImportModal();
+  alert(`Importati: ${added} nuovi giochi, ${updated} aggiornati.`);
+}
+
+// ─────────────── JSON ───────────────
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(games,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'trick-collection.json';
+  a.click();
+}
+
+function importJSON(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev=>{
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!Array.isArray(data)) throw new Error();
+      if(!confirm(`Importare ${data.length} giochi? Sostituirà l'intera collezione attuale.`)) return;
+      games = data;
+      save();
+      renderGrid();
+      alert('Collezione importata.');
+    }catch(e2){ alert('File JSON non valido.'); }
+  };
+  r.readAsText(f);
+  e.target.value='';
+}
+
+function saveHook(e){
+  const id = e.target.dataset.id;
+  const g = games.find(x=>x.id===id);
+  if(!g) return;
+  g.hook = e.target.value;
+  save();
+}
+
+// ─────────────── LIVE FILTERS ───────────────
+['searchInput','filterStatus','filterPlMin','filterPlMax','filterMustFollow','filterTrump','filterPrediction','filterPlayed','sortField','sortDir']
+  .forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input',renderGrid); });
+
+document.getElementById('fTitle').addEventListener('input',()=>{
+  document.getElementById('panelTitle').textContent = document.getElementById('fTitle').value||'Nuovo gioco';
+});
+
+// ─────────────── INIT ───────────────
+load();
+renderGrid();
+</script>
+</body>
+</html>

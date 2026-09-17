@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Contapunti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --felt: white;
+    --felt-line: #c9a24b;
+    --tile: white;
+    --tile-edge: #dc0000;
+    --ink: #111;
+    --ink-soft: #6b6153;
+    --minus: #7a3b32;
+    --minus-press: #612e27;
+    --plus: #2d5c46;
+    --plus-press: #234a38;
+    --gap: clamp(3px, 0.6vw, 8px);
+  }
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --felt: white;
+    }
+  }
+  :root[data-theme="dark"]{
+    --felt: white;
+  }
+
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body{
+    margin:0; padding:0; height:100%; width:100%;
+    overflow:hidden; background: var(--felt);
+    font-family: 'Manrope', sans-serif;
+  }
+
+  .table{
+    position: fixed; inset:0;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    /* gap: var(--gap); */
+    /* padding: var(--gap); */
+    /* background: var(--felt); */
+  }
+
+  .seat{
+    background-color: #E03825;
+    background-image: url('bg.webp');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain; /* Usa 'cover' se vuoi riempire senza lasciare bordi rossi ai lati/sopra */
+    
+    /* border-radius: 14px; */
+    /* border: 10px solid var(--tile-edge); */
+    /* box-shadow: inset 0 0 0 1px rgba(201,162,75,0.35); */
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: clamp(4px, 1.4vh, 14px);
+    padding: clamp(6px, 2vh, 20px);
+    min-width:0; min-height:0;
+    position:relative;
+  }
+
+  .name-field{
+    /* width: min(80%, 320px); */
+    text-align:center;
+    /* font-family:'Manrope', sans-serif; */
+	font-family:'Spectral', sans-serif;
+    font-style: normal;
+    font-weight:700;
+    font-size: clamp(15px, 2.4vw, 22px);
+	margin-bottom: clamp(12px, 2vw, 18px);
+	zoom: 125%;
+    letter-spacing:0.02em;
+    color: var(--ink);
+    /* background: rgba(255, 255, 255, 0.4); */
+	background-color: transparent;
+    border:none;
+    /* border-bottom: 1.5px solid var(--tile-edge); */
+    padding: 2px 4px 6px;
+    outline:none;
+    /* border-radius: 4px; */
+  }
+  .name-field::placeholder{ color: var(--ink-soft); font-weight:500; }
+  /* .name-field:focus{ border-bottom-color: var(--felt-line); #444;} */
+
+  .score{
+    font-family:'Spectral', serif;
+    font-weight:600;
+    font-size: clamp(28px, 6.2vw, 78px);
+    line-height:1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    user-select:none;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+  }
+  .score.negative{ color: var(--minus); }
+
+  .controls{
+    display: flex;
+    align-items: center;
+    gap: clamp(8px, 1.6vw, 22px);
+    background: white;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+  }
+
+  .stepper{
+    display:flex;
+    align-items:center;
+    gap: clamp(4px, 0.8vw, 10px);
+  }
+
+  .stepper .amount{
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size: clamp(10px, 1.3vw, 14px);
+    color: var(--ink-soft);
+    min-width: 2ch;
+    text-align:center;
+  }
+
+  .stepper button{
+    width: clamp(22px, 4vw, 34px);
+    height: clamp(22px, 4vw, 34px);
+    border-radius:999px;
+    border:none;
+    color:#f3ecda;
+    font-size: clamp(14px, 2.4vw, 20px);
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    line-height:0;
+    transition: transform 0.06s ease, background 0.1s ease;
+  }
+  .stepper button:active{ transform: scale(0.88); }
+  .stepper button.minus{ background: var(--minus); }
+  .stepper button.minus:active{ background: var(--minus-press); }
+  .stepper button.plus{ background: var(--plus); }
+  .stepper button.plus:active{ background: var(--plus-press); }
+
+  .reset-seat{
+    border:none;
+    background:transparent;
+    color: var(--ink-soft);
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size: clamp(9px, 1.1vw, 12px);
+    letter-spacing:0.03em;
+    padding: 2px 6px;
+    cursor:pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--tile-edge);
+  }
+  .reset-seat:active{ color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="table" id="table">
+  <div class="seat" data-seat="0">
+    <input class="name-field" placeholder="Nome" maxlength="16">
+    <div class="score">5000¥</div>
+    <div class="controls">
+      <div class="stepper">
+        <button class="minus" data-amount="-500">–</button>
+        <span class="amount">500</span>
+        <button class="plus" data-amount="500">+</button>
+      </div>
+      <div class="stepper">
+        <button class="minus" data-amount="-100">–</button>
+        <span class="amount">100</span>
+        <button class="plus" data-amount="100">+</button>
+      </div>
+    </div>
+    <button class="reset-seat">azzera</button>
+  </div>
+
+  <div class="seat" data-seat="1">
+    <input class="name-field" placeholder="Nome" maxlength="16">
+    <div class="score">5000¥</div>
+    <div class="controls">
+      <div class="stepper">
+        <button class="minus" data-amount="-500">–</button>
+        <span class="amount">500</span>
+        <button class="plus" data-amount="500">+</button>
+      </div>
+      <div class="stepper">
+        <button class="minus" data-amount="-100">–</button>
+        <span class="amount">100</span>
+        <button class="plus" data-amount="100">+</button>
+      </div>
+    </div>
+    <button class="reset-seat">azzera</button>
+  </div>
+
+  <div class="seat" data-seat="2">
+    <input class="name-field" placeholder="Nome" maxlength="16">
+    <div class="score">5000¥</div>
+    <div class="controls">
+      <div class="stepper">
+        <button class="minus" data-amount="-500">–</button>
+        <span class="amount">500</span>
+        <button class="plus" data-amount="500">+</button>
+      </div>
+      <div class="stepper">
+        <button class="minus" data-amount="-100">–</button>
+        <span class="amount">100</span>
+        <button class="plus" data-amount="100">+</button>
+      </div>
+    </div>
+    <button class="reset-seat">azzera</button>
+  </div>
+
+  <div class="seat" data-seat="3">
+    <input class="name-field" placeholder="Nome" maxlength="16">
+    <div class="score">5000¥</div>
+    <div class="controls">
+      <div class="stepper">
+        <button class="minus" data-amount="-500">–</button>
+        <span class="amount">500</span>
+        <button class="plus" data-amount="500">+</button>
+      </div>
+      <div class="stepper">
+        <button class="minus" data-amount="-100">–</button>
+        <span class="amount">100</span>
+        <button class="plus" data-amount="100">+</button>
+      </div>
+    </div>
+    <button class="reset-seat">azzera</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var STORAGE_KEY = 'contapunti-tavolo-v1';
+  var START = 5000;
+  var seats = Array.prototype.slice.call(document.querySelectorAll('.seat'));
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) throw new Error('empty');
+      var parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed) || parsed.length !== 4) throw new Error('shape');
+      return parsed;
+    }catch(e){
+      return [START, START, START, START].map(function(s){ return {score:s, name:''}; });
+    }
+  }
+
+  function saveState(){
+    try{
+      var state = seats.map(function(seat){
+        return {
+          score: parseInt(seat.dataset.score, 10),
+          name: seat.querySelector('.name-field').value
+        };
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){ /* storage unavailable, continue silently */ }
+  }
+
+  function render(seat){
+    var score = parseInt(seat.dataset.score, 10);
+    var el = seat.querySelector('.score');
+    el.textContent = score.toLocaleString('it-IT') + '¥';
+    el.classList.toggle('negative', score < 0);
+  }
+
+  var initial = loadState();
+  seats.forEach(function(seat, i){
+    seat.dataset.score = initial[i].score;
+    seat.querySelector('.name-field').value = initial[i].name || '';
+    render(seat);
+
+    seat.querySelectorAll('button[data-amount]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var delta = parseInt(btn.dataset.amount, 10);
+        seat.dataset.score = parseInt(seat.dataset.score, 10) + delta;
+        render(seat);
+        saveState();
+      });
+    });
+
+    seat.querySelector('.name-field').addEventListener('input', saveState);
+
+    seat.querySelector('.reset-seat').addEventListener('click', function(){
+      seat.dataset.score = START;
+      render(seat);
+      saveState();
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
