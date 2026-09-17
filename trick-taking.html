@@ -151,6 +151,16 @@ select option{background:var(--surface)}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
+/* ── GITHUB SYNC ── */
+.sync-bar{padding:10px 16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.sync-status{font-size:11px;display:flex;align-items:center;gap:6px;color:var(--text-soft)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text-soft);flex-shrink:0}
+.sync-dot.ok{background:var(--success)}
+.sync-dot.err{background:var(--danger)}
+.sync-dot.busy{background:var(--warn);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.sync-time{font-size:10px;color:var(--text-soft);opacity:0.7}
+
 /* ── MOBILE ── */
 @media(max-width:700px){
   .app{flex-direction:column}
@@ -247,6 +257,12 @@ select option{background:var(--surface)}
       <button class="btn btn-ghost" onclick="exportJSON()">⬇ Esporta JSON</button>
       <button class="btn btn-ghost" onclick="document.getElementById('jsonFileInput').click()">⬆ Importa JSON</button>
       <input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="importJSON(event)">
+    </div>
+    <div class="sync-bar">
+      <div class="sync-status"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">GitHub non configurato</span></div>
+      <div class="sync-time" id="syncTime"></div>
+      <button class="btn btn-ghost btn-sm" onclick="openTokenModal()" style="font-size:11px">⚙ Configura sync</button>
+      <button class="btn btn-ghost btn-sm" id="btnSync" onclick="ghPush(true)" style="font-size:11px;display:none">↑ Sincronizza ora</button>
     </div>
   </aside>
 
@@ -395,6 +411,24 @@ select option{background:var(--surface)}
   </div>
 </div>
 
+<!-- TOKEN MODAL -->
+<div class="modal-overlay" id="tokenModal">
+  <div class="modal">
+    <h2>⚙ Configura sync GitHub</h2>
+    <p>I dati verranno salvati come <code style="background:var(--bg);padding:1px 5px;border-radius:4px;font-size:12px">trick-collection.json</code> nel repo <strong>Nylo/netlify-site</strong> (branch <strong>main</strong>).<br>Il token viene salvato solo nel localStorage di questo browser, non viene mai trasmesso ad altri.</p>
+    <div class="filter-group">
+      <label style="font-size:11px;color:var(--text-soft);font-weight:600">Personal Access Token GitHub (scope: repo)</label>
+      <input type="password" id="tokenInput" placeholder="ghp_…" autocomplete="off">
+    </div>
+    <p style="font-size:12px">Per creare un token: <strong>github.com → Settings → Developer settings → Personal access tokens → Tokens (classic)</strong> → seleziona solo <strong>repo</strong>.</p>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="clearToken()">Rimuovi token</button>
+      <button class="btn btn-ghost" onclick="closeTokenModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="saveToken()">Salva e sincronizza</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ─────────────── DATA ───────────────
 const STORAGE_KEY = 'trick-collection-v2';
@@ -413,6 +447,104 @@ let currentId = null;
 let currentRatings = {};
 let currentFlags = {};
 
+// ─────────────── GITHUB SYNC ───────────────
+const GH_OWNER = 'Nylo';
+const GH_REPO  = 'netlify-site';
+const GH_BRANCH = 'main';
+const GH_FILE  = 'trick-collection.json';
+const GH_API   = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
+const TOKEN_KEY = 'gh-token-trick';
+
+let ghSha = null; // SHA dell'ultimo file letto — serve per l'update
+
+function getToken(){ try{ return localStorage.getItem(TOKEN_KEY)||''; }catch(e){ return ''; } }
+
+function setSyncUI(state, msg, time){
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  const tm  = document.getElementById('syncTime');
+  const btn = document.getElementById('btnSync');
+  dot.className = 'sync-dot'+(state==='ok'?' ok':state==='err'?' err':state==='busy'?' busy':'');
+  lbl.textContent = msg;
+  if(time) tm.textContent = 'Ultimo sync: '+time;
+  btn.style.display = getToken() ? '' : 'none';
+}
+
+async function ghFetch(){
+  const token = getToken();
+  if(!token){ setSyncUI('','GitHub non configurato'); return false; }
+  setSyncUI('busy','Caricamento da GitHub…');
+  try{
+    const res = await fetch(GH_API+'?ref='+GH_BRANCH+'&t='+Date.now(), {
+      headers:{ Authorization:'token '+token, Accept:'application/vnd.github.v3+json' }
+    });
+    if(res.status===404){
+      // file non esiste ancora — ok, partiremo da zero
+      ghSha = null;
+      setSyncUI('ok','GitHub connesso — nessun dato remoto');
+      return true;
+    }
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const json = await res.json();
+    ghSha = json.sha;
+    const decoded = JSON.parse(atob(json.content.replace(/\n/g,'')));
+    games = decoded;
+    save();
+    const now = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    setSyncUI('ok',`Sincronizzato (${games.length} giochi)`, now);
+    return true;
+  }catch(e){
+    setSyncUI('err','Errore GitHub: '+e.message);
+    return false;
+  }
+}
+
+async function ghPush(manual=false){
+  const token = getToken();
+  if(!token) return;
+  setSyncUI('busy','Salvataggio su GitHub…');
+  try{
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(games,null,2))));
+    const body = { message:'Update trick-collection', content, branch:GH_BRANCH };
+    if(ghSha) body.sha = ghSha;
+    const res = await fetch(GH_API, {
+      method:'PUT',
+      headers:{ Authorization:'token '+token, Accept:'application/vnd.github.v3+json', 'Content-Type':'application/json' },
+      body: JSON.stringify(body)
+    });
+    if(!res.ok){ const e=await res.json(); throw new Error(e.message||'HTTP '+res.status); }
+    const json = await res.json();
+    ghSha = json.content.sha;
+    const now = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    setSyncUI('ok',`Sincronizzato (${games.length} giochi)`, now);
+  }catch(e){
+    setSyncUI('err','Errore push: '+e.message);
+  }
+}
+
+function openTokenModal(){
+  document.getElementById('tokenInput').value = getToken();
+  document.getElementById('tokenModal').classList.add('open');
+}
+function closeTokenModal(){ document.getElementById('tokenModal').classList.remove('open'); }
+async function saveToken(){
+  const t = document.getElementById('tokenInput').value.trim();
+  if(!t){ alert('Inserisci un token.'); return; }
+  try{ localStorage.setItem(TOKEN_KEY, t); }catch(e){}
+  closeTokenModal();
+  const ok = await ghFetch();
+  if(ok){ renderGrid(); }
+}
+function clearToken(){
+  if(!confirm('Rimuovere il token? La sync verrà disattivata.')) return;
+  try{ localStorage.removeItem(TOKEN_KEY); }catch(e){}
+  ghSha = null;
+  closeTokenModal();
+  setSyncUI('','GitHub non configurato');
+  document.getElementById('btnSync').style.display='none';
+}
+
+// ─────────────── DATA ───────────────
 function load(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -421,6 +553,14 @@ function load(){
 }
 function save(){
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(games)); }catch(e){}
+}
+// save + push to GitHub (debounced 1.5s)
+let pushTimer = null;
+function saveAndSync(){
+  save();
+  if(!getToken()) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(()=>ghPush(), 1500);
 }
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 
@@ -519,7 +659,7 @@ function renderGrid(){
       <div class="card-flags">
         ${['mustFollow','trump','prediction','played'].map(f=>{
           const v=flagVal(g[f]);
-          const labels={mustFollow:'Must-follow',trump:'Trump',prediction:'Prediction',played:'Giocato'};
+          const labels={mustFollow:'Must-follow',trump:'Trump',prediction:'Pred.',played:'Giocato'};
           const short={yes:'✓',no:'✗',part:'~'};
           return `<span class="flag ${flagClass(v)}">${labels[f]}: ${short[v]}</span>`;
         }).join('')}
@@ -651,7 +791,7 @@ function saveGame(){
     data.id = genId();
     games.push(data);
   }
-  save();
+  saveAndSync();
   renderGrid();
   closePanel();
 }
@@ -660,7 +800,7 @@ function deleteGame(){
   if(!currentId) return;
   if(!confirm('Eliminare questo gioco dalla collezione?')) return;
   games = games.filter(x=>x.id!==currentId);
-  save();
+  saveAndSync();
   renderGrid();
   closePanel();
 }
@@ -732,7 +872,7 @@ function doImportCSV(){
     if(idx>=0){ Object.assign(games[idx],p,{id:games[idx].id,ratings:games[idx].ratings}); updated++; }
     else{ games.push(p); added++; }
   });
-  save();
+  saveAndSync();
   renderGrid();
   closeImportModal();
   alert(`Importati: ${added} nuovi giochi, ${updated} aggiornati.`);
@@ -756,7 +896,7 @@ function importJSON(e){
       if(!Array.isArray(data)) throw new Error();
       if(!confirm(`Importare ${data.length} giochi? Sostituirà l'intera collezione attuale.`)) return;
       games = data;
-      save();
+      saveAndSync();
       renderGrid();
       alert('Collezione importata.');
     }catch(e2){ alert('File JSON non valido.'); }
@@ -770,7 +910,7 @@ function saveHook(e){
   const g = games.find(x=>x.id===id);
   if(!g) return;
   g.hook = e.target.value;
-  save();
+  saveAndSync();
 }
 
 // ─────────────── LIVE FILTERS ───────────────
@@ -784,6 +924,13 @@ document.getElementById('fTitle').addEventListener('input',()=>{
 // ─────────────── INIT ───────────────
 load();
 renderGrid();
+// Se c'è un token, carica da GitHub (sovrascrive il localStorage con dati freschi)
+if(getToken()){
+  setSyncUI('busy','Caricamento da GitHub…');
+  ghFetch().then(ok=>{ if(ok) renderGrid(); });
+} else {
+  setSyncUI('','GitHub non configurato');
+}
 </script>
 </body>
 </html>
