@@ -25,6 +25,17 @@
   --radius:10px;
   --sidebar:270px;
 }
+:root[data-theme="light"]{
+  --bg:#fafafa;
+  --surface:#ffffff;
+  --surface-raised:#f5f5f5;
+  --surface-hover:#efefef;
+  --accent:#4a7cc5;
+  --accent-soft:rgba(74,124,197,0.12);
+  --text:#1a1a1a;
+  --text-soft:#666666;
+  --border:rgba(0,0,0,0.1);
+}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;overflow:hidden}
 
 /* ── LAYOUT ── */
@@ -136,7 +147,7 @@ select option{background:var(--surface)}
 .star-picker{display:flex;gap:4px}
 .star-pip{width:18px;height:18px;border-radius:50%;border:1px solid var(--border);background:var(--bg);cursor:pointer;transition:background 0.1s,border-color 0.1s}
 .star-pip:hover,.star-pip.lit{background:var(--accent);border-color:var(--accent)}
-.panel-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+.panel-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-start}
 
 /* ── MODAL (CSV import) ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;display:none;align-items:center;justify-content:center}
@@ -151,6 +162,8 @@ select option{background:var(--surface)}
 #csvFileInput{display:none}
 
 /* ── AUTH ── */
+.theme-toggle{background:transparent;border:1px solid var(--border);color:var(--text-soft);border-radius:7px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all 0.15s}
+.theme-toggle:hover{background:var(--surface-raised);color:var(--text)}
 .auth-btn{background:transparent;border:1px solid var(--border);color:var(--text-soft);border-radius:7px;padding:6px 13px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all 0.15s}
 .auth-btn:hover{background:var(--surface-raised);color:var(--text)}
 .auth-btn.logged{border-color:rgba(76,175,125,0.4);color:var(--success)}
@@ -205,9 +218,7 @@ select option{background:var(--surface)}
         <option value="">Tutti gli stati</option>
         <option>Owned</option>
         <option>PNP</option>
-        <option>WTB Essen</option>
-        <option>WTB Gen</option>
-        <option>WTB altri</option>
+        <option>Want to buy</option>
         <option>Proxy Rage</option>
         <option>Preordered</option>
       </select>
@@ -295,6 +306,7 @@ select option{background:var(--surface)}
         <input type="text" id="searchInput" placeholder="Cerca gioco…">
       </div>
       <div class="count-badge" id="countBadge">0 giochi</div>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
       <button class="auth-btn" id="authBtn" onclick="openAuthModal()">🔒 Accedi</button>
     </div>
     <div class="content">
@@ -339,9 +351,7 @@ select option{background:var(--surface)}
             <select id="fStatus">
               <option>Owned</option>
               <option>PNP</option>
-              <option>WTB Essen</option>
-              <option>WTB Gen</option>
-              <option>WTB altri</option>
+              <option>Want to buy</option>
               <option>Proxy Rage</option>
               <option>Preordered</option>
             </select>
@@ -349,6 +359,10 @@ select option{background:var(--surface)}
           <div class="field">
             <label>Link regole</label>
             <input type="text" id="fRules" placeholder="URL o ITA/ENG">
+          </div>
+          <div class="field">
+            <label>Regolamento PDF</label>
+            <input type="text" id="fRegolamento" placeholder="URL regolamento">
           </div>
           <div class="field full">
             <label>Link BoardGameGeek</label>
@@ -522,6 +536,22 @@ let currentId = null;
 let currentRatings = {};
 let currentFlags = {};
 
+// ─────────────── THEME ───────────────
+const THEME_KEY = 'trick-theme';
+function getTheme(){ try{ return localStorage.getItem(THEME_KEY)||'dark'; }catch(e){ return 'dark'; } }
+function setTheme(t){ try{ localStorage.setItem(THEME_KEY, t); }catch(e){} }
+function updateTheme(){
+  const t = getTheme();
+  if(t==='light') document.documentElement.setAttribute('data-theme','light');
+  else document.documentElement.removeAttribute('data-theme');
+  document.getElementById('themeToggle').textContent = t==='light'?'☀️':'🌙';
+}
+function toggleTheme(){
+  const t = getTheme()==='light'?'dark':'light';
+  setTheme(t);
+  updateTheme();
+}
+
 // ─────────────── AUTH ───────────────
 const PWD_HASH = '4bd25b8fd42ac3a1f0cbcb5f88077ac3962d62b6c2910757bffd2b2e948e7d79';
 const AUTH_SESSION_KEY = 'trick-auth-session';
@@ -616,14 +646,36 @@ function setSyncUI(state, msg, time){
 
 async function ghFetch(){
   const token = getToken();
-  if(!token){ setSyncUI('','GitHub non configurato'); return false; }
+  if(!token){ 
+    // Modalità pubblica: leggi da raw.githubusercontent.com senza token
+    setSyncUI('busy','Caricamento dalla collezione pubblica…');
+    try{
+      const rawUrl = `https://raw.githubusercontent.com/Nylo/netlify-site/main/trick-collection.json?t=${Date.now()}`;
+      const res = await fetch(rawUrl);
+      if(res.status===404){
+        setSyncUI('ok','GitHub pubblico — nessun dato remoto ancora');
+        return true;
+      }
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const decoded = await res.json();
+      games = decoded;
+      save();
+      const now = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+      setSyncUI('ok',`Sincronizzato (${games.length} giochi)`, now);
+      return true;
+    }catch(e){
+      setSyncUI('err','Lettura GitHub: '+e.message);
+      return false;
+    }
+  }
+  
+  // Modalità admin: sincronizzazione bidirezionale con token
   setSyncUI('busy','Caricamento da GitHub…');
   try{
     const res = await fetch(GH_API+'?ref='+GH_BRANCH+'&t='+Date.now(), {
       headers:{ Authorization:'token '+token, Accept:'application/vnd.github.v3+json' }
     });
     if(res.status===404){
-      // file non esiste ancora — ok, partiremo da zero
       ghSha = null;
       setSyncUI('ok','GitHub connesso — nessun dato remoto');
       return true;
@@ -818,7 +870,7 @@ function renderGrid(){
           if(!v) return '';
           return `<div class="rating-row"><span class="rating-label">${RATING_LABELS[r]}</span>${pipsHtml(v)}</div>`;
         }).join('')}
-        <div class="rating-avg">Media pond. <strong>${weightedAvg(g.ratings).toFixed(2)}</strong><span style="color:var(--text-soft)">/5</span></div>
+        <div class="rating-avg">Voto <strong>${(weightedAvg(g.ratings)*2).toFixed(2)}</strong><span style="color:var(--text-soft)">/10</span></div>
       </div>`:''}
       <textarea class="card-hook" rows="2" placeholder="Hook — descrivi il gioco in una riga…" data-id="${g.id}" onclick="event.stopPropagation()" oninput="saveHook(event)" ${isAdmin?'':'readonly'}>${esc(g.hook||'')}</textarea>
     </div>`;
@@ -848,7 +900,7 @@ function openNewGame(){
   currentId = null;
   currentFlags = {mustFollow:'no',trump:'no',prediction:'no',played:'no'};
   currentRatings = {};
-  fillPanel({title:'',players:'',bestIn:'',playingTime:'',status:'Owned',rules:'',bgg:'',notes:'',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
+  fillPanel({title:'',players:'',bestIn:'',playingTime:'',status:'Owned',rules:'',regolamento:'',bgg:'',notes:'',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
   document.getElementById('btnDelete').style.display='none';
   document.getElementById('panelOverlay').classList.add('open');
 }
@@ -881,6 +933,7 @@ function fillPanel(g){
   document.getElementById('fTime').value = g.playingTime||'';
   document.getElementById('fStatus').value = g.status||'Owned';
   document.getElementById('fRules').value = g.rules||'';
+  document.getElementById('fRegolamento').value = g.regolamento||'';
   document.getElementById('fBgg').value = g.bgg||'';
   document.getElementById('fHook').value = g.hook||'';
   document.getElementById('fNotes').value = g.notes||'';
@@ -933,6 +986,7 @@ function saveGame(){
     playingTime: document.getElementById('fTime').value.trim(),
     status: document.getElementById('fStatus').value,
     rules: document.getElementById('fRules').value.trim(),
+    regolamento: document.getElementById('fRegolamento').value.trim(),
     bgg: document.getElementById('fBgg').value.trim(),
     hook: document.getElementById('fHook').value.trim(),
     notes: document.getElementById('fNotes').value.trim(),
@@ -1001,6 +1055,11 @@ function parseCSV(text){
       if(v==='~'||v==='part'||v==='parziale') return 'part';
       return 'no';
     };
+    const normalizeStatus=s=>{
+      // Converte WTB Essen, WTB Gen, WTB altri in "Want to buy"
+      if(s && s.toLowerCase().startsWith('wtb')) return 'Want to buy';
+      return s;
+    };
     return {
       id: genId(),
       title: get('titolo')||get('title'),
@@ -1011,8 +1070,11 @@ function parseCSV(text){
       trump: fv(get('trump')),
       prediction: fv(get('prediction')),
       rules: get('rules'),
+      regolamento: get('regolamento')||'',
+      bgg: get('bgg')||get('boardgamegeek')||'',
+      hook: get('hook')||'',
       played: fv(get('played')),
-      status: get('status'),
+      status: normalizeStatus(get('status')),
       notes: get('notes')||get('note'),
       ratings: {},
     };
@@ -1093,16 +1155,18 @@ document.getElementById('fTitle').addEventListener('input',()=>{
 });
 
 // ─────────────── INIT ───────────────
+updateTheme();
 checkSession();
 load();
 renderGrid();
 applyAuthUI();
-// Se c'è un token, carica da GitHub (sovrascrive il localStorage con dati freschi)
+// Se c'è un token o dati pubblici, carica da GitHub
 if(getToken()){
   setSyncUI('busy','Caricamento da GitHub…');
   ghFetch().then(ok=>{ if(ok) renderGrid(); });
 } else {
-  setSyncUI('','GitHub non configurato');
+  setSyncUI('busy','Caricamento dalla collezione pubblica…');
+  ghFetch().then(ok=>{ if(ok) renderGrid(); });
 }
 </script>
 </body>
