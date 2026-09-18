@@ -45,55 +45,49 @@
     display:grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
-    /* gap: var(--gap); */
-    /* padding: var(--gap); */
-    /* background: var(--felt); */
   }
 
   .seat{
     background-color: #E03825;
-    background-image: url('bg.webp');
+    background-image: url('bg.webp'); /* Aggiornato con il nome corretto dell'immagine */
     background-repeat: no-repeat;
     background-position: center;
-    background-size: contain; /* Usa 'cover' se vuoi riempire senza lasciare bordi rossi ai lati/sopra */
+    background-size: 100% 100%; /* Forza l'immagine a prendere tutto lo spazio possibile deformandosi in base al contenitore */
     
-    /* border-radius: 14px; */
-    /* border: 10px solid var(--tile-edge); */
-    /* box-shadow: inset 0 0 0 1px rgba(201,162,75,0.35); */
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap: clamp(4px, 1.4vh, 14px);
-    padding: clamp(6px, 2vh, 20px);
-    min-width:0; min-height:0;
-    position:relative;
+    display: block; /* Rimosso flex per gestire liberamente i posizionamenti assoluti */
+    position: relative; /* Necessario per il posizionamento assoluto degli elementi figli */
+    min-width: 0; 
+    min-height: 0;
   }
 
   .name-field{
-    /* width: min(80%, 320px); */
+    position: absolute;
+    top: 12%; /* Posizionato nella parte bianca alta dell'immagine */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 75%;
+    
     text-align:center;
-    /* font-family:'Manrope', sans-serif; */
-	font-family:'Spectral', sans-serif;
+    font-family:'Spectral', sans-serif;
     font-style: normal;
     font-weight:700;
     font-size: clamp(15px, 2.4vw, 22px);
-	margin-bottom: clamp(12px, 2vw, 18px);
-	zoom: 125%;
+    zoom: 125%;
     letter-spacing:0.02em;
     color: var(--ink);
-    /* background: rgba(255, 255, 255, 0.4); */
-	background-color: transparent;
+    background-color: transparent;
     border:none;
-    /* border-bottom: 1.5px solid var(--tile-edge); */
     padding: 2px 4px 6px;
     outline:none;
-    /* border-radius: 4px; */
   }
   .name-field::placeholder{ color: var(--ink-soft); font-weight:500; }
-  /* .name-field:focus{ border-bottom-color: var(--felt-line); #444;} */
 
   .score{
+    position: absolute;
+    top: 30%; /* Posizionato al centro della parte bianca */
+    left: 50%;
+    transform: translateX(-50%);
+    
     font-family:'Spectral', serif;
     font-weight:600;
     font-size: clamp(28px, 6.2vw, 78px);
@@ -107,12 +101,18 @@
   .score.negative{ color: var(--minus); }
 
   .controls{
+    position: absolute;
+    bottom: 20%; /* Posizionato sopra le palline gachapon, lasciando spazio all'incavo */
+    left: 45%;
+    transform: translateX(-50%);
+    
     display: flex;
     align-items: center;
     gap: clamp(8px, 1.6vw, 22px);
-    background: white;
+    background: rgba(255, 255, 255, 0.9);
     padding: 0.5rem;
     border-radius: 0.5rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   }
 
   .stepper{
@@ -151,20 +151,27 @@
   .stepper button.plus:active{ background: var(--plus-press); }
 
   .reset-seat{
+    position: absolute;
+    bottom: 5%; /* Si inserisce perfettamente nell'incavo in basso a destra */
+    right: 3%;
+    
     border:none;
-    background:transparent;
-    color: var(--ink-soft);
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    color: white; /* Reso bianco per massimizzare il contrasto con il rosso dell'incavo */
     font-family:'Manrope', sans-serif;
-    font-weight:600;
-    font-size: clamp(9px, 1.1vw, 12px);
+    font-weight:700;
+    font-size: clamp(10px, 1.2vw, 14px);
     letter-spacing:0.03em;
-    padding: 2px 6px;
+    padding: 6px 10px;
     cursor:pointer;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-color: var(--tile-edge);
+    text-decoration: none;
+    transition: background 0.2s ease;
   }
-  .reset-seat:active{ color: var(--ink); }
+  .reset-seat:active{ 
+    background: rgba(255, 255, 255, 0.3); 
+    color: white; 
+  }
 </style>
 </head>
 <body>
