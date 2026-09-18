@@ -51,13 +51,14 @@
     background-color: #E03825;
     background-image: url('bg.webp'); 
     background-repeat: no-repeat;
-    background-position: center bottom; /* Allineato in basso per cercare di mantenere visibile l'incavo */
-    background-size: cover; /* <-- Modificato: copre tutto lo spazio mantenendo le proporzioni senza deformarsi */
+    background-position: right bottom; /* Ancora l'immagine in basso a destra per non far sfalsare l'incavo */
+    background-size: cover; 
     
     display: block; 
     position: relative; 
     min-width: 0; 
     min-height: 0;
+    overflow: hidden; /* Evita che il bottone fuoriesca dai bordi arrotondati del contenitore */
   }
 
   .name-field{
@@ -84,7 +85,7 @@
 
   .score{
     position: absolute;
-    top: 30%; /* Posizionato al centro della parte bianca */
+    top: 30%; 
     left: 50%;
     transform: translateX(-50%);
     
@@ -93,10 +94,15 @@
     font-size: clamp(28px, 6.2vw, 78px);
     line-height:1;
     color: var(--ink);
+    
+    /* Aggiunge il contorno bianco marcato e un'ombra per dare profondità */
+    -webkit-text-stroke: 2px white;
+    paint-order: stroke fill;
+    text-shadow: 0px 4px 6px rgba(0,0,0,0.3);
+    
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
     user-select:none;
-    text-shadow: 0 1px 2px rgba(255,255,255,0.8);
   }
   .score.negative{ color: var(--minus); }
 
@@ -150,28 +156,44 @@
   .stepper button.plus{ background: var(--plus); }
   .stepper button.plus:active{ background: var(--plus-press); }
 
-  .reset-seat{
+ .reset-seat{
     position: absolute;
-    bottom: 5%; /* Si inserisce perfettamente nell'incavo in basso a destra */
-    right: 3%;
+    bottom: 0;
+    right: 0;
     
-    border:none;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 6px;
-    color: white; /* Reso bianco per massimizzare il contrasto con il rosso dell'incavo */
+    /* Le dimensioni si adattano percentualmente all'incavo rosso */
+    width: 25%;
+    height: 25%;
+    
+    /* Crea la curvatura per seguire la linea blu dell'immagine */
+    border-top-left-radius: 25px; 
+    
+    border: none;
+    /* Usa un colore semi-trasparente scuro per scurire il rosso sottostante e sembrare un tasto fisico */
+    background: rgba(0, 0, 0, 0.15); 
+    /* Opzionale: aggiunge un bordino in alto e a sinistra per delineare il tasto */
+    border-top: 2px solid rgba(255, 255, 255, 0.4);
+    border-left: 2px solid rgba(255, 255, 255, 0.4);
+    
+    color: white;
     font-family:'Manrope', sans-serif;
-    font-weight:700;
-    font-size: clamp(10px, 1.2vw, 14px);
-    letter-spacing:0.03em;
-    padding: 6px 10px;
-    cursor:pointer;
-    text-decoration: none;
-    transition: background 0.2s ease;
+    font-weight: 700;
+    font-size: clamp(10px, 1.8vw, 16px);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    
+    /* Centra il testo nel nuovo bottone grande */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s ease;
   }
+  
   .reset-seat:active{ 
-    background: rgba(255, 255, 255, 0.3); 
-    color: white; 
+    background: rgba(0, 0, 0, 0.35); /* Diventa più scuro quando premuto */
   }
+  
 </style>
 </head>
 <body>
