@@ -219,7 +219,7 @@ select option{background:var(--surface)}
         <option>Owned</option>
         <option>PNP</option>
         <option>Want to buy</option>
-        <option>Proxy Rage</option>
+        <option>Proxy</option>
         <option>Preordered</option>
       </select>
     </div>
@@ -352,13 +352,9 @@ select option{background:var(--surface)}
               <option>Owned</option>
               <option>PNP</option>
               <option>Want to buy</option>
-              <option>Proxy Rage</option>
+              <option>Proxy</option>
               <option>Preordered</option>
             </select>
-          </div>
-          <div class="field">
-            <label>Link regole</label>
-            <input type="text" id="fRules" placeholder="URL o ITA/ENG">
           </div>
           <div class="field">
             <label>Regolamento PDF</label>
@@ -854,6 +850,7 @@ function renderGrid(){
         ${g.players?`<span class="meta-pill">👥 ${esc(g.players)}</span>`:''}
         ${g.bestIn?`<span class="meta-pill">⭐ best: ${esc(g.bestIn)}</span>`:''}
         ${g.playingTime?`<span class="meta-pill">⏱ ${esc(g.playingTime)} min</span>`:''}
+        ${g.regolamento?`<a href="${esc(g.regolamento)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="meta-pill bgg-link">📖 Regole</a>`:''}
         ${g.bgg?`<a href="${esc(g.bgg)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="meta-pill bgg-link">🎲 BGG</a>`:''}
       </div>
       <div class="card-flags">
@@ -881,10 +878,8 @@ function getStatusBadgeStyle(st){
   const map={
     'Owned':'background:rgba(76,175,125,0.15);color:#4caf7d',
     'PNP':'background:rgba(224,164,74,0.15);color:#e0a44a',
-    'WTB Essen':'background:rgba(91,141,217,0.15);color:#5b8dd9',
-    'WTB Gen':'background:rgba(91,141,217,0.15);color:#5b8dd9',
-    'WTB altri':'background:rgba(91,141,217,0.15);color:#5b8dd9',
-    'Proxy Rage':'background:rgba(217,107,107,0.15);color:#d96b6b',
+    'Want to buy':'background:rgba(91,141,217,0.15);color:#5b8dd9',
+    'Proxy':'background:rgba(217,107,107,0.15);color:#d96b6b',
     'Preordered':'background:rgba(150,100,200,0.15);color:#b388d6',
   };
   return map[st]||'background:rgba(255,255,255,0.07);color:#8892aa';
@@ -900,7 +895,7 @@ function openNewGame(){
   currentId = null;
   currentFlags = {mustFollow:'no',trump:'no',prediction:'no',played:'no'};
   currentRatings = {};
-  fillPanel({title:'',players:'',bestIn:'',playingTime:'',status:'Owned',rules:'',regolamento:'',bgg:'',notes:'',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
+  fillPanel({title:'',players:'',bestIn:'',playingTime:'',status:'Owned',regolamento:'',bgg:'',notes:'',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
   document.getElementById('btnDelete').style.display='none';
   document.getElementById('panelOverlay').classList.add('open');
 }
@@ -932,7 +927,6 @@ function fillPanel(g){
   document.getElementById('fBestIn').value = g.bestIn||'';
   document.getElementById('fTime').value = g.playingTime||'';
   document.getElementById('fStatus').value = g.status||'Owned';
-  document.getElementById('fRules').value = g.rules||'';
   document.getElementById('fRegolamento').value = g.regolamento||'';
   document.getElementById('fBgg').value = g.bgg||'';
   document.getElementById('fHook').value = g.hook||'';
@@ -985,7 +979,6 @@ function saveGame(){
     bestIn: document.getElementById('fBestIn').value.trim(),
     playingTime: document.getElementById('fTime').value.trim(),
     status: document.getElementById('fStatus').value,
-    rules: document.getElementById('fRules').value.trim(),
     regolamento: document.getElementById('fRegolamento').value.trim(),
     bgg: document.getElementById('fBgg').value.trim(),
     hook: document.getElementById('fHook').value.trim(),
@@ -1058,6 +1051,8 @@ function parseCSV(text){
     const normalizeStatus=s=>{
       // Converte WTB Essen, WTB Gen, WTB altri in "Want to buy"
       if(s && s.toLowerCase().startsWith('wtb')) return 'Want to buy';
+      // Converte Proxy Rage in Proxy
+      if(s && s.toLowerCase()==='proxy rage') return 'Proxy';
       return s;
     };
     return {
@@ -1069,8 +1064,7 @@ function parseCSV(text){
       mustFollow: fv(get('must-follow')||get('must follow')||get('mustfollow')),
       trump: fv(get('trump')),
       prediction: fv(get('prediction')),
-      rules: get('rules'),
-      regolamento: get('regolamento')||'',
+      regolamento: get('regolamento')||get('regolamento pdf')||'',
       bgg: get('bgg')||get('boardgamegeek')||'',
       hook: get('hook')||'',
       played: fv(get('played')),
