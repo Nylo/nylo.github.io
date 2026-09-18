@@ -132,7 +132,7 @@ select option{background:var(--surface)}
 .star-picker{display:flex;gap:4px}
 .star-pip{width:18px;height:18px;border-radius:50%;border:1px solid var(--border);background:var(--bg);cursor:pointer;transition:background 0.1s,border-color 0.1s}
 .star-pip:hover,.star-pip.lit{background:var(--accent);border-color:var(--accent)}
-.panel-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-start}
+.panel-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
 
 /* ── MODAL (CSV import) ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;display:none;align-items:center;justify-content:center}
@@ -145,6 +145,21 @@ select option{background:var(--surface)}
 .modal textarea:focus{border-color:var(--accent)}
 .modal-footer{display:flex;gap:10px;justify-content:flex-end}
 #csvFileInput{display:none}
+
+/* ── AUTH ── */
+.auth-btn{background:transparent;border:1px solid var(--border);color:var(--text-soft);border-radius:7px;padding:6px 13px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all 0.15s}
+.auth-btn:hover{background:var(--surface-raised);color:var(--text)}
+.auth-btn.logged{border-color:rgba(76,175,125,0.4);color:var(--success)}
+.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center}
+.auth-modal.open{display:flex}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;width:min(360px,92vw);display:flex;flex-direction:column;gap:18px;text-align:center}
+.auth-box h2{font-family:'Libre Baskerville',serif;font-size:20px}
+.auth-box p{font-size:13px;color:var(--text-soft)}
+.auth-box input{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-size:15px;text-align:center;letter-spacing:0.06em;outline:none;width:100%}
+.auth-box input:focus{border-color:var(--accent)}
+.auth-error{font-size:12px;color:var(--danger);min-height:16px}
+.auth-actions{display:flex;gap:10px}
+.auth-actions .btn{flex:1}
 
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:6px}
@@ -251,14 +266,14 @@ select option{background:var(--surface)}
       </div>
     </div>
 
-    <div class="sidebar-actions">
+    <div class="sidebar-actions admin-only" id="sidebarActions">
       <button class="btn btn-primary" onclick="openNewGame()">+ Aggiungi gioco</button>
       <button class="btn btn-secondary" onclick="openImportModal()">⬆ Importa CSV</button>
       <button class="btn btn-ghost" onclick="exportJSON()">⬇ Esporta JSON</button>
       <button class="btn btn-ghost" onclick="document.getElementById('jsonFileInput').click()">⬆ Importa JSON</button>
       <input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="importJSON(event)">
     </div>
-    <div class="sync-bar">
+    <div class="sync-bar admin-only" id="syncBar">
       <div class="sync-status"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">GitHub non configurato</span></div>
       <div class="sync-time" id="syncTime"></div>
       <button class="btn btn-ghost btn-sm" onclick="openTokenModal()" style="font-size:11px">⚙ Configura sync</button>
@@ -274,6 +289,7 @@ select option{background:var(--surface)}
         <input type="text" id="searchInput" placeholder="Cerca gioco…">
       </div>
       <div class="count-badge" id="countBadge">0 giochi</div>
+      <button class="auth-btn" id="authBtn" onclick="openAuthModal()">🔒 Accedi</button>
     </div>
     <div class="content">
       <div class="game-grid" id="gameGrid"></div>
@@ -411,6 +427,21 @@ select option{background:var(--surface)}
   </div>
 </div>
 
+<!-- AUTH MODAL -->
+<div class="auth-modal" id="authModal">
+  <div class="auth-box">
+    <h2>🃏 Accesso admin</h2>
+    <p>Inserisci la password per sbloccare la modifica della collezione.</p>
+    <input type="password" id="authInput" placeholder="Password" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-actions">
+      <button class="btn btn-ghost" onclick="closeAuthModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="doLogin()">Entra</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOKEN MODAL -->
 <div class="modal-overlay" id="tokenModal">
   <div class="modal">
@@ -446,6 +477,75 @@ let games = [];
 let currentId = null;
 let currentRatings = {};
 let currentFlags = {};
+
+// ─────────────── AUTH ───────────────
+const PWD_HASH = '4bd25b8fd42ac3a1f0cbcb5f88077ac3962d62b6c2910757bffd2b2e948e7d79';
+const AUTH_SESSION_KEY = 'trick-auth-session';
+let isAdmin = false;
+
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function applyAuthUI(){
+  const adminEls = document.querySelectorAll('.admin-only');
+  adminEls.forEach(el=>{ el.style.display = isAdmin ? '' : 'none'; });
+  // card-hook editabile solo da admin
+  document.querySelectorAll('.card-hook').forEach(el=>{ el.readOnly = !isAdmin; });
+  const btn = document.getElementById('authBtn');
+  if(isAdmin){
+    btn.textContent = '🔓 Admin';
+    btn.classList.add('logged');
+    btn.onclick = doLogout;
+  } else {
+    btn.textContent = '🔒 Accedi';
+    btn.classList.remove('logged');
+    btn.onclick = openAuthModal;
+  }
+  // pannello: bottoni modifica
+  const panelFooter = document.querySelector('.panel-footer');
+  if(panelFooter){
+    panelFooter.querySelectorAll('button').forEach(b=>{
+      if(b.id==='btnDelete'||b.textContent.trim()==='Salva') b.style.display = isAdmin?'':'none';
+    });
+  }
+}
+
+function openAuthModal(){
+  document.getElementById('authInput').value='';
+  document.getElementById('authError').textContent='';
+  document.getElementById('authModal').classList.add('open');
+  setTimeout(()=>document.getElementById('authInput').focus(),100);
+}
+function closeAuthModal(){ document.getElementById('authModal').classList.remove('open'); }
+
+async function doLogin(){
+  const pwd = document.getElementById('authInput').value;
+  const hash = await sha256(pwd);
+  if(hash === PWD_HASH){
+    isAdmin = true;
+    try{ sessionStorage.setItem(AUTH_SESSION_KEY,'1'); }catch(e){}
+    closeAuthModal();
+    applyAuthUI();
+    renderGrid();
+  } else {
+    document.getElementById('authError').textContent = 'Password errata.';
+    document.getElementById('authInput').select();
+  }
+}
+
+function doLogout(){
+  if(!confirm('Esci dalla modalità admin?')) return;
+  isAdmin = false;
+  try{ sessionStorage.removeItem(AUTH_SESSION_KEY); }catch(e){}
+  applyAuthUI();
+  renderGrid();
+}
+
+function checkSession(){
+  try{ if(sessionStorage.getItem(AUTH_SESSION_KEY)==='1'){ isAdmin=true; } }catch(e){}
+}
 
 // ─────────────── GITHUB SYNC ───────────────
 const GH_OWNER = 'Nylo';
@@ -671,7 +771,7 @@ function renderGrid(){
           return `<div class="rating-row"><span class="rating-label">${RATING_LABELS[r]}</span>${pipsHtml(v)}</div>`;
         }).join('')}
       </div>`:''}
-      <textarea class="card-hook" rows="2" placeholder="Hook — descrivi il gioco in una riga…" data-id="${g.id}" onclick="event.stopPropagation()" oninput="saveHook(event)">${esc(g.hook||'')}</textarea>
+      <textarea class="card-hook" rows="2" placeholder="Hook — descrivi il gioco in una riga…" data-id="${g.id}" onclick="event.stopPropagation()" oninput="saveHook(event)" ${isAdmin?'':'readonly'}>${esc(g.hook||'')}</textarea>
     </div>`;
   }).join('');
 }
@@ -695,6 +795,7 @@ function esc(s){
 
 // ─────────────── PANEL ───────────────
 function openNewGame(){
+  if(!isAdmin) return;
   currentId = null;
   currentFlags = {mustFollow:'no',trump:'no',prediction:'no',played:'no'};
   currentRatings = {};
@@ -710,8 +811,14 @@ function openGame(id){
   currentFlags = {mustFollow:flagVal(g.mustFollow),trump:flagVal(g.trump),prediction:flagVal(g.prediction),played:flagVal(g.played)};
   currentRatings = Object.assign({},g.ratings||{});
   fillPanel(g);
-  document.getElementById('btnDelete').style.display='';
+  document.getElementById('btnDelete').style.display = isAdmin ? '' : 'none';
   document.getElementById('panelOverlay').classList.add('open');
+  // campi readonly se guest
+  document.querySelectorAll('.panel-body input, .panel-body select, .panel-body textarea').forEach(el=>{
+    el.disabled = !isAdmin;
+  });
+  document.querySelectorAll('.flag-toggle, .star-pip').forEach(el=>{ el.style.pointerEvents = isAdmin?'':'none'; el.style.opacity = isAdmin?'':'0.5'; });
+  document.querySelector('.panel-footer .btn-primary') && (document.querySelector('.panel-footer .btn-primary').style.display = isAdmin?'':'none');
 }
 
 function fillPanel(g){
@@ -922,8 +1029,10 @@ document.getElementById('fTitle').addEventListener('input',()=>{
 });
 
 // ─────────────── INIT ───────────────
+checkSession();
 load();
 renderGrid();
+applyAuthUI();
 // Se c'è un token, carica da GitHub (sovrascrive il localStorage con dati freschi)
 if(getToken()){
   setSyncUI('busy','Caricamento da GitHub…');
