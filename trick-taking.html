@@ -96,6 +96,10 @@ select option{background:var(--surface)}
 .pips{display:flex;gap:2px}
 .pip{width:7px;height:7px;border-radius:50%;background:var(--border)}
 .pip.filled{background:var(--accent)}
+.rating-avg{grid-column:1/-1;font-size:12px;color:var(--text-soft);border-top:1px solid var(--border);padding-top:6px;margin-top:2px}
+.rating-avg strong{color:var(--accent);font-size:14px}
+.bgg-link{color:var(--accent)!important;text-decoration:none;font-weight:500}
+.bgg-link:hover{text-decoration:underline}
 .card-hook{font-size:12px;color:var(--text-soft);line-height:1.5;border:none;background:transparent;width:100%;resize:none;font-family:'Inter',sans-serif;cursor:text;padding:0;outline:none;border-top:1px solid var(--border);padding-top:8px;transition:color 0.15s}
 .card-hook:focus{color:var(--text)}
 .card-hook::placeholder{color:rgba(136,146,170,0.45);font-style:italic}
@@ -253,11 +257,12 @@ select option{background:var(--surface)}
           <option value="players">Giocatori (best)</option>
           <option value="time">Durata</option>
           <option value="divertimento">Divertimento</option>
-          <option value="difficolta">Difficoltà</option>
-          <option value="scalabilita">Scalabilità</option>
-          <option value="longevita">Longevità</option>
+          <option value="sfidante">Sfidante/Stimolante</option>
+          <option value="complessita">Complessità regole</option>
+          <option value="lunghezza">Lunghezza adeguata</option>
           <option value="originalita">Originalità</option>
-          <option value="apprendimento">Apprendimento</option>
+          <option value="tema">Tema/Artwork</option>
+          <option value="media">Media ponderata</option>
         </select>
         <select id="sortDir" style="width:70px">
           <option value="asc">↑</option>
@@ -272,6 +277,7 @@ select option{background:var(--surface)}
       <button class="btn btn-ghost" onclick="exportJSON()">⬇ Esporta JSON</button>
       <button class="btn btn-ghost" onclick="document.getElementById('jsonFileInput').click()">⬆ Importa JSON</button>
       <input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="importJSON(event)">
+      <button class="btn btn-danger" onclick="openDeleteCollection()" style="margin-top:4px">🗑 Elimina collezione</button>
     </div>
     <div class="sync-bar admin-only" id="syncBar">
       <div class="sync-status"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">GitHub non configurato</span></div>
@@ -343,6 +349,10 @@ select option{background:var(--surface)}
           <div class="field">
             <label>Link regole</label>
             <input type="text" id="fRules" placeholder="URL o ITA/ENG">
+          </div>
+          <div class="field full">
+            <label>Link BoardGameGeek</label>
+            <input type="text" id="fBgg" placeholder="https://boardgamegeek.com/boardgame/…">
           </div>
           <div class="field full">
             <label>Hook <span style="color:var(--text-soft);font-weight:400">(descrizione breve sulla card)</span></label>
@@ -442,6 +452,21 @@ select option{background:var(--surface)}
   </div>
 </div>
 
+<!-- DELETE COLLECTION MODAL -->
+<div class="modal-overlay" id="deleteCollectionModal">
+  <div class="modal" style="max-width:420px">
+    <h2 style="color:var(--danger)">⚠ Elimina collezione</h2>
+    <p>Stai per eliminare <strong>tutti i giochi</strong> dalla collezione. Questa operazione è irreversibile e sovrascriverà anche il file su GitHub.</p>
+    <p>Scrivi <strong style="color:var(--danger);letter-spacing:0.05em">ELIMINA</strong> per confermare:</p>
+    <input type="text" id="deleteConfirmInput" placeholder="ELIMINA" autocomplete="off"
+      oninput="document.getElementById('btnConfirmDelete').disabled=this.value!=='ELIMINA'">
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeDeleteCollection()">Annulla</button>
+      <button class="btn btn-danger" id="btnConfirmDelete" disabled onclick="doDeleteCollection()">Elimina tutto</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOKEN MODAL -->
 <div class="modal-overlay" id="tokenModal">
   <div class="modal">
@@ -463,15 +488,34 @@ select option{background:var(--surface)}
 <script>
 // ─────────────── DATA ───────────────
 const STORAGE_KEY = 'trick-collection-v2';
-const RATINGS = ['divertimento','difficolta','scalabilita','longevita','originalita','apprendimento'];
+const RATINGS = ['divertimento','sfidante','complessita','lunghezza','originalita','tema'];
 const RATING_LABELS = {
   divertimento:'Divertimento',
-  difficolta:'Difficoltà',
-  scalabilita:'Scalabilità',
-  longevita:'Longevità',
-  originalita:'Originalità mec.',
-  apprendimento:'Velocità appren.'
+  sfidante:'Sfidante/Stimolante',
+  complessita:'Complessità regole',
+  lunghezza:'Lunghezza adeguata',
+  originalita:'Originalità',
+  tema:'Tema/Artwork'
 };
+const RATING_WEIGHTS = {
+  divertimento:29,
+  sfidante:20,
+  complessita:18,
+  lunghezza:17,
+  originalita:9,
+  tema:7
+};
+const RATING_WEIGHTS_TOTAL = Object.values(RATING_WEIGHTS).reduce((a,b)=>a+b,0); // 100
+
+function weightedAvg(ratings){
+  if(!ratings) return 0;
+  let num=0, den=0;
+  RATINGS.forEach(r=>{
+    const v=parseInt(ratings[r])||0;
+    if(v>0){ num+=v*RATING_WEIGHTS[r]; den+=RATING_WEIGHTS[r]; }
+  });
+  return den>0 ? Math.round((num/den)*100)/100 : 0;
+}
 
 let games = [];
 let currentId = null;
@@ -719,6 +763,9 @@ function renderGrid(){
     if(RATINGS.includes(sortF)){
       va=parseInt((a.ratings||{})[sortF])||0;
       vb=parseInt((b.ratings||{})[sortF])||0;
+    } else if(sortF==='media'){
+      va=weightedAvg(a.ratings);
+      vb=weightedAvg(b.ratings);
     } else if(sortF==='players'){
       va=parseInt(a.bestIn)||0;
       vb=parseInt(b.bestIn)||0;
@@ -755,6 +802,7 @@ function renderGrid(){
         ${g.players?`<span class="meta-pill">👥 ${esc(g.players)}</span>`:''}
         ${g.bestIn?`<span class="meta-pill">⭐ best: ${esc(g.bestIn)}</span>`:''}
         ${g.playingTime?`<span class="meta-pill">⏱ ${esc(g.playingTime)} min</span>`:''}
+        ${g.bgg?`<a href="${esc(g.bgg)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="meta-pill bgg-link">🎲 BGG</a>`:''}
       </div>
       <div class="card-flags">
         ${['mustFollow','trump','prediction','played'].map(f=>{
@@ -770,6 +818,7 @@ function renderGrid(){
           if(!v) return '';
           return `<div class="rating-row"><span class="rating-label">${RATING_LABELS[r]}</span>${pipsHtml(v)}</div>`;
         }).join('')}
+        <div class="rating-avg">Media pond. <strong>${weightedAvg(g.ratings).toFixed(2)}</strong><span style="color:var(--text-soft)">/5</span></div>
       </div>`:''}
       <textarea class="card-hook" rows="2" placeholder="Hook — descrivi il gioco in una riga…" data-id="${g.id}" onclick="event.stopPropagation()" oninput="saveHook(event)" ${isAdmin?'':'readonly'}>${esc(g.hook||'')}</textarea>
     </div>`;
@@ -799,7 +848,7 @@ function openNewGame(){
   currentId = null;
   currentFlags = {mustFollow:'no',trump:'no',prediction:'no',played:'no'};
   currentRatings = {};
-  fillPanel({title:'',players:'',bestIn:'',playingTime:'',status:'Owned',rules:'',notes:'',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
+  fillPanel({title:'',players:'',bestIn:'',playingTime:'',status:'Owned',rules:'',bgg:'',notes:'',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
   document.getElementById('btnDelete').style.display='none';
   document.getElementById('panelOverlay').classList.add('open');
 }
@@ -832,6 +881,7 @@ function fillPanel(g){
   document.getElementById('fTime').value = g.playingTime||'';
   document.getElementById('fStatus').value = g.status||'Owned';
   document.getElementById('fRules').value = g.rules||'';
+  document.getElementById('fBgg').value = g.bgg||'';
   document.getElementById('fHook').value = g.hook||'';
   document.getElementById('fNotes').value = g.notes||'';
 
@@ -883,6 +933,7 @@ function saveGame(){
     playingTime: document.getElementById('fTime').value.trim(),
     status: document.getElementById('fStatus').value,
     rules: document.getElementById('fRules').value.trim(),
+    bgg: document.getElementById('fBgg').value.trim(),
     hook: document.getElementById('fHook').value.trim(),
     notes: document.getElementById('fNotes').value.trim(),
     mustFollow: currentFlags.mustFollow||'no',
@@ -1018,6 +1069,19 @@ function saveHook(e){
   if(!g) return;
   g.hook = e.target.value;
   saveAndSync();
+}
+
+function openDeleteCollection(){
+  document.getElementById('deleteConfirmInput').value='';
+  document.getElementById('btnConfirmDelete').disabled=true;
+  document.getElementById('deleteCollectionModal').classList.add('open');
+}
+function closeDeleteCollection(){ document.getElementById('deleteCollectionModal').classList.remove('open'); }
+async function doDeleteCollection(){
+  games=[];
+  saveAndSync();
+  renderGrid();
+  closeDeleteCollection();
 }
 
 // ─────────────── LIVE FILTERS ───────────────
