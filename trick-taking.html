@@ -87,7 +87,7 @@ select option{background:var(--surface)}
 .game-card::before{content:'';position:absolute;top:0;left:16px;right:16px;height:2px;border-radius:0 0 2px 2px;background:linear-gradient(90deg,transparent,rgba(91,141,217,0.4),transparent)}
 .game-card:hover{background:var(--surface-hover);border-color:rgba(91,141,217,0.3)}
 .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.card-title{font-family:'Libre Baskerville',serif;font-size:15px;line-height:1.35;color:var(--text)}
+.card-title{font-family:'Libre Baskerville',serif;font-size:15px;line-height:1.35;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
 .status-badge{flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;white-space:nowrap}
 .status-Owned{background:rgba(76,175,125,0.15);color:var(--success)}
 .status-PNP{background:rgba(224,164,74,0.15);color:var(--warn)}
@@ -95,9 +95,9 @@ select option{background:var(--surface)}
 .status-Proxy,.status-Proxy\ Rage{background:rgba(217,107,107,0.15);color:var(--danger)}
 .status-Preordered{background:rgba(150,100,200,0.15);color:#b388d6}
 .card-meta{display:flex;gap:10px;flex-wrap:wrap}
-.meta-pill{font-size:11px;color:var(--text-soft);display:flex;align-items:center;gap:3px}
+.meta-pill{font-size:11px;color:var(--text-soft);display:flex;align-items:center;gap:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
 .card-flags{display:flex;gap:5px;flex-wrap:wrap}
-.flag{font-size:11px;padding:2px 6px;border-radius:4px;font-weight:500}
+.flag{font-size:11px;padding:2px 6px;border-radius:4px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px}
 .flag-yes{background:rgba(76,175,125,0.12);color:var(--success)}
 .flag-no{background:rgba(217,107,107,0.08);color:var(--danger)}
 .flag-part{background:rgba(224,164,74,0.12);color:var(--warn)}
@@ -269,7 +269,7 @@ select option{background:var(--surface)}
           <option value="time">Durata</option>
           <option value="divertimento">Divertimento</option>
           <option value="sfidante">Sfidante/Stimolante</option>
-          <option value="complessita">Semplicità regole</option>
+          <option value="complessita">Complessità regole</option>
           <option value="lunghezza">Lunghezza adeguata</option>
           <option value="originalita">Originalità</option>
           <option value="tema">Tema/Artwork</option>
@@ -417,9 +417,9 @@ select option{background:var(--surface)}
 
     </div>
     <div class="panel-footer">
-      <button class="btn btn-danger btn-sm" id="btnDelete" onclick="deleteGame()">Elimina</button>
-      <button class="btn btn-ghost btn-sm" onclick="closePanel()">Annulla</button>
       <button class="btn btn-primary btn-sm" onclick="saveGame()">Salva</button>
+      <button class="btn btn-ghost btn-sm" onclick="closePanel()">Annulla</button>
+      <button class="btn btn-danger btn-sm" id="btnDelete" onclick="deleteGame()">Elimina</button>
     </div>
   </div>
 </div>
@@ -502,7 +502,7 @@ const RATINGS = ['divertimento','sfidante','complessita','lunghezza','originalit
 const RATING_LABELS = {
   divertimento:'Divertimento',
   sfidante:'Sfidante/Stimolante',
-  complessita:'Semplicità regole',
+  complessita:'Complessità regole',
   lunghezza:'Lunghezza adeguata',
   originalita:'Originalità',
   tema:'Tema/Artwork'
@@ -1026,6 +1026,8 @@ function loadCSVFile(e){
 }
 
 function parseCSV(text){
+  // Normalizza UTF-8 per evitare caratteri corrotti
+  text = text.normalize('NFC');
   const lines = text.split(/\r?\n/).filter(l=>l.trim());
   if(lines.length<2) return [];
   const sep = lines[0].includes('\t')?'\t':',';
@@ -1041,7 +1043,12 @@ function parseCSV(text){
       else cur+=c;
     }
     cells.push(cur.trim());
-    const get=h=>{ const i=col(h); return i>=0?(cells[i]||'').replace(/^"|"$/g,'').trim():''; };
+    const get=h=>{ 
+      const i=col(h); 
+      const v = i>=0?(cells[i]||'').replace(/^"|"$/g,'').trim():'';
+      // Normalizza anche il valore
+      return v.normalize ? v.normalize('NFC') : v;
+    };
     const fv=v=>{
       v=v.toLowerCase();
       if(v==='v'||v==='yes'||v==='sì'||v==='si') return 'yes';
