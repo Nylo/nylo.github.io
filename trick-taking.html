@@ -225,11 +225,26 @@ select option{background:var(--surface)}
     </div>
 
     <div class="sidebar-section">
-      <div class="sidebar-label">Filtra per giocatori</div>
-      <div class="filter-row">
-        <input type="number" id="filterPlMin" placeholder="min" min="1" max="12">
-        <span>—</span>
-        <input type="number" id="filterPlMax" placeholder="max" min="1" max="12">
+      <div class="sidebar-label">Per quanti giocatori</div>
+      <div class="filter-group">
+        <select id="filterPlayers3">
+          <option value="">Per 3 giocatori (qualsiasi)</option>
+          <option value="yes">✓ Sì</option>
+          <option value="part">? Forse</option>
+          <option value="no">✗ No</option>
+        </select>
+        <select id="filterPlayers4">
+          <option value="">Per 4 giocatori (qualsiasi)</option>
+          <option value="yes">✓ Sì</option>
+          <option value="part">? Forse</option>
+          <option value="no">✗ No</option>
+        </select>
+        <select id="filterPlayers5">
+          <option value="">Per 5 giocatori (qualsiasi)</option>
+          <option value="yes">✓ Sì</option>
+          <option value="part">? Forse</option>
+          <option value="no">✗ No</option>
+        </select>
       </div>
     </div>
 
@@ -269,8 +284,8 @@ select option{background:var(--surface)}
           <option value="time">Durata</option>
           <option value="divertimento">Divertimento</option>
           <option value="sfidante">Sfidante/Stimolante</option>
-          <option value="complessita">Complessità regole</option>
-          <option value="lunghezza">Lunghezza adeguata</option>
+          <option value="semplicita">Semplicità regole</option>
+          <option value="durata">Durata adeguata</option>
           <option value="originalita">Originalità</option>
           <option value="tema">Tema/Artwork</option>
           <option value="media">Media ponderata</option>
@@ -334,13 +349,34 @@ select option{background:var(--surface)}
             <label>Titolo</label>
             <input type="text" id="fTitle">
           </div>
-          <div class="field">
-            <label>Giocatori (es. 2-5)</label>
-            <input type="text" id="fPlayers" placeholder="es. 2-5">
-          </div>
-          <div class="field">
-            <label>Best in</label>
-            <input type="text" id="fBestIn" placeholder="es. 3-4">
+          <div class="field full">
+            <label>Da giocare in</label>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+              <div>
+                <label style="font-size:10px;color:var(--text-soft);font-weight:500">3 giocatori</label>
+                <div class="flag-toggles" id="togPlayers3" data-field="playersFor3">
+                  <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'playersFor3')">✓</button>
+                  <button class="flag-toggle" data-val="part" onclick="toggleFlag(this,'playersFor3')">?</button>
+                  <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'playersFor3')">✗</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:10px;color:var(--text-soft);font-weight:500">4 giocatori</label>
+                <div class="flag-toggles" id="togPlayers4" data-field="playersFor4">
+                  <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'playersFor4')">✓</button>
+                  <button class="flag-toggle" data-val="part" onclick="toggleFlag(this,'playersFor4')">?</button>
+                  <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'playersFor4')">✗</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:10px;color:var(--text-soft);font-weight:500">5 giocatori</label>
+                <div class="flag-toggles" id="togPlayers5" data-field="playersFor5">
+                  <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'playersFor5')">✓</button>
+                  <button class="flag-toggle" data-val="part" onclick="toggleFlag(this,'playersFor5')">?</button>
+                  <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'playersFor5')">✗</button>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="field">
             <label>Durata (min)</label>
@@ -498,20 +534,20 @@ select option{background:var(--surface)}
 <script>
 // ─────────────── DATA ───────────────
 const STORAGE_KEY = 'trick-collection-v2';
-const RATINGS = ['divertimento','sfidante','complessita','lunghezza','originalita','tema'];
+const RATINGS = ['divertimento','sfidante','semplicita','durata','originalita','tema'];
 const RATING_LABELS = {
   divertimento:'Divertimento',
   sfidante:'Sfidante/Stimolante',
-  complessita:'Complessità regole',
-  lunghezza:'Lunghezza adeguata',
+  semplicita:'Semplicità regole',
+  durata:'Durata adeguata',
   originalita:'Originalità',
   tema:'Tema/Artwork'
 };
 const RATING_WEIGHTS = {
   divertimento:29,
   sfidante:20,
-  complessita:18,
-  lunghezza:17,
+  semplicita:18,
+  durata:17,
   originalita:9,
   tema:7
 };
@@ -783,8 +819,9 @@ function getStatusClass(st){
 function renderGrid(){
   const q = document.getElementById('searchInput').value.toLowerCase();
   const fStatus = document.getElementById('filterStatus').value;
-  const fPlMin = parseInt(document.getElementById('filterPlMin').value)||0;
-  const fPlMax = parseInt(document.getElementById('filterPlMax').value)||99;
+  const fPl3 = document.getElementById('filterPlayers3').value;
+  const fPl4 = document.getElementById('filterPlayers4').value;
+  const fPl5 = document.getElementById('filterPlayers5').value;
   const fMF = document.getElementById('filterMustFollow').value;
   const fTr = document.getElementById('filterTrump').value;
   const fPr = document.getElementById('filterPrediction').value;
@@ -795,14 +832,13 @@ function renderGrid(){
   let list = games.filter(g=>{
     if(q && !(g.title||'').toLowerCase().includes(q)) return false;
     if(fStatus && g.status !== fStatus) return false;
+    if(fPl3 && flagVal(g.playersFor3)!==fPl3) return false;
+    if(fPl4 && flagVal(g.playersFor4)!==fPl4) return false;
+    if(fPl5 && flagVal(g.playersFor5)!==fPl5) return false;
     if(fMF && flagVal(g.mustFollow)!==fMF) return false;
     if(fTr && flagVal(g.trump)!==fTr) return false;
     if(fPr && flagVal(g.prediction)!==fPr) return false;
     if(fPl && flagVal(g.played)!==fPl) return false;
-    // player filter on bestIn or players
-    const best = parseInt(g.bestIn)||parseInt((g.players||'').split('-')[0])||0;
-    if(fPlMin>0 && best<fPlMin) return false;
-    if(fPlMax<99 && best>fPlMax) return false;
     return true;
   });
 
@@ -847,11 +883,15 @@ function renderGrid(){
         ${g.status?`<span class="status-badge" style="${stStyle}">${esc(g.status)}</span>`:''}
       </div>
       <div class="card-meta">
-        ${g.players?`<span class="meta-pill">👥 ${esc(g.players)}</span>`:''}
-        ${g.bestIn?`<span class="meta-pill">⭐ best: ${esc(g.bestIn)}</span>`:''}
-        ${g.playingTime?`<span class="meta-pill">⏱ ${esc(g.playingTime)} min</span>`:''}
+        <span class="meta-pill">⏱ ${esc(g.playingTime||'-')} min</span>
         ${g.regolamento?`<a href="${esc(g.regolamento)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="meta-pill bgg-link">📖 Regole</a>`:''}
         ${g.bgg?`<a href="${esc(g.bgg)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="meta-pill bgg-link">🎲 BGG</a>`:''}
+      </div>
+      <div style="font-size:13px;display:flex;gap:8px;align-items:center">
+        <span style="color:var(--text-soft)">Giocatori:</span>
+        <span style="color:${flagVal(g.playersFor3)==='yes'?'var(--success)':flagVal(g.playersFor3)==='part'?'var(--warn)':'var(--text-soft)'}">3️⃣${flagVal(g.playersFor3)==='yes'?'✓':flagVal(g.playersFor3)==='part'?'?':'✗'}</span>
+        <span style="color:${flagVal(g.playersFor4)==='yes'?'var(--success)':flagVal(g.playersFor4)==='part'?'var(--warn)':'var(--text-soft)'}">4️⃣${flagVal(g.playersFor4)==='yes'?'✓':flagVal(g.playersFor4)==='part'?'?':'✗'}</span>
+        <span style="color:${flagVal(g.playersFor5)==='yes'?'var(--success)':flagVal(g.playersFor5)==='part'?'var(--warn)':'var(--text-soft)'}">5️⃣${flagVal(g.playersFor5)==='yes'?'✓':flagVal(g.playersFor5)==='part'?'?':'✗'}</span>
       </div>
       <div class="card-flags">
         ${['mustFollow','trump','prediction','played'].map(f=>{
@@ -893,9 +933,18 @@ function esc(s){
 function openNewGame(){
   if(!isAdmin) return;
   currentId = null;
-  currentFlags = {mustFollow:'no',trump:'no',prediction:'no',played:'no'};
+  currentFlags = {playersFor3:'no',playersFor4:'yes',playersFor5:'no',mustFollow:'no',trump:'no',prediction:'no',played:'no'};
   currentRatings = {};
-  fillPanel({title:'',players:'',bestIn:'',playingTime:'',status:'Owned',regolamento:'',bgg:'',notes:'',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
+  fillPanel({title:'',playingTime:'',status:'Owned',regolamento:'',bgg:'',notes:'',playersFor3:'no',playersFor4:'yes',playersFor5:'no',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
+  document.getElementById('btnDelete').style.display='none';
+  document.getElementById('panelOverlay').classList.add('open');
+  // campi readonly se guest
+  document.querySelectorAll('.panel-body input, .panel-body select, .panel-body textarea').forEach(el=>{
+    el.disabled = !isAdmin;
+  });
+  document.querySelectorAll('.flag-toggle, .star-pip').forEach(el=>{ el.style.pointerEvents = isAdmin?'':'none'; el.style.opacity = isAdmin?'':'0.5'; });
+  document.querySelector('.panel-footer .btn-primary') && (document.querySelector('.panel-footer .btn-primary').style.display = isAdmin?'':'none');
+}
   document.getElementById('btnDelete').style.display='none';
   document.getElementById('panelOverlay').classList.add('open');
 }
@@ -904,7 +953,7 @@ function openGame(id){
   const g = games.find(x=>x.id===id);
   if(!g) return;
   currentId = id;
-  currentFlags = {mustFollow:flagVal(g.mustFollow),trump:flagVal(g.trump),prediction:flagVal(g.prediction),played:flagVal(g.played)};
+  currentFlags = {playersFor3:flagVal(g.playersFor3),playersFor4:flagVal(g.playersFor4),playersFor5:flagVal(g.playersFor5),mustFollow:flagVal(g.mustFollow),trump:flagVal(g.trump),prediction:flagVal(g.prediction),played:flagVal(g.played)};
   currentRatings = Object.assign({},g.ratings||{});
   fillPanel(g);
   document.getElementById('btnDelete').style.display = isAdmin ? '' : 'none';
@@ -923,8 +972,6 @@ function fillPanel(g){
   sb.innerHTML = g.status?`<span class="status-badge" style="${getStatusBadgeStyle(g.status)}">${esc(g.status)}</span>`:'';
 
   document.getElementById('fTitle').value = g.title||'';
-  document.getElementById('fPlayers').value = g.players||'';
-  document.getElementById('fBestIn').value = g.bestIn||'';
   document.getElementById('fTime').value = g.playingTime||'';
   document.getElementById('fStatus').value = g.status||'Owned';
   document.getElementById('fRegolamento').value = g.regolamento||'';
@@ -932,8 +979,17 @@ function fillPanel(g){
   document.getElementById('fHook').value = g.hook||'';
   document.getElementById('fNotes').value = g.notes||'';
 
-  // flags
-  ['mustFollow','trump','prediction','played'].forEach(f=>{
+  // Da giocare in
+  ['playersFor3','playersFor4','playersFor5'].forEach(f=>{
+    const v = currentFlags[f]||'no';
+    const numPlayer = f.slice(10);
+    const cont = document.getElementById('togPlayers'+numPlayer);
+    if(!cont) return;
+    cont.querySelectorAll('.flag-toggle').forEach(btn=>{
+      btn.className='flag-toggle';
+      if(btn.dataset.val===v) btn.classList.add('active-'+v);
+    });
+  });
     const v = currentFlags[f]||'no';
     const cont = document.getElementById('tog'+f.charAt(0).toUpperCase()+f.slice(1));
     if(!cont) return;
@@ -979,6 +1035,9 @@ function saveGame(){
     bestIn: document.getElementById('fBestIn').value.trim(),
     playingTime: document.getElementById('fTime').value.trim(),
     status: document.getElementById('fStatus').value,
+    playersFor3: currentFlags.playersFor3||'no',
+    playersFor4: currentFlags.playersFor4||'no',
+    playersFor5: currentFlags.playersFor5||'no',
     regolamento: document.getElementById('fRegolamento').value.trim(),
     bgg: document.getElementById('fBgg').value.trim(),
     hook: document.getElementById('fHook').value.trim(),
@@ -1071,6 +1130,9 @@ function parseCSV(text){
       mustFollow: fv(get('must-follow')||get('must follow')||get('mustfollow')),
       trump: fv(get('trump')),
       prediction: fv(get('prediction')),
+      playersFor3: fv(get('3')),
+      playersFor4: fv(get('4')),
+      playersFor5: fv(get('5')),
       regolamento: get('regolamento')||get('regolamento pdf')||'',
       bgg: get('bgg')||get('boardgamegeek')||'',
       hook: get('hook')||'',
@@ -1148,7 +1210,7 @@ async function doDeleteCollection(){
 }
 
 // ─────────────── LIVE FILTERS ───────────────
-['searchInput','filterStatus','filterPlMin','filterPlMax','filterMustFollow','filterTrump','filterPrediction','filterPlayed','sortField','sortDir']
+['searchInput','filterStatus','filterPlayers3','filterPlayers4','filterPlayers5','filterMustFollow','filterTrump','filterPrediction','filterPlayed','sortField','sortDir']
   .forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input',renderGrid); });
 
 document.getElementById('fTitle').addEventListener('input',()=>{
