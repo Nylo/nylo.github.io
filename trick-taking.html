@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trick-Taking Collection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f1117;
+  --surface:#1a1f2e;
+  --surface-raised:#232840;
+  --surface-hover:#2a3050;
+  --accent:#5b8dd9;
+  --accent-soft:rgba(91,141,217,0.13);
+  --text:#e8eaf0;
+  --text-soft:#8892aa;
+  --success:#4caf7d;
+  --warn:#e0a44a;
+  --danger:#d96b6b;
+  --border:rgba(255,255,255,0.07);
+  --radius:10px;
+  --sidebar:270px;
+}
+:root[data-theme="light"]{
+  --bg:#fafafa;
+  --surface:#ffffff;
+  --surface-raised:#f5f5f5;
+  --surface-hover:#efefef;
+  --accent:#4a7cc5;
+  --accent-soft:rgba(74,124,197,0.12);
+  --text:#1a1a1a;
+  --text-soft:#666666;
+  --border:rgba(0,0,0,0.1);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;overflow:hidden}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface)}
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* ── SIDEBAR ── */
+.sidebar-header{padding:16px;border-bottom:1px solid var(--border)}
+.logo{font-family:'Libre Baskerville',serif;font-size:17px;color:var(--text);line-height:1.2}
+.logo span{color:var(--accent);font-style:italic}
+.sidebar-section{padding:14px 16px;border-bottom:1px solid var(--border)}
+.sidebar-label{font-size:11px;font-weight:600;color:var(--text-soft);margin-bottom:10px;letter-spacing:0.04em}
+.filter-group{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.filter-group:last-child{margin-bottom:0}
+select,input[type=text],input[type=number]{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 9px;font-family:'Inter',sans-serif;font-size:13px;width:100%;outline:none}
+select:focus,input:focus{border-color:var(--accent)}
+select option{background:var(--surface)}
+.filter-row{display:flex;gap:6px}
+.filter-row input{width:0;flex:1}
+.filter-row span{line-height:30px;color:var(--text-soft)}
+.sidebar-actions{padding:14px 16px;margin-top:auto;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border)}
+.btn{border:none;border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:7px;justify-content:center;transition:background 0.15s,transform 0.07s}
+.btn:active{transform:scale(0.96)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#4a7cc5}
+.btn-secondary{background:var(--surface-raised);color:var(--text)}
+.btn-secondary:hover{background:var(--surface-hover)}
+.btn-ghost{background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface-raised);color:var(--text)}
+.btn-danger{background:rgba(217,107,107,0.15);color:var(--danger);border:1px solid rgba(217,107,107,0.25)}
+.btn-danger:hover{background:rgba(217,107,107,0.25)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.sort-row{display:flex;gap:6px}
+.sort-row select:first-child{flex:1}
+
+/* ── TOPBAR ── */
+.search-wrap{flex:1;position:relative}
+.search-wrap input{background:var(--surface-raised);border-color:transparent;padding-left:32px;border-radius:8px}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-soft);font-size:14px;pointer-events:none}
+.count-badge{background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;white-space:nowrap}
+
+/* ── GRID ── */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.game-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:background 0.15s,border-color 0.15s;position:relative;display:flex;flex-direction:column;gap:10px}
+.game-card::before{content:'';position:absolute;top:0;left:16px;right:16px;height:2px;border-radius:0 0 2px 2px;background:linear-gradient(90deg,transparent,rgba(91,141,217,0.4),transparent)}
+.game-card:hover{background:var(--surface-hover);border-color:rgba(91,141,217,0.3)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.card-title{font-family:'Libre Baskerville',serif;font-size:15px;line-height:1.35;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.status-badge{flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;white-space:nowrap}
+.status-Owned{background:rgba(76,175,125,0.15);color:var(--success)}
+.status-PNP{background:rgba(224,164,74,0.15);color:var(--warn)}
+.status-WTB,.status-WTB\ Essen,.status-WTB\ Gen,.status-WTB\ altri{background:rgba(91,141,217,0.15);color:var(--accent)}
+.status-Proxy,.status-Proxy\ Rage{background:rgba(217,107,107,0.15);color:var(--danger)}
+.status-Preordered{background:rgba(150,100,200,0.15);color:#b388d6}
+.card-meta{display:flex;gap:10px;flex-wrap:wrap}
+.meta-pill{font-size:11px;color:var(--text-soft);display:flex;align-items:center;gap:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.card-flags{display:flex;gap:5px;flex-wrap:wrap}
+.flag{font-size:11px;padding:2px 6px;border-radius:4px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px}
+.flag-yes{background:rgba(76,175,125,0.12);color:var(--success)}
+.flag-no{background:rgba(217,107,107,0.08);color:var(--danger)}
+.flag-part{background:rgba(224,164,74,0.12);color:var(--warn)}
+.card-ratings{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.rating-row{display:flex;align-items:center;gap:6px}
+.rating-label{font-size:10px;color:var(--text-soft);width:64px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pips{display:flex;gap:2px}
+.pip{width:7px;height:7px;border-radius:50%;background:var(--border)}
+.pip.filled{background:var(--accent)}
+.rating-avg{grid-column:1/-1;font-size:12px;color:var(--text-soft);border-top:1px solid var(--border);padding-top:6px;margin-top:2px}
+.rating-avg strong{color:var(--accent);font-size:14px}
+.bgg-link{color:var(--accent)!important;text-decoration:none;font-weight:500}
+.bgg-link:hover{text-decoration:underline}
+.card-hook{font-size:12px;color:var(--text-soft);line-height:1.5;border:none;background:transparent;width:100%;resize:none;font-family:'Inter',sans-serif;cursor:text;padding:0;outline:none;border-top:1px solid var(--border);padding-top:8px;transition:color 0.15s}
+.card-hook:focus{color:var(--text)}
+.card-hook::placeholder{color:rgba(136,146,170,0.45);font-style:italic}
+.empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-soft)}
+.empty-state p{font-family:'Libre Baskerville',serif;font-size:18px;margin-bottom:8px;color:var(--text)}
+.empty-state small{font-size:13px}
+
+/* ── DETAIL PANEL ── */
+.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;display:none;align-items:stretch;justify-content:flex-end}
+.panel-overlay.open{display:flex}
+.panel{width:min(560px,100%);background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;animation:slideIn 0.2s ease}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.panel-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px}
+.panel-header-text{flex:1}
+.panel-title{font-family:'Libre Baskerville',serif;font-size:20px;line-height:1.3;margin-bottom:6px}
+.panel-close{background:var(--surface-raised);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.panel-close:hover{background:var(--surface-hover)}
+.panel-body{padding:24px;display:flex;flex-direction:column;gap:24px;flex:1}
+.panel-section-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.04em;margin-bottom:12px}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field.full{grid-column:1/-1}
+.field label{font-size:11px;color:var(--text-soft);font-weight:500}
+.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:13px;width:100%;outline:none;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.flag-toggles{display:flex;gap:8px;flex-wrap:wrap}
+.flag-toggle{background:var(--bg);border:1px solid var(--border);color:var(--text-soft);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s}
+.flag-toggle.active-yes{background:rgba(76,175,125,0.15);border-color:rgba(76,175,125,0.4);color:var(--success)}
+.flag-toggle.active-no{background:rgba(217,107,107,0.1);border-color:rgba(217,107,107,0.3);color:var(--danger)}
+.flag-toggle.active-part{background:rgba(224,164,74,0.15);border-color:rgba(224,164,74,0.35);color:var(--warn)}
+.ratings-edit{display:flex;flex-direction:column;gap:10px}
+.rating-edit-row{display:flex;align-items:center;gap:10px}
+.rating-edit-label{font-size:12px;color:var(--text-soft);width:130px;flex-shrink:0}
+.star-picker{display:flex;gap:4px}
+.star-pip{width:18px;height:18px;border-radius:50%;border:1px solid var(--border);background:var(--bg);cursor:pointer;transition:background 0.1s,border-color 0.1s}
+.star-pip:hover,.star-pip.lit{background:var(--accent);border-color:var(--accent)}
+.panel-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-start}
+
+/* ── MODAL (CSV import) ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(600px,95vw);padding:28px;display:flex;flex-direction:column;gap:18px}
+.modal h2{font-family:'Libre Baskerville',serif;font-size:18px}
+.modal p,.modal li{font-size:13px;color:var(--text-soft);line-height:1.6}
+.modal ol{padding-left:18px}
+.modal textarea{width:100%;height:160px;resize:vertical;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:'Inter',monospace;font-size:12px;color:var(--text);outline:none}
+.modal textarea:focus{border-color:var(--accent)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end}
+#csvFileInput{display:none}
+
+/* ── AUTH ── */
+.theme-toggle{background:transparent;border:1px solid var(--border);color:var(--text-soft);border-radius:7px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all 0.15s}
+.theme-toggle:hover{background:var(--surface-raised);color:var(--text)}
+.auth-btn{background:transparent;border:1px solid var(--border);color:var(--text-soft);border-radius:7px;padding:6px 13px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all 0.15s}
+.auth-btn:hover{background:var(--surface-raised);color:var(--text)}
+.auth-btn.logged{border-color:rgba(76,175,125,0.4);color:var(--success)}
+.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center}
+.auth-modal.open{display:flex}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;width:min(360px,92vw);display:flex;flex-direction:column;gap:18px;text-align:center}
+.auth-box h2{font-family:'Libre Baskerville',serif;font-size:20px}
+.auth-box p{font-size:13px;color:var(--text-soft)}
+.auth-box input{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-size:15px;text-align:center;letter-spacing:0.06em;outline:none;width:100%}
+.auth-box input:focus{border-color:var(--accent)}
+.auth-error{font-size:12px;color:var(--danger);min-height:16px}
+.auth-actions{display:flex;gap:10px}
+.auth-actions .btn{flex:1}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── GITHUB SYNC ── */
+.sync-bar{padding:10px 16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.sync-status{font-size:11px;display:flex;align-items:center;gap:6px;color:var(--text-soft)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text-soft);flex-shrink:0}
+.sync-dot.ok{background:var(--success)}
+.sync-dot.err{background:var(--danger)}
+.sync-dot.busy{background:var(--warn);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.sync-time{font-size:10px;color:var(--text-soft);opacity:0.7}
+
+/* ── MOBILE ── */
+@media(max-width:700px){
+  .app{flex-direction:column}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--border)}
+  .sidebar-section,.sidebar-header{display:none}
+  .sidebar-actions{flex-direction:row;border-top:none;padding:10px 12px;flex-wrap:wrap}
+  .content{padding:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">Trick-Taking <span>Collection</span></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Filtra per stato</div>
+      <select id="filterStatus">
+        <option value="">Tutti gli stati</option>
+        <option>Owned</option>
+        <option>PNP</option>
+        <option>Want to buy</option>
+        <option>Proxy</option>
+        <option>Preordered</option>
+      </select>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Per quanti giocatori</div>
+      <div class="filter-group">
+        <select id="filterPlayers3">
+          <option value="">Per 3 giocatori (qualsiasi)</option>
+          <option value="yes">✓ Sì</option>
+          <option value="part">? Forse</option>
+          <option value="no">✗ No</option>
+        </select>
+        <select id="filterPlayers4">
+          <option value="">Per 4 giocatori (qualsiasi)</option>
+          <option value="yes">✓ Sì</option>
+          <option value="part">? Forse</option>
+          <option value="no">✗ No</option>
+        </select>
+        <select id="filterPlayers5">
+          <option value="">Per 5 giocatori (qualsiasi)</option>
+          <option value="yes">✓ Sì</option>
+          <option value="part">? Forse</option>
+          <option value="no">✗ No</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Filtra per caratteristiche</div>
+      <div class="filter-group">
+        <select id="filterMustFollow">
+          <option value="">Must-follow (qualsiasi)</option>
+          <option value="yes">Sì</option>
+          <option value="no">No</option>
+        </select>
+        <select id="filterTrump">
+          <option value="">Trump/briscola (qualsiasi)</option>
+          <option value="yes">Sì</option>
+          <option value="no">No</option>
+          <option value="part">Parziale</option>
+        </select>
+        <select id="filterPrediction">
+          <option value="">Prediction (qualsiasi)</option>
+          <option value="yes">Sì</option>
+          <option value="no">No</option>
+        </select>
+        <select id="filterPlayed">
+          <option value="">Giocato (qualsiasi)</option>
+          <option value="yes">Giocato</option>
+          <option value="no">Non ancora</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Ordina per</div>
+      <div class="sort-row">
+        <select id="sortField">
+          <option value="title">Titolo</option>
+          <option value="players">Giocatori (best)</option>
+          <option value="time">Durata</option>
+          <option value="divertimento">Divertimento</option>
+          <option value="sfidante">Sfidante/Stimolante</option>
+          <option value="semplicita">Semplicità regole</option>
+          <option value="durata">Durata adeguata</option>
+          <option value="originalita">Originalità</option>
+          <option value="tema">Tema/Artwork</option>
+          <option value="media">Media ponderata</option>
+        </select>
+        <select id="sortDir" style="width:70px">
+          <option value="asc">↑</option>
+          <option value="desc">↓</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sidebar-actions admin-only" id="sidebarActions">
+      <button class="btn btn-primary" onclick="openNewGame()">+ Aggiungi gioco</button>
+      <button class="btn btn-secondary" onclick="openImportModal()">⬆ Importa CSV</button>
+      <button class="btn btn-ghost" onclick="exportJSON()">⬇ Esporta JSON</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('jsonFileInput').click()">⬆ Importa JSON</button>
+      <input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="importJSON(event)">
+      <button class="btn btn-danger" onclick="openDeleteCollection()" style="margin-top:4px">🗑 Elimina collezione</button>
+    </div>
+    <div class="sync-bar admin-only" id="syncBar">
+      <div class="sync-status"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">GitHub non configurato</span></div>
+      <div class="sync-time" id="syncTime"></div>
+      <button class="btn btn-ghost btn-sm" onclick="openTokenModal()" style="font-size:11px">⚙ Configura sync</button>
+      <button class="btn btn-ghost btn-sm" id="btnSync" onclick="ghPush(true)" style="font-size:11px;display:none">↑ Sincronizza ora</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Cerca gioco…">
+      </div>
+      <div class="count-badge" id="countBadge">0 giochi</div>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
+      <button class="auth-btn" id="authBtn" onclick="openAuthModal()">🔒 Accedi</button>
+    </div>
+    <div class="content">
+      <div class="game-grid" id="gameGrid"></div>
+    </div>
+  </main>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="panel-overlay" id="panelOverlay" onclick="maybeClosePanel(event)">
+  <div class="panel" id="panel">
+    <div class="panel-header">
+      <div class="panel-header-text">
+        <div class="panel-title" id="panelTitle">–</div>
+        <div id="panelStatusBadge"></div>
+      </div>
+      <button class="panel-close" onclick="closePanel()">✕</button>
+    </div>
+    <div class="panel-body">
+
+      <div>
+        <div class="panel-section-title">Informazioni generali</div>
+        <div class="field-grid">
+          <div class="field full">
+            <label>Titolo</label>
+            <input type="text" id="fTitle">
+          </div>
+          <div class="field full">
+            <label>Da giocare in</label>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+              <div>
+                <label style="font-size:10px;color:var(--text-soft);font-weight:500">3 giocatori</label>
+                <div class="flag-toggles" id="togPlayers3" data-field="playersFor3">
+                  <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'playersFor3')">✓</button>
+                  <button class="flag-toggle" data-val="part" onclick="toggleFlag(this,'playersFor3')">?</button>
+                  <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'playersFor3')">✗</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:10px;color:var(--text-soft);font-weight:500">4 giocatori</label>
+                <div class="flag-toggles" id="togPlayers4" data-field="playersFor4">
+                  <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'playersFor4')">✓</button>
+                  <button class="flag-toggle" data-val="part" onclick="toggleFlag(this,'playersFor4')">?</button>
+                  <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'playersFor4')">✗</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:10px;color:var(--text-soft);font-weight:500">5 giocatori</label>
+                <div class="flag-toggles" id="togPlayers5" data-field="playersFor5">
+                  <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'playersFor5')">✓</button>
+                  <button class="flag-toggle" data-val="part" onclick="toggleFlag(this,'playersFor5')">?</button>
+                  <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'playersFor5')">✗</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Durata (min)</label>
+            <input type="text" id="fTime" placeholder="es. 30">
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select id="fStatus">
+              <option>Owned</option>
+              <option>PNP</option>
+              <option>Want to buy</option>
+              <option>Proxy</option>
+              <option>Preordered</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Regolamento PDF</label>
+            <input type="text" id="fRegolamento" placeholder="URL regolamento">
+          </div>
+          <div class="field full">
+            <label>Link BoardGameGeek</label>
+            <input type="text" id="fBgg" placeholder="https://boardgamegeek.com/boardgame/…">
+          </div>
+          <div class="field full">
+            <label>Hook <span style="color:var(--text-soft);font-weight:400">(descrizione breve sulla card)</span></label>
+            <textarea id="fHook" rows="2" placeholder="Es. Devi dichiarare quante prese prenderai, ma il numero varia ogni mano…"></textarea>
+          </div>
+          <div class="field full">
+            <label>Note</label>
+            <textarea id="fNotes" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-section-title">Meccaniche</div>
+        <div class="field-grid">
+          <div class="field full">
+            <label>Must-follow</label>
+            <div class="flag-toggles" id="togMustFollow" data-field="mustFollow">
+              <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'mustFollow')">Sì</button>
+              <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'mustFollow')">No</button>
+            </div>
+          </div>
+          <div class="field full">
+            <label>Trump / briscola</label>
+            <div class="flag-toggles" id="togTrump" data-field="trump">
+              <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'trump')">Sì</button>
+              <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'trump')">No</button>
+              <button class="flag-toggle" data-val="part" onclick="toggleFlag(this,'trump')">Parziale</button>
+            </div>
+          </div>
+          <div class="field full">
+            <label>Prediction / dichiarazione prese</label>
+            <div class="flag-toggles" id="togPrediction" data-field="prediction">
+              <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'prediction')">Sì</button>
+              <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'prediction')">No</button>
+            </div>
+          </div>
+          <div class="field full">
+            <label>Giocato</label>
+            <div class="flag-toggles" id="togPlayed" data-field="played">
+              <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'played')">Sì</button>
+              <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'played')">No</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-section-title">Valutazione personale</div>
+        <div class="ratings-edit" id="ratingsEdit"></div>
+      </div>
+
+    </div>
+    <div class="panel-footer">
+      <button class="btn btn-primary btn-sm" onclick="saveGame()">Salva</button>
+      <button class="btn btn-ghost btn-sm" onclick="closePanel()">Annulla</button>
+      <button class="btn btn-danger btn-sm" id="btnDelete" onclick="deleteGame()">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- CSV IMPORT MODAL -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <h2>Importa da CSV / Google Sheets</h2>
+    <div>
+      <p>Esporta il tuo Google Sheet in formato CSV (<em>File → Scarica → CSV</em>), poi incolla il contenuto qui sotto oppure carica il file.</p>
+      <ol>
+        <li>La prima riga deve essere l'intestazione.</li>
+        <li>Colonne riconosciute: <strong>Titolo, Players, Best in, Playing time, Must-follow, Trump, Prediction, Rules, Played, Status, Notes</strong></li>
+        <li>I dati esistenti non vengono cancellati: i giochi con lo stesso titolo vengono aggiornati.</li>
+      </ol>
+    </div>
+    <button class="btn btn-secondary" onclick="document.getElementById('csvFileInput').click()">📄 Carica file CSV…</button>
+    <input type="file" id="csvFileInput" accept=".csv,.txt" onchange="loadCSVFile(event)">
+    <textarea id="csvTextarea" placeholder="…oppure incolla qui il CSV"></textarea>
+    <div id="csvPreview" style="font-size:12px;color:var(--text-soft)"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeImportModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="doImportCSV()">Importa</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="auth-modal" id="authModal">
+  <div class="auth-box">
+    <h2>🃏 Accesso admin</h2>
+    <p>Inserisci la password per sbloccare la modifica della collezione.</p>
+    <input type="password" id="authInput" placeholder="Password" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-actions">
+      <button class="btn btn-ghost" onclick="closeAuthModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="doLogin()">Entra</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE COLLECTION MODAL -->
+<div class="modal-overlay" id="deleteCollectionModal">
+  <div class="modal" style="max-width:420px">
+    <h2 style="color:var(--danger)">⚠ Elimina collezione</h2>
+    <p>Stai per eliminare <strong>tutti i giochi</strong> dalla collezione. Questa operazione è irreversibile e sovrascriverà anche il file su GitHub.</p>
+    <p>Scrivi <strong style="color:var(--danger);letter-spacing:0.05em">ELIMINA</strong> per confermare:</p>
+    <input type="text" id="deleteConfirmInput" placeholder="ELIMINA" autocomplete="off"
+      oninput="document.getElementById('btnConfirmDelete').disabled=this.value!=='ELIMINA'">
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeDeleteCollection()">Annulla</button>
+      <button class="btn btn-danger" id="btnConfirmDelete" disabled onclick="doDeleteCollection()">Elimina tutto</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOKEN MODAL -->
+<div class="modal-overlay" id="tokenModal">
+  <div class="modal">
+    <h2>⚙ Configura sync GitHub</h2>
+    <p>I dati verranno salvati come <code style="background:var(--bg);padding:1px 5px;border-radius:4px;font-size:12px">trick-collection.json</code> nel repo <strong>Nylo/netlify-site</strong> (branch <strong>main</strong>).<br>Il token viene salvato solo nel localStorage di questo browser, non viene mai trasmesso ad altri.</p>
+    <div class="filter-group">
+      <label style="font-size:11px;color:var(--text-soft);font-weight:600">Personal Access Token GitHub (scope: repo)</label>
+      <input type="password" id="tokenInput" placeholder="ghp_…" autocomplete="off">
+    </div>
+    <p style="font-size:12px">Per creare un token: <strong>github.com → Settings → Developer settings → Personal access tokens → Tokens (classic)</strong> → seleziona solo <strong>repo</strong>.</p>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="clearToken()">Rimuovi token</button>
+      <button class="btn btn-ghost" onclick="closeTokenModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="saveToken()">Salva e sincronizza</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────── DATA ───────────────
+const STORAGE_KEY = 'trick-collection-v2';
+const RATINGS = ['divertimento','sfidante','semplicita','durata','originalita','tema'];
+const RATING_LABELS = {
+  divertimento:'Divertimento',
+  sfidante:'Sfidante/Stimolante',
+  semplicita:'Semplicità regole',
+  durata:'Durata adeguata',
+  originalita:'Originalità',
+  tema:'Tema/Artwork'
+};
+const RATING_WEIGHTS = {
+  divertimento:29,
+  sfidante:20,
+  semplicita:18,
+  durata:17,
+  originalita:9,
+  tema:7
+};
+const RATING_WEIGHTS_TOTAL = Object.values(RATING_WEIGHTS).reduce((a,b)=>a+b,0); // 100
+
+function weightedAvg(ratings){
+  if(!ratings) return 0;
+  let num=0, den=0;
+  RATINGS.forEach(r=>{
+    const v=parseInt(ratings[r])||0;
+    if(v>0){ num+=v*RATING_WEIGHTS[r]; den+=RATING_WEIGHTS[r]; }
+  });
+  return den>0 ? Math.round((num/den)*100)/100 : 0;
+}
+
+let games = [];
+let currentId = null;
+let currentRatings = {};
+let currentFlags = {};
+
+// ─────────────── THEME ───────────────
+const THEME_KEY = 'trick-theme';
+function getTheme(){ try{ return localStorage.getItem(THEME_KEY)||'dark'; }catch(e){ return 'dark'; } }
+function setTheme(t){ try{ localStorage.setItem(THEME_KEY, t); }catch(e){} }
+function updateTheme(){
+  const t = getTheme();
+  if(t==='light') document.documentElement.setAttribute('data-theme','light');
+  else document.documentElement.removeAttribute('data-theme');
+  document.getElementById('themeToggle').textContent = t==='light'?'☀️':'🌙';
+}
+function toggleTheme(){
+  const t = getTheme()==='light'?'dark':'light';
+  setTheme(t);
+  updateTheme();
+}
+
+// ─────────────── AUTH ───────────────
+const PWD_HASH = '4bd25b8fd42ac3a1f0cbcb5f88077ac3962d62b6c2910757bffd2b2e948e7d79';
+const AUTH_SESSION_KEY = 'trick-auth-session';
+let isAdmin = false;
+
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function applyAuthUI(){
+  const adminEls = document.querySelectorAll('.admin-only');
+  adminEls.forEach(el=>{ el.style.display = isAdmin ? '' : 'none'; });
+  // card-hook editabile solo da admin
+  document.querySelectorAll('.card-hook').forEach(el=>{ el.readOnly = !isAdmin; });
+  const btn = document.getElementById('authBtn');
+  if(isAdmin){
+    btn.textContent = '🔓 Admin';
+    btn.classList.add('logged');
+    btn.onclick = doLogout;
+  } else {
+    btn.textContent = '🔒 Accedi';
+    btn.classList.remove('logged');
+    btn.onclick = openAuthModal;
+  }
+  // pannello: bottoni modifica
+  const panelFooter = document.querySelector('.panel-footer');
+  if(panelFooter){
+    panelFooter.querySelectorAll('button').forEach(b=>{
+      if(b.id==='btnDelete'||b.textContent.trim()==='Salva') b.style.display = isAdmin?'':'none';
+    });
+  }
+}
+
+function openAuthModal(){
+  document.getElementById('authInput').value='';
+  document.getElementById('authError').textContent='';
+  document.getElementById('authModal').classList.add('open');
+  setTimeout(()=>document.getElementById('authInput').focus(),100);
+}
+function closeAuthModal(){ document.getElementById('authModal').classList.remove('open'); }
+
+async function doLogin(){
+  const pwd = document.getElementById('authInput').value;
+  const hash = await sha256(pwd);
+  if(hash === PWD_HASH){
+    isAdmin = true;
+    try{ sessionStorage.setItem(AUTH_SESSION_KEY,'1'); }catch(e){}
+    closeAuthModal();
+    applyAuthUI();
+    renderGrid();
+  } else {
+    document.getElementById('authError').textContent = 'Password errata.';
+    document.getElementById('authInput').select();
+  }
+}
+
+function doLogout(){
+  if(!confirm('Esci dalla modalità admin?')) return;
+  isAdmin = false;
+  try{ sessionStorage.removeItem(AUTH_SESSION_KEY); }catch(e){}
+  applyAuthUI();
+  renderGrid();
+}
+
+function checkSession(){
+  try{ if(sessionStorage.getItem(AUTH_SESSION_KEY)==='1'){ isAdmin=true; } }catch(e){}
+}
+
+// ─────────────── GITHUB SYNC ───────────────
+const GH_OWNER = 'Nylo';
+const GH_REPO  = 'netlify-site';
+const GH_BRANCH = 'main';
+const GH_FILE  = 'trick-collection.json';
+const GH_API   = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
+const TOKEN_KEY = 'gh-token-trick';
+
+let ghSha = null; // SHA dell'ultimo file letto — serve per l'update
+
+function getToken(){ try{ return localStorage.getItem(TOKEN_KEY)||''; }catch(e){ return ''; } }
+
+function setSyncUI(state, msg, time){
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  const tm  = document.getElementById('syncTime');
+  const btn = document.getElementById('btnSync');
+  dot.className = 'sync-dot'+(state==='ok'?' ok':state==='err'?' err':state==='busy'?' busy':'');
+  lbl.textContent = msg;
+  if(time) tm.textContent = 'Ultimo sync: '+time;
+  btn.style.display = getToken() ? '' : 'none';
+}
+
+async function ghFetch(){
+  const token = getToken();
+  if(!token){ 
+    // Modalità pubblica: leggi da raw.githubusercontent.com senza token
+    setSyncUI('busy','Caricamento dalla collezione pubblica…');
+    try{
+      const rawUrl = `https://raw.githubusercontent.com/Nylo/netlify-site/main/trick-collection.json?t=${Date.now()}`;
+      const res = await fetch(rawUrl);
+      if(res.status===404){
+        setSyncUI('ok','GitHub pubblico — nessun dato remoto ancora');
+        return true;
+      }
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const decoded = await res.json();
+      games = decoded;
+      save();
+      const now = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+      setSyncUI('ok',`Sincronizzato (${games.length} giochi)`, now);
+      return true;
+    }catch(e){
+      setSyncUI('err','Lettura GitHub: '+e.message);
+      return false;
+    }
+  }
+  
+  // Modalità admin: sincronizzazione bidirezionale con token
+  setSyncUI('busy','Caricamento da GitHub…');
+  try{
+    const res = await fetch(GH_API+'?ref='+GH_BRANCH+'&t='+Date.now(), {
+      headers:{ Authorization:'token '+token, Accept:'application/vnd.github.v3+json' }
+    });
+    if(res.status===404){
+      ghSha = null;
+      setSyncUI('ok','GitHub connesso — nessun dato remoto');
+      return true;
+    }
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const json = await res.json();
+    ghSha = json.sha;
+    const decoded = JSON.parse(atob(json.content.replace(/\n/g,'')));
+    games = decoded;
+    save();
+    const now = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    setSyncUI('ok',`Sincronizzato (${games.length} giochi)`, now);
+    return true;
+  }catch(e){
+    setSyncUI('err','Errore GitHub: '+e.message);
+    return false;
+  }
+}
+
+async function ghPush(manual=false){
+  const token = getToken();
+  if(!token) return;
+  setSyncUI('busy','Salvataggio su GitHub…');
+  try{
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(games,null,2))));
+    const body = { message:'Update trick-collection', content, branch:GH_BRANCH };
+    if(ghSha) body.sha = ghSha;
+    const res = await fetch(GH_API, {
+      method:'PUT',
+      headers:{ Authorization:'token '+token, Accept:'application/vnd.github.v3+json', 'Content-Type':'application/json' },
+      body: JSON.stringify(body)
+    });
+    if(!res.ok){ const e=await res.json(); throw new Error(e.message||'HTTP '+res.status); }
+    const json = await res.json();
+    ghSha = json.content.sha;
+    const now = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    setSyncUI('ok',`Sincronizzato (${games.length} giochi)`, now);
+  }catch(e){
+    setSyncUI('err','Errore push: '+e.message);
+  }
+}
+
+function openTokenModal(){
+  document.getElementById('tokenInput').value = getToken();
+  document.getElementById('tokenModal').classList.add('open');
+}
+function closeTokenModal(){ document.getElementById('tokenModal').classList.remove('open'); }
+async function saveToken(){
+  const t = document.getElementById('tokenInput').value.trim();
+  if(!t){ alert('Inserisci un token.'); return; }
+  try{ localStorage.setItem(TOKEN_KEY, t); }catch(e){}
+  closeTokenModal();
+  const ok = await ghFetch();
+  if(ok){ renderGrid(); }
+}
+function clearToken(){
+  if(!confirm('Rimuovere il token? La sync verrà disattivata.')) return;
+  try{ localStorage.removeItem(TOKEN_KEY); }catch(e){}
+  ghSha = null;
+  closeTokenModal();
+  setSyncUI('','GitHub non configurato');
+  document.getElementById('btnSync').style.display='none';
+}
+
+// ─────────────── DATA ───────────────
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) games = JSON.parse(raw);
+  }catch(e){ games = []; }
+}
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(games)); }catch(e){}
+}
+// save + push to GitHub (debounced 1.5s)
+let pushTimer = null;
+function saveAndSync(){
+  save();
+  if(!getToken()) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(()=>ghPush(), 1500);
+}
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+// ─────────────── RENDER ───────────────
+function flagVal(v){
+  if(v==='yes'||v===true||v==='v'||v==='V') return 'yes';
+  if(v==='part'||v==='~') return 'part';
+  return 'no';
+}
+function flagLabel(field,v){
+  const labels={mustFollow:'Must-follow',trump:'Trump',prediction:'Prediction',played:'Giocato'};
+  const short={yes:'✓',no:'✗',part:'~'};
+  return `${labels[field]}: ${short[v]||'?'}`;
+}
+function flagClass(v){
+  return v==='yes'?'flag-yes':v==='part'?'flag-part':'flag-no';
+}
+function pipsHtml(val,n=5){
+  let h='<div class="pips">';
+  for(let i=1;i<=n;i++) h+=`<div class="pip${i<=val?' filled':''}"></div>`;
+  return h+'</div>';
+}
+function getStatusClass(st){
+  if(!st) return '';
+  return 'status-'+st.replace(/\s+/g,'\\ ');
+}
+
+function renderGrid(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const fStatus = document.getElementById('filterStatus').value;
+  const fPl3 = document.getElementById('filterPlayers3').value;
+  const fPl4 = document.getElementById('filterPlayers4').value;
+  const fPl5 = document.getElementById('filterPlayers5').value;
+  const fMF = document.getElementById('filterMustFollow').value;
+  const fTr = document.getElementById('filterTrump').value;
+  const fPr = document.getElementById('filterPrediction').value;
+  const fPl = document.getElementById('filterPlayed').value;
+  const sortF = document.getElementById('sortField').value;
+  const sortD = document.getElementById('sortDir').value;
+
+  let list = games.filter(g=>{
+    if(q && !(g.title||'').toLowerCase().includes(q)) return false;
+    if(fStatus && g.status !== fStatus) return false;
+    if(fPl3 && flagVal(g.playersFor3)!==fPl3) return false;
+    if(fPl4 && flagVal(g.playersFor4)!==fPl4) return false;
+    if(fPl5 && flagVal(g.playersFor5)!==fPl5) return false;
+    if(fMF && flagVal(g.mustFollow)!==fMF) return false;
+    if(fTr && flagVal(g.trump)!==fTr) return false;
+    if(fPr && flagVal(g.prediction)!==fPr) return false;
+    if(fPl && flagVal(g.played)!==fPl) return false;
+    return true;
+  });
+
+  list.sort((a,b)=>{
+    let va,vb;
+    if(RATINGS.includes(sortF)){
+      va=parseInt((a.ratings||{})[sortF])||0;
+      vb=parseInt((b.ratings||{})[sortF])||0;
+    } else if(sortF==='media'){
+      va=weightedAvg(a.ratings);
+      vb=weightedAvg(b.ratings);
+    } else if(sortF==='players'){
+      va=parseInt(a.bestIn)||0;
+      vb=parseInt(b.bestIn)||0;
+    } else if(sortF==='time'){
+      va=parseInt(a.playingTime)||0;
+      vb=parseInt(b.playingTime)||0;
+    } else {
+      va=(a.title||'').toLowerCase();
+      vb=(b.title||'').toLowerCase();
+    }
+    if(va<vb) return sortD==='asc'?-1:1;
+    if(va>vb) return sortD==='asc'?1:-1;
+    return 0;
+  });
+
+  const grid = document.getElementById('gameGrid');
+  document.getElementById('countBadge').textContent = list.length+(list.length===1?' gioco':' giochi');
+
+  if(!list.length){
+    grid.innerHTML='<div class="empty-state"><p>Nessun gioco trovato</p><small>Prova a modificare i filtri o aggiungi il tuo primo gioco.</small></div>';
+    return;
+  }
+
+  grid.innerHTML = list.map(g=>{
+    const hasRatings = RATINGS.some(r=>(g.ratings||{})[r]>0);
+    const stClass = g.status ? 'status-'+g.status.replace(/\s/g,'_') : '';
+    const stStyle = getStatusBadgeStyle(g.status);
+    return `<div class="game-card" onclick="openGame('${g.id}')">
+      <div class="card-top">
+        <div class="card-title">${esc(g.title||'—')}</div>
+        ${g.status?`<span class="status-badge" style="${stStyle}">${esc(g.status)}</span>`:''}
+      </div>
+      <div class="card-meta">
+        <span class="meta-pill">⏱ ${esc(g.playingTime||'-')} min</span>
+        ${g.regolamento?`<a href="${esc(g.regolamento)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="meta-pill bgg-link">📖 Regole</a>`:''}
+        ${g.bgg?`<a href="${esc(g.bgg)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="meta-pill bgg-link">🎲 BGG</a>`:''}
+      </div>
+      <div style="font-size:13px;display:flex;gap:8px;align-items:center">
+        <span style="color:var(--text-soft)">Giocatori:</span>
+        <span style="color:${flagVal(g.playersFor3)==='yes'?'var(--success)':flagVal(g.playersFor3)==='part'?'var(--warn)':'var(--text-soft)'}">3️⃣${flagVal(g.playersFor3)==='yes'?'✓':flagVal(g.playersFor3)==='part'?'?':'✗'}</span>
+        <span style="color:${flagVal(g.playersFor4)==='yes'?'var(--success)':flagVal(g.playersFor4)==='part'?'var(--warn)':'var(--text-soft)'}">4️⃣${flagVal(g.playersFor4)==='yes'?'✓':flagVal(g.playersFor4)==='part'?'?':'✗'}</span>
+        <span style="color:${flagVal(g.playersFor5)==='yes'?'var(--success)':flagVal(g.playersFor5)==='part'?'var(--warn)':'var(--text-soft)'}">5️⃣${flagVal(g.playersFor5)==='yes'?'✓':flagVal(g.playersFor5)==='part'?'?':'✗'}</span>
+      </div>
+      <div class="card-flags">
+        ${['mustFollow','trump','prediction','played'].map(f=>{
+          const v=flagVal(g[f]);
+          const labels={mustFollow:'Must-follow',trump:'Trump',prediction:'Pred.',played:'Giocato'};
+          const short={yes:'✓',no:'✗',part:'~'};
+          return `<span class="flag ${flagClass(v)}">${labels[f]}: ${short[v]}</span>`;
+        }).join('')}
+      </div>
+      ${hasRatings?`<div class="card-ratings">
+        ${RATINGS.map(r=>{
+          const v=parseInt((g.ratings||{})[r])||0;
+          if(!v) return '';
+          return `<div class="rating-row"><span class="rating-label">${RATING_LABELS[r]}</span>${pipsHtml(v)}</div>`;
+        }).join('')}
+        <div class="rating-avg">Voto <strong>${(weightedAvg(g.ratings)*2).toFixed(2)}</strong><span style="color:var(--text-soft)">/10</span></div>
+      </div>`:''}
+      <textarea class="card-hook" rows="2" placeholder="Hook — descrivi il gioco in una riga…" data-id="${g.id}" onclick="event.stopPropagation()" oninput="saveHook(event)" ${isAdmin?'':'readonly'}>${esc(g.hook||'')}</textarea>
+    </div>`;
+  }).join('');
+}
+
+function getStatusBadgeStyle(st){
+  const map={
+    'Owned':'background:rgba(76,175,125,0.15);color:#4caf7d',
+    'PNP':'background:rgba(224,164,74,0.15);color:#e0a44a',
+    'Want to buy':'background:rgba(91,141,217,0.15);color:#5b8dd9',
+    'Proxy':'background:rgba(217,107,107,0.15);color:#d96b6b',
+    'Preordered':'background:rgba(150,100,200,0.15);color:#b388d6',
+  };
+  return map[st]||'background:rgba(255,255,255,0.07);color:#8892aa';
+}
+
+function esc(s){ 
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─────────────── PANEL ───────────────
+function openNewGame(){
+  if(!isAdmin) return;
+  currentId = null;
+  currentFlags = {playersFor3:'no',playersFor4:'yes',playersFor5:'no',mustFollow:'no',trump:'no',prediction:'no',played:'no'};
+  currentRatings = {};
+  fillPanel({title:'',playingTime:'',status:'Owned',regolamento:'',bgg:'',notes:'',playersFor3:'no',playersFor4:'yes',playersFor5:'no',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
+  document.getElementById('btnDelete').style.display='none';
+  document.getElementById('panelOverlay').classList.add('open');
+  // campi readonly se guest
+  document.querySelectorAll('.panel-body input, .panel-body select, .panel-body textarea').forEach(el=>{
+    el.disabled = !isAdmin;
+  });
+  document.querySelectorAll('.flag-toggle, .star-pip').forEach(el=>{ el.style.pointerEvents = isAdmin?'':'none'; el.style.opacity = isAdmin?'':'0.5'; });
+  document.querySelector('.panel-footer .btn-primary') && (document.querySelector('.panel-footer .btn-primary').style.display = isAdmin?'':'none');
+}
+  document.getElementById('btnDelete').style.display='none';
+  document.getElementById('panelOverlay').classList.add('open');
+}
+
+function openGame(id){
+  const g = games.find(x=>x.id===id);
+  if(!g) return;
+  currentId = id;
+  currentFlags = {playersFor3:flagVal(g.playersFor3),playersFor4:flagVal(g.playersFor4),playersFor5:flagVal(g.playersFor5),mustFollow:flagVal(g.mustFollow),trump:flagVal(g.trump),prediction:flagVal(g.prediction),played:flagVal(g.played)};
+  currentRatings = Object.assign({},g.ratings||{});
+  fillPanel(g);
+  document.getElementById('btnDelete').style.display = isAdmin ? '' : 'none';
+  document.getElementById('panelOverlay').classList.add('open');
+  // campi readonly se guest
+  document.querySelectorAll('.panel-body input, .panel-body select, .panel-body textarea').forEach(el=>{
+    el.disabled = !isAdmin;
+  });
+  document.querySelectorAll('.flag-toggle, .star-pip').forEach(el=>{ el.style.pointerEvents = isAdmin?'':'none'; el.style.opacity = isAdmin?'':'0.5'; });
+  document.querySelector('.panel-footer .btn-primary') && (document.querySelector('.panel-footer .btn-primary').style.display = isAdmin?'':'none');
+}
+
+function fillPanel(g){
+  document.getElementById('panelTitle').textContent = g.title||'Nuovo gioco';
+  const sb = document.getElementById('panelStatusBadge');
+  sb.innerHTML = g.status?`<span class="status-badge" style="${getStatusBadgeStyle(g.status)}">${esc(g.status)}</span>`:'';
+
+  document.getElementById('fTitle').value = g.title||'';
+  document.getElementById('fTime').value = g.playingTime||'';
+  document.getElementById('fStatus').value = g.status||'Owned';
+  document.getElementById('fRegolamento').value = g.regolamento||'';
+  document.getElementById('fBgg').value = g.bgg||'';
+  document.getElementById('fHook').value = g.hook||'';
+  document.getElementById('fNotes').value = g.notes||'';
+
+  // Da giocare in
+  ['playersFor3','playersFor4','playersFor5'].forEach(f=>{
+    const v = currentFlags[f]||'no';
+    const numPlayer = f.slice(10);
+    const cont = document.getElementById('togPlayers'+numPlayer);
+    if(!cont) return;
+    cont.querySelectorAll('.flag-toggle').forEach(btn=>{
+      btn.className='flag-toggle';
+      if(btn.dataset.val===v) btn.classList.add('active-'+v);
+    });
+  });
+    const v = currentFlags[f]||'no';
+    const cont = document.getElementById('tog'+f.charAt(0).toUpperCase()+f.slice(1));
+    if(!cont) return;
+    cont.querySelectorAll('.flag-toggle').forEach(btn=>{
+      btn.className='flag-toggle';
+      if(btn.dataset.val===v) btn.classList.add('active-'+v);
+    });
+  });
+
+  // ratings
+  const re = document.getElementById('ratingsEdit');
+  re.innerHTML = RATINGS.map(r=>{
+    const v = parseInt((g.ratings||{})[r])||0;
+    const pips = [1,2,3,4,5].map(i=>`<div class="star-pip${i<=v?' lit':''}" data-rating="${r}" data-val="${i}" onclick="setRating('${r}',${i})"></div>`).join('');
+    return `<div class="rating-edit-row"><span class="rating-edit-label">${RATING_LABELS[r]}</span><div class="star-picker">${pips}</div></div>`;
+  }).join('');
+}
+
+function setRating(field, val){
+  currentRatings[field] = (currentRatings[field]===val)?0:val;
+  const v = currentRatings[field];
+  document.querySelectorAll(`.star-pip[data-rating="${field}"]`).forEach(p=>{
+    p.classList.toggle('lit', parseInt(p.dataset.val)<=v);
+  });
+}
+
+function toggleFlag(btn, field){
+  const val = btn.dataset.val;
+  currentFlags[field] = val;
+  const cont = btn.closest('.flag-toggles');
+  cont.querySelectorAll('.flag-toggle').forEach(b=>{
+    b.className='flag-toggle';
+    if(b.dataset.val===val) b.classList.add('active-'+val);
+  });
+}
+
+function saveGame(){
+  const title = document.getElementById('fTitle').value.trim();
+  if(!title){ alert('Il titolo è obbligatorio.'); return; }
+  const data = {
+    title,
+    players: document.getElementById('fPlayers').value.trim(),
+    bestIn: document.getElementById('fBestIn').value.trim(),
+    playingTime: document.getElementById('fTime').value.trim(),
+    status: document.getElementById('fStatus').value,
+    playersFor3: currentFlags.playersFor3||'no',
+    playersFor4: currentFlags.playersFor4||'no',
+    playersFor5: currentFlags.playersFor5||'no',
+    regolamento: document.getElementById('fRegolamento').value.trim(),
+    bgg: document.getElementById('fBgg').value.trim(),
+    hook: document.getElementById('fHook').value.trim(),
+    notes: document.getElementById('fNotes').value.trim(),
+    mustFollow: currentFlags.mustFollow||'no',
+    trump: currentFlags.trump||'no',
+    prediction: currentFlags.prediction||'no',
+    played: currentFlags.played||'no',
+    ratings: Object.assign({},currentRatings),
+  };
+  if(currentId){
+    const idx = games.findIndex(x=>x.id===currentId);
+    games[idx] = Object.assign(games[idx],data);
+  } else {
+    data.id = genId();
+    games.push(data);
+  }
+  saveAndSync();
+  renderGrid();
+  closePanel();
+}
+
+function deleteGame(){
+  if(!currentId) return;
+  if(!confirm('Eliminare questo gioco dalla collezione?')) return;
+  games = games.filter(x=>x.id!==currentId);
+  saveAndSync();
+  renderGrid();
+  closePanel();
+}
+
+function closePanel(){ document.getElementById('panelOverlay').classList.remove('open'); }
+function maybeClosePanel(e){ if(e.target===document.getElementById('panelOverlay')) closePanel(); }
+
+// ─────────────── CSV IMPORT ───────────────
+function openImportModal(){ document.getElementById('importModal').classList.add('open'); }
+function closeImportModal(){ document.getElementById('importModal').classList.remove('open'); document.getElementById('csvTextarea').value=''; document.getElementById('csvPreview').textContent=''; }
+
+function loadCSVFile(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev=>{ document.getElementById('csvTextarea').value=ev.target.result; };
+  r.readAsText(f);
+  e.target.value='';
+}
+
+function parseCSV(text){
+  // Normalizza UTF-8 per evitare caratteri corrotti
+  text = text.normalize('NFC');
+  const lines = text.split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2) return [];
+  const sep = lines[0].includes('\t')?'\t':',';
+  const headers = lines[0].split(sep).map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
+  const col = h => headers.indexOf(h);
+  return lines.slice(1).map(line=>{
+    // naive CSV parse (handles quoted commas basic)
+    const cells=[];let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){inQ=!inQ;}
+      else if((c===sep)&&!inQ){cells.push(cur.trim());cur='';}
+      else cur+=c;
+    }
+    cells.push(cur.trim());
+    const get=h=>{ 
+      const i=col(h); 
+      const v = i>=0?(cells[i]||'').replace(/^"|"$/g,'').trim():'';
+      // Normalizza anche il valore
+      return v.normalize ? v.normalize('NFC') : v;
+    };
+    const fv=v=>{
+      v=v.toLowerCase();
+      if(v==='v'||v==='yes'||v==='sì'||v==='si') return 'yes';
+      if(v==='~'||v==='part'||v==='parziale') return 'part';
+      return 'no';
+    };
+    const normalizeStatus=s=>{
+      // Converte WTB Essen, WTB Gen, WTB altri in "Want to buy"
+      if(s && s.toLowerCase().startsWith('wtb')) return 'Want to buy';
+      // Converte Proxy Rage in Proxy
+      if(s && s.toLowerCase()==='proxy rage') return 'Proxy';
+      return s;
+    };
+    return {
+      id: genId(),
+      title: get('titolo')||get('title'),
+      players: get('players'),
+      bestIn: get('best in')||get('best_in'),
+      playingTime: get('playing time')||get('playing_time'),
+      mustFollow: fv(get('must-follow')||get('must follow')||get('mustfollow')),
+      trump: fv(get('trump')),
+      prediction: fv(get('prediction')),
+      playersFor3: fv(get('3')),
+      playersFor4: fv(get('4')),
+      playersFor5: fv(get('5')),
+      regolamento: get('regolamento')||get('regolamento pdf')||'',
+      bgg: get('bgg')||get('boardgamegeek')||'',
+      hook: get('hook')||'',
+      played: fv(get('played')),
+      status: normalizeStatus(get('status')),
+      notes: get('notes')||get('note'),
+      ratings: {},
+    };
+  }).filter(g=>g.title);
+}
+
+function doImportCSV(){
+  const text = document.getElementById('csvTextarea').value.trim();
+  if(!text){ alert('Nessun dato da importare.'); return; }
+  const parsed = parseCSV(text);
+  if(!parsed.length){ alert('Nessun gioco riconosciuto. Controlla che la prima riga contenga le intestazioni corrette.'); return; }
+  let added=0,updated=0;
+  parsed.forEach(p=>{
+    const idx = games.findIndex(g=>g.title.toLowerCase()===p.title.toLowerCase());
+    if(idx>=0){ Object.assign(games[idx],p,{id:games[idx].id,ratings:games[idx].ratings}); updated++; }
+    else{ games.push(p); added++; }
+  });
+  saveAndSync();
+  renderGrid();
+  closeImportModal();
+  alert(`Importati: ${added} nuovi giochi, ${updated} aggiornati.`);
+}
+
+// ─────────────── JSON ───────────────
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(games,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'trick-collection.json';
+  a.click();
+}
+
+function importJSON(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev=>{
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!Array.isArray(data)) throw new Error();
+      if(!confirm(`Importare ${data.length} giochi? Sostituirà l'intera collezione attuale.`)) return;
+      games = data;
+      saveAndSync();
+      renderGrid();
+      alert('Collezione importata.');
+    }catch(e2){ alert('File JSON non valido.'); }
+  };
+  r.readAsText(f);
+  e.target.value='';
+}
+
+function saveHook(e){
+  const id = e.target.dataset.id;
+  const g = games.find(x=>x.id===id);
+  if(!g) return;
+  g.hook = e.target.value;
+  saveAndSync();
+}
+
+function openDeleteCollection(){
+  document.getElementById('deleteConfirmInput').value='';
+  document.getElementById('btnConfirmDelete').disabled=true;
+  document.getElementById('deleteCollectionModal').classList.add('open');
+}
+function closeDeleteCollection(){ document.getElementById('deleteCollectionModal').classList.remove('open'); }
+async function doDeleteCollection(){
+  games=[];
+  saveAndSync();
+  renderGrid();
+  closeDeleteCollection();
+}
+
+// ─────────────── LIVE FILTERS ───────────────
+['searchInput','filterStatus','filterPlayers3','filterPlayers4','filterPlayers5','filterMustFollow','filterTrump','filterPrediction','filterPlayed','sortField','sortDir']
+  .forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input',renderGrid); });
+
+document.getElementById('fTitle').addEventListener('input',()=>{
+  document.getElementById('panelTitle').textContent = document.getElementById('fTitle').value||'Nuovo gioco';
+});
+
+// ─────────────── INIT ───────────────
+updateTheme();
+checkSession();
+load();
+renderGrid();
+applyAuthUI();
+// Se c'è un token o dati pubblici, carica da GitHub
+if(getToken()){
+  setSyncUI('busy','Caricamento da GitHub…');
+  ghFetch().then(ok=>{ if(ok) renderGrid(); });
+} else {
+  setSyncUI('busy','Caricamento dalla collezione pubblica…');
+  ghFetch().then(ok=>{ if(ok) renderGrid(); });
+}
+</script>
+</body>
+</html>
