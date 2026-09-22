@@ -889,11 +889,12 @@ function renderGrid(){
         ${g.regolamento?`<a href="${esc(g.regolamento)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="meta-pill bgg-link">📖 Regole</a>`:''}
         ${g.bgg?`<a href="${esc(g.bgg)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="meta-pill bgg-link">🎲 BGG</a>`:''}
       </div>
-      <div style="font-size:13px;display:flex;gap:8px;align-items:center">
-        <span style="color:var(--text-soft)">Giocatori:</span>
-        <span style="color:${flagVal(g.playersFor3)==='yes'?'var(--success)':flagVal(g.playersFor3)==='part'?'var(--warn)':'var(--text-soft)'}">3️⃣${flagVal(g.playersFor3)==='yes'?'✓':flagVal(g.playersFor3)==='part'?'?':'✗'}</span>
-        <span style="color:${flagVal(g.playersFor4)==='yes'?'var(--success)':flagVal(g.playersFor4)==='part'?'var(--warn)':'var(--text-soft)'}">4️⃣${flagVal(g.playersFor4)==='yes'?'✓':flagVal(g.playersFor4)==='part'?'?':'✗'}</span>
-        <span style="color:${flagVal(g.playersFor5)==='yes'?'var(--success)':flagVal(g.playersFor5)==='part'?'var(--warn)':'var(--text-soft)'}">5️⃣${flagVal(g.playersFor5)==='yes'?'✓':flagVal(g.playersFor5)==='part'?'?':'✗'}</span>
+      <div class="card-flags">
+        ${['3','4','5'].map(n=>{
+          const v=flagVal(g['playersFor'+n]);
+          const short={yes:'✓',no:'✗',part:'?'};
+          return `<span class="flag ${flagClass(v)}">${n} giocatori: ${short[v]}</span>`;
+        }).join('')}
       </div>
       <div class="card-flags">
         ${['mustFollow','trump','prediction','played'].map(f=>{
