@@ -598,7 +598,7 @@ async function sha256(str){
 
 function applyAuthUI(){
   const adminEls = document.querySelectorAll('.admin-only');
-  adminEls.forEach(el=>{ el.style.display = isAdmin ? '' : 'none'; });
+  adminEls.forEach(el=>{ el.style.display = isAdmin ? 'flex' : 'none'; });
   // card-hook editabile solo da admin
   document.querySelectorAll('.card-hook').forEach(el=>{ el.readOnly = !isAdmin; });
   const btn = document.getElementById('authBtn');
@@ -888,6 +888,7 @@ function renderGrid(){
         <span class="meta-pill">⏱ ${esc(g.playingTime||'-')} min</span>
         ${g.regolamento?`<a href="${esc(g.regolamento)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="meta-pill bgg-link">📖 Regole</a>`:''}
         ${g.bgg?`<a href="${esc(g.bgg)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="meta-pill bgg-link">🎲 BGG</a>`:''}
+        <span class="flag ${flagClass(flagVal(g.played))}" style="margin-left:auto">Giocato: ${({yes:'✓',no:'✗',part:'~'})[flagVal(g.played)]}</span>
       </div>
       <div class="card-flags">
         ${['3','4','5'].map(n=>{
@@ -897,9 +898,9 @@ function renderGrid(){
         }).join('')}
       </div>
       <div class="card-flags">
-        ${['mustFollow','trump','prediction','played'].map(f=>{
+        ${['mustFollow','trump','prediction'].map(f=>{
           const v=flagVal(g[f]);
-          const labels={mustFollow:'Must-follow',trump:'Trump',prediction:'Pred.',played:'Giocato'};
+          const labels={mustFollow:'Must-follow',trump:'Trump',prediction:'Prediction'};
           const short={yes:'✓',no:'✗',part:'~'};
           return `<span class="flag ${flagClass(v)}">${labels[f]}: ${short[v]}</span>`;
         }).join('')}
