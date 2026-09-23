@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cascadia — Scoring Cards Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Courier+Prime&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+    :root {
+      --bg:          #0c130d;
+      --surface:     #111a12;
+      --border:      #1f2e20;
+      --accent:      #c49a3c;
+      --accent-dim:  #7a5e20;
+      --accent-soft: #e8c96b;
+      --text:        #e8e0cc;
+      --text-dim:    #5e6b52;
+      --radius:      3px;
+    }
+ 
+    html, body { height: 100%; }
+ 
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier Prime', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+ 
+    /* ── GRAIN ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+    }
+ 
+    /* ── VIGNETTE ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+ 
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      z-index: 1;
+      padding: 1.2rem 1.8rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      /* border-bottom: 1px solid var(--border); */
+      background: #010101
+      flex-shrink: 0;
+    }
+ 
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+ 
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 400;
+      letter-spacing: 0.03em;
+      color: var(--accent);
+      line-height: 1;
+    }
+ 
+    .logo em {
+      font-style: italic;
+      color: var(--accent-soft);
+    }
+ 
+    .subtitle {
+      font-size: 0.52rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+ 
+    /* ── BUTTON GROUP ── */
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.25rem;
+    }
+ 
+    .btn-shuffle {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--bg);
+      background: var(--accent);
+      border: none;
+      padding: 0.65rem 1.8rem;
+      cursor: pointer;
+      border-radius: var(--radius);
+      transition: background 0.2s, transform 0.12s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 16px rgba(196,154,60,0.2);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+ 
+    .btn-shuffle svg {
+      width: 11px; height: 11px;
+      transition: transform 0.45s ease;
+      flex-shrink: 0;
+    }
+ 
+    .btn-shuffle:hover {
+      background: var(--accent-soft);
+      box-shadow: 0 4px 22px rgba(196,154,60,0.32);
+    }
+    .btn-shuffle:hover svg { transform: rotate(180deg); }
+    .btn-shuffle:active { transform: scale(0.96); }
+    .btn-shuffle:disabled {
+      background: var(--accent-dim);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+ 
+    .seed-badge {
+      font-size: 0.48rem;
+      letter-spacing: 0.14em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      min-height: 0.7rem;
+    }
+ 
+    /* ── MAIN ── */
+    main {
+      flex: 1;
+      padding: 1rem 1.5rem 1.2rem;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+	  background: linear-gradient(180deg, rgba(8, 14, 8, 0.9) 0%, transparent 100%);
+    }
+ 
+    /* ── GRID ── */
+    .grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+ 
+    /* ── CARD ── */
+    .card {
+      position: relative;
+      overflow: hidden;
+      /*border-radius: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: border-color 0.25s, box-shadow 0.25s;*/
+    }
+ 
+    .card:hover {
+      border-color: rgba(196,154,60,0.4);
+      box-shadow: 0 0 24px rgba(196,154,60,0.1);
+    }
+ 
+    .card-img-wrap {
+      width: 100%;
+      aspect-ratio: 3 / 5.2;
+      position: relative;
+      overflow: hidden;
+      background: #0b150c;
+    }
+ 
+    .card-img-wrap img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /*transition: transform 0.55s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.4s ease;*/
+      opacity: 0;
+    }
+ 
+    .card-img-wrap img.loaded { opacity: 1; }
+    /* .card:hover .card-img-wrap img { transform: scale(1.05); } */
+ 
+    .placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+ 
+    .placeholder svg {
+      width: 40px; height: 40px;
+      opacity: 0.1;
+    }
+ 
+    /* ── FLASH ── */
+    @keyframes flash {
+      0%   { opacity: 1; }
+      18%  { opacity: 0; }
+      100% { opacity: 1; }
+    }
+ 
+    .card.shuffling .card-img-wrap img {
+      animation: flash 0.45s ease forwards;
+    }
+ 
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      main { padding: 0.7rem; }
+      header { padding: 0.9rem 1rem; }
+      .grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    }
+    @media (max-width: 540px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .logo { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+ 
+<header>
+  <div class="header-left">
+    <div class="logo"><em>Cascadia</em> — Scoring Cards</div>
+    <div class="subtitle">Pacific Northwest Wildlife · Randomizer</div>
+  </div>
+ 
+  <div class="header-right">
+    <button class="btn-shuffle" id="shuffleBtn" onclick="shuffle()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="17 1 21 5 17 9"/>
+        <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+        <polyline points="7 23 3 19 7 15"/>
+        <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+      </svg>
+      Nuova estrazione
+    </button>
+    <div class="seed-badge" id="seedLine">&nbsp;</div>
+  </div>
+</header>
+ 
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+ 
+<script>
+  /* ============================================================
+     ★  CONFIGURAZIONE  ★
+     Aggiorna i percorsi con i file reali nella cartella images/
+  ============================================================ */
+  const CATEGORIES = [
+    {
+      name: "Orso Grizzly",
+      images: [
+        "images/grizzly/01.jpg",
+        "images/grizzly/02.jpg",
+        "images/grizzly/03.jpg",
+        "images/grizzly/04.jpg",
+        "images/grizzly/05.jpg",
+        "images/grizzly/06.jpg",
+      ]
+    },
+    {
+      name: "Alce",
+      images: [
+        "images/alce/01.jpg",
+        "images/alce/02.jpg",
+        "images/alce/03.jpg",
+        "images/alce/04.jpg",
+        "images/alce/05.jpg",
+      ]
+    },
+    {
+      name: "Volpe",
+      images: [
+        "images/volpe/01.jpg",
+        "images/volpe/02.jpg",
+        "images/volpe/03.jpg",
+        "images/volpe/04.jpg",
+        "images/volpe/05.jpg",
+      ]
+    },
+    {
+      name: "Salmone",
+      images: [
+        "images/salmone/01.jpg",
+        "images/salmone/02.jpg",
+        "images/salmone/03.jpg",
+        "images/salmone/04.jpg",
+        "images/salmone/05.jpg",
+      ]
+    },
+    {
+      name: "Aquila",
+      images: [
+        "images/aquila/01.jpg",
+        "images/aquila/02.jpg",
+        "images/aquila/03.jpg",
+        "images/aquila/04.jpg",
+        "images/aquila/05.jpg",
+        "images/aquila/06.jpg",
+      ]
+    },
+  ];
+  /* ============================================================ */
+ 
+  const PINE = `<svg viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg" fill="#3a5a3c">
+    <polygon points="32,4 56,42 42,42 56,68 8,68 22,42 8,42"/>
+    <rect x="26" y="68" width="12" height="10"/>
+  </svg>`;
+ 
+  function pick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+ 
+  function buildGrid() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    CATEGORIES.forEach((cat, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.id = `card-${i}`;
+      card.innerHTML = `
+        <div class="card-img-wrap">
+          <div class="placeholder">${PINE}</div>
+          <img id="img-${i}" alt="${cat.name}" title="${cat.name}" />
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+ 
+  function shuffle() {
+    const btn = document.getElementById('shuffleBtn');
+    btn.disabled = true;
+ 
+    const seed = Math.random().toString(36).slice(2, 7).toUpperCase();
+    document.getElementById('seedLine').textContent = `seed · ${seed}`;
+ 
+    CATEGORIES.forEach((cat, i) => {
+      const card  = document.getElementById(`card-${i}`);
+      const imgEl = document.getElementById(`img-${i}`);
+ 
+      card.classList.add('shuffling');
+      setTimeout(() => card.classList.remove('shuffling'), 500);
+ 
+      setTimeout(() => {
+        const src = pick(cat.images);
+        imgEl.classList.remove('loaded');
+        const tmp = new Image();
+        tmp.onload  = () => { imgEl.src = src; imgEl.classList.add('loaded'); };
+        tmp.onerror = () => { imgEl.classList.add('loaded'); };
+        tmp.src = src;
+      }, i * 90);
+    });
+ 
+    setTimeout(() => { btn.disabled = false; }, 720);
+  }
+ 
+  buildGrid();
+  shuffle();
+</script>
+</body>
+</html>
+ 
