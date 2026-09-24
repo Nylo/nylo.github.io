@@ -150,7 +150,7 @@ select option{background:var(--surface)}
 .star-pip:hover,.star-pip.lit{background:var(--accent);border-color:var(--accent)}
 .panel-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-start}
 
-/* ── MODAL (CSV import) ── */
+/* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;display:none;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(600px,95vw);padding:28px;display:flex;flex-direction:column;gap:18px}
@@ -305,13 +305,13 @@ select option{background:var(--surface)}
       <button class="btn btn-ghost" onclick="document.getElementById('jsonFileInput').click()">⬆ Importa JSON</button>
       <input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="importJSON(event)">
       <button class="btn btn-danger" onclick="openDeleteCollection()" style="margin-top:4px">🗑 Elimina collezione</button>
- 
-		<div class="sync-bar admin-only" id="syncBar">
-		  <div class="sync-status"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">GitHub non configurato</span></div>
-		  <div class="sync-time" id="syncTime"></div>
-		  <button class="btn btn-ghost btn-sm" onclick="openTokenModal()" style="font-size:11px">⚙ Configura sync</button>
-		  <button class="btn btn-ghost btn-sm" id="btnSync" onclick="ghPush(true)" style="font-size:11px;display:none">↑ Sincronizza ora</button>
-		</div>
+
+      <div class="sync-bar admin-only" id="syncBar">
+        <div class="sync-status"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">GitHub non configurato</span></div>
+        <div class="sync-time" id="syncTime"></div>
+        <button class="btn btn-ghost btn-sm" onclick="openTokenModal()" style="font-size:11px">⚙ Configura sync</button>
+        <button class="btn btn-ghost btn-sm" id="btnSync" onclick="ghPush(true)" style="font-size:11px;display:none">↑ Sincronizza ora</button>
+      </div>
     </div>
   </aside>
 
@@ -363,7 +363,7 @@ select option{background:var(--surface)}
                 </div>
               </div>
               <div>
-                <label style="font-size:10px;color:var(--text-soft);font-weight:500; line-height: 2rem; margin-top: -8px;">3 giocatori</label>
+                <label style="font-size:10px;color:var(--text-soft);font-weight:500; line-height: 2rem; margin-top: -8px;">4 giocatori</label>
                 <div class="flag-toggles" id="togPlayers4" data-field="playersFor4">
                   <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'playersFor4')">✓</button>
                   <button class="flag-toggle" data-val="part" onclick="toggleFlag(this,'playersFor4')">?</button>
@@ -371,7 +371,7 @@ select option{background:var(--surface)}
                 </div>
               </div>
               <div>
-                <label style="font-size:10px;color:var(--text-soft);font-weight:500; line-height: 2rem; margin-top: -8px;">3 giocatori</label>
+                <label style="font-size:10px;color:var(--text-soft);font-weight:500; line-height: 2rem; margin-top: -8px;">5 giocatori</label>
                 <div class="flag-toggles" id="togPlayers5" data-field="playersFor5">
                   <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'playersFor5')">✓</button>
                   <button class="flag-toggle" data-val="part" onclick="toggleFlag(this,'playersFor5')">?</button>
@@ -553,7 +553,7 @@ const RATING_WEIGHTS = {
   originalita:9,
   tema:7
 };
-const RATING_WEIGHTS_TOTAL = Object.values(RATING_WEIGHTS).reduce((a,b)=>a+b,0); // 100
+const RATING_WEIGHTS_TOTAL = Object.values(RATING_WEIGHTS).reduce((a,b)=>a+b,0);
 
 function weightedAvg(ratings){
   if(!ratings) return 0;
@@ -599,7 +599,6 @@ async function sha256(str){
 function applyAuthUI(){
   const adminEls = document.querySelectorAll('.admin-only');
   adminEls.forEach(el=>{ el.style.display = isAdmin ? 'flex' : 'none'; });
-  // card-hook editabile solo da admin
   document.querySelectorAll('.card-hook').forEach(el=>{ el.readOnly = !isAdmin; });
   const btn = document.getElementById('authBtn');
   if(isAdmin){
@@ -611,7 +610,6 @@ function applyAuthUI(){
     btn.classList.remove('logged');
     btn.onclick = openAuthModal;
   }
-  // pannello: bottoni modifica
   const panelFooter = document.querySelector('.panel-footer');
   if(panelFooter){
     panelFooter.querySelectorAll('button').forEach(b=>{
@@ -663,7 +661,7 @@ const GH_FILE  = 'trick-collection.json';
 const GH_API   = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
 const TOKEN_KEY = 'gh-token-trick';
 
-let ghSha = null; // SHA dell'ultimo file letto — serve per l'update
+let ghSha = null;
 
 function getToken(){ try{ return localStorage.getItem(TOKEN_KEY)||''; }catch(e){ return ''; } }
 
@@ -678,21 +676,76 @@ function setSyncUI(state, msg, time){
   btn.style.display = getToken() ? '' : 'none';
 }
 
+// FIX: decodifica UTF-8 corretta (simmetrica a ghPush)
+function b64DecodeUTF8(b64){
+  const binary = atob(b64.replace(/\n/g,''));
+  const bytes = new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+// FIX: codifica UTF-8 corretta per push
+function b64EncodeUTF8(str){
+  const bytes = new TextEncoder().encode(str);
+  let binary='';
+  for(let i=0;i<bytes.length;i++) binary+=String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+// FIX: merge intelligente — i rating locali vincono su quelli remoti
+// Solo i giochi che non esistono localmente vengono aggiunti dal remoto.
+// I giochi esistenti mantengono i dati locali (inclusi i rating) a meno che
+// il remoto abbia un campo che localmente è vuoto.
+function mergeGames(local, remote){
+  const localMap = {};
+  local.forEach(g=>{ localMap[g.id] = g; });
+  const result = local.map(g=>Object.assign({},g)); // copia locale
+  remote.forEach(rg=>{
+    if(localMap[rg.id]){
+      // Il gioco esiste già in locale: fai merge preservando i rating locali
+      const lg = result.find(x=>x.id===rg.id);
+      // Copia solo i campi che localmente sono vuoti/undefined
+      Object.keys(rg).forEach(k=>{
+        if(k==='ratings') return; // ratings: merge campo per campo
+        if(k==='id') return;
+        if(lg[k]===undefined||lg[k]===null||lg[k]==='') lg[k]=rg[k];
+      });
+      // Merge ratings: il locale vince su ogni singolo rating
+      if(rg.ratings){
+        lg.ratings = lg.ratings||{};
+        RATINGS.forEach(r=>{
+          if(!(r in lg.ratings)||lg.ratings[r]===0||lg.ratings[r]===undefined){
+            if(rg.ratings[r]) lg.ratings[r]=rg.ratings[r];
+          }
+        });
+      }
+    } else {
+      // Gioco nuovo dal remoto: aggiungilo
+      result.push(Object.assign({},rg));
+    }
+  });
+  return result;
+}
+
 async function ghFetch(){
   const token = getToken();
-  if(!token){ 
-    // Modalità pubblica: leggi da raw.githubusercontent.com senza token
+  if(!token){
     setSyncUI('busy','Caricamento dalla collezione pubblica…');
     try{
-      const rawUrl = `https://raw.githubusercontent.com/Nylo/netlify-site/main/trick-collection.json?t=${Date.now()}`;
+      const rawUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${GH_FILE}?t=${Date.now()}`;
       const res = await fetch(rawUrl);
       if(res.status===404){
         setSyncUI('ok','GitHub pubblico — nessun dato remoto ancora');
         return true;
       }
       if(!res.ok) throw new Error('HTTP '+res.status);
-      const decoded = await res.json();
-      games = decoded;
+      const remote = await res.json();
+      // FIX: merge invece di sovrascrittura
+      if(games.length>0){
+        games = mergeGames(games, remote);
+      } else {
+        games = remote;
+      }
       save();
       const now = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
       setSyncUI('ok',`Sincronizzato (${games.length} giochi)`, now);
@@ -702,8 +755,7 @@ async function ghFetch(){
       return false;
     }
   }
-  
-  // Modalità admin: sincronizzazione bidirezionale con token
+
   setSyncUI('busy','Caricamento da GitHub…');
   try{
     const res = await fetch(GH_API+'?ref='+GH_BRANCH+'&t='+Date.now(), {
@@ -717,8 +769,14 @@ async function ghFetch(){
     if(!res.ok) throw new Error('HTTP '+res.status);
     const json = await res.json();
     ghSha = json.sha;
-    const decoded = JSON.parse(atob(json.content.replace(/\n/g,'')));
-    games = decoded;
+    // FIX: decodifica UTF-8 corretta
+    const decoded = JSON.parse(b64DecodeUTF8(json.content));
+    // FIX: merge invece di sovrascrittura
+    if(games.length>0){
+      games = mergeGames(games, decoded);
+    } else {
+      games = decoded;
+    }
     save();
     const now = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
     setSyncUI('ok',`Sincronizzato (${games.length} giochi)`, now);
@@ -734,7 +792,8 @@ async function ghPush(manual=false){
   if(!token) return;
   setSyncUI('busy','Salvataggio su GitHub…');
   try{
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(games,null,2))));
+    // FIX: codifica UTF-8 corretta
+    const content = b64EncodeUTF8(JSON.stringify(games,null,2));
     const body = { message:'Update trick-collection', content, branch:GH_BRANCH };
     if(ghSha) body.sha = ghSha;
     const res = await fetch(GH_API, {
@@ -784,7 +843,6 @@ function load(){
 function save(){
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(games)); }catch(e){}
 }
-// save + push to GitHub (debounced 1.5s)
 let pushTimer = null;
 function saveAndSync(){
   save();
@@ -877,7 +935,6 @@ function renderGrid(){
 
   grid.innerHTML = list.map(g=>{
     const hasRatings = RATINGS.some(r=>(g.ratings||{})[r]>0);
-    const stClass = g.status ? 'status-'+g.status.replace(/\s/g,'_') : '';
     const stStyle = getStatusBadgeStyle(g.status);
     return `<div class="game-card" onclick="openGame('${g.id}')">
       <div class="card-top">
@@ -929,7 +986,7 @@ function getStatusBadgeStyle(st){
   return map[st]||'background:rgba(255,255,255,0.07);color:#8892aa';
 }
 
-function esc(s){ 
+function esc(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
@@ -942,10 +999,7 @@ function openNewGame(){
   fillPanel({title:'',playingTime:'',status:'Owned',regolamento:'',bgg:'',notes:'',playersFor3:'no',playersFor4:'yes',playersFor5:'no',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
   document.getElementById('btnDelete').style.display='none';
   document.getElementById('panelOverlay').classList.add('open');
-  // campi readonly se guest
-  document.querySelectorAll('.panel-body input, .panel-body select, .panel-body textarea').forEach(el=>{
-    el.disabled = !isAdmin;
-  });
+  document.querySelectorAll('.panel-body input, .panel-body select, .panel-body textarea').forEach(el=>{ el.disabled = !isAdmin; });
   document.querySelectorAll('.flag-toggle, .star-pip').forEach(el=>{ el.style.pointerEvents = isAdmin?'':'none'; el.style.opacity = isAdmin?'':'0.5'; });
   document.querySelector('.panel-footer .btn-primary') && (document.querySelector('.panel-footer .btn-primary').style.display = isAdmin?'':'none');
 }
@@ -959,10 +1013,7 @@ function openGame(id){
   fillPanel(g);
   document.getElementById('btnDelete').style.display = isAdmin ? '' : 'none';
   document.getElementById('panelOverlay').classList.add('open');
-  // campi readonly se guest
-  document.querySelectorAll('.panel-body input, .panel-body select, .panel-body textarea').forEach(el=>{
-    el.disabled = !isAdmin;
-  });
+  document.querySelectorAll('.panel-body input, .panel-body select, .panel-body textarea').forEach(el=>{ el.disabled = !isAdmin; });
   document.querySelectorAll('.flag-toggle, .star-pip').forEach(el=>{ el.style.pointerEvents = isAdmin?'':'none'; el.style.opacity = isAdmin?'':'0.5'; });
   document.querySelector('.panel-footer .btn-primary') && (document.querySelector('.panel-footer .btn-primary').style.display = isAdmin?'':'none');
 }
@@ -980,7 +1031,6 @@ function fillPanel(g){
   document.getElementById('fHook').value = g.hook||'';
   document.getElementById('fNotes').value = g.notes||'';
 
-  // Da giocare in
   ['playersFor3','playersFor4','playersFor5'].forEach(f=>{
     const v = currentFlags[f]||'no';
     const numPlayer = f.slice(10);
@@ -992,7 +1042,6 @@ function fillPanel(g){
     });
   });
 
-  // flags per mustFollow, trump, prediction, played
   ['mustFollow','trump','prediction','played'].forEach(f=>{
     const v = currentFlags[f]||'no';
     const cont = document.getElementById('tog'+f.charAt(0).toUpperCase()+f.slice(1));
@@ -1003,7 +1052,6 @@ function fillPanel(g){
     });
   });
 
-  // ratings
   const re = document.getElementById('ratingsEdit');
   re.innerHTML = RATINGS.map(r=>{
     const v = parseInt((g.ratings||{})[r])||0;
@@ -1082,12 +1130,11 @@ function loadCSVFile(e){
   const f = e.target.files[0]; if(!f) return;
   const r = new FileReader();
   r.onload = ev=>{ document.getElementById('csvTextarea').value=ev.target.result; };
-  r.readAsText(f);
+  r.readAsText(f,'UTF-8');
   e.target.value='';
 }
 
 function parseCSV(text){
-  // Normalizza UTF-8 per evitare caratteri corrotti
   text = text.normalize('NFC');
   const lines = text.split(/\r?\n/).filter(l=>l.trim());
   if(lines.length<2) return [];
@@ -1095,7 +1142,6 @@ function parseCSV(text){
   const headers = lines[0].split(sep).map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
   const col = h => headers.indexOf(h);
   return lines.slice(1).map(line=>{
-    // naive CSV parse (handles quoted commas basic)
     const cells=[];let cur='',inQ=false;
     for(let i=0;i<line.length;i++){
       const c=line[i];
@@ -1104,10 +1150,9 @@ function parseCSV(text){
       else cur+=c;
     }
     cells.push(cur.trim());
-    const get=h=>{ 
-      const i=col(h); 
+    const get=h=>{
+      const i=col(h);
       const v = i>=0?(cells[i]||'').replace(/^"|"$/g,'').trim():'';
-      // Normalizza anche il valore
       return v.normalize ? v.normalize('NFC') : v;
     };
     const fv=v=>{
@@ -1117,9 +1162,7 @@ function parseCSV(text){
       return 'no';
     };
     const normalizeStatus=s=>{
-      // Converte WTB Essen, WTB Gen, WTB altri in "Want to buy"
       if(s && s.toLowerCase().startsWith('wtb')) return 'Want to buy';
-      // Converte Proxy Rage in Proxy
       if(s && s.toLowerCase()==='proxy rage') return 'Proxy';
       return s;
     };
@@ -1165,7 +1208,7 @@ function doImportCSV(){
 
 // ─────────────── JSON ───────────────
 function exportJSON(){
-  const blob = new Blob([JSON.stringify(games,null,2)],{type:'application/json'});
+  const blob = new Blob([JSON.stringify(games,null,2)],{type:'application/json;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'trick-collection.json';
@@ -1186,7 +1229,7 @@ function importJSON(e){
       alert('Collezione importata.');
     }catch(e2){ alert('File JSON non valido.'); }
   };
-  r.readAsText(f);
+  r.readAsText(f,'UTF-8');
   e.target.value='';
 }
 
@@ -1225,14 +1268,12 @@ checkSession();
 load();
 renderGrid();
 applyAuthUI();
-// Se c'è un token o dati pubblici, carica da GitHub
 if(getToken()){
   setSyncUI('busy','Caricamento da GitHub…');
-  ghFetch().then(ok=>{ if(ok) renderGrid(); });
 } else {
   setSyncUI('busy','Caricamento dalla collezione pubblica…');
-  ghFetch().then(ok=>{ if(ok) renderGrid(); });
 }
+ghFetch().then(ok=>{ if(ok) renderGrid(); });
 </script>
 </body>
 </html>
