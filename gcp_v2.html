@@ -24,7 +24,7 @@
   .btn:active{transform:translateY(1px)}
   .btn-new{background:var(--green-dark)}
   .btn-reset{background:#8e2f37}
-  #players{display:grid;grid-template-columns:repeat(var(--cols,1),minmax(0,1fr));gap:12px;align-items:start}
+  #players{display:flex;flex-direction:column;gap:12px;align-items:stretch;width:100%}
   .player-card{background:#f8f8f8;color:var(--ink);border-radius:16px;overflow:hidden;box-shadow:0 5px 18px rgba(0,0,0,.35);min-width:0}
   .player-head{padding:11px 12px 9px;display:grid;grid-template-columns:1fr auto;gap:5px 10px;align-items:center;border-bottom:1px solid #ddd}
   .player-name{font-weight:900;font-size:clamp(15px,2.6vw,22px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -50,13 +50,13 @@
   .modal{width:min(560px,100%);background:#f7f7f7;color:#171717;border-radius:20px;box-shadow:0 20px 70px rgba(0,0,0,.5);padding:20px}
   .modal h1{margin:0 0 5px;font-size:22px}.modal p{margin:0 0 18px;color:#666;font-size:13px;line-height:1.4}
   .player-setup{display:grid;gap:10px}
-  .setup-row{display:grid;grid-template-columns:100px 105px 1fr;gap:8px;align-items:center}
-  .setup-row label{font-weight:900;font-size:13px}.setup-row select,.setup-row input{height:40px;border:1px solid #c9c9c9;border-radius:9px;padding:0 10px;background:#fff;min-width:0}.setup-row select:disabled{color:#555;background:#eee}
+  .setup-row{display:grid;grid-template-columns:100px 1fr;gap:8px;align-items:center}
+  .setup-row label{font-weight:900;font-size:13px}.setup-row input{height:40px;border:1px solid #c9c9c9;border-radius:9px;padding:0 10px;background:#fff;min-width:0}.setup-add{width:100%;margin-top:2px;height:40px;border:1px dashed #aaa;border-radius:9px;background:#fff;color:#333;font-weight:900;cursor:pointer}.setup-add:active{transform:scale(.99)}
   .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:17px}.primary{background:var(--red);color:#fff;border:0;border-radius:10px;padding:11px 17px;font-weight:900}.secondary{background:#ddd;color:#222;border:0;border-radius:10px;padding:11px 17px;font-weight:900}
   .confirm-text{font-size:15px;line-height:1.45;margin:6px 0 0}
-  @media(min-width:720px){#players{--cols:2}.player-card{max-width:none}}
+  @media(min-width:720px){.player-card{width:100%}}
   @media(min-width:1180px){#players{--cols:4}.app{padding:14px 18px}.toy-grid{gap:5px}}
-  @media(max-width:650px){.topbar{align-items:flex-start}.brand{max-width:145px}.top-actions .btn{padding:8px 9px}.setup-row{grid-template-columns:78px 92px 1fr}.app{padding:8px}.player-head{padding:9px}.grid-wrap{padding:6px}.toy-grid{gap:3px;padding:3px}}
+  @media(max-width:650px){.topbar{align-items:flex-start}.brand{max-width:145px}.top-actions .btn{padding:8px 9px}.setup-row{grid-template-columns:78px 1fr}.app{padding:8px}.player-head{padding:9px}.grid-wrap{padding:6px}.toy-grid{gap:3px;padding:3px}}
 </style>
 </head>
 <body>
@@ -66,7 +66,7 @@
     <div class="round">ROUND <strong id="roundLabel">1 / 3</strong></div>
     <div class="top-actions">
       <button class="btn btn-new" id="newRoundBtn">Nuovo round</button>
-      <button class="btn btn-reset" id="resetBtn">Reset</button>
+      <button class="btn btn-reset" id="newGameBtn">Nuova partita</button>
     </div>
   </header>
   <main id="players"></main>
@@ -75,13 +75,13 @@
 <div class="overlay open" id="setupOverlay">
   <div class="modal">
     <h1>Nuova partita</h1>
-    <p>Imposta i giocatori. I primi tre sono sempre presenti; il quarto può essere attivo oppure assente.</p>
-    <div class="player-setup">
-      <div class="setup-row"><label>Giocatore 1</label><select disabled><option>Presente</option></select><input id="name1" maxlength="18" placeholder="Nome"></div>
-      <div class="setup-row"><label>Giocatore 2</label><select disabled><option>Presente</option></select><input id="name2" maxlength="18" placeholder="Nome"></div>
-      <div class="setup-row"><label>Giocatore 3</label><select disabled><option>Presente</option></select><input id="name3" maxlength="18" placeholder="Nome"></div>
-      <div class="setup-row"><label>Giocatore 4</label><select id="status4"><option>Attivo</option><option>Assente</option></select><input id="name4" maxlength="18" placeholder="Nome"></div>
+    <p>Inserisci i nomi dei giocatori. Si parte da 3 giocatori; puoi aggiungere il quarto con il pulsante qui sotto.</p>
+    <div class="player-setup" id="playerSetup">
+      <div class="setup-row"><label>Giocatore 1</label><input id="name1" maxlength="18" placeholder="Nome"></div>
+      <div class="setup-row"><label>Giocatore 2</label><input id="name2" maxlength="18" placeholder="Nome"></div>
+      <div class="setup-row"><label>Giocatore 3</label><input id="name3" maxlength="18" placeholder="Nome"></div>
     </div>
+    <button class="setup-add" id="addPlayerBtn" type="button">+ Aggiungi giocatore</button>
     <div class="modal-actions"><button class="primary" id="startBtn">Inizia partita</button></div>
   </div>
 </div>
@@ -127,7 +127,6 @@
   }
   function refreshPlayerPV(p){var x=calcPV(p);p.roundPV=x.total;return x}
   function render(){
-    document.documentElement.style.setProperty('--cols',state.players.length);
     document.getElementById('roundLabel').textContent=state.round+' / '+state.maxRounds;
     var root=document.getElementById('players');root.innerHTML='';
     state.players.forEach(function(p,pi){
@@ -169,23 +168,57 @@
   function closeConfirm(){confirmAction=null;document.getElementById('confirmOverlay').classList.remove('open')}
   document.getElementById('confirmNo').onclick=closeConfirm;
   document.getElementById('confirmYes').onclick=function(){var fn=confirmAction;closeConfirm();if(fn)fn()};
-  document.getElementById('resetBtn').onclick=function(){ask('Reset partita','Vuoi davvero resettare la partita? Il reset impatterà tutti i giocatori, tutti i gachapon, i PV e il round corrente.',function(){localStorage.removeItem(STORAGE);state=null;document.getElementById('setupOverlay').classList.add('open');})};
+  var setupPlayerCount=3;
+  function updateSetupUI(){
+    var row4=document.getElementById('setupRow4');
+    if(setupPlayerCount>=4){
+      if(!row4){
+        row4=document.createElement('div');row4.className='setup-row';row4.id='setupRow4';
+        row4.innerHTML='<label>Giocatore 4</label><input id="name4" maxlength="18" placeholder="Nome">';
+        document.getElementById('playerSetup').appendChild(row4);
+      }
+      document.getElementById('addPlayerBtn').style.display='none';
+    }else{
+      if(row4)row4.remove();
+      document.getElementById('addPlayerBtn').style.display='block';
+    }
+  }
+  document.getElementById('addPlayerBtn').onclick=function(){
+    if(setupPlayerCount>=4)return;
+    setupPlayerCount=4;
+    updateSetupUI();
+    document.getElementById('name4').focus();
+  };
+  function openSetupForNewGame(){
+    setupPlayerCount=state&&state.players&&state.players.length===4?4:3;
+    for(var i=1;i<=3;i++)document.getElementById('name'+i).value=state&&state.players&&state.players[i-1]?state.players[i-1].name:'';
+    updateSetupUI();
+    if(setupPlayerCount===4)document.getElementById('name4').value=state.players[3]?state.players[3].name:'';
+    document.getElementById('setupOverlay').classList.add('open');
+  }
+  document.getElementById('newGameBtn').onclick=function(){
+    ask('Nuova partita','Vuoi davvero iniziare una nuova partita? La partita corrente verrà azzerata e si ripartirà dal round 1.',function(){
+      openSetupForNewGame();
+    });
+  };
   document.getElementById('newRoundBtn').onclick=function(){
     if(state.round>=state.maxRounds)return;
     ask('Nuovo round','Vuoi chiudere il round '+state.round+'? I PV del round verranno aggiunti al totale di ogni giocatore e i soldi/gachapon del round saranno azzerati.',function(){
       state.players.forEach(function(p){p.totalPV+=calcPV(p).total;p.money=START_MONEY;p.cards=makeEmptyCards();p.roundPV=0});state.round++;save();render();
     });
   };
-  document.getElementById('status4').addEventListener('change',function(){document.getElementById('name4').disabled=this.value==='Assente';if(this.value==='Assente')document.getElementById('name4').value=''})
   document.getElementById('startBtn').onclick=function(){
-    var names=[1,2,3].map(function(i){return document.getElementById('name'+i).value.trim()||('Giocatore '+i)});
-    if(document.getElementById('status4').value==='Attivo')names.push(document.getElementById('name4').value.trim()||'Giocatore 4');
+    var names=[];
+    for(var i=1;i<=setupPlayerCount;i++)names.push(document.getElementById('name'+i).value.trim()||('Giocatore '+i));
+    if(names.length<3){alert('Servono almeno 3 giocatori.');return}
     state=newState(names);save();document.getElementById('setupOverlay').classList.remove('open');render();
   };
-  document.getElementById('name4').disabled=false;
   var loaded=load();
   if(loaded){state=loaded;document.getElementById('setupOverlay').classList.remove('open');render()}
-  else{document.getElementById('name4').disabled=false}
+  else{
+    setupPlayerCount=3;
+    updateSetupUI();
+  }
 })();
 </script>
 </body>
