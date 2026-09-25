@@ -19,6 +19,140 @@
     --reset-yellow: #EDE238;
     --reset-yellow-press: #d9cf2e;
     --reset-border: #1c2a3a;
+    /* Colori 7 disegni */
+    --c0:#e07070; --c1:#60b060; --c2:#c8a060;
+    --c3:#6090c8; --c4:#d06888; --c5:#9060c8; --c6:#c8c850;
+  }
+
+  /* ── PANNELLO CARTE ── */
+  .cards-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.72);
+    z-index: 100;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .cards-overlay.open { display: flex; }
+  .cards-panel {
+    background: #23232e;
+    border-radius: 20px 20px 0 0;
+    padding: 16px 14px 24px;
+    width: 100%;
+    max-width: 540px;
+    max-height: 92vh;
+    overflow-y: auto;
+    animation: slideUp 0.22s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .cards-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .cards-panel-title {
+    font-family: 'Spectral', serif;
+    font-size: 17px; font-weight: 700;
+    color: #f0ece4;
+  }
+  .cards-close {
+    background: rgba(255,255,255,0.1); border: none; color: #f0ece4;
+    width: 32px; height: 32px; border-radius: 50%; font-size: 18px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  /* Score riepilogo */
+  .cards-score-row {
+    display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .score-chip {
+    background: rgba(255,255,255,0.07);
+    border-radius: 8px; padding: 6px 12px;
+    font-size: 12px; color: #a0a8b8; font-family: 'Manrope', sans-serif;
+  }
+  .score-chip strong { color: #f0ece4; font-size: 15px; }
+  .score-chip.total { background: rgba(240,200,80,0.15); }
+  .score-chip.total strong { color: #f0c840; font-size: 17px; }
+  /* Griglia */
+  .toy-grid {
+    display: grid;
+    grid-template-columns: auto repeat(7, 1fr);
+    gap: 5px;
+    align-items: center;
+  }
+  .toy-grid-header {
+    font-size: 10px; color: #888; text-align: center;
+    font-family: 'Manrope', sans-serif; font-weight: 700;
+    padding-bottom: 2px;
+  }
+  .toy-row-label {
+    font-size: 10px; color: #888; text-align: right; padding-right: 4px;
+    font-family: 'Manrope', sans-serif; white-space: nowrap;
+  }
+  .toy-cell {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(18px, 5vw, 28px);
+    transition: transform 0.1s, background 0.12s, border-color 0.12s;
+    position: relative;
+    touch-action: manipulation;
+  }
+  .toy-cell:active { transform: scale(0.88); }
+  .toy-cell.selected {
+    border-width: 2.5px;
+    background: rgba(255,255,255,0.14);
+  }
+  .toy-cell .cell-count {
+    position: absolute; bottom: 1px; right: 3px;
+    font-size: 9px; font-weight: 800;
+    color: rgba(255,255,255,0.9);
+    font-family: 'Manrope', sans-serif;
+    line-height: 1;
+  }
+  /* Set bar in fondo a ogni riga */
+  .set-bar {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: #aab; font-family: 'Manrope', sans-serif;
+    padding: 2px 2px 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 2px;
+  }
+  .set-bar-pips { display: flex; gap: 3px; }
+  .set-pip {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+  }
+  .set-pip.lit { background: currentColor; }
+  .set-score { margin-left: auto; font-weight: 700; color: #f0ece4; font-size: 12px; }
+  /* Tasto carte nella card */
+  .btn-cards {
+    position: absolute;
+    bottom: 4.5%;
+    left: 4%;
+    width: 18%;
+    height: 10%;
+    border-radius: 28%;
+    background: #3a6ea8;
+    border: clamp(1.5px, 0.5cqw, 3.5px) solid #1c3a5e;
+    box-shadow: 0 0.25cqw 0 rgba(0,0,0,0.18), 0 3px 8px rgba(0,0,0,0.28);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    font-size: clamp(10px, 2.8cqw, 20px);
+    transition: transform 0.1s ease;
+    color: white;
+  }
+  .btn-cards:active { transform: scale(0.93); }
+  .btn-cards-badge {
+    position: absolute; top: -4px; right: -4px;
+    background: #f0c840; color: #1a1410;
+    border-radius: 999px; font-size: 8px; font-weight: 800;
+    padding: 1px 4px; min-width: 16px; text-align: center;
+    font-family: 'Manrope', sans-serif; line-height: 14px;
+    display: none;
   }
 
   * {
@@ -235,6 +369,7 @@
       </div>
     </div>
     <button class="reset-seat" aria-label="Azzera">Reset</button>
+    <button class="btn-cards" aria-label="Carte" onclick="openCardsPanel(0)">🎴<span class="btn-cards-badge" id="badge-0"></span></button>
   </div>
 
   <!-- Seat 1 -->
@@ -256,6 +391,7 @@
       </div>
     </div>
     <button class="reset-seat" aria-label="Azzera">Reset</button>
+    <button class="btn-cards" aria-label="Carte" onclick="openCardsPanel(1)">🎴<span class="btn-cards-badge" id="badge-1"></span></button>
   </div>
 
   <!-- Seat 2 -->
@@ -277,6 +413,7 @@
       </div>
     </div>
     <button class="reset-seat" aria-label="Azzera">Reset</button>
+    <button class="btn-cards" aria-label="Carte" onclick="openCardsPanel(2)">🎴<span class="btn-cards-badge" id="badge-2"></span></button>
   </div>
 
   <!-- Seat 3 -->
@@ -298,8 +435,24 @@
       </div>
     </div>
     <button class="reset-seat" aria-label="Azzera">Reset</button>
+    <button class="btn-cards" aria-label="Carte" onclick="openCardsPanel(3)">🎴<span class="btn-cards-badge" id="badge-3"></span></button>
   </div>
 
+</div>
+
+<!-- PANNELLO CARTE -->
+<div class="cards-overlay" id="cardsOverlay" onclick="maybeCloseCards(event)">
+  <div class="cards-panel" id="cardsPanel">
+    <div class="cards-panel-header">
+      <div class="cards-panel-title" id="cardsPanelTitle">Carte</div>
+      <button class="cards-close" onclick="closeCardsPanel()">✕</button>
+    </div>
+    <div class="cards-score-row" id="cardsScoreRow"></div>
+    <div class="toy-grid" id="toyGrid"></div>
+    <div style="margin-top:12px;text-align:center">
+      <button onclick="resetCardsPanel()" style="background:rgba(255,100,100,0.15);border:1px solid rgba(255,100,100,0.3);color:#f08080;border-radius:8px;padding:7px 18px;font-family:'Manrope',sans-serif;font-size:12px;font-weight:700;cursor:pointer">Reset carte</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -308,6 +461,22 @@
   var START = 5000;
   var seats = Array.prototype.slice.call(document.querySelectorAll('.seat'));
 
+  // 7 disegni × 7 valori
+  var TOYS = ['🐷','🐸','🗿','🐱','🏍️','🦛','🤖'];
+  var VALS = [800,700,600,500,400,300,200];
+  var TOY_COLORS = ['var(--c0)','var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c6)'];
+
+  // cards[seatIdx][toyIdx][valIdx] = count (0 o 1, cliccabile)
+  var cards = [[],[],[],[]];
+  for(var s=0;s<4;s++){
+    for(var t=0;t<7;t++){
+      cards[s][t] = [0,0,0,0,0,0,0];
+    }
+  }
+
+  var currentSeat = 0;
+
+  // ── LOAD/SAVE ──
   function loadState(){
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
@@ -316,20 +485,49 @@
       if(!Array.isArray(p) || p.length !== 4) throw 0;
       return p;
     } catch(e) {
-      return [0,1,2,3].map(function(){ return {score: START, name: ''}; });
+      return [0,1,2,3].map(function(){ return {score: START, name: '', cards: null}; });
     }
   }
 
   function saveState(){
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(
-        seats.map(function(s){
-          return { score: parseInt(s.dataset.score,10), name: s.querySelector('.name-field').value };
+        seats.map(function(s, i){
+          return {
+            score: parseInt(s.dataset.score,10),
+            name: s.querySelector('.name-field').value,
+            cards: cards[i]
+          };
         })
       ));
     } catch(e){}
   }
 
+  // ── PUNTEGGIO CARTE ──
+  // set: n² per ogni disegno con n carte (indipendente dal valore)
+  // valore: somma dei valori ÷ 200
+  function calcCardScore(seatIdx){
+    var setScore = 0;
+    var valScore = 0;
+    for(var t=0;t<7;t++){
+      var count = 0;
+      for(var v=0;v<7;v++){
+        if(cards[seatIdx][t][v]){
+          count++;
+          valScore += VALS[v];
+        }
+      }
+      setScore += count * count;
+    }
+    return {
+      set: setScore,
+      val: Math.floor(valScore / 200),
+      total: setScore + Math.floor(valScore / 200),
+      valYen: valScore
+    };
+  }
+
+  // ── RENDER SEAT ──
   function render(seat){
     var n = parseInt(seat.dataset.score, 10);
     var el = seat.querySelector('.score');
@@ -337,11 +535,121 @@
     el.classList.toggle('negative', n < 0);
   }
 
+  function updateBadge(seatIdx){
+    var sc = calcCardScore(seatIdx);
+    var badge = document.getElementById('badge-'+seatIdx);
+    if(!badge) return;
+    if(sc.total > 0){
+      badge.textContent = sc.total;
+      badge.style.display = 'block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // ── PANNELLO CARTE ──
+  window.openCardsPanel = function(seatIdx){
+    currentSeat = seatIdx;
+    var seat = seats[seatIdx];
+    var name = seat.querySelector('.name-field').value || ('Giocatore '+(seatIdx+1));
+    document.getElementById('cardsPanelTitle').textContent = '🎴 '+name;
+    renderCardsGrid();
+    document.getElementById('cardsOverlay').classList.add('open');
+  };
+
+  window.closeCardsPanel = function(){
+    document.getElementById('cardsOverlay').classList.remove('open');
+  };
+
+  window.maybeCloseCards = function(e){
+    if(e.target === document.getElementById('cardsOverlay')) window.closeCardsPanel();
+  };
+
+  window.resetCardsPanel = function(){
+    for(var t=0;t<7;t++) cards[currentSeat][t] = [0,0,0,0,0,0,0];
+    renderCardsGrid();
+    updateBadge(currentSeat);
+    saveState();
+  };
+
+  function renderCardsGrid(){
+    var sc = calcCardScore(currentSeat);
+    // Score row
+    var sr = document.getElementById('cardsScoreRow');
+    sr.innerHTML =
+      '<div class="score-chip">Set <strong>'+sc.set+'</strong> pt</div>'+
+      '<div class="score-chip">Valore <strong>'+sc.val+'</strong> pt <span style="color:#666">('+sc.valYen.toLocaleString('it-IT')+'¥)</span></div>'+
+      '<div class="score-chip total">Totale <strong>'+sc.total+'</strong> pt</div>';
+
+    // Griglia
+    var grid = document.getElementById('toyGrid');
+    var html = '';
+    // Header riga: cella vuota + 7 emoji disegni
+    html += '<div class="toy-grid-header"></div>';
+    for(var t=0;t<7;t++){
+      html += '<div class="toy-grid-header" style="color:'+TOY_COLORS[t]+'">'+TOYS[t]+'</div>';
+    }
+
+    // Per ogni valore una riga
+    for(var v=0;v<7;v++){
+      // Label valore
+      html += '<div class="toy-row-label">¥'+VALS[v]+'</div>';
+      // 7 celle
+      for(var t2=0;t2<7;t2++){
+        var sel = cards[currentSeat][t2][v];
+        var color = TOY_COLORS[t2];
+        html += '<div class="toy-cell'+(sel?' selected':'')+'"'+
+          ' style="'+(sel?'border-color:'+color+';box-shadow:0 0 0 2px '+color+'44':'')+'"'+
+          ' data-toy="'+t2+'" data-val="'+v+'"'+
+          ' onclick="toggleCard('+t2+','+v+')">' +
+          TOYS[t2]+
+          (sel?'<span class="cell-count">✓</span>':'')+
+          '</div>';
+      }
+
+      // Set bar per questo valore
+      var rowCount = 0;
+      for(var t3=0;t3<7;t3++) if(cards[currentSeat][t3][v]) rowCount++;
+    }
+
+    // Set bar per ogni disegno (in fondo, una riga orizzontale)
+    html += '<div style="grid-column:1/-1;height:10px"></div>';
+    html += '<div style="grid-column:1/-1;font-size:11px;color:#888;font-family:Manrope,sans-serif;font-weight:700;padding:4px 0 6px">Set per disegno</div>';
+    for(var t4=0;t4<7;t4++){
+      var cnt = 0;
+      for(var v2=0;v2<7;v2++) if(cards[currentSeat][t4][v2]) cnt++;
+      var setPts = cnt*cnt;
+      html += '<div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05)">'+
+        '<span style="font-size:14px">'+TOYS[t4]+'</span>'+
+        '<div style="display:flex;gap:3px">'+
+        [0,1,2,3,4,5,6].map(function(i){
+          return '<div style="width:10px;height:10px;border-radius:50%;background:'+(i<cnt?TOY_COLORS[t4]:'rgba(255,255,255,0.1)')+'"></div>';
+        }).join('')+
+        '</div>'+
+        '<span style="margin-left:auto;font-size:12px;font-weight:700;color:'+(cnt>0?'#f0ece4':'#555')+'">'+
+        (cnt>0?cnt+'² = '+setPts+' pt':'—')+
+        '</span>'+
+        '</div>';
+    }
+
+    grid.innerHTML = html;
+  }
+
+  window.toggleCard = function(toyIdx, valIdx){
+    cards[currentSeat][toyIdx][valIdx] = cards[currentSeat][toyIdx][valIdx] ? 0 : 1;
+    renderCardsGrid();
+    updateBadge(currentSeat);
+    saveState();
+  };
+
+  // ── INIT ──
   var state = loadState();
   seats.forEach(function(seat, i){
     seat.dataset.score = state[i].score;
     seat.querySelector('.name-field').value = state[i].name || '';
+    if(state[i].cards) cards[i] = state[i].cards;
     render(seat);
+    updateBadge(i);
 
     seat.querySelectorAll('button[data-amount]').forEach(function(btn){
       btn.addEventListener('click', function(){
