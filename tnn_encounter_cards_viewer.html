@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TNN Encounter Cards Viewer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --color-red: #8B263E;
+            --color-blue: #1B4965;
+            --color-green: #2C5E3B;
+            --color-yellow: #B87D2B;
+            --overlay-opacity: 0.92;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f1115;
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 0%, #1e2638 0%, #0f1115 75%);
+            min-height: 100vh;
+        }
+
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+
+        /* Card Overlay Styling */
+        .card-overlay {
+            transition: all 0.3s ease;
+        }
+
+        .bg-card-red { background-color: var(--color-red); }
+        .bg-card-blue { background-color: var(--color-blue); }
+        .bg-card-green { background-color: var(--color-green); }
+        .bg-card-yellow { background-color: var(--color-yellow); }
+
+        .border-card-red { border-color: var(--color-red); }
+        .border-card-blue { border-color: var(--color-blue); }
+        .border-card-green { border-color: var(--color-green); }
+        .border-card-yellow { border-color: var(--color-yellow); }
+
+        .text-card-red { color: #f87171; }
+        .text-card-blue { color: #38bdf8; }
+        .text-card-green { color: #4ade80; }
+        .text-card-yellow { color: #fbbf24; }
+
+        /* Card Art Styling */
+        .card-frame {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card-frame:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.8), 0 0 15px rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="p-3 md:p-6 pb-12">
+
+    <!-- Header & Navigation -->
+    <header class="max-w-7xl mx-auto mb-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800 pb-5">
+            <div>
+                <h1 class="font-cinzel text-2xl md:text-4xl font-bold tracking-wider text-amber-100 flex items-center gap-3">
+                    <i class="fa-solid fa-scroll text-amber-500 text-xl md:text-3xl"></i>
+                    TNN Encounter Cards Viewer
+                </h1>
+                <p class="text-xs md:text-sm text-gray-400 mt-1">Esplora, filtra e traduci le carte incontro (1-8) con overlay personalizzato</p>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button id="themeSettingsBtn" class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-amber-200 border border-amber-900/50 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-2">
+                    <i class="fa-solid fa-palette text-amber-400"></i> Colori & Overlay
+                </button>
+                <button id="exportJsonBtn" class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-2">
+                    <i class="fa-solid fa-download text-sky-400"></i> Esporta JSON
+                </button>
+                <label class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-lg text-xs md:text-sm font-medium transition cursor-pointer flex items-center gap-2">
+                    <i class="fa-solid fa-upload text-emerald-400"></i> Importa JSON
+                    <input type="file" id="importJsonInput" accept=".json" class="hidden">
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <!-- Filter Control Panel -->
+    <section class="max-w-7xl mx-auto mb-8 bg-gray-900/80 backdrop-blur-md p-4 rounded-xl border border-gray-800 shadow-xl">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-center">
+            
+            <!-- Search Bar -->
+            <div class="lg:col-span-4 relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-500 text-sm"></i>
+                <input type="text" id="searchInput" placeholder="Cerca per titolo o testo tradotto..." class="w-full bg-gray-950 border border-gray-800 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-amber-500/50 transition">
+            </div>
+
+            <!-- Color Filter Tabs -->
+            <div class="lg:col-span-5 flex flex-wrap items-center gap-1.5">
+                <button data-color="all" class="color-filter-btn active px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-gray-950 shadow border border-amber-400 transition">Tutti</button>
+                <button data-color="red" class="color-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 hover:bg-red-950 text-red-300 border border-red-900/50 transition flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> Rosso
+                </button>
+                <button data-color="blue" class="color-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 hover:bg-sky-950 text-sky-300 border border-sky-900/50 transition flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-sky-600"></span> Blu
+                </button>
+                <button data-color="green" class="color-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 hover:bg-emerald-950 text-emerald-300 border border-emerald-900/50 transition flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> Verde
+                </button>
+                <button data-color="yellow" class="color-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 hover:bg-amber-950 text-amber-300 border border-amber-900/50 transition flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Giallo
+                </button>
+            </div>
+
+            <!-- Number Filter -->
+            <div class="lg:col-span-3 flex items-center gap-2">
+                <label for="numberFilter" class="text-xs text-gray-400 font-medium whitespace-nowrap">Numero:</label>
+                <select id="numberFilter" class="bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-500/50 transition w-full">
+                    <option value="all">Tutti i valori (1-8)</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Secondary Controls Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mt-4 pt-3 border-t border-gray-800/60 text-xs text-gray-400">
+            <!-- Overlay Toggle Switch -->
+            <div class="flex items-center gap-3">
+                <span class="font-medium text-gray-300">Mostra Overlay Tradotto:</span>
+                <button id="toggleOverlayBtn" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-amber-500 transition-colors duration-200 ease-in-out focus:outline-none" role="switch" aria-checked="true">
+                    <span id="toggleSlider" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-gray-950 shadow ring-0 transition duration-200 ease-in-out translate-x-5"></span>
+                </button>
+            </div>
+
+            <!-- Grouping/Sorting Option -->
+            <div class="flex items-center gap-2">
+                <label for="sortBy" class="font-medium text-gray-300">Ordinamento:</label>
+                <select id="sortBy" class="bg-gray-950 border border-gray-800 rounded px-2 py-1 text-xs text-gray-200 focus:outline-none">
+                    <option value="number">Per Numero (1 → 8)</option>
+                    <option value="color">Per Colore (Rosso, Blu, Verde, Giallo)</option>
+                </select>
+            </div>
+
+            <!-- Card Counter -->
+            <div class="text-gray-400 font-mono">
+                Visualizzate: <span id="cardCounter" class="text-amber-400 font-bold">0</span> carte
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Card Grid Area -->
+    <main class="max-w-7xl mx-auto">
+        <div id="cardGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Cards populated dynamically via JavaScript -->
+        </div>
+
+        <!-- Empty State Message -->
+        <div id="emptyState" class="hidden text-center py-16 bg-gray-900/40 rounded-2xl border border-gray-800">
+            <i class="fa-solid fa-filter-circle-xmark text-4xl text-gray-600 mb-3"></i>
+            <h3 class="text-lg font-semibold text-gray-300">Nessuna carta trovata</h3>
+            <p class="text-sm text-gray-500 mt-1">Prova a cambiare i filtri di ricerca o colore.</p>
+        </div>
+    </main>
+
+    <!-- Theme & Color Customizer Modal -->
+    <div id="themeModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-4 mb-4">
+                <h3 class="font-cinzel text-lg font-bold text-amber-200 flex items-center gap-2">
+                    <i class="fa-solid fa-palette text-amber-400"></i> Personalizza Overlay
+                </h3>
+                <button id="closeThemeModal" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="space-y-4">
+                <p class="text-xs text-gray-400">Regola i 4 colori principali dell'overlay per ciascuna tipologia di carta e l'opacità dello sfondo del testo.</p>
+
+                <!-- Red Color -->
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-red-300 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-red-600"></span> Carte Rosse:
+                    </label>
+                    <input type="color" id="colorRedPicker" value="#8B263E" class="w-10 h-8 rounded bg-gray-950 border border-gray-800 cursor-pointer">
+                </div>
+
+                <!-- Blue Color -->
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-sky-300 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-sky-600"></span> Carte Blu:
+                    </label>
+                    <input type="color" id="colorBluePicker" value="#1B4965" class="w-10 h-8 rounded bg-gray-950 border border-gray-800 cursor-pointer">
+                </div>
+
+                <!-- Green Color -->
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-emerald-300 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-600"></span> Carte Verdi:
+                    </label>
+                    <input type="color" id="colorGreenPicker" value="#2C5E3B" class="w-10 h-8 rounded bg-gray-950 border border-gray-800 cursor-pointer">
+                </div>
+
+                <!-- Yellow Color -->
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-amber-300 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-amber-500"></span> Carte Gialle:
+                    </label>
+                    <input type="color" id="colorYellowPicker" value="#B87D2B" class="w-10 h-8 rounded bg-gray-950 border border-gray-800 cursor-pointer">
+                </div>
+
+                <!-- Opacity Control -->
+                <div class="pt-2 border-t border-gray-800">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="opacitySlider" class="text-xs font-medium text-gray-300">Opacità Overlay Traduzione:</label>
+                        <span id="opacityVal" class="text-xs font-mono text-amber-400">92%</span>
+                    </div>
+                    <input type="range" id="opacitySlider" min="0.3" max="1" step="0.05" value="0.92" class="w-full accent-amber-500 cursor-pointer">
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2">
+                <button id="resetColorsBtn" class="px-3 py-1.5 text-xs text-gray-400 hover:text-white border border-gray-800 rounded-lg">Ripristina Standard</button>
+                <button id="saveThemeBtn" class="px-4 py-1.5 text-xs bg-amber-500 text-gray-950 font-bold rounded-lg hover:bg-amber-400 transition">Applica</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Detail & Editing Modal -->
+    <div id="cardModal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button id="closeCardModal" class="absolute right-4 top-4 text-gray-400 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <div id="modalContent" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Modal Card Preview generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Box -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-gray-800 border border-amber-500/50 text-amber-100 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50">
+        <i class="fa-solid fa-circle-check text-amber-400 text-lg"></i>
+        <span id="toastMsg" class="text-sm font-medium">Azione completata!</span>
+    </div>
+
+    <script>
+        /* Card Data Structure & Pre-populated dataset */
+        const DEFAULT_CARDS = [
+            // RED CARDS (Rosso)
+            {
+                id: 'red_1',
+                color: 'red',
+                number: 1,
+                titleEn: "Aengus's Brú",
+                titleIt: "Il Brú di Aengus",
+                textEn: "SAGA PHASE: For your Lost Storyteller's Echtra Quest, draw a card. Keep it, or pick from the Otherworld cards instead.",
+                textIt: "FASE SAGA: Per la Ricerca Echtra del Narratore Perduto, pesca una carta. Tienila, oppure scegli invece tra le carte dell'Oltremondo.",
+                phase: "SAGA PHASE",
+                artPlaceholderBg: "from-red-900 to-rose-950",
+                icon: "fa-sun"
+            },
+            {
+                id: 'red_2',
+                color: 'red',
+                number: 2,
+                titleEn: "Dagda's Club",
+                titleIt: "Mazza di Dagda",
+                textEn: "WHEN PLAYED: Choose an opponent. They must discard 1 card from their hand or Saga.",
+                textIt: "QUANDO GIOCATA: Scegli un avversario. Deve scartare 1 carta dalla sua mano o dalla sua Saga.",
+                phase: "WHEN PLAYED",
+                artPlaceholderBg: "from-red-950 to-stone-900",
+                icon: "fa-gavel"
+            },
+            {
+                id: 'red_4',
+                color: 'red',
+                number: 4,
+                titleEn: "Bodb Derg's Stone",
+                titleIt: "Pietra di Bodb Derg",
+                textEn: "ONGOING: You may place 1 Scribe or warrior on this location.",
+                textIt: "PERMANENTE: Puoi piazzare 1 Scriba o guerriero in questo luogo.",
+                phase: "ONGOING",
+                artPlaceholderBg: "from-red-900 to-red-950",
+                icon: "fa-monument"
+            },
+            {
+                id: 'red_7',
+                color: 'red',
+                number: 7,
+                titleEn: "Crom Cruach",
+                titleIt: "Crom Cruach",
+                textEn: "SCORING: Gain +2 extra score points if you control the red territory adjacent.",
+                textIt: "PUNTEGGIO: Ottieni +2 punti vittoria extra se controlli il territorio rosso adiacente.",
+                phase: "SCORING",
+                artPlaceholderBg: "from-red-950 to-amber-950",
+                icon: "fa-skull"
+            },
+
+            // BLUE CARDS (Blu)
+            {
+                id: 'blue_2',
+                color: 'blue',
+                number: 2,
+                titleEn: "Manannán's Wave",
+                titleIt: "Onda di Manannán",
+                textEn: "SAGA PHASE: Move 1 unit across any water border to an adjacent land area.",
+                textIt: "FASE SAGA: Sposta 1 unità attraverso qualsiasi confine d'acqua verso un'area terrestre adiacente.",
+                phase: "SAGA PHASE",
+                artPlaceholderBg: "from-sky-900 to-blue-950",
+                icon: "fa-water"
+            },
+            {
+                id: 'blue_3',
+                color: 'blue',
+                number: 3,
+                titleEn: "Cú Sidhe Kennel",
+                titleIt: "Canile del Cú Sidhe",
+                textEn: "ONGOING: Add 1 to Cú Sidhe Kennel for each other card in your Saga that is a 6 or higher.",
+                textIt: "PERMANENTE: Aggiungi 1 al Canile del Cú Sidhe per ogni altra carta nella tua Saga che sia un 6 o superiore.",
+                phase: "ONGOING",
+                artPlaceholderBg: "from-cyan-950 to-blue-900",
+                icon: "fa-dog"
+            },
+            {
+                id: 'blue_5',
+                color: 'blue',
+                number: 5,
+                titleEn: "Lir's Sanctuary",
+                titleIt: "Santuario di Lir",
+                textEn: "WHEN PLAYED: Draw 2 cards from the sea deck and discard 1 of your choice.",
+                textIt: "QUANDO GIOCATA: Pesca 2 carte dal mazzo del mare e scartane 1 a tua scelta.",
+                phase: "WHEN PLAYED",
+                artPlaceholderBg: "from-blue-900 to-indigo-950",
+                icon: "fa-anchor"
+            },
+            {
+                id: 'blue_8',
+                color: 'blue',
+                number: 8,
+                titleEn: "Ocean Isle",
+                titleIt: "Isola dell'Oceano",
+                textEn: "SCORING: Scores +1 for each adjacent blue card in any player's Saga.",
+                textIt: "PUNTEGGIO: Vale +1 punto per ogni carta blu adiacente nella Saga di qualsiasi giocatore.",
+                phase: "SCORING",
+                artPlaceholderBg: "from-sky-950 to-blue-900",
+                icon: "fa-island-tropical"
+            },
+
+            // GREEN CARDS (Verde)
+            {
+                id: 'green_3',
+                color: 'green',
+                number: 3,
+                titleEn: "Lugh's Meadow",
+                titleIt: "Prato di Lugh",
+                textEn: "SAGA PHASE: Gain 1 additional token when exploring green forest tiles.",
+                textIt: "FASE SAGA: Ottieni 1 segnalino aggiuntivo quando esplori tessere foresta verde.",
+                phase: "SAGA PHASE",
+                artPlaceholderBg: "from-emerald-900 to-green-950",
+                icon: "fa-tree"
+            },
+            {
+                id: 'green_6',
+                color: 'green',
+                number: 6,
+                titleEn: "Clúrachán Brewery",
+                titleIt: "Birrificio di Clúrachán",
+                textEn: "SCORING: Change the color of Clúrachán Brewery to the color of a card next to it.",
+                textIt: "PUNTEGGIO: Cambia il colore del Birrificio di Clúrachán nel colore di una carta a essa adiacente.",
+                phase: "SCORING",
+                artPlaceholderBg: "from-green-900 to-teal-950",
+                icon: "fa-beer-mug-empty"
+            },
+            {
+                id: 'green_8',
+                color: 'green',
+                number: 8,
+                titleEn: "Danu's Grove",
+                titleIt: "Boschetto di Danu",
+                textEn: "ONGOING: Protects all adjacent cards from being discarded or moved by opponents.",
+                textIt: "PERMANENTE: Protegge tutte le carte adiacenti dallo scarto o dallo spostamento causato dagli avversari.",
+                phase: "ONGOING",
+                artPlaceholderBg: "from-emerald-950 to-slate-900",
+                icon: "fa-leaf"
+            },
+
+            // YELLOW CARDS (Giallo/Sabbia)
+            {
+                id: 'yellow_1',
+                color: 'yellow',
+                number: 1,
+                titleEn: "Bres's Harvest",
+                titleIt: "Raccolto di Bres",
+                textEn: "WHEN PLAYED: Collect resources equal to the total yellow cards in play.",
+                textIt: "QUANDO GIOCATA: Raccogli risorse pari al totale delle carte gialle in gioco.",
+                phase: "WHEN PLAYED",
+                artPlaceholderBg: "from-amber-900 to-yellow-950",
+                icon: "fa-wheat-awn"
+            },
+            {
+                id: 'yellow_5',
+                color: 'yellow',
+                number: 5,
+                titleEn: "Gancanagh's Valley",
+                titleIt: "Valle di Gancanagh",
+                textEn: "WHEN PLAYED: You may move any card in your Saga to the right of Gancanagh's Valley.",
+                textIt: "QUANDO GIOCATA: Puoi spostare qualsiasi carta della tua Saga alla destra della Valle di Gancanagh.",
+                phase: "WHEN PLAYED",
+                artPlaceholderBg: "from-yellow-900 to-stone-900",
+                icon: "fa-mountain-sun"
+            },
+            {
+                id: 'yellow_7',
+                color: 'yellow',
+                number: 7,
+                titleEn: "Golden Steppe",
+                titleIt: "Steppa Dorata",
+                textEn: "SCORING: Gives +3 bonus victory points if played in the final round.",
+                textIt: "PUNTEGGIO: Conferisce +3 punti vittoria bonus se giocata nel round finale.",
+                phase: "SCORING",
+                artPlaceholderBg: "from-amber-800 to-stone-950",
+                icon: "fa-coins"
+            }
+        ];
+
+        /* App State */
+        let cardDeck = JSON.parse(localStorage.getItem('tnn_cards_data')) || DEFAULT_CARDS;
+        let showOverlay = true;
+        let activeColorFilter = 'all';
+        let activeNumberFilter = 'all';
+        let searchQuery = '';
+        let sortBy = 'number';
+
+        /* Theme Color Variables */
+        let themeColors = JSON.parse(localStorage.getItem('tnn_theme_colors')) || {
+            red: '#8B263E',
+            blue: '#1B4965',
+            green: '#2C5E3B',
+            yellow: '#B87D2B',
+            opacity: 0.92
+        };
+
+        function applyCSSVariables() {
+            document.documentElement.style.setProperty('--color-red', themeColors.red);
+            document.documentElement.style.setProperty('--color-blue', themeColors.blue);
+            document.documentElement.style.setProperty('--color-green', themeColors.green);
+            document.documentElement.style.setProperty('--color-yellow', themeColors.yellow);
+            document.documentElement.style.setProperty('--overlay-opacity', themeColors.opacity);
+
+            // Update modal pickers
+            document.getElementById('colorRedPicker').value = themeColors.red;
+            document.getElementById('colorBluePicker').value = themeColors.blue;
+            document.getElementById('colorGreenPicker').value = themeColors.green;
+            document.getElementById('colorYellowPicker').value = themeColors.yellow;
+            document.getElementById('opacitySlider').value = themeColors.opacity;
+            document.getElementById('opacityVal').textContent = `${Math.round(themeColors.opacity * 100)}%`;
+        }
+
+        function renderCards() {
+            const grid = document.getElementById('cardGrid');
+            const emptyState = document.getElementById('emptyState');
+            grid.innerHTML = '';
+
+            // Filter logic
+            let filtered = cardDeck.filter(card => {
+                const matchColor = (activeColorFilter === 'all') || (card.color === activeColorFilter);
+                const matchNumber = (activeNumberFilter === 'all') || (card.number.toString() === activeNumberFilter);
+                const query = searchQuery.toLowerCase().trim();
+                const matchSearch = !query || 
+                    card.titleEn.toLowerCase().includes(query) || 
+                    card.titleIt.toLowerCase().includes(query) || 
+                    card.textEn.toLowerCase().includes(query) || 
+                    card.textIt.toLowerCase().includes(query);
+
+                return matchColor && matchNumber && matchSearch;
+            });
+
+            // Sorting logic
+            filtered.sort((a, b) => {
+                if (sortBy === 'number') {
+                    return a.number - b.number;
+                } else if (sortBy === 'color') {
+                    const order = { red: 1, blue: 2, green: 3, yellow: 4 };
+                    if (order[a.color] !== order[b.color]) {
+                        return order[a.color] - order[b.color];
+                    }
+                    return a.number - b.number;
+                }
+            });
+
+            document.getElementById('cardCounter').textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            // Create Card Elements
+            filtered.forEach(card => {
+                const cardEl = document.createElement('div');
+                cardEl.className = `card-frame relative rounded-xl border border-gray-800 bg-gray-950 overflow-hidden flex flex-col justify-between cursor-pointer group`;
+                cardEl.onclick = () => openCardModal(card.id);
+
+                const colorBgClass = `bg-card-${card.color}`;
+                const colorBorderClass = `border-card-${card.color}`;
+                const colorTextClass = `text-card-${card.color}`;
+
+                cardEl.innerHTML = `
+                    <!-- Top Title Banner -->
+                    <div class="relative px-3 py-2 border-b border-gray-800 flex items-center justify-between bg-gray-900/90 z-10">
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <!-- Number Badge -->
+                            <div class="w-7 h-7 rounded-full ${colorBgClass} text-white font-bold flex items-center justify-center text-xs shadow-md shrink-0">
+                                ${card.number}
+                            </div>
+                            <div class="truncate">
+                                <h4 class="font-cinzel text-xs font-bold text-gray-100 truncate">${card.titleEn}</h4>
+                                <p class="text-[10px] text-amber-200/80 italic truncate">${card.titleIt}</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid ${card.icon || 'fa-shield'} ${colorTextClass} text-xs ml-1 shrink-0"></i>
+                    </div>
+
+                    <!-- Card Art Placeholder Box -->
+                    <div class="h-44 w-full bg-gradient-to-b ${card.artPlaceholderBg || 'from-gray-800 to-gray-900'} relative flex items-center justify-center overflow-hidden">
+                        <!-- Decorative Art Symbols -->
+                        <div class="absolute inset-0 opacity-20 flex items-center justify-center">
+                            <i class="fa-solid ${card.icon || 'fa-shield'} text-8xl text-white"></i>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-widest text-white/40 font-mono z-0">Illustrazione Carta</span>
+
+                        <!-- Phase Badge on Art -->
+                        <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[9px] text-amber-300 font-semibold border border-amber-500/20">
+                            ${card.phase}
+                        </div>
+                    </div>
+
+                    <!-- Bottom Text Area (with Customizable Overlay) -->
+                    <div class="relative p-3 min-h-[110px] flex flex-col justify-center bg-gray-950 border-t border-gray-800/80 overflow-hidden">
+                        
+                        <!-- Original English Text (Always underneath) -->
+                        <p class="text-[11px] text-gray-300 leading-relaxed font-normal">
+                            <strong class="text-amber-200/90">${card.phase}:</strong> ${card.textEn.replace(`${card.phase}:`, '')}
+                        </p>
+
+                        <!-- Italian Translated Text Overlay -->
+                        <div class="card-overlay absolute inset-0 p-3 flex items-center justify-center text-center transition-opacity duration-300 ${showOverlay ? 'opacity-100' : 'opacity-0 pointer-events-none'}"
+                             style="background-color: var(--color-${card.color}); opacity: ${showOverlay ? themeColors.opacity : 0};">
+                            <p class="font-cinzel text-xs font-semibold text-white leading-snug drop-shadow-md">
+                                ${card.textIt}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Footer ID Indicator -->
+                    <div class="px-3 py-1 bg-gray-950 text-[9px] font-mono text-gray-600 flex justify-between border-t border-gray-900">
+                        <span>#${card.id}</span>
+                        <span class="capitalize text-gray-500">${card.color}</span>
+                    </div>
+                `;
+
+                grid.appendChild(cardEl);
+            });
+        }
+
+        function openCardModal(cardId) {
+            const card = cardDeck.find(c => c.id === cardId);
+            if (!card) return;
+
+            const modal = document.getElementById('cardModal');
+            const content = document.getElementById('modalContent');
+
+            content.innerHTML = `
+                <!-- Left: Visual Preview -->
+                <div class="flex flex-col items-center">
+                    <div class="w-full max-w-xs rounded-xl border-2 border-gray-700 bg-gray-950 overflow-hidden shadow-2xl">
+                        <!-- Top Banner -->
+                        <div class="p-3 bg-gray-900 border-b border-gray-800 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-8 h-8 rounded-full bg-card-${card.color} text-white font-bold flex items-center justify-center text-sm shadow">
+                                    ${card.number}
+                                </span>
+                                <div>
+                                    <h3 class="font-cinzel text-sm font-bold text-white">${card.titleEn}</h3>
+                                    <p class="text-xs text-amber-300 italic">${card.titleIt}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Art Box -->
+                        <div class="h-48 bg-gradient-to-b ${card.artPlaceholderBg} relative flex items-center justify-center">
+                            <i class="fa-solid ${card.icon} text-7xl text-white/20"></i>
+                            <span class="absolute bottom-2 right-2 bg-black/70 px-2 py-0.5 rounded text-[10px] text-amber-200">${card.phase}</span>
+                        </div>
+
+                        <!-- Text Overlay Area Preview -->
+                        <div class="relative p-4 min-h-[120px] bg-gray-950 border-t border-gray-800 flex items-center justify-center text-center">
+                            <p class="text-xs text-gray-300">${card.textEn}</p>
+                            
+                            <div class="absolute inset-0 p-3 flex items-center justify-center text-center"
+                                 style="background-color: var(--color-${card.color}); opacity: ${themeColors.opacity};">
+                                <p class="font-cinzel text-xs font-bold text-white drop-shadow">${card.textIt}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Editing Controls -->
+                <div class="flex flex-col justify-between space-y-4">
+                    <div>
+                        <h3 class="font-cinzel text-xl font-bold text-amber-100 mb-1">Modifica Carta</h3>
+                        <p class="text-xs text-gray-400 mb-4">Personalizza i titoli e la traduzione italiana di questa carta.</p>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-300 mb-1">Titolo Inglese</label>
+                                <input type="text" id="editTitleEn" value="${card.titleEn}" class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-300 mb-1">Titolo Italiano</label>
+                                <input type="text" id="editTitleIt" value="${card.titleIt}" class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-300 mb-1">Testo Originale (Inglese)</label>
+                                <textarea id="editTextEn" rows="3" class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-1.5 text-xs text-gray-300 focus:outline-none focus:border-amber-500">${card.textEn}</textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-300 mb-1">Testo Tradotto Overlay (Italiano)</label>
+                                <textarea id="editTextIt" rows="3" class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-1.5 text-xs text-amber-200 focus:outline-none focus:border-amber-500">${card.textIt}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-4 border-t border-gray-800">
+                        <button onclick="closeCardModalHandler()" class="px-4 py-2 text-xs border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800">Annulla</button>
+                        <button onclick="saveCardChanges('${card.id}')" class="px-4 py-2 text-xs bg-amber-500 text-gray-950 font-bold rounded-lg hover:bg-amber-400">Salva Modifiche</button>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function closeCardModalHandler() {
+            const modal = document.getElementById('cardModal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function saveCardChanges(cardId) {
+            const card = cardDeck.find(c => c.id === cardId);
+            if (card) {
+                card.titleEn = document.getElementById('editTitleEn').value;
+                card.titleIt = document.getElementById('editTitleIt').value;
+                card.textEn = document.getElementById('editTextEn').value;
+                card.textIt = document.getElementById('editTextIt').value;
+
+                localStorage.setItem('tnn_cards_data', JSON.stringify(cardDeck));
+                renderCards();
+                closeCardModalHandler();
+                showToast("Carta aggiornata con successo!");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyCSSVariables();
+            renderCards();
+
+            // Search input
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                renderCards();
+            });
+
+            // Color Filter buttons
+            document.querySelectorAll('.color-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.color-filter-btn').forEach(b => {
+                        b.classList.remove('active', 'bg-amber-500', 'text-gray-950');
+                        b.classList.add('bg-gray-800');
+                    });
+
+                    btn.classList.add('active', 'bg-amber-500', 'text-gray-950');
+                    btn.classList.remove('bg-gray-800');
+
+                    activeColorFilter = btn.dataset.color;
+                    renderCards();
+                });
+            });
+
+            // Number Filter
+            document.getElementById('numberFilter').addEventListener('change', (e) => {
+                activeNumberFilter = e.target.value;
+                renderCards();
+            });
+
+            // Sort Selector
+            document.getElementById('sortBy').addEventListener('change', (e) => {
+                sortBy = e.target.value;
+                renderCards();
+            });
+
+            // Toggle Overlay Switch
+            const toggleOverlayBtn = document.getElementById('toggleOverlayBtn');
+            const toggleSlider = document.getElementById('toggleSlider');
+
+            toggleOverlayBtn.addEventListener('click', () => {
+                showOverlay = !showOverlay;
+                if (showOverlay) {
+                    toggleOverlayBtn.classList.replace('bg-gray-700', 'bg-amber-500');
+                    toggleSlider.classList.replace('translate-x-0', 'translate-x-5');
+                } else {
+                    toggleOverlayBtn.classList.replace('bg-amber-500', 'bg-gray-700');
+                    toggleSlider.classList.replace('translate-x-5', 'translate-x-0');
+                }
+                renderCards();
+            });
+
+            // Modal Controls
+            const themeModal = document.getElementById('themeModal');
+            document.getElementById('themeSettingsBtn').addEventListener('click', () => {
+                themeModal.classList.remove('opacity-0', 'pointer-events-none');
+            });
+            document.getElementById('closeThemeModal').addEventListener('click', () => {
+                themeModal.classList.add('opacity-0', 'pointer-events-none');
+            });
+
+            document.getElementById('closeCardModal').addEventListener('click', closeCardModalHandler);
+
+            // Opacity slider listener
+            document.getElementById('opacitySlider').addEventListener('input', (e) => {
+                document.getElementById('opacityVal').textContent = `${Math.round(e.target.value * 100)}%`;
+            });
+
+            // Save Theme Settings
+            document.getElementById('saveThemeBtn').addEventListener('click', () => {
+                themeColors.red = document.getElementById('colorRedPicker').value;
+                themeColors.blue = document.getElementById('colorBluePicker').value;
+                themeColors.green = document.getElementById('colorGreenPicker').value;
+                themeColors.yellow = document.getElementById('colorYellowPicker').value;
+                themeColors.opacity = parseFloat(document.getElementById('opacitySlider').value);
+
+                localStorage.setItem('tnn_theme_colors', JSON.stringify(themeColors));
+                applyCSSVariables();
+                renderCards();
+                themeModal.classList.add('opacity-0', 'pointer-events-none');
+                showToast("Colori overlay aggiornati!");
+            });
+
+            // Reset Theme Settings
+            document.getElementById('resetColorsBtn').addEventListener('click', () => {
+                themeColors = {
+                    red: '#8B263E',
+                    blue: '#1B4965',
+                    green: '#2C5E3B',
+                    yellow: '#B87D2B',
+                    opacity: 0.92
+                };
+                localStorage.setItem('tnn_theme_colors', JSON.stringify(themeColors));
+                applyCSSVariables();
+                renderCards();
+                themeModal.classList.add('opacity-0', 'pointer-events-none');
+                showToast("Colori ripristinati ai valori predefiniti.");
+            });
+
+            // JSON Export
+            document.getElementById('exportJsonBtn').addEventListener('click', () => {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cardDeck, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", "tnn_encounter_cards_translations.json");
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+                showToast("File JSON esportato!");
+            });
+
+            // JSON Import
+            document.getElementById('importJsonInput').addEventListener('change', (e) => {
+                const fileReader = new FileReader();
+                fileReader.onload = (event) => {
+                    try {
+                        const importedCards = JSON.parse(event.target.result);
+                        if (Array.isArray(importedCards)) {
+                            cardDeck = importedCards;
+                            localStorage.setItem('tnn_cards_data', JSON.stringify(cardDeck));
+                            renderCards();
+                            showToast("Carte e traduzioni importate con successo!");
+                        } else {
+                            alert("Formato file JSON non valido.");
+                        }
+                    } catch (err) {
+                        alert("Errore nella lettura del file JSON.");
+                    }
+                };
+                if (e.target.files[0]) {
+                    fileReader.readAsText(e.target.files[0]);
+                }
+            });
+        });
+
+        /* Helper Toast Message */
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
