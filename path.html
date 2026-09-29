@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Path of the Priest</title>
+    <title>La Via del Sacerdote - 8x3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
@@ -20,12 +20,10 @@
 
         h1 { font-family: 'Cinzel', serif; }
         
-        /* Nasconde la scrollbar o la rende sottile per i testi lunghi sulle carte */
         .card-effect::-webkit-scrollbar { width: 3px; }
         .card-effect::-webkit-scrollbar-track { background: transparent; }
         .card-effect::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 10px; }
 
-        /* Scrollbar personalizzata per la modale */
         .modal-body::-webkit-scrollbar { width: 6px; }
         .modal-body::-webkit-scrollbar-track { background: #1e293b; }
         .modal-body::-webkit-scrollbar-thumb { background-color: #475569; border-radius: 10px; }
@@ -33,7 +31,7 @@
         .game-grid {
             display: grid;
             grid-template-columns: repeat(8, minmax(0, 1fr));
-            gap: 0.35rem; /* Gap ridotto per far stare tutto bene */
+            gap: 0.35rem;
             width: 100%;
         }
 
@@ -41,10 +39,9 @@
             .game-grid { gap: 0.75rem; }
         }
 
-        /* Celle di base */
         .cell {
             aspect-ratio: 640 / 720;
-            border-radius: 0.375rem; /* rounded-md */
+            border-radius: 0.375rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -54,19 +51,18 @@
         }
 
         .cell-path {
-            background-color: #334155; /* Slate 700 */
+            background-color: #334155;
             border: 2px dashed #475569;
         }
 
-        /* Celle Bloccate con texture gialla */
         .cell-blocked {
-            background-color: #fde047; /* Yellow 300 base */
+            background-color: #fde047;
             background-image: 
                 radial-gradient(#facc15 15%, transparent 16%),
                 radial-gradient(#facc15 15%, transparent 16%);
             background-size: 8px 8px;
             background-position: 0 0, 4px 4px;
-            border: 1px solid #ca8a04; /* border-yellow-600 */
+            border: 1px solid #ca8a04;
             opacity: 0.85;
             cursor: not-allowed;
             border-radius: 0.375rem;
@@ -74,7 +70,6 @@
             visibility: hidden;
         }
 
-        /* Stile Carte */
         .card {
             width: 96%;
             height: 96%;
@@ -100,7 +95,6 @@
             z-index: 10;
         }
 
-        /* Varianti Carte */
         .card-gold {
             border: 2px solid #fbbf24;
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
@@ -113,7 +107,6 @@
         .card-red { border: 2px solid #ef4444; border-top-width: 6px; background-color: #fef2f2; }
         .card-red .card-number { color: #b91c1c; }
 
-        /* Tipografia Carte */
         .card-number {
             font-size: 1.1rem;
             font-weight: 800;
@@ -181,7 +174,7 @@
 
     <header class="text-center pt-4 pb-0 px-2 shadow-lg bg-slate-800 flex flex-col items-center justify-center">
         <h1 class="text-2xl md:text-4xl font-bold text-yellow-500 drop-shadow-md flex items-center justify-center gap-4">
-            The Path of the Priest
+            La Via del Sacerdote
             <div class="flex items-center gap-2">
                 <button id="startBtn" onclick="startGame()" title="Reset / Mescola" class="text-xl bg-slate-800 px-3 py-1 transition shadow">↻</button>
                 <button id="ruleBtn" onclick="toggleModal(true)" title="Regolamento" class="text-xl bg-slate-800 px-3 py-1 transition shadow">📖</button>
@@ -198,48 +191,16 @@
     <!-- Modale Regolamento -->
     <div id="rulesModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden">
         <div class="bg-slate-900 border border-slate-700 w-11/12 max-w-3xl max-h-[85vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
-            <!-- Header Modale -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/95 sticky top-0 z-10">
                 <h2 class="text-xl font-bold text-yellow-500 font-serif flex items-center gap-2">📖 Regolamento - La Via del Sacerdote</h2>
                 <button onclick="toggleModal(false)" class="text-slate-400 hover:text-white text-2xl font-bold px-2">&times;</button>
             </div>
-            <!-- Corpo Modale -->
             <div class="modal-body p-6 overflow-y-auto space-y-4 text-sm text-slate-300">
                 <div>
                     <h3 class="font-bold text-yellow-400 text-base mb-1">Obiettivo del Gioco</h3>
-                    <p>La Via del Sacerdote è un gioco di strategia in solitario. L’obiettivo è far percorrere all'apprendista (carta 0) un sentiero formato da 14 carte (8 Maestri e 6 Falsi Maestri) dall'inizio alla fine, per potersi connettere con la divinità fermandosi adiacente ad essa[cite: 6].</p>
-                </div>
-                <div>
-                    <h3 class="font-bold text-yellow-400 text-base mb-1">Setup</h3>
-                    <p>Separa le carte dell'Apprendista (0) e della Divinità (D) dal mazzo. Mescola le altre carte. Posiziona la carta dell'Apprendista sul tavolo e crea un percorso disponendo le 14 carte mescolate in fila alla destra dell'Apprendista. Colloca poi la carta della Divinità alla fine di questo percorso[cite: 6].</p>
-                </div>
-                <div>
-                    <h3 class="font-bold text-yellow-400 text-base mb-1">Svolgimento della Partita</h3>
-                    <p>Il gioco si svolge in round, seguendo questo ordine:</p>
-                    <ul class="list-disc pl-5 mt-1 space-y-1">
-                        <li><strong>Turno del Giocatore:</strong> Devi selezionare una singola carta Maestro all'interno del percorso e attivarne l'abilità[cite: 6].</li>
-                        <li><strong>Turno dei Falsi Maestri:</strong> Subito dopo l'azione del giocatore, i Falsi Maestri presenti nel percorso si attivano automaticamente in ordine di valore (1, 2, 3, 4, 6, 11)[cite: 6].</li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-bold text-yellow-400 text-base mb-1">Elenco delle Carte</h3>
-                    <p class="font-semibold text-white mt-2">Personaggi Chiave:</p>
-                    <ul class="list-disc pl-5 space-y-1">
-                        <li><strong>0 - Apprendista:</strong> carta iniziale[cite: 6].</li>
-                        <li><strong>D - Divinità (Ah Puch):</strong> carta finale[cite: 6].</li>
-                    </ul>
-                    <p class="font-semibold text-white mt-3">I Falsi Maestri:</p>
-                    <ul class="list-disc pl-5 space-y-1">
-                        <li><strong>1 - Dubbio:</strong> scambia le 2 carte adiacenti o si sposta se a un'estremità[cite: 6].</li>
-                        <li><strong>2 - Rancore:</strong> distruggi la carta adiacente con il valore più basso[cite: 6].</li>
-                        <li><strong>3 - Paura:</strong> manda la carta adiacente con il valore più basso all'inizio[cite: 6].</li>
-                        <li><strong>4 - Pigrizia:</strong> fa retrocedere la carta adiacente di 2 spazi o si sposta di 1[cite: 6].</li>
-                        <li><strong>6 - Discordia:</strong> manda la carta adiacente minore prima del Rancore[cite: 6].</li>
-                        <li><strong>11 - Invidia:</strong> sposta la carta adiacente minore di 2 spazi verso il Rancore[cite: 6].</li>
-                    </ul>
+                    <p>La Via del Sacerdote è un gioco di strategia in solitario. L’obiettivo è far percorrere all'apprendista (carta 0) un sentiero formato da 14 carte dall'inizio alla fine[cite: 6].</p>
                 </div>
             </div>
-            <!-- Footer Modale -->
             <div class="px-6 py-3 border-t border-slate-800 bg-slate-900/95 flex justify-end">
                 <button onclick="toggleModal(false)" class="bg-yellow-600 hover:bg-yellow-500 text-white font-semibold px-4 py-2 rounded text-sm transition">Chiudi</button>
             </div>
@@ -250,19 +211,19 @@
         const cardsData = {
             '0': { id: '0', name: 'Apprendista', type: 'gold', effect: 'Nessun effetto.' },
             'D': { id: 'D', name: 'Divinità', type: 'gold', effect: 'Nessun effetto.' },
-            '1': { id: '1', name: 'Dubbio', type: 'red', effect: 'Scambia di posto le 2 carte adiacenti a questa. OPPURE: Se a un\'estremità, sposta questa di 1.' },
+            '1': { id: '1', name: 'Dubbio', type: 'red', effect: 'Scambia di posto le 2 carte adiacenti a questa.' },
             '2': { id: '2', name: 'Rancore', type: 'red', effect: 'Distruggi la carta adiacente con il valore più basso.' },
-            '3': { id: '3', name: 'Paura', type: 'red', effect: 'Manda la carta adiacente con il valore più basso all\'inizio del percorso.' },
-            '4': { id: '4', name: 'Pigrizia', type: 'red', effect: 'Fa retrocedere la carta adiacente di 2 spazi; se non possibile, sposta questa di 1.' },
+            '3': { id: '3', name: 'Paura', type: 'red', effect: 'Manda la carta adiacente con il valore più basso all\'inizio.' },
+            '4': { id: '4', name: 'Pigrizia', type: 'red', effect: 'Fa retrocedere la carta adiacente di 2 spazi.' },
             '6': { id: '6', name: 'Discordia', type: 'red', effect: 'Manda la carta adiacente di valore più basso prima del Rancore.' },
             '11': { id: '11', name: 'Invidia', type: 'red', effect: 'Sposta la carta adiacente di valore più basso di 2 spazi verso il Rancore.' },
             '5': { id: '5', name: 'Esercizio', type: 'blue', effect: 'Scambia questa carta con un\'altra fino a 2 spazi di distanza.' },
             '7': { id: '7', name: 'Filosofia', type: 'blue', effect: 'Sposta di 1 una carta distante 3. Di 2 una distante 2. Di 3 una distante 1.' },
-            '8': { id: '8', name: 'Erboristeria', type: 'blue', effect: 'Fa retrocedere una carta adiacente di 2 spazi. OPPURE: Avanzare di 1.' },
+            '8': { id: '8', name: 'Erboristeria', type: 'blue', effect: 'Fa retrocedere una carta adiacente di 2 spazi.' },
             '9': { id: '9', name: 'Meditazione', type: 'blue', effect: 'Scambia di posto questa carta con un\'altra esattamente a 3 spazi di distanza.' },
             '10': { id: '10', name: 'Preghiera', type: 'blue', effect: 'Scambia di posto questa carta con un\'altra ad essa adiacente.' },
             '12': { id: '12', name: 'Pellegrino', type: 'blue', effect: 'Sposta una carta adiacente esattamente di 2 spazi.' },
-            '13': { id: '13', name: 'Magia', type: 'blue', effect: 'Fa retrocedere una carta adiacente di 3 spazi. OPPURE: Avanzare di 2.' },
+            '13': { id: '13', name: 'Magia', type: 'blue', effect: 'Fa retrocedere una carta adiacente di 3 spazi.' },
             '14': { id: '14', name: 'Corpo Astrale', type: 'blue', effect: 'Scambia questa carta con una carta esattamente a 4 spazi di distanza.' }
         };
 
@@ -342,14 +303,18 @@
             cardEl.id = 'card-' + cardId;
             cardEl.dataset.id = cardId;
 
-            // Mostra il pulsante "Attiva" solo se la carta è il Rancore (id '2') o in futuro per altre carte abilitate
             const showButton = (cardId === '2'); 
 
+            // Sezione inferiore con freccia sx, pulsante attiva al centro (se presente) e freccia dx
             cardEl.innerHTML = `
                 <div class="card-number">${data.id}</div>
                 <div class="card-name">${data.name}</div>
                 <div class="card-effect">${data.effect}</div>
-                ${showButton ? `<button onclick="activateCard(event, '${cardId}')" class="mt-0.5 bg-slate-800 hover:bg-slate-700 text-yellow-400 text-[11px] font-bold px-2 py-0.5 rounded border border-yellow-500/35 transition">Attiva</button>` : ''}
+                <div class="mt-0.5 flex items-center justify-center gap-1 w-full">
+                    <button onclick="shiftCard(event, '${cardId}', -1)" title="Sposta a sinistra" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-500/35 transition">←</button>
+                    ${showButton ? `<button onclick="activateCard(event, '${cardId}')" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-500/35 transition">Attiva</button>` : ''}
+                    <button onclick="shiftCard(event, '${cardId}', 1)" title="Sposta a destra" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-500/35 transition">→</button>
+                </div>
             `;
 
             cardEl.addEventListener('dragstart', handleDragStart);
@@ -454,14 +419,55 @@
             }
         }
 
-        // --- GESTIONE AUTOMAZIONE E EFFETTI CARTA ---
+        // --- NUOVA FUNZIONE: Scorrimento di 1 posizione lungo la coda (verso sx o dx) ---
+        function shiftCard(e, cardId, direction) {
+            e.stopPropagation();
+
+            // Trova l'indice attuale della carta nella coda (pathIndices)
+            let currentPathIdx = -1;
+            for (let i = 0; i < pathIndices.length; i++) {
+                const cell = document.getElementById('cell-' + pathIndices[i]);
+                const card = cell.querySelector('.card');
+                if (card && card.dataset.id === cardId) {
+                    currentPathIdx = i;
+                    break;
+                }
+            }
+
+            if (currentPathIdx === -1) return;
+
+            const targetPathIdx = currentPathIdx + direction;
+
+            // Controlla i limiti della coda (impedisce di uscire se è la prima o l'ultima carta)
+            if (targetPathIdx < 0 || targetPathIdx >= pathIndices.length) {
+                return; 
+            }
+
+            const currentCell = document.getElementById('cell-' + pathIndices[currentPathIdx]);
+            const targetCell = document.getElementById('cell-' + pathIndices[targetPathIdx]);
+
+            const cardToMove = currentCell.querySelector('.card');
+            const targetCard = targetCell.querySelector('.card');
+
+            if (!cardToMove) return;
+
+            // Esegue lo scambio di posizione con la carta adiacente nella coda
+            currentCell.removeChild(cardToMove);
+            if (targetCard) {
+                targetCell.removeChild(targetCard);
+                currentCell.appendChild(targetCard);
+            }
+            targetCell.appendChild(cardToMove);
+        }
+
+        // --- GESTIONE AUTOMAZIONE EFFETTI ---
         function activateCard(e, cardId) {
-            e.stopPropagation(); // Evita conflitti con il click di selezione della carta
+            e.stopPropagation();
 
             if (cardId === '2') {
                 executeRancore(cardId);
             } else {
-                alert("Automazione non ancora impostata per questa carta. Puoi comunque muoverla o scambiarla manualmente.");
+                alert("Automazione non ancora impostata per questa carta.");
             }
         }
 
@@ -478,13 +484,12 @@
             }
 
             if (targetCellIndex === -1) return;
-            if (cardId === '0' || cardId === 'D') return; // Protezione Apprendista e Divinità
+            if (cardId === '0' || cardId === 'D') return;
 
             const cellToClear = document.getElementById('cell-' + pathIndices[targetCellIndex]);
             const cardEl = cellToClear.querySelector('.card');
             if (cardEl) cellToClear.removeChild(cardEl);
 
-            // Fa scorrere tutte le carte successive per riempire il buco
             for (let i = targetCellIndex; i < pathIndices.length - 1; i++) {
                 const currentCell = document.getElementById('cell-' + pathIndices[i]);
                 const nextCell = document.getElementById('cell-' + pathIndices[i + 1]);
@@ -536,7 +541,7 @@
                 let id = card.dataset.id;
                 let val = 0;
                 if (id === '0') val = 0;
-                else if (id === 'D') val = 99; // Ignora la Divinità
+                else if (id === 'D') val = 99;
                 else val = parseInt(id);
 
                 if (val < minVal) {
