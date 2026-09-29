@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Via del Sacerdote</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a2e;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        h1 {
+            font-family: 'Cinzel', serif;
+        }
+        
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .cell {
+            aspect-ratio: 2 / 3;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+
+        .cell-path {
+            background-color: #475569; /* Slate 600 */
+            border: 2px dashed #64748b;
+        }
+
+        .cell-blocked {
+            background-color: #8b4513; /* Brown */
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0,0,0,0.15) 10px,
+                rgba(0,0,0,0.15) 20px
+            );
+            border: 2px solid #5c2e0b;
+            opacity: 0.95;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .cell-blocked::after {
+            /* Muro di mattoni bianco al centro */
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='56px' height='56px'%3E%3Cpath d='M22,9V7h-4V3c0-0.55-0.45-1-1-1H3C2.45,2,2,2.45,2,3v4H1v2h1v4H1v2h1v4c0,0.55,0.45,1,1,1h14c0.55,0,1-0.45,1-1v-4h4v-2h-4v-4H22z M16,4v2h-4V4H16z M10,4v2H4V4H10z M4,8h8v2H4V8z M14,10V8h6v2H14z M16,14v-2h4v2H16z M14,12v2H4v-2H14z M4,16h8v2H4V16z M14,18v-2h2v2H14z' /%3E%3C/svg%3E");
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.9;
+        }
+
+        .card {
+            width: 95%;
+            height: 95%;
+            border-radius: 0.4rem;
+            background-color: #f8fafc;
+            color: #0f172a;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        
+        .card:active {
+            cursor: grabbing;
+        }
+
+        .card.selected {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 4px #fbbf24, 0 10px 15px -3px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        /* Carte Apprendista e Divinità */
+        .card-gold {
+            border: 3px solid #fbbf24;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        }
+        .card-gold .card-number { color: #b45309; }
+
+        /* Maestri (Nastro Blu) */
+        .card-blue {
+            border: 3px solid #3b82f6;
+        }
+        .card-blue::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 12px;
+            background-color: #2563eb;
+            border-bottom: 2px solid #1d4ed8;
+        }
+        .card-blue .card-number { color: #1d4ed8; margin-top: 8px; }
+
+        /* Falsi Maestri (Rosso scuro) */
+        .card-red {
+            border: 3px solid #ef4444;
+            background-color: #fef2f2;
+        }
+        .card-red::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 8px;
+            background-color: #dc2626;
+        }
+        .card-red .card-number { color: #b91c1c; }
+
+        .card-number {
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+            z-index: 1;
+        }
+        .card-name {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-align: center;
+            text-transform: uppercase;
+            padding: 0 2px;
+            z-index: 1;
+            word-break: break-word;
+            line-height: 1.1;
+        }
+
+        /* Marker del percorso sulla cella vuota */
+        .path-index {
+            position: absolute;
+            bottom: 4px;
+            right: 6px;
+            font-size: 0.6rem;
+            color: #94a3b8;
+            font-weight: bold;
+        }
+
+        @media (max-width: 640px) {
+            .game-grid { gap: 0.25rem; padding: 0.5rem; }
+            .card-number { font-size: 1.2rem; }
+            .card-name { font-size: 0.5rem; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="text-center py-6 shadow-md bg-gray-900 bg-opacity-50">
+        <h1 class="text-3xl md:text-5xl font-bold text-yellow-500 mb-2 drop-shadow-lg">La Via del Sacerdote</h1>
+        <p class="text-sm md:text-base text-gray-300 mb-4 max-w-2xl mx-auto px-4">
+            Trascina e rilascia le carte per spostarle o scambiarle (Drag&Drop). 
+            Da mobile, tocca una carta per selezionarla, poi tocca un'altra carta o uno spazio vuoto per spostarla.
+        </p>
+        <button id="startBtn" onclick="startGame()" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-2 px-8 rounded-full shadow-lg transition transform hover:scale-105 active:scale-95 text-lg">
+            INIZIA / RESET
+        </button>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-2 md:p-6">
+        <div id="gridContainer" class="game-grid w-full">
+            <!-- Le celle verranno generate da JavaScript -->
+        </div>
+    </main>
+
+    <script>
+        // Dati delle carte secondo le regole
+        const cardsData = {
+            '0': { id: '0', name: 'Apprendista', type: 'gold' },
+            'D': { id: 'D', name: 'Divinità', type: 'gold' },
+            '1': { id: '1', name: 'Dubbio', type: 'red' },
+            '2': { id: '2', name: 'Rancore', type: 'red' },
+            '3': { id: '3', name: 'Paura', type: 'red' },
+            '4': { id: '4', name: 'Pigrizia', type: 'red' },
+            '6': { id: '6', name: 'Discordia', type: 'red' },
+            '11': { id: '11', name: 'Invidia', type: 'red' },
+            '5': { id: '5', name: 'Esercizio', type: 'blue' },
+            '7': { id: '7', name: 'Filosofia', type: 'blue' },
+            '8': { id: '8', name: 'Erboristeria', type: 'blue' },
+            '9': { id: '9', name: 'Meditazione', type: 'blue' },
+            '10': { id: '10', name: 'Preghiera', type: 'blue' },
+            '12': { id: '12', name: 'Pellegrino', type: 'blue' },
+            '13': { id: '13', name: 'Magia', type: 'blue' },
+            '14': { id: '14', name: 'Corpo Astrale', type: 'blue' }
+        };
+
+        // Mappatura esatta del percorso richiesta dall'utente (forma a U rovesciata)
+        // Riga 1 (indice 0-6): percorso (da sx a dx)
+        // Riga 2 (indice 7-13): cella 13 percorso
+        // Riga 3 (indice 14-20): cella 20 percorso
+        // Riga 4 (indice 21-27): percorso (da dx a sx verso la Divinità)
+        const pathIndices = [0, 1, 2, 3, 4, 5, 6, 13, 20, 27, 26, 25, 24, 23, 22, 21];
+        
+        // Mappatura inversa per sapere rapidamente se una cella è nel percorso
+        const isPathCell = new Array(28).fill(false);
+        pathIndices.forEach(idx => isPathCell[idx] = true);
+
+        let selectedCard = null; // Per la logica di touch/click selection
+
+        function initGrid() {
+            const container = document.getElementById('gridContainer');
+            container.innerHTML = ''; // Pulisci
+
+            for (let i = 0; i < 28; i++) {
+                const cell = document.createElement('div');
+                cell.id = 'cell-' + i;
+                cell.dataset.index = i;
+                
+                if (isPathCell[i]) {
+                    cell.className = 'cell cell-path';
+                    // Aggiungi numero del percorso per chiarezza visiva
+                    const pathStep = pathIndices.indexOf(i) + 1;
+                    cell.innerHTML = `<span class="path-index">${pathStep}</span>`;
+                    
+                    // Event listeners per Drop area (percorso valido)
+                    cell.addEventListener('dragover', handleDragOver);
+                    cell.addEventListener('dragenter', handleDragEnter);
+                    cell.addEventListener('dragleave', handleDragLeave);
+                    cell.addEventListener('drop', handleDrop);
+                    
+                    // Event listener per touch/click (spostamento in cella vuota)
+                    cell.addEventListener('click', handleCellClick);
+                } else {
+                    cell.className = 'cell cell-blocked';
+                    // Le celle gialle non accettano drop
+                }
+                
+                container.appendChild(cell);
+            }
+        }
+
+        function startGame() {
+            // Deseleziona eventuale carta selezionata
+            if (selectedCard) {
+                selectedCard.classList.remove('selected');
+                selectedCard = null;
+            }
+
+            // Pulisci le carte attuali dalle celle
+            const cells = document.querySelectorAll('.cell-path');
+            cells.forEach(cell => {
+                const card = cell.querySelector('.card');
+                if (card) cell.removeChild(card);
+            });
+
+            // Prepara le carte centrali (da 1 a 14)
+            const middleCards = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'];
+            
+            // Mischia l'array (Algoritmo Fisher-Yates)
+            for (let i = middleCards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [middleCards[i], middleCards[j]] = [middleCards[j], middleCards[i]];
+            }
+
+            // Posiziona le carte
+            // 1. Apprendista in posizione iniziale (path index 0 -> grid index 0)
+            placeCard('0', pathIndices[0]);
+            
+            // 2. Divinità in posizione finale (path index 15 -> grid index 21)
+            placeCard('D', pathIndices[15]);
+
+            // 3. Carte mischiate nei restanti 14 spazi (path indices da 1 a 14)
+            for (let i = 0; i < middleCards.length; i++) {
+                placeCard(middleCards[i], pathIndices[i + 1]);
+            }
+        }
+
+        function placeCard(cardId, gridIndex) {
+            const data = cardsData[cardId];
+            const cardEl = document.createElement('div');
+            cardEl.className = `card card-${data.type}`;
+            cardEl.draggable = true;
+            cardEl.id = 'card-' + cardId;
+            cardEl.dataset.id = cardId;
+
+            // Struttura interna della carta
+            cardEl.innerHTML = `
+                <div class="card-number">${data.id}</div>
+                <div class="card-name">${data.name}</div>
+            `;
+
+            // Eventi Drag & Drop HTML5
+            cardEl.addEventListener('dragstart', handleDragStart);
+            cardEl.addEventListener('dragend', handleDragEnd);
+
+            // Eventi Click per supporto Mobile/Touch
+            cardEl.addEventListener('click', handleCardClick);
+
+            // Inserisci nella cella corrispondente
+            const targetCell = document.getElementById('cell-' + gridIndex);
+            if (targetCell) {
+                targetCell.appendChild(cardEl);
+            }
+        }
+
+        let draggedCard = null;
+
+        function handleDragStart(e) {
+            draggedCard = this;
+            e.dataTransfer.effectAllowed = 'move';
+            // Impostiamo l'ID nel dataTransfer (utile su alcuni browser)
+            e.dataTransfer.setData('text/plain', this.id);
+            setTimeout(() => this.style.opacity = '0.5', 0);
+            
+            // Rimuoviamo la selezione touch se c'è
+            if (selectedCard) {
+                selectedCard.classList.remove('selected');
+                selectedCard = null;
+            }
+        }
+
+        function handleDragEnd(e) {
+            this.style.opacity = '1';
+            draggedCard = null;
+            document.querySelectorAll('.cell').forEach(c => c.classList.remove('ring-4', 'ring-slate-400', 'ring-inset'));
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault(); // Necessario per consentire il drop
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            // Aggiungi un effetto visivo alla cella sotto il mouse
+            if (this.classList.contains('cell-path')) {
+                this.classList.add('ring-4', 'ring-slate-400', 'ring-inset');
+            }
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('ring-4', 'ring-slate-400', 'ring-inset');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('ring-4', 'ring-slate-400', 'ring-inset');
+
+            if (!draggedCard) return;
+
+            // Determiniamo il target. "this" è la cella che riceve il drop (grazie all'event listener sulla cella)
+            const targetCell = this;
+            
+            // Controlla se la cella ha già una carta
+            const existingCard = targetCell.querySelector('.card');
+
+            if (existingCard && existingCard !== draggedCard) {
+                // SCAMBIO: La cella ha una carta, scambiamo le posizioni
+                const sourceCell = draggedCard.parentNode;
+                
+                // Rimuoviamo temporaneamente per evitare conflitti
+                sourceCell.removeChild(draggedCard);
+                targetCell.removeChild(existingCard);
+                
+                // Inseriamo scambiati
+                targetCell.appendChild(draggedCard);
+                sourceCell.appendChild(existingCard);
+            } else if (!existingCard) {
+                // SPOSTAMENTO: Cella vuota
+                targetCell.appendChild(draggedCard);
+            }
+        }
+
+        function handleCardClick(e) {
+            e.stopPropagation(); // Evita che il click passi alla cella sottostante
+            
+            const clickedCard = e.currentTarget;
+
+            if (!selectedCard) {
+                // Nessuna carta selezionata prima, seleziona questa
+                selectedCard = clickedCard;
+                selectedCard.classList.add('selected');
+            } else if (selectedCard === clickedCard) {
+                // Cliccata di nuovo la stessa carta, deseleziona
+                selectedCard.classList.remove('selected');
+                selectedCard = null;
+            } else {
+                // Scambio tra la carta precedentemente selezionata e questa nuova cliccata
+                const cellA = selectedCard.parentNode;
+                const cellB = clickedCard.parentNode;
+
+                cellA.removeChild(selectedCard);
+                cellB.removeChild(clickedCard);
+
+                cellB.appendChild(selectedCard);
+                cellA.appendChild(clickedCard);
+
+                // Deseleziona
+                selectedCard.classList.remove('selected');
+                selectedCard = null;
+            }
+        }
+
+        function handleCellClick(e) {
+            // Questo si attiva solo cliccando su uno spazio VUOTO della cella percorso
+            const cell = e.currentTarget;
+            
+            if (selectedCard && !cell.querySelector('.card')) {
+                // Sposta la carta selezionata nella cella vuota
+                cell.appendChild(selectedCard);
+                selectedCard.classList.remove('selected');
+                selectedCard = null;
+            }
+        }
+
+        // Avvio iniziale al caricamento della pagina
+        window.onload = () => {
+            initGrid();
+            // Aspetta un istante per far vedere la griglia vuota, poi popola
+            setTimeout(startGame, 300);
+        };
+
+    </script>
+</body>
+</html>
