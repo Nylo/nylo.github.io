@@ -101,6 +101,10 @@
         
         .card:active { cursor: grabbing; }
 
+        .card.card-locked {
+            cursor: default;
+        }
+
         .card.selected {
             transform: scale(1.03);
             box-shadow: 0 0 0 3px #38bdf8, 0 10px 15px -3px rgba(0,0,0,0.4);
@@ -213,6 +217,7 @@
                         <li>Puoi spostare le carte trascinandole col mouse/touch oppure cliccandoci sopra per scambiarle.</li>
                         <li>Utilizza i pulsanti con le frecce ◀ e ▶ presenti sulle carte per spostarle di 1 posizione lungo il percorso.</li>
                         <li>Premendo il pulsante <strong>"Attiva"</strong> sulle carte rosse automatizzate (2, 3 e 6), verrà eseguito istantaneamente l'effetto speciale della carta.</li>
+                        <li>La carta <strong>Divinità (D)</strong> è inamovibile e rimarrà sempre in fondo al percorso.</li>
                     </ul>
                 </div>
 
@@ -225,7 +230,7 @@
                         </div>
                         <div class="bg-slate-800/80 p-3 rounded border border-yellow-500/30">
                             <span class="font-bold text-yellow-400">D - Divinità:</span>
-                            <p class="text-xs text-slate-300 mt-0.5">La destinazione finale del percorso spirituale.</p>
+                            <p class="text-xs text-slate-300 mt-0.5">La destinazione finale del percorso spirituale. Inamovibile.</p>
                         </div>
                     </div>
                 </div>
@@ -267,7 +272,7 @@
     <script>
         const cardsData = {
             '0': { id: '0', name: 'Apprendista', type: 'gold', effect: 'Nessun effetto.' },
-            'D': { id: 'D', name: 'Divinità', type: 'gold', effect: 'Nessun effetto.' },
+            'D': { id: 'D', name: 'Divinità', type: 'gold', effect: 'Inamovibile.' },
             '1': { id: '1', name: 'Dubbio', type: 'red', effect: 'Scambia di posto le 2 carte adiacenti a questa.' },
             '2': { id: '2', name: 'Rancore', type: 'red', effect: 'Distruggi la carta adiacente con il valore più basso.' },
             '3': { id: '3', name: 'Paura', type: 'red', effect: 'Manda la carta adiacente con il valore più basso all\'inizio.' },
@@ -365,8 +370,10 @@
         function placeCard(cardId, gridIndex) {
             const data = cardsData[cardId];
             const cardEl = document.createElement('div');
-            cardEl.className = `card card-${data.type}`;
-            cardEl.draggable = true;
+            const isD = (cardId === 'D');
+
+            cardEl.className = `card card-${data.type} ${isD ? 'card-locked' : ''}`;
+            cardEl.draggable = !isD;
             cardEl.id = 'card-' + cardId;
             cardEl.dataset.id = cardId;
 
@@ -377,15 +384,17 @@
                 <div class="card-name">${data.name}</div>
                 <div class="card-effect">${data.effect}</div>
                 <div class="mt-0.5 flex items-center justify-between gap-1 w-full">
-                    <button onclick="shiftCard(event, '${cardId}', -1)" title="Sposta a sinistra" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-500/35 transition">◀</button>
+                    ${!isD ? `<button onclick="shiftCard(event, '${cardId}', -1)" title="Sposta a sinistra" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-500/35 transition">◀</button>` : '<div></div>'}
                     ${showButton ? `<button onclick="activateCard(event, '${cardId}')" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-500/35 transition">Attiva</button>` : ''}
-                    <button onclick="shiftCard(event, '${cardId}', 1)" title="Sposta a destra" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-500/35 transition">▶</button>
+                    ${!isD ? `<button onclick="shiftCard(event, '${cardId}', 1)" title="Sposta a destra" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-500/35 transition">▶</button>` : '<div></div>'}
                 </div>
             `;
 
-            cardEl.addEventListener('dragstart', handleDragStart);
-            cardEl.addEventListener('dragend', handleDragEnd);
-            cardEl.addEventListener('click', handleCardClick);
+            if (!isD) {
+                cardEl.addEventListener('dragstart', handleDragStart);
+                cardEl.addEventListener('dragend', handleDragEnd);
+                cardEl.addEventListener('click', handleCardClick);
+            }
 
             const targetCell = document.getElementById('cell-' + gridIndex);
             if (targetCell) {
@@ -396,6 +405,10 @@
         let draggedCard = null;
 
         function handleDragStart(e) {
+            if (this.dataset.id === 'D') {
+                e.preventDefault();
+                return false;
+            }
             draggedCard = this;
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', this.id);
@@ -434,10 +447,13 @@
             e.stopPropagation();
             this.classList.remove('highlight-drop');
 
-            if (!draggedCard) return;
+            if (!draggedCard || draggedCard.dataset.id === 'D') return;
 
             const targetCell = this;
             const existingCard = targetCell.querySelector('.card');
+
+            // Non permette di sovrascrivere o spostare la carta D
+            if (existingCard && existingCard.dataset.id === 'D') return;
 
             if (existingCard && existingCard !== draggedCard) {
                 const sourceCell = draggedCard.parentNode;
@@ -455,6 +471,9 @@
             e.stopPropagation();
             const clickedCard = e.currentTarget;
 
+            // La carta D non può essere selezionata né scambiata
+            if (clickedCard.dataset.id === 'D') return;
+
             if (!selectedCard) {
                 selectedCard = clickedCard;
                 selectedCard.classList.add('selected');
@@ -462,6 +481,12 @@
                 selectedCard.classList.remove('selected');
                 selectedCard = null;
             } else {
+                if (selectedCard.dataset.id === 'D') {
+                    selectedCard.classList.remove('selected');
+                    selectedCard = null;
+                    return;
+                }
+
                 const cellA = selectedCard.parentNode;
                 const cellB = clickedCard.parentNode;
 
@@ -478,7 +503,11 @@
 
         function handleCellClick(e) {
             const cell = e.currentTarget;
-            if (selectedCard && !cell.querySelector('.card')) {
+            const existingCard = cell.querySelector('.card');
+
+            if (existingCard && existingCard.dataset.id === 'D') return;
+
+            if (selectedCard && !existingCard) {
                 cell.appendChild(selectedCard);
                 selectedCard.classList.remove('selected');
                 selectedCard = null;
@@ -488,10 +517,12 @@
         function shiftCard(e, cardId, direction) {
             e.stopPropagation();
 
+            if (cardId === 'D') return;
+
             let currentPathIdx = -1;
             for (let i = 0; i < pathIndices.length; i++) {
                 const cell = document.getElementById('cell-' + pathIndices[i]);
-                const card = cell.querySelector('.card');
+                const card = cell ? cell.querySelector('.card') : null;
                 if (card && card.dataset.id === cardId) {
                     currentPathIdx = i;
                     break;
@@ -500,7 +531,14 @@
 
             if (currentPathIdx === -1) return;
 
-            const targetPathIdx = currentPathIdx + direction;
+            // Nella terza riga (pathIndices da indice 9 a 15, ossia da destra verso sinistra),
+            // la direzione della freccia viene invertita per mantenere il movimento visivo corretto.
+            let effectiveDirection = direction;
+            if (currentPathIdx >= 9) {
+                effectiveDirection = -direction;
+            }
+
+            const targetPathIdx = currentPathIdx + effectiveDirection;
             if (targetPathIdx < 0 || targetPathIdx >= pathIndices.length) return;
 
             const currentCell = document.getElementById('cell-' + pathIndices[currentPathIdx]);
@@ -510,6 +548,7 @@
             const targetCard = targetCell.querySelector('.card');
 
             if (!cardToMove) return;
+            if (targetCard && targetCard.dataset.id === 'D') return; // Blocco D
 
             currentCell.removeChild(cardToMove);
             if (targetCard) {
