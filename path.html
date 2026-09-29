@@ -216,7 +216,7 @@
                         <li>Le carte sono posizionate lungo un percorso numerato da 1 a 16.</li>
                         <li>Puoi spostare le carte trascinandole col mouse/touch oppure cliccandoci sopra per scambiarle.</li>
                         <li>Utilizza i pulsanti con le frecce ◀ e ▶ presenti sulle carte per spostarle di 1 posizione lungo il percorso.</li>
-                        <li>Premendo il pulsante <strong>"Attiva"</strong> sulle carte rosse automatizzate (2, 3 e 6), verrà eseguito istantaneamente l'effetto speciale della carta.</li>
+                        <li>Premendo il pulsante <strong>"Attiva"</strong> sulle carte rosse automatizzate (1, 2, 3 e 6), verrà eseguito istantaneamente l'effetto speciale della carta.</li>
                         <li>La carta <strong>Divinità (D)</strong> è inamovibile e rimarrà sempre in fondo al percorso.</li>
                     </ul>
                 </div>
@@ -286,7 +286,7 @@
             '0': { id: '0', name: 'Apprendista', type: 'gold', effect: 'Nessun effetto.' },
             'D': { id: 'D', name: 'Divinità', type: 'gold', effect: 'Inamovibile.' },
             '1': { id: '1', name: 'Dubbio', type: 'red', effect: 'Scambia di posto le 2 carte adiacenti a questa.' },
-            '2': { id: '2', name: 'Rancore', type: 'red', effect: 'Distruggi la carta adiacente con il valore più basso.' },
+            '2': { id: '2', name: 'Rancore', type: 'red', effect: 'Distruggi la carta adiacente con il valor più basso.' },
             '3': { id: '3', name: 'Paura', type: 'red', effect: 'Manda la carta adiacente con il valore più basso al primissimo posto.' },
             '4': { id: '4', name: 'Pigrizia', type: 'red', effect: 'Fa retrocedere la carta adiacente di 2 spazi.' },
             '6': { id: '6', name: 'Discordia', type: 'red', effect: 'Manda la carta adiacente di valore più basso prima del Rancore.' },
@@ -400,7 +400,7 @@
             cardEl.id = 'card-' + cardId;
             cardEl.dataset.id = cardId;
 
-            const showButton = (cardId === '2' || cardId === '3' || cardId === '6'); 
+            const showButton = (cardId === '1' || cardId === '2' || cardId === '3' || cardId === '6'); 
 
             cardEl.innerHTML = `
                 <div class="card-number">${data.id}</div>
@@ -609,7 +609,9 @@
         function activateCard(e, cardId) {
             e.stopPropagation();
 
-            if (cardId === '2') {
+            if (cardId === '1') {
+                executeDubbio(cardId);
+            } else if (cardId === '2') {
                 executeRancore(cardId);
             } else if (cardId === '3') {
                 executePaura(cardId);
@@ -632,6 +634,34 @@
             if (cardEl) cellToClear.removeChild(cardEl);
 
             pathCards.splice(cardIdx, 1);
+            renderPathCards(pathCards);
+        }
+
+        function executeDubbio(dubbioId) {
+            const pathCards = getPathCardIds();
+            const dubbioIdx = pathCards.indexOf(dubbioId);
+
+            if (dubbioIdx === -1) return;
+
+            // Se Dubbio si trova al primo posto del percorso o non ha due adiacenti, non succede nulla
+            if (dubbioIdx === 0 || dubbioIdx >= pathCards.length - 1) {
+                alert("Dubbio è in prima posizione o a fine percorso: nessun effetto!");
+                return;
+            }
+
+            const leftCard = pathCards[dubbioIdx - 1];
+            const rightCard = pathCards[dubbioIdx + 1];
+
+            // Se una delle due carte adiacenti è la Divinità (D) o manca una carta, l'effetto non ha luogo
+            if (leftCard === 'D' || rightCard === 'D' || !leftCard || !rightCard) {
+                alert("Dubbio è adiacente alla Divinità: nessun effetto!");
+                return;
+            }
+
+            // Inverte le due carte adiacenti
+            pathCards[dubbioIdx - 1] = rightCard;
+            pathCards[dubbioIdx + 1] = leftCard;
+
             renderPathCards(pathCards);
         }
 
@@ -715,7 +745,6 @@
                 return;
             }
 
-            // Rimuove la carta dalla posizione originale e la inserisce all'indice 0 (primissimo posto)
             pathCards.splice(oldIdx, 1);
             pathCards.splice(0, 0, targetId);
 
