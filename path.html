@@ -188,20 +188,28 @@
         </div>
     </main>
 
-    <!-- Modale Regolamento -->
-    <div id="rulesModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden">
-        <div class="bg-slate-900 border border-slate-700 w-11/12 max-w-3xl max-h-[85vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/95 sticky top-0 z-10">
+    <!-- Modale Regolamento Corretta -->
+    <div id="rulesModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden p-4">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-3xl h-[80vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/95 shrink-0">
                 <h2 class="text-xl font-bold text-yellow-500 font-serif flex items-center gap-2">📖 Regolamento - La Via del Sacerdote</h2>
                 <button onclick="toggleModal(false)" class="text-slate-400 hover:text-white text-2xl font-bold px-2">&times;</button>
             </div>
-            <div class="modal-body p-6 overflow-y-auto space-y-4 text-sm text-slate-300">
+            <div class="modal-body p-6 overflow-y-auto space-y-4 text-sm text-slate-300 flex-grow">
                 <div>
                     <h3 class="font-bold text-yellow-400 text-base mb-1">Obiettivo del Gioco</h3>
                     <p>La Via del Sacerdote è un gioco di strategia in solitario. L’obiettivo è far percorrere all'apprendista (carta 0) un sentiero formato da 14 carte dall'inizio alla fine[cite: 6].</p>
                 </div>
+                <div>
+                    <h3 class="font-bold text-yellow-400 text-base mb-1">Effetti delle Carte Principali</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><strong>Rancore (2):</strong> Distrugge la carta adiacente con il valore più basso.</li>
+                        <li><strong>Paura (3):</strong> Manda la carta adiacente con il valore più basso all'inizio della coda.</li>
+                        <li><strong>Discordia (6):</strong> Manda la carta adiacente di valore più basso prima del Rancore.</li>
+                    </ul>
+                </div>
             </div>
-            <div class="px-6 py-3 border-t border-slate-800 bg-slate-900/95 flex justify-end">
+            <div class="px-6 py-3 border-t border-slate-800 bg-slate-900/95 flex justify-end shrink-0">
                 <button onclick="toggleModal(false)" class="bg-yellow-600 hover:bg-yellow-500 text-white font-semibold px-4 py-2 rounded text-sm transition">Chiudi</button>
             </div>
         </div>
@@ -303,8 +311,8 @@
             cardEl.id = 'card-' + cardId;
             cardEl.dataset.id = cardId;
 
-            // Mostra il pulsante "Attiva" per il Rancore ('2') e per la Paura ('3')
-            const showButton = (cardId === '2' || cardId === '3'); 
+            // Mostra il pulsante "Attiva" per Rancore (2), Paura (3) e Discordia (6)
+            const showButton = (cardId === '2' || cardId === '3' || cardId === '6'); 
 
             cardEl.innerHTML = `
                 <div class="card-number">${data.id}</div>
@@ -463,6 +471,8 @@
                 executeRancore(cardId);
             } else if (cardId === '3') {
                 executePaura(cardId);
+            } else if (cardId === '6') {
+                executeDiscordia(cardId);
             } else {
                 alert("Automazione non ancora impostata per questa carta.");
             }
@@ -555,7 +565,6 @@
             }
         }
 
-        // --- NUOVA FUNZIONE: Effetto Paura (Carta 3) ---
         function executePaura(pauraId) {
             let pauraPathIdx = -1;
             for (let i = 0; i < pathIndices.length; i++) {
@@ -595,7 +604,7 @@
                 let id = item.card.dataset.id;
                 let val = 0;
                 if (id === '0') val = 0;
-                else if (id === 'D') val = 99; // Ignora la Divinità
+                else if (id === 'D') val = 99;
                 else val = parseInt(id);
 
                 if (val < minVal) {
@@ -609,23 +618,19 @@
                 return;
             }
 
-            const targetCardId = targetObj.card.dataset.id;
             const oldIndex = targetObj.index;
-            const destIndex = 1; // Subito dopo l'Apprendista (indice 1 della coda)
+            const destIndex = 1;
 
             if (oldIndex === destIndex) {
                 alert("La carta si trova già all'inizio della coda.");
                 return;
             }
 
-            // Rimuovi la carta bersaglio dalla sua posizione attuale
             const oldCell = document.getElementById('cell-' + pathIndices[oldIndex]);
             const cardToMove = oldCell.querySelector('.card');
             oldCell.removeChild(cardToMove);
 
-            // Shift delle carte intermedie
             if (oldIndex > destIndex) {
-                // Se si sposta verso sinistra (indietro nella coda), sposta le altre verso destra
                 for (let i = oldIndex; i > destIndex; i--) {
                     const currentCell = document.getElementById('cell-' + pathIndices[i]);
                     const prevCell = document.getElementById('cell-' + pathIndices[i - 1]);
@@ -636,7 +641,6 @@
                     }
                 }
             } else {
-                // Se si sposta verso destra, sposta le altre verso sinistra
                 for (let i = oldIndex; i < destIndex; i++) {
                     const currentCell = document.getElementById('cell-' + pathIndices[i]);
                     const nextCell = document.getElementById('cell-' + pathIndices[i + 1]);
@@ -648,7 +652,118 @@
                 }
             }
 
-            // Posiziona la carta all'inizio (indice 1)
+            const destCell = document.getElementById('cell-' + pathIndices[destIndex]);
+            destCell.appendChild(cardToMove);
+        }
+
+        // --- NUOVA FUNZIONE: Effetto Discordia (Carta 6) ---
+        function executeDiscordia(discordiaId) {
+            let discordiaPathIdx = -1;
+            let rancorePathIdx = -1;
+
+            for (let i = 0; i < pathIndices.length; i++) {
+                const cell = document.getElementById('cell-' + pathIndices[i]);
+                const card = cell.querySelector('.card');
+                if (card) {
+                    if (card.dataset.id === discordiaId) discordiaPathIdx = i;
+                    if (card.dataset.id === '2') rancorePathIdx = i;
+                }
+            }
+
+            if (discordiaPathIdx === -1) return;
+
+            if (rancorePathIdx === -1) {
+                alert("La carta Rancore (2) non è presente sul tabellone!");
+                return;
+            }
+
+            let adjacentCards = [];
+            
+            if (discordiaPathIdx > 0) {
+                const prevCell = document.getElementById('cell-' + pathIndices[discordiaPathIdx - 1]);
+                const prevCard = prevCell.querySelector('.card');
+                if (prevCard) adjacentCards.push({ card: prevCard, index: discordiaPathIdx - 1 });
+            }
+            
+            if (discordiaPathIdx < pathIndices.length - 1) {
+                const nextCell = document.getElementById('cell-' + pathIndices[discordiaPathIdx + 1]);
+                const nextCard = nextCell.querySelector('.card');
+                if (nextCard) adjacentCards.push({ card: nextCard, index: discordiaPathIdx + 1 });
+            }
+
+            if (adjacentCards.length === 0) {
+                alert("Nessuna carta adiacente da spostare!");
+                return;
+            }
+
+            let targetObj = null;
+            let minVal = 999;
+
+            adjacentCards.forEach(item => {
+                let id = item.card.dataset.id;
+                let val = 0;
+                if (id === '0') val = 0;
+                else if (id === 'D') val = 99;
+                else val = parseInt(id);
+
+                if (val < minVal) {
+                    minVal = val;
+                    targetObj = item;
+                }
+            });
+
+            if (!targetObj || targetObj.card.dataset.id === 'D') {
+                alert("Nessun bersaglio valido per la Discordia.");
+                return;
+            }
+
+            const oldIndex = targetObj.index;
+            
+            // Trova la posizione aggiornata del Rancore (nel caso le posizioni siano cambiate)
+            for (let i = 0; i < pathIndices.length; i++) {
+                const cell = document.getElementById('cell-' + pathIndices[i]);
+                const card = cell.querySelector('.card');
+                if (card && card.dataset.id === '2') {
+                    rancorePathIdx = i;
+                    break;
+                }
+            }
+
+            // Destinazione: immediatamente prima del Rancore
+            let destIndex = rancorePathIdx - 1;
+            if (destIndex < 0) destIndex = 0;
+
+            if (oldIndex === destIndex) {
+                alert("La carta si trova già nella posizione corretta prima del Rancore.");
+                return;
+            }
+
+            const oldCell = document.getElementById('cell-' + pathIndices[oldIndex]);
+            const cardToMove = oldCell.querySelector('.card');
+            oldCell.removeChild(cardToMove);
+
+            if (oldIndex > destIndex) {
+                for (let i = oldIndex; i > destIndex; i--) {
+                    const currentCell = document.getElementById('cell-' + pathIndices[i]);
+                    const prevCell = document.getElementById('cell-' + pathIndices[i - 1]);
+                    const prevCard = prevCell.querySelector('.card');
+                    if (prevCard) {
+                        prevCell.removeChild(prevCard);
+                        currentCell.appendChild(prevCard);
+                    }
+                }
+            } else {
+                for (let i = oldIndex; i < destIndex; i++) {
+                    const currentCell = document.getElementById('cell-' + pathIndices[i]);
+                    const nextCell = document.getElementById('cell-' + pathIndices[i + 1]);
+                    const nextCard = nextCell.querySelector('.card');
+                    if (nextCard) {
+                        nextCell.removeChild(nextCard);
+                        currentCell.appendChild(nextCard);
+                    }
+                }
+            }
+
             const destCell = document.getElementById('cell-' + pathIndices[destIndex]);
             destCell.appendChild(cardToMove);
         }
