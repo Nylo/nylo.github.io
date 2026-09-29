@@ -303,9 +303,9 @@
             cardEl.id = 'card-' + cardId;
             cardEl.dataset.id = cardId;
 
-            const showButton = (cardId === '2'); 
+            // Mostra il pulsante "Attiva" per il Rancore ('2') e per la Paura ('3')
+            const showButton = (cardId === '2' || cardId === '3'); 
 
-            // Sezione inferiore con freccia sx, pulsante attiva al centro (se presente) e freccia dx
             cardEl.innerHTML = `
                 <div class="card-number">${data.id}</div>
                 <div class="card-name">${data.name}</div>
@@ -419,11 +419,9 @@
             }
         }
 
-        // --- NUOVA FUNZIONE: Scorrimento di 1 posizione lungo la coda (verso sx o dx) ---
         function shiftCard(e, cardId, direction) {
             e.stopPropagation();
 
-            // Trova l'indice attuale della carta nella coda (pathIndices)
             let currentPathIdx = -1;
             for (let i = 0; i < pathIndices.length; i++) {
                 const cell = document.getElementById('cell-' + pathIndices[i]);
@@ -438,7 +436,6 @@
 
             const targetPathIdx = currentPathIdx + direction;
 
-            // Controlla i limiti della coda (impedisce di uscire se è la prima o l'ultima carta)
             if (targetPathIdx < 0 || targetPathIdx >= pathIndices.length) {
                 return; 
             }
@@ -451,7 +448,6 @@
 
             if (!cardToMove) return;
 
-            // Esegue lo scambio di posizione con la carta adiacente nella coda
             currentCell.removeChild(cardToMove);
             if (targetCard) {
                 targetCell.removeChild(targetCard);
@@ -460,12 +456,13 @@
             targetCell.appendChild(cardToMove);
         }
 
-        // --- GESTIONE AUTOMAZIONE EFFETTI ---
         function activateCard(e, cardId) {
             e.stopPropagation();
 
             if (cardId === '2') {
                 executeRancore(cardId);
+            } else if (cardId === '3') {
+                executePaura(cardId);
             } else {
                 alert("Automazione non ancora impostata per questa carta.");
             }
@@ -556,6 +553,104 @@
             } else {
                 alert("Nessun bersaglio valido da distruggere.");
             }
+        }
+
+        // --- NUOVA FUNZIONE: Effetto Paura (Carta 3) ---
+        function executePaura(pauraId) {
+            let pauraPathIdx = -1;
+            for (let i = 0; i < pathIndices.length; i++) {
+                const cell = document.getElementById('cell-' + pathIndices[i]);
+                const card = cell.querySelector('.card');
+                if (card && card.dataset.id === pauraId) {
+                    pauraPathIdx = i;
+                    break;
+                }
+            }
+
+            if (pauraPathIdx === -1) return;
+
+            let adjacentCards = [];
+            
+            if (pauraPathIdx > 0) {
+                const prevCell = document.getElementById('cell-' + pathIndices[pauraPathIdx - 1]);
+                const prevCard = prevCell.querySelector('.card');
+                if (prevCard) adjacentCards.push({ card: prevCard, index: pauraPathIdx - 1 });
+            }
+            
+            if (pauraPathIdx < pathIndices.length - 1) {
+                const nextCell = document.getElementById('cell-' + pathIndices[pauraPathIdx + 1]);
+                const nextCard = nextCell.querySelector('.card');
+                if (nextCard) adjacentCards.push({ card: nextCard, index: pauraPathIdx + 1 });
+            }
+
+            if (adjacentCards.length === 0) {
+                alert("Nessuna carta adiacente da influenzare!");
+                return;
+            }
+
+            let targetObj = null;
+            let minVal = 999;
+
+            adjacentCards.forEach(item => {
+                let id = item.card.dataset.id;
+                let val = 0;
+                if (id === '0') val = 0;
+                else if (id === 'D') val = 99; // Ignora la Divinità
+                else val = parseInt(id);
+
+                if (val < minVal) {
+                    minVal = val;
+                    targetObj = item;
+                }
+            });
+
+            if (!targetObj || targetObj.card.dataset.id === 'D') {
+                alert("Nessun bersaglio valido per la Paura.");
+                return;
+            }
+
+            const targetCardId = targetObj.card.dataset.id;
+            const oldIndex = targetObj.index;
+            const destIndex = 1; // Subito dopo l'Apprendista (indice 1 della coda)
+
+            if (oldIndex === destIndex) {
+                alert("La carta si trova già all'inizio della coda.");
+                return;
+            }
+
+            // Rimuovi la carta bersaglio dalla sua posizione attuale
+            const oldCell = document.getElementById('cell-' + pathIndices[oldIndex]);
+            const cardToMove = oldCell.querySelector('.card');
+            oldCell.removeChild(cardToMove);
+
+            // Shift delle carte intermedie
+            if (oldIndex > destIndex) {
+                // Se si sposta verso sinistra (indietro nella coda), sposta le altre verso destra
+                for (let i = oldIndex; i > destIndex; i--) {
+                    const currentCell = document.getElementById('cell-' + pathIndices[i]);
+                    const prevCell = document.getElementById('cell-' + pathIndices[i - 1]);
+                    const prevCard = prevCell.querySelector('.card');
+                    if (prevCard) {
+                        prevCell.removeChild(prevCard);
+                        currentCell.appendChild(prevCard);
+                    }
+                }
+            } else {
+                // Se si sposta verso destra, sposta le altre verso sinistra
+                for (let i = oldIndex; i < destIndex; i++) {
+                    const currentCell = document.getElementById('cell-' + pathIndices[i]);
+                    const nextCell = document.getElementById('cell-' + pathIndices[i + 1]);
+                    const nextCard = nextCell.querySelector('.card');
+                    if (nextCard) {
+                        nextCell.removeChild(nextCard);
+                        currentCell.appendChild(nextCard);
+                    }
+                }
+            }
+
+            // Posiziona la carta all'inizio (indice 1)
+            const destCell = document.getElementById('cell-' + pathIndices[destIndex]);
+            destCell.appendChild(cardToMove);
         }
 
         window.onload = () => {
