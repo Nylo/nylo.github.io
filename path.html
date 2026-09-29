@@ -240,7 +240,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
                         <div class="bg-slate-800/80 p-2.5 rounded border border-red-500/30"><strong class="text-red-400">1 - Dubbio:</strong> Scambia di posto le 2 carte adiacenti a questa.</div>
                         <div class="bg-slate-800/80 p-2.5 rounded border border-red-500/30"><strong class="text-red-400">2 - Rancore:</strong> Distruggi la carta adiacente con il valore più basso.</div>
-                        <div class="bg-slate-800/80 p-2.5 rounded border border-red-500/30"><strong class="text-red-400">3 - Paura:</strong> Manda la carta adiacente con il valore più basso all'inizio della coda.</div>
+                        <div class="bg-slate-800/80 p-2.5 rounded border border-red-500/30"><strong class="text-red-400">3 - Paura:</strong> Manda la carta adiacente con il valore più basso al primissimo posto.</div>
                         <div class="bg-slate-800/80 p-2.5 rounded border border-red-500/30"><strong class="text-red-400">4 - Pigrizia:</strong> Fa retrocedere la carta adiacente di 2 spazi.</div>
                         <div class="bg-slate-800/80 p-2.5 rounded border border-red-500/30"><strong class="text-red-400">6 - Discordia:</strong> Manda la carta adiacente di valore più basso prima del Rancore (2).</div>
                         <div class="bg-slate-800/80 p-2.5 rounded border border-red-500/30"><strong class="text-red-400">11 - Invidia:</strong> Sposta la carta adiacente di valore più basso di 2 spazi verso il Rancore.</div>
@@ -269,13 +269,25 @@
         </div>
     </div>
 
+    <!-- Modale Sconfitta -->
+    <div id="loseModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
+        <div class="bg-slate-900 border border-red-500/50 w-full max-w-sm rounded-xl shadow-2xl flex flex-col p-6 text-center items-center">
+            <div class="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-3">
+                <span class="text-2xl">☠️</span>
+            </div>
+            <h2 class="text-2xl font-bold text-red-500 font-serif mb-2">Hai perso!</h2>
+            <p class="text-slate-300 text-sm mb-6">L'Apprendista è stato eliminato dal Rancore.</p>
+            <button onclick="restartFromLose()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-2 rounded-lg transition shadow-lg w-full">Riprova</button>
+        </div>
+    </div>
+
     <script>
         const cardsData = {
             '0': { id: '0', name: 'Apprendista', type: 'gold', effect: 'Nessun effetto.' },
             'D': { id: 'D', name: 'Divinità', type: 'gold', effect: 'Inamovibile.' },
             '1': { id: '1', name: 'Dubbio', type: 'red', effect: 'Scambia di posto le 2 carte adiacenti a questa.' },
             '2': { id: '2', name: 'Rancore', type: 'red', effect: 'Distruggi la carta adiacente con il valore più basso.' },
-            '3': { id: '3', name: 'Paura', type: 'red', effect: 'Manda la carta adiacente con il valore più basso all\'inizio.' },
+            '3': { id: '3', name: 'Paura', type: 'red', effect: 'Manda la carta adiacente con il valore più basso al primissimo posto.' },
             '4': { id: '4', name: 'Pigrizia', type: 'red', effect: 'Fa retrocedere la carta adiacente di 2 spazi.' },
             '6': { id: '6', name: 'Discordia', type: 'red', effect: 'Manda la carta adiacente di valore più basso prima del Rancore.' },
             '11': { id: '11', name: 'Invidia', type: 'red', effect: 'Sposta la carta adiacente di valore più basso di 2 spazi verso il Rancore.' },
@@ -301,6 +313,15 @@
             const modal = document.getElementById('rulesModal');
             if (show) modal.classList.remove('hidden');
             else modal.classList.add('hidden');
+        }
+
+        function showLoseModal() {
+            document.getElementById('loseModal').classList.remove('hidden');
+        }
+
+        function restartFromLose() {
+            document.getElementById('loseModal').classList.add('hidden');
+            startGame();
         }
 
         function initGrid() {
@@ -341,6 +362,8 @@
         }
 
         function startGame() {
+            document.getElementById('loseModal').classList.add('hidden');
+
             if (selectedCard) {
                 selectedCard.classList.remove('selected');
                 selectedCard = null;
@@ -452,7 +475,6 @@
             const targetCell = this;
             const existingCard = targetCell.querySelector('.card');
 
-            // Non permette di sovrascrivere o spostare la carta D
             if (existingCard && existingCard.dataset.id === 'D') return;
 
             if (existingCard && existingCard !== draggedCard) {
@@ -471,7 +493,6 @@
             e.stopPropagation();
             const clickedCard = e.currentTarget;
 
-            // La carta D non può essere selezionata né scambiata
             if (clickedCard.dataset.id === 'D') return;
 
             if (!selectedCard) {
@@ -531,8 +552,6 @@
 
             if (currentPathIdx === -1) return;
 
-            // Nella terza riga (pathIndices da indice 9 a 15, ossia da destra verso sinistra),
-            // la direzione della freccia viene invertita per mantenere il movimento visivo corretto.
             let effectiveDirection = direction;
             if (currentPathIdx >= 9) {
                 effectiveDirection = -direction;
@@ -548,7 +567,7 @@
             const targetCard = targetCell.querySelector('.card');
 
             if (!cardToMove) return;
-            if (targetCard && targetCard.dataset.id === 'D') return; // Blocco D
+            if (targetCard && targetCard.dataset.id === 'D') return;
 
             currentCell.removeChild(cardToMove);
             if (targetCard) {
@@ -646,7 +665,9 @@
                 }
             });
 
-            if (targetId && targetId !== 'D') {
+            if (targetId === '0') {
+                showLoseModal();
+            } else if (targetId && targetId !== 'D') {
                 destroyCard(targetId);
             } else {
                 alert("Nessun bersaglio valido da distruggere.");
@@ -689,13 +710,14 @@
             }
 
             const oldIdx = pathCards.indexOf(targetId);
-            if (oldIdx === 1) {
-                alert("La carta si trova già all'inizio del sentiero.");
+            if (oldIdx === 0) {
+                alert("La carta si trova già al primissimo posto del sentiero.");
                 return;
             }
 
+            // Rimuove la carta dalla posizione originale e la inserisce all'indice 0 (primissimo posto)
             pathCards.splice(oldIdx, 1);
-            pathCards.splice(1, 0, targetId);
+            pathCards.splice(0, 0, targetId);
 
             renderPathCards(pathCards);
         }
