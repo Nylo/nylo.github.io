@@ -25,6 +25,11 @@
         .card-effect::-webkit-scrollbar-track { background: transparent; }
         .card-effect::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 10px; }
 
+        /* Scrollbar personalizzata per la modale */
+        .modal-body::-webkit-scrollbar { width: 6px; }
+        .modal-body::-webkit-scrollbar-track { background: #1e293b; }
+        .modal-body::-webkit-scrollbar-thumb { background-color: #475569; border-radius: 10px; }
+
         .game-grid {
             display: grid;
             grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -126,8 +131,6 @@
             width: 100%;
             margin-bottom: 0.5rem;
 			line-height: 1.1;
-			/* border-bottom: 1px solid rgba(0, 0, 0, 0.1); */
-			/* padding-bottom: 2px;
         }
 
         .card-effect {
@@ -172,8 +175,14 @@
 </head>
 <body class="bg-slate-800">
 
-    <header class="text-center pt-4 pb-0 px-2 shadow-lg bg-slate-800">
-        <h1 class="text-2xl md:text-4xl font-bold text-yellow-500 drop-shadow-md">La Via del Sacerdote<button id="startBtn" onclick="startGame()" style="margin-left:1.5rem">↻</button></h1> 
+    <header class="text-center pt-4 pb-0 px-2 shadow-lg bg-slate-800 flex flex-col items-center justify-center">
+        <h1 class="text-2xl md:text-4xl font-bold text-yellow-500 drop-shadow-md flex items-center justify-center gap-4">
+            La Via del Sacerdote
+            <div class="flex items-center gap-2">
+                <button id="startBtn" onclick="startGame()" title="Reset / Mescola" class="text-xl bg-slate-800 px-3 py-1 transition shadow">↻</button>
+                <button id="ruleBtn" onclick="toggleModal(true)" title="Regolamento" class="text-xl bg-slate-800 px-3 py-1 transition shadow">📖</button>
+            </div>
+        </h1> 
     </header>
 
     <main class="flex-grow flex items-center justify-center py-4 w-full max-w-screen-2xl mx-auto px-2 bg-slate-800">
@@ -181,6 +190,76 @@
             <!-- Griglia 8x3 generata dinamicamente -->
         </div>
     </main>
+
+    <!-- Modale Regolamento -->
+    <div id="rulesModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden">
+        <div class="bg-slate-900 border border-slate-700 w-11/12 max-w-3xl max-h-[85vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
+            <!-- Header Modale -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/95 sticky top-0 z-10">
+                <h2 class="text-xl font-bold text-yellow-500 font-serif flex items-center gap-2">📖 Regolamento - La Via del Sacerdote</h2>
+                <button onclick="toggleModal(false)" class="text-slate-400 hover:text-white text-2xl font-bold px-2">&times;</button>
+            </div>
+            <!-- Corpo Modale -->
+            <div class="modal-body p-6 overflow-y-auto space-y-4 text-sm text-slate-300">
+                <div>
+                    <h3 class="font-bold text-yellow-400 text-base mb-1">Obiettivo del Gioco</h3>
+                    <p>La Via del Sacerdote è un gioco di strategia in solitario. L’obiettivo è far percorrere all'apprendista (carta 0) un sentiero formato da 14 carte (8 Maestri e 6 Falsi Maestri) dall'inizio alla fine, per potersi connettere con la divinità fermandosi adiacente ad essa. Devi avanzare con saggezza, sfruttando a tuo vantaggio sia le carte dei Maestri che quelle dei Falsi Maestri.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-yellow-400 text-base mb-1">Setup</h3>
+                    <p>Separa le carte dell'Apprendista (0) e della Divinità (D) dal mazzo. Mescola le altre carte. Posiziona la carta dell'Apprendista sul tavolo e crea un percorso disponendo le 14 carte mescolate in fila alla destra dell'Apprendista. Colloca poi la carta della Divinità alla fine di questo percorso.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-yellow-400 text-base mb-1">Svolgimento della Partita</h3>
+                    <p>Il gioco si svolge in round, seguendo questo ordine:</p>
+                    <ul class="list-disc pl-5 mt-1 space-y-1">
+                        <li><strong>Turno del Giocatore:</strong> Devi selezionare una singola carta Maestro all'interno del percorso (i Maestri si identificano da un nastro blu nel nome della carta) e attivarne l'abilità. Puoi utilizzare la stessa carta Maestro anche in round consecutivi.</li>
+                        <li><strong>Turno dei Falsi Maestri:</strong> Subito dopo l'azione del giocatore, i Falsi Maestri presenti nel percorso si attivano automaticamente in ordine di valore, dal più basso al più alto (1, 2, 3, 4, 6, 11). Ogni Falso Maestro colpisce la carta adiacente con il valore più basso, indipendentemente dal fatto che quest'ultima sia un Maestro o un Falso Maestro. Al termine del turno dei Falsi Maestri, inizia un nuovo round con il turno del giocatore.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-yellow-400 text-base mb-1">Condizioni di Vittoria</h3>
+                    <p>Per posizionarti accanto alla Divinità, devi effettuare movimenti esatti o naturali. Ad esempio, se ti trovi a una carta di distanza, devi spostarti esattamente di una posizione, oppure rimuovere dal percorso la carta che ti blocca. Il giocatore e i Falsi Maestri giocheranno sempre lo stesso numero di turni (i Falsi Maestri agiscono sempre dopo di te). Vinci la partita se riesci ad arrivare adiacente alla Divinità e i Falsi Maestri concludono il loro turno senza spostarti o impedirti di perseguire il tuo obiettivo.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-yellow-400 text-base mb-1">Elenco delle Carte</h3>
+                    <p class="mb-2">I Maestri sono identificati dal colore del nastro blu. Le altre carte si dividono in Falsi Maestri e Personaggi chiave.</p>
+                    
+                    <p class="font-semibold text-white mt-2">Personaggi Chiave:</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><strong>0 - Apprendista:</strong> è la carta iniziale che devi muovere lungo il percorso. Non ha effetti specifici.</li>
+                        <li><strong>D - Divinità (Ah Puch):</strong> è la carta finale che funge da obiettivo. Non ha effetti specifici.</li>
+                    </ul>
+
+                    <p class="font-semibold text-white mt-3">I Falsi Maestri (Si attivano da soli in ordine crescente):</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><strong>1 - Dubbio:</strong> scambia di posto le due (2) carte adiacenti a questa. OPPURE: Se questa carta si trova a un'estremità, sposta questa carta di uno spazio.</li>
+                        <li><strong>2 - Rancore:</strong> distruggi la carta adiacente con il valore più basso.</li>
+                        <li><strong>3 - Paura:</strong> manda la carta adiacente con il valore più basso all'inizio del percorso.</li>
+                        <li><strong>4 - Pigrizia:</strong> fai retrocedere la carta adiacente di valore più basso di due (2) spazi; se non è possibile eseguire l'azione, sposta questa carta (la Pigrizia) di uno (1) spazio.</li>
+                        <li><strong>6 - Discordia:</strong> manda la carta adiacente di valore più basso in uno spazio antecedente al Rancore. OPPURE: Se la carta di valore più basso è il Rancore stesso, spostalo di due (2) spazi in direzione dell'Apprendista.</li>
+                        <li><strong>11 - Invidia:</strong> sposta la carta adiacente di valore più basso esattamente di due (2) spazi in direzione del Rancore, anche se questo spostamento dovesse farglielo oltrepassare. OPPURE: Se la carta colpita è il Rancore, sposta quest'ultimo di due (2) spazi verso l'Apprendista.</li>
+                    </ul>
+
+                    <p class="font-semibold text-white mt-3">I Maestri (Nastro Blu - Controllati dal giocatore):</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><strong>5 - Esercizio:</strong> scambia questa carta di posto con un'altra carta che si trova fino a due (2) spazi di distanza.</li>
+                        <li><strong>7 - Filosofia:</strong> sposta di uno (1) spazio una carta distante 3 spazi. Sposta di due (2) spazi una carta distante 2 spazi. Sposta di tre (3) spazi una carta distante 1 spazio.</li>
+                        <li><strong>8 - Erboristeria:</strong> fai retrocedere una carta adiacente di due (2) spazi. OPPURE: Fai avanzare una carta adiacente di uno (1) spazio.</li>
+                        <li><strong>9 - Meditazione:</strong> scambia di posto questa carta con un'altra che si trova esattamente a tre (3) spazi di distanza da essa.</li>
+                        <li><strong>10 - Preghiera:</strong> scambia di posto questa carta con un'altra carta ad essa adiacente.</li>
+                        <li><strong>12 - Pellegrino:</strong> sposta una carta adiacente esattamente di due (2) spazi.</li>
+                        <li><strong>13 - Magia:</strong> fai retrocedere una carta adiacente esattamente di tre (3) spazi. OPPURE: Fai avanzare una carta adiacente di due (2) spazi.</li>
+                        <li><strong>14 - Corpo Astrale:</strong> scambia questa carta con una carta che si trova esattamente a quattro (4) spazi di distanza da essa.</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Footer Modale -->
+            <div class="px-6 py-3 border-t border-slate-800 bg-slate-900/95 flex justify-end">
+                <button onclick="toggleModal(false)" class="bg-yellow-600 hover:bg-yellow-500 text-white font-semibold px-4 py-2 rounded text-sm transition">Chiudi</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Dati completi delle carte
@@ -220,6 +299,15 @@
         pathIndices.forEach(idx => isPathCell[idx] = true);
 
         let selectedCard = null;
+
+        function toggleModal(show) {
+            const modal = document.getElementById('rulesModal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
 
         function initGrid() {
             const container = document.getElementById('gridContainer');
