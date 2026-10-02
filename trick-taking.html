@@ -556,7 +556,7 @@ select option{background:var(--surface)}
         <div class="sync-time" id="syncTime"></div>
       </div>
       <button class="btn btn-ghost" onclick="manageAction(openTokenModal)">⚙ Configura sync</button>
-      <button class="btn btn-ghost" id="btnSync" onclick="ghPush(true)" style="display:none">↑ Sincronizza ora</button>
+      <button class="btn btn-ghost" id="btnSync" onclick="ghPush(true).then(()=>{ if(isWeightsDirty()) ghPushWeights(); })" style="display:none">↑ Sincronizza ora</button>
     </div>
     <div class="manage-group">
       <div class="sidebar-label">Zona pericolosa</div>
@@ -572,7 +572,7 @@ select option{background:var(--surface)}
 <div class="modal-overlay" id="weightsModal" onclick="if(event.target===this)closeWeightsModal()">
   <div class="modal" style="max-width:460px">
     <h2>⚖ Gestisci parametri</h2>
-    <p>Pesi usati per calcolare il voto ponderato. Non serve che sommino a 100: vengono normalizzati. I pesi sono salvati in questo browser.</p>
+    <p>Pesi usati per calcolare il voto ponderato. Non serve che sommino a 100: vengono normalizzati. Con la sync GitHub attiva vengono salvati nel repo (<code>trick-weights.json</code>) e applicati a tutti i visitatori.</p>
     <div id="weightsList"></div>
     <div class="weights-total" id="weightsTotal"></div>
     <div class="modal-footer">
@@ -885,6 +885,7 @@ async function saveToken(){
   closeTokenModal();
   const ok = await ghFetch();
   if(ok){ renderGrid(); }
+  if(await ghFetchWeights()) renderGrid();
 }
 function clearToken(){
   if(!confirm('Rimuovere il token? La sync verrà disattivata.')) return;
@@ -893,6 +894,99 @@ function clearToken(){
   closeTokenModal();
   setSyncUI('','GitHub non configurato');
   document.getElementById('btnSync').style.display='none';
+}
+
+// ─────────────── SYNC PESI (trick-weights.json) ───────────────
+const GH_WEIGHTS_FILE = 'trick-weights.json';
+const GH_WEIGHTS_API  = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_WEIGHTS_FILE}`;
+const WEIGHTS_DIRTY_KEY = 'trick-rating-weights-dirty';
+let ghWeightsSha = null;
+
+function normalizeWeights(w){
+  if(!w || typeof w!=='object') return null;
+  const out = {}; let sum = 0;
+  for(const r of RATINGS){
+    const n = Number(w[r]);
+    if(!isFinite(n) || n<0) return null;
+    out[r] = n; sum += n;
+  }
+  return sum>0 ? out : null;
+}
+function persistWeights(){ try{ localStorage.setItem(WEIGHTS_KEY, JSON.stringify(RATING_WEIGHTS)); }catch(e){} }
+function setWeightsDirty(v){ try{ if(v) localStorage.setItem(WEIGHTS_DIRTY_KEY,'1'); else localStorage.removeItem(WEIGHTS_DIRTY_KEY); }catch(e){} }
+function isWeightsDirty(){ try{ return localStorage.getItem(WEIGHTS_DIRTY_KEY)==='1'; }catch(e){ return false; } }
+
+// Ritorna true se i pesi in uso sono cambiati (serve un renderGrid)
+async function ghFetchWeights(){
+  const token = getToken();
+  try{
+    let remote = null;
+    if(token){
+      const res = await fetch(GH_WEIGHTS_API+'?ref='+GH_BRANCH+'&t='+Date.now(), {
+        headers:{ Authorization:'token '+token, Accept:'application/vnd.github.v3+json' }
+      });
+      if(res.status===404){ ghWeightsSha = null; }
+      else if(!res.ok) throw new Error('HTTP '+res.status);
+      else {
+        const json = await res.json();
+        ghWeightsSha = json.sha;
+        remote = JSON.parse(b64DecodeUTF8(json.content));
+      }
+    } else {
+      const res = await fetch(`https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${GH_WEIGHTS_FILE}?t=${Date.now()}`);
+      if(res.status!==404){
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        remote = await res.json();
+      }
+    }
+    // modifica locale non ancora sincronizzata: ha la precedenza
+    if(isWeightsDirty()){
+      if(token) await ghPushWeights();
+      return false;
+    }
+    const w = normalizeWeights(remote);
+    if(!w) return false;
+    const changed = RATINGS.some(r=>RATING_WEIGHTS[r]!==w[r]);
+    RATINGS.forEach(r=>{ RATING_WEIGHTS[r] = w[r]; });
+    persistWeights();
+    return changed;
+  }catch(e){
+    console.warn('Pesi: lettura GitHub fallita', e);
+    return false;
+  }
+}
+
+async function ghPushWeights(retry=true){
+  const token = getToken();
+  if(!token) return false;
+  try{
+    const body = {
+      message:'Update trick-weights',
+      content: b64EncodeUTF8(JSON.stringify(RATING_WEIGHTS,null,2)),
+      branch: GH_BRANCH
+    };
+    if(ghWeightsSha) body.sha = ghWeightsSha;
+    const res = await fetch(GH_WEIGHTS_API, {
+      method:'PUT',
+      headers:{ Authorization:'token '+token, Accept:'application/vnd.github.v3+json', 'Content-Type':'application/json' },
+      body: JSON.stringify(body)
+    });
+    if(!res.ok){
+      if(retry && (res.status===409 || res.status===422)){
+        // sha non aggiornato: lo rileggo e riprovo una volta
+        const g = await fetch(GH_WEIGHTS_API+'?ref='+GH_BRANCH+'&t='+Date.now(), { headers:{ Authorization:'token '+token, Accept:'application/vnd.github.v3+json' } });
+        if(g.ok){ ghWeightsSha = (await g.json()).sha; return ghPushWeights(false); }
+      }
+      const e = await res.json().catch(()=>({}));
+      throw new Error(e.message||'HTTP '+res.status);
+    }
+    ghWeightsSha = (await res.json()).content.sha;
+    setWeightsDirty(false);
+    return true;
+  }catch(e){
+    setSyncUI('err','Errore push pesi: '+e.message);
+    return false;
+  }
 }
 
 // ─────────────── DATA ───────────────
@@ -1355,9 +1449,15 @@ function saveWeights(){
   if(!ok){ alert('I pesi devono essere numeri maggiori o uguali a 0.'); return; }
   if(RATINGS.reduce((a,r)=>a+w[r],0)<=0){ alert('Almeno un peso deve essere maggiore di zero.'); return; }
   RATINGS.forEach(r=>{ RATING_WEIGHTS[r] = w[r]; });
-  try{ localStorage.setItem(WEIGHTS_KEY, JSON.stringify(RATING_WEIGHTS)); }catch(e){}
+  persistWeights();
+  setWeightsDirty(true);
   closeWeightsModal();
   renderGrid();
+  if(getToken()){
+    ghPushWeights().then(ok=>{ if(ok) setSyncUI('ok','Pesi sincronizzati su GitHub'); });
+  } else {
+    alert('Pesi salvati solo in questo browser. Configura la sync GitHub (Gestione → Configura sync) per renderli visibili a tutti.');
+  }
 }
 
 // ─────────────── LIVE FILTERS ───────────────
@@ -1380,6 +1480,7 @@ if(getToken()){
   setSyncUI('busy','Caricamento dalla collezione pubblica…');
 }
 ghFetch().then(ok=>{ if(ok) renderGrid(); });
+ghFetchWeights().then(changed=>{ if(changed) renderGrid(); });
 </script>
 </body>
 </html>
