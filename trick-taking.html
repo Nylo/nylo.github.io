@@ -195,6 +195,14 @@ select option{background:var(--surface)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .sync-time{font-size:10px;color:var(--text-soft);opacity:0.7}
 
+/* ── GESTIONE / PARAMETRI ── */
+.manage-group{display:flex;flex-direction:column;gap:8px}
+.manage-group .sidebar-label{margin-bottom:0}
+.weight-row{display:grid;grid-template-columns:1fr 80px 54px;gap:10px;align-items:center;margin-bottom:8px}
+.weight-row label{font-size:13px;color:var(--text)}
+.weight-share{font-size:12px;color:var(--text-soft);text-align:right}
+.weights-total{font-size:12px;color:var(--text-soft);border-top:1px solid var(--border);padding-top:10px}
+
 /* ── MOBILE ── */
 @media(max-width:700px){
   .app{flex-direction:column}
@@ -301,19 +309,7 @@ select option{background:var(--surface)}
     </div>
 
     <div class="sidebar-actions admin-only" id="sidebarActions">
-      <button class="btn btn-primary" onclick="openNewGame()">+ Aggiungi gioco</button>
-      <button class="btn btn-secondary" onclick="openImportModal()">⬆ Importa CSV</button>
-      <button class="btn btn-ghost" onclick="exportJSON()">⬇ Esporta JSON</button>
-      <button class="btn btn-ghost" onclick="document.getElementById('jsonFileInput').click()">⬆ Importa JSON</button>
-      <input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="importJSON(event)">
-      <button class="btn btn-danger" onclick="openDeleteCollection()" style="margin-top:4px">🗑 Elimina collezione</button>
-
-      <div class="sync-bar admin-only" id="syncBar">
-        <div class="sync-status"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">GitHub non configurato</span></div>
-        <div class="sync-time" id="syncTime"></div>
-        <button class="btn btn-ghost btn-sm" onclick="openTokenModal()" style="font-size:11px">⚙ Configura sync</button>
-        <button class="btn btn-ghost btn-sm" id="btnSync" onclick="ghPush(true)" style="font-size:11px;display:none">↑ Sincronizza ora</button>
-      </div>
+      <button class="btn btn-primary" onclick="openManageModal()">🛠 Gestione collezione</button>
     </div>
   </aside>
 
@@ -536,6 +532,57 @@ select option{background:var(--surface)}
   </div>
 </div>
 
+<input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="importJSON(event)">
+
+<!-- MANAGE MODAL (admin) -->
+<div class="modal-overlay" id="manageModal" onclick="if(event.target===this)closeManageModal()">
+  <div class="modal" style="max-width:440px">
+    <h2>🛠 Gestione collezione</h2>
+    <div class="manage-group">
+      <div class="sidebar-label">Giochi</div>
+      <button class="btn btn-primary" onclick="manageAction(openNewGame)">+ Aggiungi gioco</button>
+      <button class="btn btn-secondary" onclick="manageAction(openImportModal)">⬆ Importa CSV</button>
+      <button class="btn btn-secondary" onclick="manageAction(()=>document.getElementById('jsonFileInput').click())">⬆ Importa JSON</button>
+      <button class="btn btn-ghost" onclick="manageAction(exportJSON)">⬇ Esporta JSON</button>
+    </div>
+    <div class="manage-group">
+      <div class="sidebar-label">Valutazione</div>
+      <button class="btn btn-ghost" onclick="openWeightsModal()">⚖ Gestisci parametri</button>
+    </div>
+    <div class="manage-group">
+      <div class="sidebar-label">Sincronizzazione GitHub</div>
+      <div class="sync-bar" id="syncBar" style="padding:0;border-top:none">
+        <div class="sync-status"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">GitHub non configurato</span></div>
+        <div class="sync-time" id="syncTime"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="manageAction(openTokenModal)">⚙ Configura sync</button>
+      <button class="btn btn-ghost" id="btnSync" onclick="ghPush(true)" style="display:none">↑ Sincronizza ora</button>
+    </div>
+    <div class="manage-group">
+      <div class="sidebar-label">Zona pericolosa</div>
+      <button class="btn btn-danger" onclick="manageAction(openDeleteCollection)">🗑 Elimina collezione</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeManageModal()">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEIGHTS MODAL (admin) -->
+<div class="modal-overlay" id="weightsModal" onclick="if(event.target===this)closeWeightsModal()">
+  <div class="modal" style="max-width:460px">
+    <h2>⚖ Gestisci parametri</h2>
+    <p>Pesi usati per calcolare il voto ponderato. Non serve che sommino a 100: vengono normalizzati. I pesi sono salvati in questo browser.</p>
+    <div id="weightsList"></div>
+    <div class="weights-total" id="weightsTotal"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="resetWeightsForm()">Ripristina predefiniti</button>
+      <button class="btn btn-ghost" onclick="closeWeightsModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="saveWeights()">Salva e ricalcola</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ─────────────── DATA ───────────────
 const STORAGE_KEY = 'trick-collection-v2';
@@ -548,7 +595,7 @@ const RATING_LABELS = {
   originalita:'Originalità',
   tema:'Tema/Artwork'
 };
-const RATING_WEIGHTS = {
+const DEFAULT_RATING_WEIGHTS = {
   divertimento:29,
   sfidante:20,
   semplicita:18,
@@ -556,7 +603,19 @@ const RATING_WEIGHTS = {
   originalita:9,
   tema:7
 };
-const RATING_WEIGHTS_TOTAL = Object.values(RATING_WEIGHTS).reduce((a,b)=>a+b,0);
+const WEIGHTS_KEY = 'trick-rating-weights';
+let RATING_WEIGHTS = Object.assign({}, DEFAULT_RATING_WEIGHTS);
+(function loadWeights(){
+  try{
+    const raw = localStorage.getItem(WEIGHTS_KEY);
+    if(!raw) return;
+    const w = JSON.parse(raw);
+    const tmp = {};
+    let sum = 0;
+    RATINGS.forEach(r=>{ const n=Number(w[r]); tmp[r] = (isFinite(n)&&n>=0) ? n : DEFAULT_RATING_WEIGHTS[r]; sum+=tmp[r]; });
+    if(sum>0) RATING_WEIGHTS = tmp;
+  }catch(e){}
+})();
 
 function weightedAvg(ratings){
   if(!ratings) return 0;
@@ -606,7 +665,7 @@ function applyAuthUI(){
   });
   // Il select #filterPlayed è un <select>, non un flex container: correzione display
   const fpEl = document.getElementById('filterPlayed');
-  if(fpEl) fpEl.style.display = isAdmin ? '' : 'none';
+  if(fpEl) fpEl.style.display = isAdmin ? 'block' : 'none';
 
   // card-hook editabile solo da admin
   document.querySelectorAll('.card-hook').forEach(el=>{ el.readOnly = !isAdmin; });
@@ -658,6 +717,7 @@ function doLogout(){
   try{ sessionStorage.removeItem(AUTH_SESSION_KEY); }catch(e){}
   const fpSel = document.getElementById('filterPlayed');
   if(fpSel) fpSel.value = '';
+  closeManageModal(); closeWeightsModal();
   applyAuthUI();
   renderGrid();
 }
@@ -1250,6 +1310,54 @@ async function doDeleteCollection(){
   saveAndSync();
   renderGrid();
   closeDeleteCollection();
+}
+
+// ─────────────── GESTIONE / PARAMETRI ───────────────
+function openManageModal(){ if(!isAdmin) return; document.getElementById('manageModal').classList.add('open'); }
+function closeManageModal(){ document.getElementById('manageModal').classList.remove('open'); }
+function manageAction(fn){ closeManageModal(); fn(); }
+
+function openWeightsModal(){
+  if(!isAdmin) return;
+  closeManageModal();
+  buildWeightsForm(RATING_WEIGHTS);
+  document.getElementById('weightsModal').classList.add('open');
+}
+function closeWeightsModal(){ document.getElementById('weightsModal').classList.remove('open'); }
+function buildWeightsForm(w){
+  document.getElementById('weightsList').innerHTML = RATINGS.map(r=>
+    `<div class="weight-row"><label for="w_${r}">${RATING_LABELS[r]}</label>`+
+    `<input type="number" id="w_${r}" min="0" step="1" value="${w[r]}" oninput="updateWeightsPreview()">`+
+    `<span class="weight-share" id="ws_${r}"></span></div>`
+  ).join('');
+  updateWeightsPreview();
+}
+function readWeightsForm(){
+  const w = {}; let ok = true;
+  RATINGS.forEach(r=>{
+    const v = parseFloat(document.getElementById('w_'+r).value);
+    if(!isFinite(v) || v<0) ok = false;
+    w[r] = isFinite(v) ? v : 0;
+  });
+  return {w, ok};
+}
+function updateWeightsPreview(){
+  const {w, ok} = readWeightsForm();
+  const tot = RATINGS.reduce((a,r)=>a+w[r],0);
+  RATINGS.forEach(r=>{
+    document.getElementById('ws_'+r).textContent = tot>0 ? (w[r]/tot*100).toFixed(1)+'%' : '–';
+  });
+  document.getElementById('weightsTotal').textContent = ok ? 'Somma pesi: '+(Math.round(tot*100)/100) : 'Inserisci solo numeri maggiori o uguali a 0.';
+}
+function resetWeightsForm(){ buildWeightsForm(DEFAULT_RATING_WEIGHTS); }
+function saveWeights(){
+  const {w, ok} = readWeightsForm();
+  if(!ok){ alert('I pesi devono essere numeri maggiori o uguali a 0.'); return; }
+  if(RATINGS.reduce((a,r)=>a+w[r],0)<=0){ alert('Almeno un peso deve essere maggiore di zero.'); return; }
+  RATINGS.forEach(r=>{ RATING_WEIGHTS[r] = w[r]; });
+  try{ localStorage.setItem(WEIGHTS_KEY, JSON.stringify(RATING_WEIGHTS)); }catch(e){}
+  closeWeightsModal();
+  renderGrid();
 }
 
 // ─────────────── LIVE FILTERS ───────────────
