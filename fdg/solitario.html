@@ -79,6 +79,24 @@
     .phase-line strong { display: block; font: 700 13px var(--serif); }
     .phase-line span { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
     .dice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+    .dice-board { margin-top: 14px; border: 1px solid var(--line); background: #f6eedb; }
+    .dice-board-head, .dice-row { display: grid; grid-template-columns: 105px minmax(180px, 1fr) minmax(145px, .7fr) 92px; align-items: center; gap: 10px; }
+    .dice-board-head { min-height: 33px; padding: 0 10px; color: var(--muted); border-bottom: 1px solid var(--line); font: 9px var(--mono); text-transform: uppercase; }
+    .dice-row { min-height: 72px; padding: 8px 10px; border-bottom: 1px solid #c8b99580; }
+    .dice-row:last-child { border-bottom: 0; }
+    .dice-row.white { --die: #8896a0; }.dice-row.brown { --die: #806149; }.dice-row.gray { --die: #73736b; }.dice-row.green { --die: #687e53; }.dice-row.red { --die: #ad4938; }.dice-row.yellow { --die: #bd8730; }
+    .dice-slot { min-height: 52px; display: flex; align-items: center; gap: 8px; padding: 5px 7px; border: 1px solid var(--die); color: var(--ink); background: #fffaf0; text-align: left; }
+    .dice-slot:hover:not(:disabled), .dice-slot.is-selected { outline: 2px solid var(--red); outline-offset: 1px; }
+    .dice-slot:disabled { cursor: not-allowed; opacity: .48; }
+    .dice-slot .pip { width: 36px; height: 36px; flex: 0 0 36px; }
+    .dice-slot-name { font: 9px var(--mono); text-transform: uppercase; }
+    .dice-values { display: grid; grid-template-columns: repeat(6, minmax(22px, 1fr)); gap: 4px; }
+    .dice-value { aspect-ratio: 1; display: grid; place-items: center; border: 1px solid #c8b995; color: var(--muted); background: #fffaf0; font: 11px var(--mono); }
+    .dice-value.current { color: #fffaf0; background: var(--die); border-color: var(--die); }
+    .dice-function { color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .dice-state { color: var(--muted); font: 9px var(--mono); text-align: right; text-transform: uppercase; }
+    .dice-state.selected { color: var(--red); }
+    .dice-state.used { color: var(--green); }
     .die { --die: #777; min-height: 87px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--die); color: var(--ink); background: #fffaf0; transition: transform .14s ease, box-shadow .14s ease; }
     .die:hover { transform: translateY(-2px); box-shadow: 0 6px 12px #30281818; }
     .die.selected { outline: 2px solid var(--red); outline-offset: 2px; }
@@ -130,6 +148,7 @@
     .hidden { display: none !important; }
     .footer { padding: 14px 20px; border-top: 1px solid var(--line); color: var(--muted); text-align: center; font: 9px var(--mono); }
     @media (max-width: 820px) { .game-layout { grid-template-columns: 1fr; }.right-column { grid-template-columns: repeat(2, minmax(0, 1fr)); }.right-column .panel:last-child { grid-column: 1 / -1; } }
+    @media (max-width: 700px) { .dice-board-head, .dice-row { grid-template-columns: 82px minmax(118px, 1fr) 95px; gap: 6px; padding-inline: 7px; }.dice-board-head span:nth-child(3), .dice-function { display: none; }.dice-slot { min-height: 46px; gap: 4px; padding: 4px; }.dice-slot .pip { width: 30px; height: 30px; flex-basis: 30px; }.dice-slot-name { font-size: 8px; }.dice-values { gap: 2px; }.dice-value { min-width: 0; font-size: 9px; }.dice-state { font-size: 8px; } }
     @media (max-width: 540px) { main { width: min(100% - 24px, 1220px); padding-top: 22px; }.topbar { padding-inline: 12px; }.brand-name { font-size: 12px; }.quiet-link { padding: 0 8px; font-size: 10px; }.head-actions { width: 100%; }.head-actions button { flex: 1; }.setup-grid { grid-template-columns: 1fr; }.right-column { grid-template-columns: 1fr; }.right-column .panel:last-child { grid-column: auto; }.dice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.panel { padding: 14px; }.phase-line { align-items: flex-start; flex-direction: column; }.phase-line .primary-button { width: 100%; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
   </style>
@@ -371,6 +390,40 @@
         <span class="die-color">${color.name}</span><span class="pip">${die.value}</span><span class="die-resource">${color.resource}</span>
       </${button}>`;
     }
+    function diceFunction(color, value) {
+      const amount = actionAmount(value);
+      if (color.track) return `${amount} ${color.resource} · ${trackAmount(value)} ${color.trackName} · 200 ƒ`;
+      return `${amount} ${color.resource} · artista ${value <= 3 ? 100 : 200} ƒ · 200 ƒ`;
+    }
+    function renderDiceBoard(dice, mode) {
+      const active = mode === 'active-select';
+      const passive = mode === 'passive-select';
+      const selectedDice = active ? game.activeSelected : passive ? game.ghostSelected : game.activeSelected;
+      const completedDice = mode === 'active-use' ? game.activeDone : [];
+      const bishop = game.bishopAdvantage;
+      return `<div class="dice-board" role="table" aria-label="Plancia dei dadi">
+        <div class="dice-board-head" role="row"><span>Colore / dado</span><span>Valore</span><span>Azione del dado</span><span>Stato</span></div>
+        ${COLORS.map(color => {
+          const die = dice.find(item => item.color === color.id);
+          const selected = selectedDice.some(item => item.color === color.id);
+          const used = completedDice.some(item => item.color === color.id);
+          const blocked = passive && !bishop && selected;
+          const clickable = active || (passive && !blocked);
+          const state = blocked ? 'Fantasma' : used ? 'Usato' : selected ? 'Selezionato' : passive ? 'Libero' : 'Disponibile';
+          const stateClass = blocked ? '' : used ? 'used' : selected ? 'selected' : '';
+          const tag = clickable ? 'button' : 'div';
+          const event = active ? `data-active-die="${color.id}"` : passive ? `data-passive-die="${color.id}"` : '';
+          return `<div class="dice-row ${color.id}" role="row">
+            <${tag} class="dice-slot ${selected ? 'is-selected' : ''}" ${tag === 'button' ? `type="button" ${blocked ? 'disabled' : ''} ${event}` : ''}>
+              <span class="pip">${die ? die.value : '·'}</span><span class="dice-slot-name">${color.name}</span>
+            </${tag}>
+            <div class="dice-values" aria-label="Valore del dado ${die?.value || 'non lanciato'}">${Array.from({ length: 6 }, (_, index) => `<span class="dice-value ${die && die.value === index + 1 ? 'current' : ''}">${index + 1}</span>`).join('')}</div>
+            <div class="dice-function">${die ? diceFunction(color, die.value) : color.resource}</div>
+            <span class="dice-state ${stateClass}">${state}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
     function renderTrack(track) {
       const player = game.playerTracks[track.id];
       const ghost = game.ghostTracks[track.id];
@@ -391,12 +444,12 @@
     }
     function phaseContent() {
       if (game.phase === 'active-roll') return `<div class="phase-line"><div><strong>Turno attivo · Round ${game.round}</strong><span>${game.round === 1 ? `Edificio iniziale gratuito: ${game.startingBuilding}. ` : ''}${electionStatus()} Lancia i sei dadi.</span></div><button class="primary-button" type="button" id="rollActive">Lancia i dadi</button></div>`;
-      if (game.phase === 'active-select') return `<div class="phase-line"><div><strong>Turno attivo · scegli 3 dadi</strong><span>Selezionati ${game.activeSelected.length} di 3.</span></div><button class="primary-button" type="button" id="confirmActive" ${game.activeSelected.length !== 3 ? 'disabled' : ''}>Conferma dadi</button></div><div class="dice-grid">${game.activeDice.map(die => renderDie(die, { button: true, selected: game.activeSelected.some(item => item.color === die.color), onclick: `data-active-die="${die.color}"` })).join('')}</div>`;
-      if (game.phase === 'active-use') return `<div class="phase-line"><div><strong>Turno attivo · usa i dadi</strong><span>Scegli un utilizzo per ciascun dado selezionato.</span></div><span class="eyebrow">${game.activeDone.length}/3</span></div><div class="dice-grid">${game.activeSelected.map(die => renderDie(die, { button: false, used: game.activeDone.some(item => item.color === die.color) })).join('')}</div><div style="margin-top:14px">${game.activeSelected.filter(die => !game.activeDone.some(item => item.color === die.color)).map(die => actionRow(die, true)).join('')}</div>`;
+      if (game.phase === 'active-select') return `<div class="phase-line"><div><strong>Turno attivo · scegli 3 dadi</strong><span>Selezionati ${game.activeSelected.length} di 3. Clicca un dado sulla plancia.</span></div><button class="primary-button" type="button" id="confirmActive" ${game.activeSelected.length !== 3 ? 'disabled' : ''}>Conferma dadi</button></div>${renderDiceBoard(game.activeDice, 'active-select')}`;
+      if (game.phase === 'active-use') return `<div class="phase-line"><div><strong>Turno attivo · usa i dadi</strong><span>Scegli un utilizzo per ciascun dado selezionato.</span></div><span class="eyebrow">${game.activeDone.length}/3</span></div>${renderDiceBoard(game.activeDice, 'active-use')}<div style="margin-top:14px">${game.activeSelected.filter(die => !game.activeDone.some(item => item.color === die.color)).map(die => actionRow(die, true)).join('')}</div>`;
       if (game.phase === 'passive-select') {
         const bishop = game.bishopAdvantage;
         const available = game.ghostDice.filter(die => bishop || !game.ghostSelected.some(item => item.color === die.color));
-        return `<div class="phase-line"><div><strong>Turno non attivo · scegli 1 dado</strong><span>Il Fantasma ne blocca tre.${bishop ? ' Il tuo vantaggio da Vescovo consente di scegliere qualsiasi dado.' : ''}</span></div><span class="eyebrow">${available.length} disponibili</span></div><div class="dice-grid">${game.ghostDice.map(die => renderDie(die, { button: true, blocked: !available.some(item => item.color === die.color), disabled: !available.some(item => item.color === die.color), used: game.ghostSelected.some(item => item.color === die.color), onclick: `data-passive-die="${die.color}"` })).join('')}</div>`;
+        return `<div class="phase-line"><div><strong>Turno non attivo · scegli 1 dado</strong><span>Il Fantasma ne blocca tre.${bishop ? ' Il tuo vantaggio da Vescovo consente di scegliere qualsiasi dado.' : ''} Seleziona un dado libero sulla plancia.</span></div><span class="eyebrow">${available.length} disponibili</span></div>${renderDiceBoard(game.ghostDice, 'passive-select')}`;
       }
       if (game.phase === 'round-end') return `<div class="phase-line"><div><strong>Round ${game.round} completato</strong><span>Riepilogo: ${electionStatus()}</span></div><button class="primary-button" type="button" id="nextRound">Inizia round ${game.round + 1} <span aria-hidden="true">→</span></button></div>`;
       return `<div class="phase-line"><div><strong>La partita è conclusa</strong><span>Il tuo rione totalizza ${totalScore()} Punti Prestigio. Papa Sisto IV: ${game.target}.</span></div><span class="eyebrow">${totalScore() >= game.target ? 'Vittoria' : 'Nuovo record da cercare'}</span></div>`;
