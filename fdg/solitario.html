@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f1e7ce">
+  <title>Florenza Dice Game | Solitario</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:wght@400;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f1e7ce;
+      --paper-light: #faf5e8;
+      --ink: #28251f;
+      --muted: #766e5e;
+      --line: #c8b995;
+      --red: #9d3e32;
+      --green: #596e4d;
+      --gold: #bd8730;
+      --blue: #56748c;
+      --shadow: 0 18px 48px #4b3c2220;
+      --serif: 'Libre Baskerville', Georgia, serif;
+      --sans: 'Manrope', sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); background-color: var(--paper); background-image: radial-gradient(ellipse at 16% 12%, #fff9e8 0, transparent 36%), repeating-linear-gradient(0deg, #806c4510 0 1px, transparent 1px 5px); font-family: var(--sans); }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { min-height: 100vh; display: flex; flex-direction: column; }
+    .topbar { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 12px clamp(18px, 4vw, 60px); border-bottom: 1px solid var(--line); background: #f6eedbdb; }
+    .brand { display: flex; align-items: center; gap: 13px; color: inherit; text-decoration: none; }
+    .brand-mark { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid var(--red); color: var(--red); font: 700 18px var(--serif); transform: rotate(-4deg); }
+    .brand-name { font: 700 14px var(--serif); letter-spacing: 0; }
+    .brand-sub { display: block; margin-top: 3px; color: var(--muted); font: 10px var(--mono); text-transform: uppercase; }
+    .toplinks { display: flex; align-items: center; gap: 10px; }
+    .quiet-link, .icon-button { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; border: 1px solid var(--line); color: var(--ink); background: transparent; text-decoration: none; font-size: 12px; }
+    .quiet-link:hover, .icon-button:hover { background: var(--paper-light); border-color: var(--red); }
+    main { width: min(1220px, calc(100% - 36px)); margin: 0 auto; padding: 34px 0 54px; flex: 1; }
+    .eyebrow { color: var(--red); font: 11px var(--mono); letter-spacing: 0; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 12px; font: 400 clamp(28px, 4vw, 48px) var(--serif); letter-spacing: 0; }
+    h2 { margin-bottom: 10px; font: 700 18px var(--serif); }
+    h3 { margin-bottom: 8px; font: 700 14px var(--serif); }
+    .intro { max-width: 650px; margin-bottom: 25px; color: var(--muted); font-size: 14px; line-height: 1.65; }
+    .login-wrap { width: min(460px, 100%); margin: 7vh auto 0; padding: clamp(24px, 5vw, 42px); border: 1px solid var(--line); background: #faf5e8df; box-shadow: var(--shadow); }
+    .login-ornament { width: 54px; height: 54px; display: grid; place-items: center; margin: 0 0 22px; border: 1px solid var(--gold); color: var(--red); font: 24px var(--serif); transform: rotate(-5deg); }
+    .field-label { display: block; margin: 16px 0 7px; color: var(--muted); font: 10px var(--mono); text-transform: uppercase; }
+    .text-input, .select-input, .number-input { width: 100%; min-height: 43px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 0; color: var(--ink); background: #fffaf0; }
+    .text-input:focus, .select-input:focus, .number-input:focus { outline: 2px solid #9d3e3255; border-color: var(--red); }
+    .primary-button, .secondary-button, .danger-button { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; border: 1px solid var(--red); border-radius: 0; color: #fffaf0; background: var(--red); font-size: 12px; font-weight: 700; transition: transform .15s ease, background .15s ease; }
+    .primary-button:hover { background: #7f3029; transform: translateY(-1px); }
+    .primary-button:disabled { opacity: .48; cursor: not-allowed; transform: none; }
+    .secondary-button { color: var(--ink); background: transparent; border-color: var(--line); }
+    .secondary-button:hover { border-color: var(--green); background: #596e4d12; }
+    .danger-button { color: var(--red); background: transparent; border-color: #9d3e3260; }
+    .wide { width: 100%; margin-top: 15px; }
+    .error { min-height: 18px; margin-top: 9px; color: var(--red); font-size: 12px; }
+    .note { color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .game-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-bottom: 22px; }
+    .game-head h1 { margin-bottom: 0; }
+    .head-actions { display: flex; gap: 8px; }
+    .setup-panel, .panel { border: 1px solid var(--line); background: #faf5e8d9; box-shadow: 0 8px 24px #4b3c2210; }
+    .setup-panel { max-width: 700px; padding: 24px; }
+    .setup-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; }
+    .setup-grid .field-label { margin-top: 0; }
+    .notice { margin: 0 0 18px; padding: 12px 14px; border-left: 3px solid var(--gold); color: #5a4a2d; background: #bd873018; font-size: 12px; line-height: 1.55; }
+    .game-layout { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(275px, .9fr); gap: 16px; align-items: start; }
+    .left-column, .right-column { display: grid; gap: 16px; }
+    .panel { padding: 18px; }
+    .panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+    .panel-head p { margin: 0; color: var(--muted); font-size: 11px; }
+    .round-ribbon { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin: 0 0 16px; }
+    .round-step { height: 30px; display: grid; place-items: center; border: 1px solid var(--line); color: var(--muted); font: 11px var(--mono); }
+    .round-step.done { color: #fffaf0; background: var(--green); border-color: var(--green); }
+    .round-step.current { color: #fffaf0; background: var(--red); border-color: var(--red); }
+    .phase-line { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px; border: 1px solid #c8b99580; background: #f2ead8; }
+    .phase-line strong { display: block; font: 700 13px var(--serif); }
+    .phase-line span { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .dice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+    .die { --die: #777; min-height: 87px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--die); color: var(--ink); background: #fffaf0; transition: transform .14s ease, box-shadow .14s ease; }
+    .die:hover { transform: translateY(-2px); box-shadow: 0 6px 12px #30281818; }
+    .die.selected { outline: 2px solid var(--red); outline-offset: 2px; }
+    .die.blocked { opacity: .48; cursor: not-allowed; }
+    .die.used::after { content: 'SCELTO'; position: absolute; top: 5px; right: 5px; color: var(--red); font: 8px var(--mono); }
+    .die.white { --die: #8896a0; }.die.brown { --die: #806149; }.die.gray { --die: #73736b; }.die.green { --die: #687e53; }.die.red { --die: #ad4938; }.die.yellow { --die: #bd8730; }
+    .die-color { color: var(--muted); font: 9px var(--mono); text-transform: uppercase; }
+    .pip { width: 37px; height: 37px; display: grid; place-items: center; border: 1px solid var(--die); color: var(--die); font: 700 21px var(--serif); }
+    .die-resource { color: var(--muted); font-size: 10px; }
+    .die-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+    .die-actions .secondary-button, .die-actions .primary-button { min-height: 34px; padding: 0 10px; font-size: 10px; }
+    .die-action-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid #c8b99580; }
+    .die-action-row:first-of-type { border-top: 0; }
+    .die-action-title { font-size: 12px; font-weight: 700; }
+    .die-action-title span { margin-left: 6px; color: var(--muted); font: 10px var(--mono); }
+    .track { padding: 11px 0; border-top: 1px solid #c8b99580; }
+    .track:first-of-type { border-top: 0; }
+    .track-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 7px; }
+    .track-name { font-size: 12px; font-weight: 700; }
+    .track-values { color: var(--muted); font: 10px var(--mono); }
+    .track-meter { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; }
+    .track-cell { height: 11px; border: 1px solid var(--line); background: transparent; }
+    .track-cell.filled.player { background: var(--green); border-color: var(--green); }
+    .track-cell.filled.ghost { background: var(--red); border-color: var(--red); }
+    .reserve-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; }
+    .reserve-item { display: flex; align-items: center; justify-content: space-between; gap: 7px; min-height: 44px; padding: 6px 8px; border: 1px solid #c8b995a0; background: #fffaf0a6; }
+    .reserve-item span { font-size: 10px; }
+    .reserve-item strong { min-width: 22px; text-align: center; font: 12px var(--mono); }
+    .stepper { display: flex; align-items: center; gap: 4px; }
+    .stepper button { width: 25px; height: 25px; border: 1px solid var(--line); color: var(--ink); background: transparent; }
+    .stepper button:hover { border-color: var(--red); }
+    .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .score-grid .field-label { margin: 0 0 5px; font-size: 9px; }
+    .score-total { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--line); }
+    .score-total span { color: var(--muted); font-size: 11px; }
+    .score-total strong { color: var(--red); font: 700 25px var(--serif); }
+    .log { max-height: 210px; overflow: auto; display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
+    .log li { padding-left: 10px; border-left: 2px solid var(--gold); color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .log li:first-child { color: var(--ink); border-color: var(--red); }
+    .difficulty { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 18px; }
+    .difficulty label { position: relative; }
+    .difficulty input { position: absolute; opacity: 0; }
+    .difficulty span { min-height: 34px; display: inline-flex; align-items: center; padding: 0 11px; border: 1px solid var(--line); color: var(--muted); font-size: 10px; cursor: pointer; }
+    .difficulty input:checked + span { color: #fffaf0; background: var(--green); border-color: var(--green); }
+    .difficulty input:focus-visible + span { outline: 2px solid var(--red); }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 18px; background: #211d17aa; }
+    .modal { width: min(430px, 100%); padding: 22px; border: 1px solid var(--line); background: var(--paper-light); box-shadow: var(--shadow); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+    .hidden { display: none !important; }
+    .footer { padding: 14px 20px; border-top: 1px solid var(--line); color: var(--muted); text-align: center; font: 9px var(--mono); }
+    @media (max-width: 820px) { .game-layout { grid-template-columns: 1fr; }.right-column { grid-template-columns: repeat(2, minmax(0, 1fr)); }.right-column .panel:last-child { grid-column: 1 / -1; } }
+    @media (max-width: 540px) { main { width: min(100% - 24px, 1220px); padding-top: 22px; }.topbar { padding-inline: 12px; }.brand-name { font-size: 12px; }.quiet-link { padding: 0 8px; font-size: 10px; }.head-actions { width: 100%; }.head-actions button { flex: 1; }.setup-grid { grid-template-columns: 1fr; }.right-column { grid-template-columns: 1fr; }.right-column .panel:last-child { grid-column: auto; }.dice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.panel { padding: 14px; }.phase-line { align-items: flex-start; flex-direction: column; }.phase-line .primary-button { width: 100%; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../index.html" aria-label="Torna alla homepage">
+        <span class="brand-mark" aria-hidden="true">F</span>
+        <span><span class="brand-name">Florenza Dice Game</span><span class="brand-sub">Partita in solitario</span></span>
+      </a>
+      <nav class="toplinks" aria-label="Collegamenti">
+        <a class="quiet-link" href="docs/RULES_IT.pdf" target="_blank" rel="noreferrer">Regolamento <span aria-hidden="true">↗</span></a>
+        <button id="logoutButton" class="icon-button hidden" type="button" title="Esci dalla sessione">Esci</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="loginView" class="login-wrap" aria-labelledby="loginTitle">
+        <div class="login-ornament" aria-hidden="true">✦</div>
+        <p class="eyebrow">Una partita tra le mura di Firenze</p>
+        <h1 id="loginTitle">Apri il tuo rione.</h1>
+        <p class="intro">Inserisci la password per accedere alla partita in solitario.</p>
+        <form id="loginForm">
+          <label class="field-label" for="passwordInput">Password</label>
+          <input class="text-input" id="passwordInput" type="password" autocomplete="current-password" required>
+          <button class="primary-button wide" type="submit">Entra nella partita <span aria-hidden="true">→</span></button>
+          <div class="error" id="loginError" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <section id="gameView" class="hidden" aria-labelledby="pageTitle">
+        <div class="game-head">
+          <div><p class="eyebrow">Anno Domini · Firenze</p><h1 id="pageTitle">Il tuo rione</h1></div>
+          <div class="head-actions hidden" id="gameActions">
+            <button id="newGameButton" class="secondary-button" type="button">Nuova partita</button>
+            <button id="clearSaveButton" class="danger-button" type="button" title="Cancella la partita salvata">Azzera</button>
+          </div>
+        </div>
+        <div id="setupPanel" class="setup-panel">
+          <p class="notice">Nel solitario affronti il Fantasma per i tracciati. La partita dura 6 round; a fine partita confronta il tuo punteggio con Papa Sisto IV.</p>
+          <h2>Imposta la partita</h2>
+          <label class="field-label">Difficoltà · punteggio di Papa Sisto IV</label>
+          <div class="difficulty" role="radiogroup" aria-label="Difficoltà">
+            <label><input type="radio" name="difficulty" value="40"><span>Facile · 40</span></label>
+            <label><input type="radio" name="difficulty" value="50" checked><span>Normale · 50</span></label>
+            <label><input type="radio" name="difficulty" value="60"><span>Difficile · 60</span></label>
+            <label><input type="radio" name="difficulty" value="70"><span>Estrema · 70</span></label>
+          </div>
+          <div class="setup-grid">
+            <p class="note">La partita e i tuoi progressi vengono salvati solo in questo browser.</p>
+            <button id="startGameButton" class="primary-button" type="button">Inizia la partita <span aria-hidden="true">→</span></button>
+          </div>
+        </div>
+        <div id="board" class="hidden"></div>
+      </section>
+    </main>
+    <footer class="footer">Florenza Dice Game · Strumento personale non ufficiale</footer>
+  </div>
+  <div id="modalHost"></div>
+
+  <script>
+    const PASSWORD_DIGEST = '5f02593a52bd3ba921cfe8e0c2846ecf96d3839f67ab7e921db4a2a041506998';
+    const SAVE_KEY = 'florenza-solo-save-v1';
+    const COLORS = [
+      { id: 'white', name: 'Bianco', resource: 'Marmo', track: 'captain', trackName: 'Capitano' },
+      { id: 'brown', name: 'Marrone', resource: 'Legno', track: 'bishop', trackName: 'Vescovo' },
+      { id: 'gray', name: 'Grigio', resource: 'Metallo', track: 'preacher', trackName: 'Predicatore' },
+      { id: 'green', name: 'Verde', resource: 'Spezia', track: null },
+      { id: 'red', name: 'Rosso', resource: 'Tessuto', track: null },
+      { id: 'yellow', name: 'Giallo', resource: 'Oro', track: null }
+    ];
+    const RESOURCE_KEYS = ['marble', 'wood', 'metal', 'spice', 'cloth', 'gold'];
+    const RESOURCE_NAMES = { marble: 'Marmo', wood: 'Legno', metal: 'Metallo', spice: 'Spezia', cloth: 'Tessuto', gold: 'Oro' };
+    const TRACKS = [
+      { id: 'captain', name: 'Capitano del Popolo' },
+      { id: 'bishop', name: 'Vescovo' },
+      { id: 'preacher', name: 'Predicatore' }
+    ];
+    let game = loadGame();
+
+    function loadGame() {
+      try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || null; }
+      catch { return null; }
+    }
+    function saveGame() {
+      if (game) localStorage.setItem(SAVE_KEY, JSON.stringify(game));
+    }
+    function makeDieSet() {
+      return COLORS.map(color => ({ color: color.id, value: Math.floor(Math.random() * 6) + 1 }));
+    }
+    function newGame(target) {
+      game = {
+        target: Number(target), round: 1, phase: 'active-roll', activeDice: [], activeSelected: [], activeDone: [],
+        ghostDice: [], ghostSelected: [], passiveDie: null, playerTracks: { captain: 0, bishop: 0, preacher: 0 },
+        ghostTracks: { captain: 0, bishop: 0, preacher: 0 }, captainBonusPending: false, bishopAdvantage: false,
+        resources: { marble: 0, wood: 0, metal: 0, spice: 0, cloth: 0, gold: 0 },
+        florins: 200, stars: 0, extras: 1, hiredArtists: 0, palacePoints: 0, churchPoints: 0, buildingPoints: 0,
+        captainPoints: 0, otherPoints: 0, startingBuilding: Math.floor(Math.random() * 6) + 1, log: []
+      };
+      addLog(`Partita iniziata. Edificio gratuito di partenza: ${game.startingBuilding}.`);
+      saveGame();
+      render();
+    }
+    function addLog(message) {
+      if (!game) return;
+      game.log.unshift(`Round ${game.round} · ${message}`);
+      game.log = game.log.slice(0, 30);
+    }
+    function colorFor(id) { return COLORS.find(color => color.id === id); }
+    function resourceKeyFor(colorId) { return ({ white: 'marble', brown: 'wood', gray: 'metal', green: 'spice', red: 'cloth', yellow: 'gold' })[colorId]; }
+    function trackLimit(track) { return track === 'captain' ? 10 : 10; }
+    function advanceTrack(side, track, amount) {
+      const data = side === 'player' ? game.playerTracks : game.ghostTracks;
+      const before = data[track];
+      data[track] = Math.min(trackLimit(track), before + amount);
+      const overflow = Math.max(0, before + amount - trackLimit(track));
+      if (side === 'player' && overflow) game.florins += overflow * 100;
+      return { moved: data[track] - before, overflow };
+    }
+    function actionAmount(value) { return value <= 2 ? 1 : 2; }
+    function trackAmount(value) { return value <= 3 ? 1 : 2; }
+    function useDie(side, die, action) {
+      const color = colorFor(die.color);
+      if (action === 'resource') {
+        const key = resourceKeyFor(die.color);
+        const amount = actionAmount(die.value);
+        game.resources[key] += amount;
+        addLog(`${color.name}: +${amount} ${RESOURCE_NAMES[key]}.`);
+      } else if (action === 'track' && color.track) {
+        const amount = trackAmount(die.value);
+        const result = advanceTrack('player', color.track, amount);
+        addLog(`${color.name}: +${result.moved} ${color.trackName}${result.overflow ? `, +${result.overflow * 100} Fiorini per il tracciato completo` : ''}.`);
+      } else if (action === 'florins') {
+        game.florins += 200;
+        addLog(`${color.name}: +200 Fiorini.`);
+      } else if (action === 'artist') {
+        const cost = die.value <= 3 ? 100 : 200;
+        if (game.florins < cost) return false;
+        game.florins -= cost;
+        game.hiredArtists += 1;
+        addLog(`${color.name}: ingaggiato un artista per ${cost} Fiorini.`);
+      }
+      return true;
+    }
+    function ghostPick(dice) {
+      const selected = [];
+      let cursor = 0;
+      for (let turn = 0; turn < 3; turn += 1) {
+        const steps = dice[cursor].value;
+        let found = null;
+        for (let step = 0; step < steps; step += 1) {
+          do { cursor = (cursor + 1) % COLORS.length; }
+          while (selected.some(die => die.color === COLORS[cursor].id));
+          found = dice[cursor];
+        }
+        selected.push(found);
+      }
+      return selected;
+    }
+    function ghostActiveProgress() {
+      for (const die of game.activeDone) {
+        const color = colorFor(die.color);
+        if (color.track === 'captain' || color.track === 'bishop') {
+          const result = advanceTrack('ghost', color.track, trackAmount(die.value));
+          if (result.moved) addLog(`Il Fantasma avanza sul tracciato ${color.trackName} (${result.moved}).`);
+        }
+      }
+    }
+    function finishActiveTurn() {
+      ghostActiveProgress();
+      game.ghostDice = makeDieSet();
+      game.ghostSelected = ghostPick(game.ghostDice);
+      game.phase = 'passive-select';
+      addLog('Il Fantasma ha determinato i dadi disponibili per il turno non attivo.');
+      saveGame();
+      render();
+    }
+    function finishPassiveTurn(die, action) {
+      if (!useDie('player', die, action)) {
+        showMessage('Fiorini insufficienti', 'Non hai abbastanza Fiorini per ingaggiare questo artista. Scegli un altro utilizzo del dado.');
+        return;
+      }
+      game.passiveDie = die.color;
+      for (const track of ['captain', 'bishop']) {
+        const dieForTrack = game.ghostDice.find(item => colorFor(item.color).track === track);
+        if (dieForTrack && dieForTrack.color !== die.color) {
+          const result = advanceTrack('ghost', track, trackAmount(dieForTrack.value));
+          if (result.moved) addLog(`Il Fantasma avanza sul tracciato ${track === 'captain' ? 'Capitano' : 'Vescovo'} (${result.moved}).`);
+        }
+      }
+      addLog(`Turno non attivo: ${colorFor(die.color).name}.`);
+      game.phase = game.round === 6 ? 'finished' : 'round-end';
+      saveGame();
+      render();
+    }
+    function startRound() {
+      game.round += 1;
+      game.phase = 'active-roll';
+      game.activeDice = [];
+      game.activeSelected = [];
+      game.activeDone = [];
+      game.ghostDice = [];
+      game.ghostSelected = [];
+      game.passiveDie = null;
+      game.captainBonusPending = game.playerTracks.captain > game.ghostTracks.captain;
+      game.bishopAdvantage = game.playerTracks.bishop > game.ghostTracks.bishop;
+      if (game.captainBonusPending) addLog('Sei Capitano del Popolo: scegli una risorsa da ottenere.');
+      if (game.bishopAdvantage) addLog('Sei Vescovo: nel turno non attivo puoi scegliere anche un dado selezionato dal Fantasma.');
+      saveGame();
+      render();
+    }
+    function toggleDie(die) {
+      const index = game.activeSelected.findIndex(item => item.color === die.color);
+      if (index >= 0) game.activeSelected.splice(index, 1);
+      else if (game.activeSelected.length < 3) game.activeSelected.push(die);
+      render();
+    }
+    function confirmActiveDice() {
+      if (game.activeSelected.length !== 3) return;
+      game.phase = 'active-use';
+      saveGame();
+      render();
+    }
+    function completeActiveDie(die, action) {
+      if (!useDie('player', die, action)) {
+        showMessage('Fiorini insufficienti', 'Non hai abbastanza Fiorini per ingaggiare questo artista. Scegli un altro utilizzo del dado.');
+        return;
+      }
+      game.activeDone.push(die);
+      if (game.activeDone.length === 3) finishActiveTurn();
+      else { saveGame(); render(); }
+    }
+    function renderDie(die, options = {}) {
+      const color = colorFor(die.color);
+      const classes = ['die', die.color, options.selected ? 'selected' : '', options.blocked ? 'blocked' : '', options.used ? 'used' : ''].filter(Boolean).join(' ');
+      const button = options.button === false ? 'div' : 'button';
+      return `<${button} class="${classes}" ${button === 'button' ? `type="button" ${options.disabled ? 'disabled' : ''} ${options.onclick || ''}` : ''}>
+        <span class="die-color">${color.name}</span><span class="pip">${die.value}</span><span class="die-resource">${color.resource}</span>
+      </${button}>`;
+    }
+    function renderTrack(track) {
+      const player = game.playerTracks[track.id];
+      const ghost = game.ghostTracks[track.id];
+      return `<div class="track"><div class="track-top"><span class="track-name">${track.name}</span><span class="track-values">Tu ${player} / Fantasma ${ghost}</span></div><div class="track-meter" aria-label="${track.name}, tuo avanzamento">${Array.from({ length: trackLimit(track) }, (_, index) => `<span class="track-cell ${index < player ? 'filled player' : ''}" title="Tu: ${index + 1}"></span>`).join('')}</div><div class="track-meter" style="margin-top:3px" aria-label="${track.name}, avanzamento del Fantasma">${Array.from({ length: trackLimit(track) }, (_, index) => `<span class="track-cell ${index < ghost ? 'filled ghost' : ''}" title="Fantasma: ${index + 1}"></span>`).join('')}</div></div>`;
+    }
+    function renderResource(key) {
+      return `<div class="reserve-item"><span>${RESOURCE_NAMES[key]}</span><div class="stepper"><button type="button" data-resource="${key}" data-delta="-1" aria-label="Rimuovi ${RESOURCE_NAMES[key]}">−</button><strong>${game.resources[key]}</strong><button type="button" data-resource="${key}" data-delta="1" aria-label="Aggiungi ${RESOURCE_NAMES[key]}">+</button></div></div>`;
+    }
+    function totalScore() {
+      const captain = game.playerTracks.captain === trackLimit('captain') ? 7 : 0;
+      return Number(game.palacePoints || 0) + Number(game.churchPoints || 0) + Number(game.buildingPoints || 0) + Number(game.captainPoints || 0) + Number(game.otherPoints || 0) + captain + game.stars + game.extras + Math.floor(game.florins / 200);
+    }
+    function electionStatus() {
+      if (game.round === 1) return 'Primo round · ottieni l’edificio iniziale gratuito.';
+      const captain = game.playerTracks.captain - game.ghostTracks.captain;
+      const bishop = game.playerTracks.bishop - game.ghostTracks.bishop;
+      return `Capitano: ${captain > 0 ? 'tu' : captain < 0 ? 'Fantasma' : 'nessuno'} · Vescovo: ${bishop > 0 ? 'tu' : bishop < 0 ? 'Fantasma' : 'nessuno'}.`;
+    }
+    function phaseContent() {
+      if (game.phase === 'active-roll') return `<div class="phase-line"><div><strong>Turno attivo · Round ${game.round}</strong><span>${game.round === 1 ? `Edificio iniziale gratuito: ${game.startingBuilding}. ` : ''}${electionStatus()} Lancia i sei dadi.</span></div><button class="primary-button" type="button" id="rollActive">Lancia i dadi</button></div>`;
+      if (game.phase === 'active-select') return `<div class="phase-line"><div><strong>Turno attivo · scegli 3 dadi</strong><span>Selezionati ${game.activeSelected.length} di 3.</span></div><button class="primary-button" type="button" id="confirmActive" ${game.activeSelected.length !== 3 ? 'disabled' : ''}>Conferma dadi</button></div><div class="dice-grid">${game.activeDice.map(die => renderDie(die, { button: true, selected: game.activeSelected.some(item => item.color === die.color), onclick: `data-active-die="${die.color}"` })).join('')}</div>`;
+      if (game.phase === 'active-use') return `<div class="phase-line"><div><strong>Turno attivo · usa i dadi</strong><span>Scegli un utilizzo per ciascun dado selezionato.</span></div><span class="eyebrow">${game.activeDone.length}/3</span></div><div class="dice-grid">${game.activeSelected.map(die => renderDie(die, { button: false, used: game.activeDone.some(item => item.color === die.color) })).join('')}</div><div style="margin-top:14px">${game.activeSelected.filter(die => !game.activeDone.some(item => item.color === die.color)).map(die => actionRow(die, true)).join('')}</div>`;
+      if (game.phase === 'passive-select') {
+        const bishop = game.bishopAdvantage;
+        const available = game.ghostDice.filter(die => bishop || !game.ghostSelected.some(item => item.color === die.color));
+        return `<div class="phase-line"><div><strong>Turno non attivo · scegli 1 dado</strong><span>Il Fantasma ne blocca tre.${bishop ? ' Il tuo vantaggio da Vescovo consente di scegliere qualsiasi dado.' : ''}</span></div><span class="eyebrow">${available.length} disponibili</span></div><div class="dice-grid">${game.ghostDice.map(die => renderDie(die, { button: true, blocked: !available.some(item => item.color === die.color), disabled: !available.some(item => item.color === die.color), used: game.ghostSelected.some(item => item.color === die.color), onclick: `data-passive-die="${die.color}"` })).join('')}</div>`;
+      }
+      if (game.phase === 'round-end') return `<div class="phase-line"><div><strong>Round ${game.round} completato</strong><span>Riepilogo: ${electionStatus()}</span></div><button class="primary-button" type="button" id="nextRound">Inizia round ${game.round + 1} <span aria-hidden="true">→</span></button></div>`;
+      return `<div class="phase-line"><div><strong>La partita è conclusa</strong><span>Il tuo rione totalizza ${totalScore()} Punti Prestigio. Papa Sisto IV: ${game.target}.</span></div><span class="eyebrow">${totalScore() >= game.target ? 'Vittoria' : 'Nuovo record da cercare'}</span></div>`;
+    }
+    function actionRow(die, active) {
+      const color = colorFor(die.color);
+      const buttons = [
+        `<button class="secondary-button" type="button" data-action="resource" data-color="${die.color}">Risorse · ${actionAmount(die.value)}</button>`,
+        color.track ? `<button class="secondary-button" type="button" data-action="track" data-color="${die.color}">${color.trackName} · ${trackAmount(die.value)}</button>` : `<button class="secondary-button" type="button" data-action="artist" data-color="${die.color}" ${game.florins < (die.value <= 3 ? 100 : 200) ? 'disabled' : ''}>Artista · ${die.value <= 3 ? 100 : 200} ƒ</button>`,
+        `<button class="secondary-button" type="button" data-action="florins" data-color="${die.color}">200 Fiorini</button>`
+      ].join('');
+      return `<div class="die-action-row"><div class="die-action-title">${color.name}<span>valore ${die.value}</span></div><div class="die-actions">${buttons}</div></div>`;
+    }
+    function renderBoard() {
+      const finished = game.phase === 'finished';
+      const currentIndex = game.round - 1;
+      const score = totalScore();
+      document.getElementById('board').innerHTML = `
+        <div class="game-layout">
+          <div class="left-column">
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Cronaca della partita</p><h2>Round ${game.round} / 6</h2></div><span class="eyebrow">Papa Sisto IV · ${game.target}</span></div>
+              <div class="round-ribbon" aria-label="Avanzamento partita">${Array.from({ length: 6 }, (_, index) => `<span class="round-step ${index < currentIndex ? 'done' : ''} ${index === currentIndex ? 'current' : ''}">${index + 1}</span>`).join('')}</div>
+              ${game.captainBonusPending ? `<div class="notice">Sei Capitano del Popolo: ottieni una risorsa a tua scelta. <select id="captainReward" class="select-input" style="width:auto;min-height:32px;margin-left:7px">${RESOURCE_KEYS.map(key => `<option value="${key}">${RESOURCE_NAMES[key]}</option>`).join('')}</select> <button class="secondary-button" id="claimCaptain" type="button">Riscatta</button></div>` : ''}
+              ${phaseContent()}
+            </section>
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Confronto</p><h2>Tracciati</h2></div><span class="note">Verde: tu · rosso: Fantasma</span></div>${TRACKS.map(renderTrack).join('')}</section>
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">La tua partita</p><h2>Punteggio e progressi</h2></div></div>
+              <div class="score-grid">
+                ${scoreInput('palacePoints', 'Opere del Palazzo')}${scoreInput('churchPoints', 'Opere della Chiesa')}
+                ${scoreInput('buildingPoints', 'Edifici di Rione')}${scoreInput('captainPoints', 'Punti tracciati Capitano')}
+                ${scoreInput('otherPoints', 'Altri Punti Prestigio')}${scoreInput('hiredArtists', 'Artisti ingaggiati', true)}
+              </div>
+              <div class="score-total"><span>Totale · include riserva e bonus tracciato</span><strong>${score}</strong></div>
+              ${finished ? `<p class="notice" style="margin:13px 0 0">${score >= game.target ? `Hai superato Papa Sisto IV di ${score - game.target} punti.` : `Ti separano ${game.target - score} punti da Papa Sisto IV.`}</p>` : ''}
+            </section>
+          </div>
+          <aside class="right-column">
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Riserva</p><h2>Risorse</h2></div></div><div class="reserve-grid">${RESOURCE_KEYS.map(renderResource).join('')}</div>
+              <div class="reserve-grid" style="margin-top:8px">${reserveCounter('Fiorini', 'florins', 'ƒ')}${reserveCounter('Stelle', 'stars', '')}${reserveCounter('Risorse extra', 'extras', '')}</div>
+              <p class="note" style="margin:10px 0 0">Le modifiche manuali ai materiali sono salvate automaticamente.</p>
+            </section>
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Edificio gratuito</p><h2>Il tuo avvio</h2></div></div><p style="margin-bottom:7px;font:700 27px var(--serif)">N. ${game.startingBuilding}</p><p class="note">Tira un dado nel primo round e annota l’edificio verde corrispondente sulla scheda Rione.</p><a class="quiet-link" href="docs/SCHEDA%201.pdf" target="_blank" rel="noreferrer">Tabella edifici ↗</a></section>
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Memoria del rione</p><h2>Registro</h2></div></div><ul class="log">${game.log.map(entry => `<li>${escapeHtml(entry)}</li>`).join('') || '<li>La partita inizierà qui.</li>'}</ul></section>
+          </aside>
+        </div>`;
+      bindBoardEvents();
+    }
+    function scoreInput(key, label, readonly = false) {
+      return `<label><span class="field-label">${label}</span><input class="number-input" type="number" min="0" step="1" data-score="${key}" value="${game[key]}" ${readonly ? 'readonly title="Aggiornato dagli ingaggi"' : ''}></label>`;
+    }
+    function reserveCounter(label, key, suffix) {
+      return `<div class="reserve-item"><span>${label}</span><div class="stepper"><button type="button" data-counter="${key}" data-delta="-1" aria-label="Diminuisci ${label}">−</button><strong>${game[key]}${suffix}</strong><button type="button" data-counter="${key}" data-delta="1" aria-label="Aumenta ${label}">+</button></div></div>`;
+    }
+    function escapeHtml(value) { return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]); }
+    function bindBoardEvents() {
+      document.getElementById('rollActive')?.addEventListener('click', () => {
+        game.activeDice = makeDieSet(); game.activeSelected = []; game.phase = 'active-select';
+        addLog('Lancio attivo: ' + game.activeDice.map(die => `${colorFor(die.color).name} ${die.value}`).join(', ') + '.'); saveGame(); render();
+      });
+      document.getElementById('confirmActive')?.addEventListener('click', confirmActiveDice);
+      document.querySelectorAll('[data-active-die]').forEach(button => button.addEventListener('click', () => toggleDie(game.activeDice.find(die => die.color === button.dataset.activeDie))));
+      document.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => {
+        const die = game.phase === 'active-use' ? game.activeSelected.find(item => item.color === button.dataset.color) : game.ghostDice.find(item => item.color === button.dataset.color);
+        if (game.phase === 'active-use') completeActiveDie(die, button.dataset.action); else finishPassiveTurn(die, button.dataset.action);
+      }));
+      document.querySelectorAll('[data-passive-die]').forEach(button => button.addEventListener('click', () => {
+        const die = game.ghostDice.find(item => item.color === button.dataset.passiveDie);
+        document.getElementById('modalHost').innerHTML = `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="dieModalTitle"><p class="eyebrow">Turno non attivo</p><h2 id="dieModalTitle">${colorFor(die.color).name} · ${die.value}</h2><p class="note">Scegli come usare il dado selezionato.</p><div class="die-actions">${actionRow(die, false).replace(/^.*?<div class="die-actions">/, '').replace(/<\/div>$/, '')}</div><div class="modal-actions"><button class="secondary-button" id="cancelDie">Annulla</button></div></section></div>`;
+        document.querySelectorAll('#modalHost [data-action]').forEach(action => action.addEventListener('click', () => { document.getElementById('modalHost').innerHTML = ''; finishPassiveTurn(die, action.dataset.action); }));
+        document.getElementById('cancelDie').addEventListener('click', () => { document.getElementById('modalHost').innerHTML = ''; });
+      }));
+      document.getElementById('nextRound')?.addEventListener('click', startRound);
+      document.getElementById('claimCaptain')?.addEventListener('click', () => {
+        const key = document.getElementById('captainReward').value; game.resources[key] += 1; game.captainBonusPending = false; addLog(`Bonus Capitano: +1 ${RESOURCE_NAMES[key]}.`); saveGame(); render();
+      });
+      document.querySelectorAll('[data-resource]').forEach(button => button.addEventListener('click', () => { const key = button.dataset.resource; game.resources[key] = Math.max(0, game.resources[key] + Number(button.dataset.delta)); saveGame(); render(); }));
+      document.querySelectorAll('[data-counter]').forEach(button => button.addEventListener('click', () => { const key = button.dataset.counter; game[key] = Math.max(0, game[key] + Number(button.dataset.delta) * (key === 'florins' ? 100 : 1)); saveGame(); render(); }));
+      document.querySelectorAll('[data-score]').forEach(input => input.addEventListener('change', () => { game[input.dataset.score] = Math.max(0, Number(input.value) || 0); saveGame(); render(); }));
+    }
+    function showMessage(title, message) {
+      document.getElementById('modalHost').innerHTML = `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true"><p class="eyebrow">Riserva</p><h2>${title}</h2><p class="note">${message}</p><div class="modal-actions"><button class="primary-button" id="closeMessage">Ho capito</button></div></section></div>`;
+      document.getElementById('closeMessage').addEventListener('click', () => { document.getElementById('modalHost').innerHTML = ''; });
+    }
+    function render() {
+      const active = sessionStorage.getItem('fdg-unlocked') === 'yes';
+      document.getElementById('loginView').classList.toggle('hidden', active);
+      document.getElementById('gameView').classList.toggle('hidden', !active);
+      document.getElementById('logoutButton').classList.toggle('hidden', !active);
+      if (!active) return;
+      const hasGame = Boolean(game);
+      document.getElementById('setupPanel').classList.toggle('hidden', hasGame);
+      document.getElementById('board').classList.toggle('hidden', !hasGame);
+      document.getElementById('gameActions').classList.toggle('hidden', !hasGame);
+      if (hasGame) renderBoard();
+    }
+    document.getElementById('loginForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const value = document.getElementById('passwordInput').value;
+      const bytes = new TextEncoder().encode(value);
+      const digest = await crypto.subtle.digest('SHA-256', bytes);
+      const hex = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+      if (hex === PASSWORD_DIGEST) { sessionStorage.setItem('fdg-unlocked', 'yes'); document.getElementById('loginError').textContent = ''; render(); }
+      else document.getElementById('loginError').textContent = 'Password non corretta.';
+    });
+    document.getElementById('logoutButton').addEventListener('click', () => { sessionStorage.removeItem('fdg-unlocked'); document.getElementById('passwordInput').value = ''; render(); });
+    document.getElementById('startGameButton').addEventListener('click', () => newGame(document.querySelector('input[name="difficulty"]:checked').value));
+    document.getElementById('newGameButton').addEventListener('click', () => {
+      if (confirm('Iniziare una nuova partita? La partita attuale verrà sostituita.')) { localStorage.removeItem(SAVE_KEY); game = null; render(); }
+    });
+    document.getElementById('clearSaveButton').addEventListener('click', () => {
+      if (confirm('Cancellare tutti i progressi salvati in questo browser?')) { localStorage.removeItem(SAVE_KEY); game = null; render(); }
+    });
+    render();
+  </script>
+</body>
+</html>
