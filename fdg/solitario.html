@@ -117,7 +117,7 @@
     .track-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 7px; }
     .track-name { font-size: 12px; font-weight: 700; }
     .track-values { color: var(--muted); font: 10px var(--mono); }
-    .track-meter { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; }
+    .track-meter { display: grid; grid-template-columns: repeat(var(--track-length), minmax(0, 1fr)); gap: 3px; }
     .track-cell { height: 11px; border: 1px solid var(--line); background: transparent; }
     .track-cell.filled.player { background: var(--green); border-color: var(--green); }
     .track-cell.filled.ghost { background: var(--red); border-color: var(--red); }
@@ -129,6 +129,26 @@
     .stepper button { width: 25px; height: 25px; border: 1px solid var(--line); color: var(--ink); background: transparent; }
     .stepper button:hover { border-color: var(--red); }
     .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .art-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+    .building-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .sheet-card, .building-slot { min-width: 0; padding: 12px; border: 1px solid var(--line); background: #fffaf0a8; }
+    .sheet-card.completed, .building-slot.completed { border-color: var(--green); background: #596e4d0e; }
+    .sheet-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+    .sheet-card-head h3 { margin: 4px 0 0; font-size: 13px; }
+    .work-points { flex: 0 0 auto; color: var(--red); font: 11px var(--mono); }
+    .sheet-costs { margin: 8px 0; }
+    .allocation-list { display: grid; gap: 5px; }
+    .allocation-row { min-height: 31px; display: flex; justify-content: space-between; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; }
+    .allocation-row b { color: var(--ink); font: 10px var(--mono); }
+    .allocation-actions { display: flex; gap: 4px; }
+    .allocation-row .secondary-button { min-height: 27px; padding: 0 7px; font-size: 9px; }
+    .sheet-reward { min-height: 28px; margin: 8px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .completion-mark, .ready-mark { display: inline-block; margin-top: 7px; color: var(--green); font: 9px var(--mono); text-transform: uppercase; }
+    .ready-mark { color: var(--red); }
+    .building-slot .field-label { margin: 0 0 5px; }
+    .building-slot .select-input { min-height: 34px; padding: 5px; font-size: 10px; }
+    .building-slot .primary-button { min-height: 32px; padding: 0 10px; font-size: 10px; }
+    .artist-choice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; padding: 8px 0; border-bottom: 1px solid #c8b99580; font-size: 11px; }
     .score-grid .field-label { margin: 0 0 5px; font-size: 9px; }
     .score-total { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--line); }
     .score-total span { color: var(--muted); font-size: 11px; }
@@ -147,9 +167,10 @@
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
     .hidden { display: none !important; }
     .footer { padding: 14px 20px; border-top: 1px solid var(--line); color: var(--muted); text-align: center; font: 9px var(--mono); }
+    @media (max-width: 900px) { .building-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 820px) { .game-layout { grid-template-columns: 1fr; }.right-column { grid-template-columns: repeat(2, minmax(0, 1fr)); }.right-column .panel:last-child { grid-column: 1 / -1; } }
     @media (max-width: 700px) { .dice-board-head, .dice-row { grid-template-columns: 82px minmax(118px, 1fr) 95px; gap: 6px; padding-inline: 7px; }.dice-board-head span:nth-child(3), .dice-function { display: none; }.dice-slot { min-height: 46px; gap: 4px; padding: 4px; }.dice-slot .pip { width: 30px; height: 30px; flex-basis: 30px; }.dice-slot-name { font-size: 8px; }.dice-values { gap: 2px; }.dice-value { min-width: 0; font-size: 9px; }.dice-state { font-size: 8px; } }
-    @media (max-width: 540px) { main { width: min(100% - 24px, 1220px); padding-top: 22px; }.topbar { padding-inline: 12px; }.brand-name { font-size: 12px; }.quiet-link { padding: 0 8px; font-size: 10px; }.head-actions { width: 100%; }.head-actions button { flex: 1; }.setup-grid { grid-template-columns: 1fr; }.right-column { grid-template-columns: 1fr; }.right-column .panel:last-child { grid-column: auto; }.dice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.panel { padding: 14px; }.phase-line { align-items: flex-start; flex-direction: column; }.phase-line .primary-button { width: 100%; } }
+    @media (max-width: 540px) { main { width: min(100% - 24px, 1220px); padding-top: 22px; }.topbar { padding-inline: 12px; }.brand-name { font-size: 12px; }.quiet-link { padding: 0 8px; font-size: 10px; }.head-actions { width: 100%; }.head-actions button { flex: 1; }.setup-grid { grid-template-columns: 1fr; }.right-column { grid-template-columns: 1fr; }.right-column .panel:last-child { grid-column: auto; }.dice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.art-grid { grid-template-columns: 1fr; }.building-grid { grid-template-columns: 1fr; }.panel { padding: 14px; }.phase-line { align-items: flex-start; flex-direction: column; }.phase-line .primary-button { width: 100%; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
   </style>
 </head>
@@ -228,10 +249,81 @@
       { id: 'bishop', name: 'Vescovo' },
       { id: 'preacher', name: 'Predicatore' }
     ];
+    const TRACK_DATA = {
+      captain: { spaces: ['money', 'point-1', 'money', 'point-1', 'money', 'point-2', 'star', 'die', 'point-3'] },
+      bishop: { spaces: ['money', 'money', 'preacher', 'die', 'choice', 'money', 'star', 'captain', 'extra', 'die'] },
+      preacher: { spaces: ['money', 'star', 'extra', 'money', 'bishop', 'star', 'money', 'extra', 'captain', 'star', 'extra', 'die'] }
+    };
+    const BUILDINGS = [
+      { id: 1, name: 'Picconiere', cost: { marble: 1 }, florins: 100, effect: 'Dado bianco: scegli il valore.' },
+      { id: 2, name: 'Boscaiuolo', cost: { wood: 1 }, florins: 100, effect: 'Dado marrone: scegli il valore.' },
+      { id: 3, name: 'Fabbro', cost: { metal: 1 }, florins: 100, effect: 'Dado grigio: scegli il valore.' },
+      { id: 4, name: 'Erbolaio', cost: { spice: 1 }, florins: 100, effect: 'Dado verde: scegli il valore.' },
+      { id: 5, name: 'Lanaiuolo', cost: { cloth: 1 }, florins: 100, effect: 'Dado rosso: scegli il valore.' },
+      { id: 6, name: 'Monte di Pietà', cost: { gold: 1 }, florins: 100, effect: 'Dado giallo: scegli il valore.' },
+      { id: 7, name: 'Cava', cost: { marble: 1, spice: 1 }, florins: 0, effect: 'Dado bianco: scambia una risorsa quando ne ottieni.' },
+      { id: 8, name: 'Segheria', cost: { wood: 1, cloth: 1 }, florins: 0, effect: 'Dado marrone: scambia una risorsa quando ne ottieni.' },
+      { id: 9, name: 'Fonderia', cost: { marble: 1, metal: 1 }, florins: 0, effect: 'Dado grigio: scambia una risorsa quando ne ottieni.' },
+      { id: 10, name: 'Mercatante', cost: { wood: 1, spice: 1 }, florins: 0, effect: 'Dado verde: scambia una risorsa quando ne ottieni.' },
+      { id: 11, name: 'Setaiuolo', cost: { marble: 1, cloth: 1 }, florins: 0, effect: 'Dado rosso: scambia una risorsa quando ne ottieni.' },
+      { id: 12, name: 'Miniera', cost: { wood: 1, gold: 1 }, florins: 0, effect: 'Dado giallo: scambia una risorsa quando ne ottieni.' },
+      { id: 13, name: 'Casa', cost: { wood: 1, metal: 1 }, florins: 200, effect: 'Una volta per turno: artista anonimo gratuito.' },
+      { id: 14, name: 'Casamento', cost: { wood: 1, spice: 1, cloth: 1, gold: 1 }, florins: 0, effect: 'Una volta per turno: ottieni 2 risorse uguali.' },
+      { id: 15, name: 'Palagio', cost: { marble: 1, metal: 1, cloth: 1, gold: 1 }, florins: 100, effect: 'Una volta per turno: avanza di 2 su un tracciato.' },
+      { id: 16, name: 'Taverna', cost: { wood: 1, metal: 1, spice: 1 }, florins: 0, effect: 'Una volta per turno: ottieni 300 Fiorini.' },
+      { id: 17, name: 'Cambiavalute', cost: { wood: 1, spice: 1, cloth: 1 }, florins: 200, effect: 'Una volta per turno: una risorsa può valere 200 Fiorini.' },
+      { id: 18, name: 'Carpentiere', cost: { metal: 1, spice: 1, gold: 1 }, florins: 100, effect: 'Ingaggia un artista pagando 100 Fiorini in meno.' },
+      { id: 19, name: 'Ottonaio', cost: { marble: 1, wood: 1, gold: 1 }, florins: 100, effect: 'Ottieni subito 2 risorse extra.' },
+      { id: 20, name: 'Zecca', cost: { wood: 1, spice: 1, gold: 1 }, florins: 0, effect: 'Il capolavoro vale 3 punti aggiuntivi.' },
+      { id: 21, name: 'Convento', cost: { wood: 1, metal: 1, spice: 1, cloth: 1 }, florins: 100, effect: 'Scegli il tipo di artista indipendentemente dal dado.' },
+      { id: 22, name: 'Statua', cost: { marble: 1, metal: 1, gold: 1 }, florins: 100, effect: 'Nessun effetto aggiuntivo.' },
+      { id: 23, name: 'Monumento', cost: { marble: 1, wood: 1, metal: 1, cloth: 1 }, florins: 100, effect: 'Nessun effetto aggiuntivo.' },
+      { id: 24, name: 'Università', cost: { wood: 1, spice: 1, cloth: 1, gold: 1 }, florins: 200, effect: 'Nessun effetto aggiuntivo.' },
+      { id: 25, name: 'Cattedrale', cost: { marble: 1, wood: 1, metal: 1, spice: 1, cloth: 1, gold: 1 }, florins: 100, effect: 'Nessun effetto aggiuntivo.' }
+    ];
+    const WORKS = [
+      { id: 'portrait', area: 'Palazzo', name: 'Ritratto', cost: { spice: 1, cloth: 1 }, florins: 0, points: 3, artists: ['yellow'], reward: null },
+      { id: 'bridal', area: 'Palazzo', name: 'Camera nuziale', cost: { marble: 1, metal: 1 }, florins: 100, points: 2, artists: ['red'], reward: 'extra' },
+      { id: 'palace-facade', area: 'Palazzo', name: 'Facciata', cost: { wood: 1, cloth: 1, gold: 1 }, florins: 100, points: 3, artists: ['red'], reward: 'extra' },
+      { id: 'garden', area: 'Palazzo', name: 'Giardino', cost: { marble: 1, gold: 1 }, florins: 100, points: 3, artists: ['green'], reward: null },
+      { id: 'dome', area: 'Chiesa', name: 'Cupola', cost: { wood: 1, metal: 1, cloth: 1 }, florins: 100, points: 3, artists: ['green', 'red'], income: 'captain' },
+      { id: 'chapel', area: 'Chiesa', name: 'Cappella', cost: { marble: 2, spice: 1 }, florins: 200, points: 3, artists: ['green', 'yellow'], income: 'bishop' },
+      { id: 'apse', area: 'Chiesa', name: 'Abside', cost: { marble: 2, wood: 1 }, florins: 200, points: 3, artists: ['red', 'yellow'], income: 'preacher' },
+      { id: 'church-facade', area: 'Chiesa', name: 'Facciata', cost: { marble: 2, metal: 1, gold: 1 }, florins: 100, points: 3, artists: ['green', 'yellow'], income: 'money' }
+    ];
+    const BUILDING_POINTS = Object.fromEntries(BUILDINGS.map(building => [building.id, building.id <= 6 ? 0 : building.id <= 12 ? 1 : building.id <= 20 ? 2 : building.id === 21 ? 3 : building.id === 22 ? 4 : building.id === 23 ? 5 : building.id === 24 ? 6 : 8]));
     let game = loadGame();
 
     function loadGame() {
-      try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || null; }
+      try {
+        const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+        if (!saved) return null;
+        saved.resources ||= { marble: 0, wood: 0, metal: 0, spice: 0, cloth: 0, gold: 0 };
+        saved.stars = Math.min(5, saved.stars || 0);
+        saved.extras = Math.min(10, saved.extras ?? 1);
+        saved.bonusDice ||= 0;
+        saved.pendingResourceChoices ||= 0;
+        saved.builtBuildings ||= [saved.startingBuilding];
+        if (!saved.buildingSlots || !saved.buildingSlots[0] || typeof saved.buildingSlots[0] !== 'object') {
+          saved.buildingSlots = Array.from({ length: 8 }, (_, index) => ({ buildingId: index === 0 ? saved.startingBuilding : null, built: index === 0, allocations: {}, allocationSources: {}, florins: 0 }));
+        }
+        saved.buildingSlots[0].built = true;
+        saved.works ||= Object.fromEntries(WORKS.map(work => [work.id, { allocations: {}, allocationSources: {}, florins: 0, completed: false, masterpiece: false, artistPoints: 0 }]));
+        for (const work of WORKS) {
+          saved.works[work.id] ||= { allocations: {}, allocationSources: {}, florins: 0, completed: false, masterpiece: false, artistPoints: 0 };
+          saved.works[work.id].allocations ||= {};
+          saved.works[work.id].allocationSources ||= {};
+        }
+        saved.pendingTrackAdvances ||= 0;
+        saved.churchRewardClaimed ||= false;
+        saved.palaceBonusPoints ||= 0;
+        saved.palaceBonusAwarded ||= false;
+        saved.captainPoints ||= 0;
+        saved.otherPoints ||= 0;
+        saved.hiredArtists ||= 0;
+        saved.florins ??= 200;
+        return saved;
+      }
       catch { return null; }
     }
     function saveGame() {
@@ -241,13 +333,18 @@
       return COLORS.map(color => ({ color: color.id, value: Math.floor(Math.random() * 6) + 1 }));
     }
     function newGame(target) {
+      const startingBuilding = Math.floor(Math.random() * 6) + 1;
       game = {
         target: Number(target), round: 1, phase: 'active-roll', activeDice: [], activeSelected: [], activeDone: [],
         ghostDice: [], ghostSelected: [], passiveDie: null, playerTracks: { captain: 0, bishop: 0, preacher: 0 },
         ghostTracks: { captain: 0, bishop: 0, preacher: 0 }, captainBonusPending: false, bishopAdvantage: false,
         resources: { marble: 0, wood: 0, metal: 0, spice: 0, cloth: 0, gold: 0 },
-        florins: 200, stars: 0, extras: 1, hiredArtists: 0, palacePoints: 0, churchPoints: 0, buildingPoints: 0,
-        captainPoints: 0, otherPoints: 0, startingBuilding: Math.floor(Math.random() * 6) + 1, log: []
+        florins: 200, stars: 0, extras: 1, hiredArtists: 0, bonusDice: 0, pendingResourceChoices: 0, pendingTrackAdvances: 0,
+        palacePoints: 0, churchPoints: 0, buildingPoints: 0, captainPoints: 0, otherPoints: 0,
+        startingBuilding, builtBuildings: [startingBuilding],
+        buildingSlots: Array.from({ length: 8 }, (_, index) => ({ buildingId: index === 0 ? startingBuilding : null, built: index === 0, allocations: {}, allocationSources: {}, florins: 0 })),
+        works: Object.fromEntries(WORKS.map(work => [work.id, { allocations: {}, allocationSources: {}, florins: 0, completed: false, masterpiece: false, artistPoints: 0 }])),
+        churchRewardClaimed: false, palaceBonusPoints: 0, log: []
       };
       addLog(`Partita iniziata. Edificio gratuito di partenza: ${game.startingBuilding}.`);
       saveGame();
@@ -260,14 +357,28 @@
     }
     function colorFor(id) { return COLORS.find(color => color.id === id); }
     function resourceKeyFor(colorId) { return ({ white: 'marble', brown: 'wood', gray: 'metal', green: 'spice', red: 'cloth', yellow: 'gold' })[colorId]; }
-    function trackLimit(track) { return track === 'captain' ? 10 : 10; }
+    function trackLimit(track) { return TRACK_DATA[track].spaces.length; }
     function advanceTrack(side, track, amount) {
       const data = side === 'player' ? game.playerTracks : game.ghostTracks;
       const before = data[track];
       data[track] = Math.min(trackLimit(track), before + amount);
       const overflow = Math.max(0, before + amount - trackLimit(track));
       if (side === 'player' && overflow) game.florins += overflow * 100;
+      if (side === 'player') {
+        for (let index = before; index < data[track]; index += 1) applyTrackReward(track, index);
+      }
       return { moved: data[track] - before, overflow };
+    }
+    function applyTrackReward(track, index) {
+      const reward = TRACK_DATA[track].spaces[index];
+      if (reward === 'money') game.florins += 100;
+      else if (reward.startsWith('point-')) game.captainPoints += Number(reward.slice(6));
+      else if (reward === 'star') game.stars = Math.min(5, game.stars + 1);
+      else if (reward === 'extra') game.extras = Math.min(10, game.extras + 1);
+      else if (reward === 'die') game.bonusDice += 1;
+      else if (reward === 'choice') game.pendingResourceChoices += 1;
+      else if (['captain', 'bishop', 'preacher'].includes(reward)) advanceTrack('player', reward, 1);
+      addLog(`Bonus ${TRACKS.find(item => item.id === track).name}: ${reward}.`);
     }
     function actionAmount(value) { return value <= 2 ? 1 : 2; }
     function trackAmount(value) { return value <= 3 ? 1 : 2; }
@@ -347,6 +458,8 @@
     }
     function startRound() {
       game.round += 1;
+      for (const work of WORKS.filter(item => item.area === 'Chiesa' && game.works[item.id].completed)) grantChurchIncome(work);
+      for (const key of RESOURCE_KEYS) game.resources[key] = 0;
       game.phase = 'active-roll';
       game.activeDice = [];
       game.activeSelected = [];
@@ -427,14 +540,176 @@
     function renderTrack(track) {
       const player = game.playerTracks[track.id];
       const ghost = game.ghostTracks[track.id];
-      return `<div class="track"><div class="track-top"><span class="track-name">${track.name}</span><span class="track-values">Tu ${player} / Fantasma ${ghost}</span></div><div class="track-meter" aria-label="${track.name}, tuo avanzamento">${Array.from({ length: trackLimit(track) }, (_, index) => `<span class="track-cell ${index < player ? 'filled player' : ''}" title="Tu: ${index + 1}"></span>`).join('')}</div><div class="track-meter" style="margin-top:3px" aria-label="${track.name}, avanzamento del Fantasma">${Array.from({ length: trackLimit(track) }, (_, index) => `<span class="track-cell ${index < ghost ? 'filled ghost' : ''}" title="Fantasma: ${index + 1}"></span>`).join('')}</div></div>`;
+      return `<div class="track"><div class="track-top"><span class="track-name">${track.name}</span><span class="track-values">Tu ${player} / Fantasma ${ghost}</span></div><div class="track-meter" style="--track-length:${trackLimit(track)}" aria-label="${track.name}, tuo avanzamento">${Array.from({ length: trackLimit(track) }, (_, index) => `<span class="track-cell ${index < player ? 'filled player' : ''}" title="Tu: ${index + 1}"></span>`).join('')}</div><div class="track-meter" style="--track-length:${trackLimit(track)};margin-top:3px" aria-label="${track.name}, avanzamento del Fantasma">${Array.from({ length: trackLimit(track) }, (_, index) => `<span class="track-cell ${index < ghost ? 'filled ghost' : ''}" title="Fantasma: ${index + 1}"></span>`).join('')}</div></div>`;
+    }
+    function renderAllocation(kind, id, cost, allocations, allocatedFlorins, requiredFlorins) {
+      const resources = RESOURCE_KEYS.filter(key => cost[key]);
+      return `<div class="allocation-list">${resources.map(key => {
+        const amount = allocations[key] || 0;
+        const need = cost[key];
+        return `<div class="allocation-row"><span>${RESOURCE_NAMES[key]} <b>${amount}/${need}</b></span><div class="allocation-actions"><button class="secondary-button" type="button" data-allocate-resource data-kind="${kind}" data-target="${id}" data-resource="${key}" ${amount >= need || game.resources[key] < 1 ? 'disabled' : ''}>Assegna</button><button class="secondary-button" type="button" data-allocate-extra data-kind="${kind}" data-target="${id}" data-resource="${key}" ${amount >= need || game.extras < 1 ? 'disabled' : ''}>Jolly</button></div></div>`;
+      }).join('')}${requiredFlorins ? `<div class="allocation-row"><span>Fiorini <b>${allocatedFlorins}/${requiredFlorins} ×100</b></span><button class="secondary-button" type="button" data-allocate-florin data-kind="${kind}" data-target="${id}" ${allocatedFlorins >= requiredFlorins || game.florins < 100 ? 'disabled' : ''}>Assegna 100</button></div>` : ''}</div>`;
+    }
+    function workReady(work, state) {
+      return RESOURCE_KEYS.every(key => (state.allocations[key] || 0) >= (work.cost[key] || 0)) && state.florins >= work.florins;
+    }
+    function renderWork(work) {
+      const state = game.works[work.id];
+      const artistNames = work.artists.map(id => colorFor(id).name).join(' / ');
+      return `<article class="sheet-card ${state.completed ? 'completed' : ''}">
+        <div class="sheet-card-head"><div><span class="eyebrow">${work.area}</span><h3>${work.name}</h3></div><strong class="work-points">${work.points} PV</strong></div>
+        <div class="sheet-costs">${renderAllocation('work', work.id, work.cost, state.allocations, state.florins, work.florins)}</div>
+        <p class="sheet-reward">${state.completed ? `Completata · Artista ${state.artistPoints} PV${state.masterpiece ? ' · Capolavoro' : ''}` : `Artisti: ${artistNames} · ${work.reward === 'extra' ? '+1 risorsa jolly' : work.income ? `rendita: ${work.income}` : 'nessuna rendita'}`}</p>
+        ${state.completed ? '<span class="completion-mark">Completata</span>' : workReady(work, state) ? '<span class="ready-mark">Pronta per un dado Artista</span>' : ''}
+      </article>`;
+    }
+    function buildingReady(building, slot) {
+      return Boolean(building) && RESOURCE_KEYS.every(key => (slot.allocations[key] || 0) >= (building.cost[key] || 0)) && slot.florins >= building.florins;
+    }
+    function allocationTarget(kind, id) {
+      return kind === 'work' ? game.works[id] : game.buildingSlots[Number(id)];
+    }
+    function allocateResource(kind, id, key, useExtra = false) {
+      const target = allocationTarget(kind, id);
+      const data = kind === 'work' ? WORKS.find(item => item.id === id) : BUILDINGS.find(item => item.id === target.buildingId);
+      if (!target || !data || !data.cost[key] || target.completed || (target.allocations[key] || 0) >= data.cost[key]) return;
+      if (useExtra) {
+        if (game.extras < 1) return;
+        game.extras -= 1;
+        target.allocationSources[key] = (target.allocationSources[key] || 0) + 1;
+      } else {
+        if (game.resources[key] < 1) return;
+        game.resources[key] -= 1;
+      }
+      target.allocations[key] = (target.allocations[key] || 0) + 1;
+      saveGame();
+      render();
+    }
+    function allocateFlorin(kind, id) {
+      const target = allocationTarget(kind, id);
+      if (!target || game.florins < 100) return;
+      game.florins -= 100;
+      target.florins += 100;
+      saveGame();
+      render();
+    }
+    function setBuilding(index, buildingId) {
+      const slot = game.buildingSlots[index];
+      const selected = BUILDINGS.find(item => item.id === Number(buildingId));
+      if (!slot || slot.built || !selected || game.builtBuildings.includes(selected.id) || game.buildingSlots.some((other, position) => position !== index && other.buildingId === selected.id)) return;
+      if (Object.values(slot.allocations).some(Boolean) || slot.florins) return;
+      slot.buildingId = selected.id;
+      saveGame();
+      render();
+    }
+    function buildBuilding(index) {
+      const slot = game.buildingSlots[index];
+      const building = BUILDINGS.find(item => item.id === slot?.buildingId);
+      const firstOpenSlot = game.buildingSlots.findIndex((item, position) => position > 0 && !item.built);
+      if (index !== firstOpenSlot || !buildingReady(building, slot) || game.builtBuildings.includes(building.id)) return;
+      slot.built = true;
+      game.builtBuildings.push(building.id);
+      if (index === 3) game.extras = Math.min(10, game.extras + 1);
+      if (building.id === 19) game.extras = Math.min(10, game.extras + 2);
+      addLog(`Costruito ${building.name} nello spazio Rione ${index + 1}.`);
+      saveGame();
+      render();
+    }
+    function grantChurchIncome(work) {
+      if (work.income === 'money') game.florins += 100;
+      else advanceTrack('player', work.income, 1);
+    }
+    function completeArtwork(die, workId, masterpiece = false) {
+      const work = WORKS.find(item => item.id === workId);
+      const state = game.works[workId];
+      const canChooseAnyArtist = game.builtBuildings.includes(21);
+      const allowed = work && (work.artists.includes(die.color) || canChooseAnyArtist);
+      const artistCost = Math.max(0, (die.value <= 3 ? 100 : 200) - (game.builtBuildings.includes(18) ? 100 : 0));
+      if (!allowed || !state || state.completed || !workReady(work, state) || game.florins < artistCost || (masterpiece && game.stars < 1)) return;
+      game.florins -= artistCost;
+      if (masterpiece) game.stars -= 1;
+      state.completed = true;
+      state.masterpiece = masterpiece;
+      state.artistPoints = 2 + (masterpiece ? game.builtBuildings.includes(20) ? 3 : 2 : 0);
+      game.hiredArtists += 1;
+      if (work.reward === 'extra') game.extras = Math.min(10, game.extras + 1);
+      if (work.income) grantChurchIncome(work);
+      addLog(`${work.name} completata: ${work.points + state.artistPoints} Punti Prestigio.`);
+      const palaceWorks = WORKS.filter(item => item.area === 'Palazzo');
+      if (!game.palaceBonusAwarded && palaceWorks.every(item => game.works[item.id].completed)) {
+        game.palaceBonusAwarded = true;
+        game.palaceBonusPoints = game.round <= 3 ? 6 : game.round <= 5 ? 3 : 1;
+        addLog(`Palazzo completato: bonus di ${game.palaceBonusPoints} Punti Prestigio.`);
+      }
+      const churchWorks = WORKS.filter(item => item.area === 'Chiesa');
+      if (!game.churchRewardClaimed && churchWorks.every(item => game.works[item.id].completed)) {
+        game.churchRewardClaimed = true;
+        game.pendingTrackAdvances += 4;
+        addLog('Chiesa completata: scegli un tracciato per i 4 avanzamenti bonus.');
+      }
+      return true;
+    }
+    function finishArtistDie(die, workId, masterpiece, bonusMode = false) {
+      if (!completeArtwork(die, workId, masterpiece)) return;
+      if (bonusMode) {
+        game.bonusDice -= 1;
+        addLog(`Dado bonus usato come artista: ${colorFor(die.color).name}.`);
+        saveGame();
+        render();
+        return;
+      }
+      if (game.phase === 'active-use') {
+        game.activeDone.push(die);
+        if (game.activeDone.length === 3) finishActiveTurn();
+        else { saveGame(); render(); }
+        return;
+      }
+      if (game.phase === 'passive-select') {
+        game.passiveDie = die.color;
+        for (const track of ['captain', 'bishop']) {
+          const ghostDie = game.ghostDice.find(item => colorFor(item.color).track === track);
+          if (ghostDie && ghostDie.color !== die.color) advanceTrack('ghost', track, trackAmount(ghostDie.value));
+        }
+        addLog(`Turno non attivo: ${colorFor(die.color).name}.`);
+        game.phase = game.round === 6 ? 'finished' : 'round-end';
+        saveGame();
+        render();
+      }
+    }
+    function showArtworkChoices(die, bonusMode = false) {
+      const canChooseAnyArtist = game.builtBuildings.includes(21);
+      const choices = WORKS.filter(work => !game.works[work.id].completed && workReady(work, game.works[work.id]) && (work.artists.includes(die.color) || canChooseAnyArtist));
+      const cost = Math.max(0, (die.value <= 3 ? 100 : 200) - (game.builtBuildings.includes(18) ? 100 : 0));
+      const choicesHtml = choices.map(work => `<div class="artist-choice"><span>${work.name} · ${work.points + 2} PV</span><button class="secondary-button" type="button" data-complete-work="${work.id}" data-masterpiece="false" ${game.florins < cost ? 'disabled' : ''}>Artista · ${cost} ƒ</button>${game.stars ? `<button class="secondary-button" type="button" data-complete-work="${work.id}" data-masterpiece="true" ${game.florins < cost ? 'disabled' : ''}>Capolavoro · ${cost} ƒ + 1 stella</button>` : ''}</div>`).join('');
+      document.getElementById('modalHost').innerHTML = `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="artistModalTitle"><p class="eyebrow">${colorFor(die.color).name} · ${die.value}</p><h2 id="artistModalTitle">Scegli l’opera</h2><p class="note">Il dado ingaggia un artista del colore indicato. Il costo dipende dal valore del dado.</p>${choicesHtml || '<p class="notice">Nessuna opera completa e compatibile con questo artista.</p>'}<div class="modal-actions"><button class="secondary-button" id="cancelArtist">Annulla</button></div></section></div>`;
+      document.querySelectorAll('[data-complete-work]').forEach(button => button.addEventListener('click', () => {
+        document.getElementById('modalHost').innerHTML = '';
+        finishArtistDie(die, button.dataset.completeWork, button.dataset.masterpiece === 'true', bonusMode);
+      }));
+      document.getElementById('cancelArtist').addEventListener('click', () => { document.getElementById('modalHost').innerHTML = ''; });
+    }
+    function renderBuildingSlot(slot, index) {
+      const building = BUILDINGS.find(item => item.id === slot.buildingId);
+      const completed = Boolean(slot.built);
+      const used = game.builtBuildings;
+      const firstOpenSlot = game.buildingSlots.findIndex((item, position) => position > 0 && !item.built);
+      const canBuild = !completed && index === firstOpenSlot && buildingReady(building, slot);
+      const options = BUILDINGS.filter(item => (!used.includes(item.id) || item.id === slot.buildingId) && (item.id === slot.buildingId || !game.buildingSlots.some((other, position) => position !== index && other.buildingId === item.id))).map(item => `<option value="${item.id}" ${slot.buildingId === item.id ? 'selected' : ''}>${item.id}. ${item.name}</option>`).join('');
+      let body = '';
+      if (index === 0) body = `<p class="sheet-reward">Edificio iniziale gratuito · ${building?.effect || ''}</p>`;
+      else if (completed) body = `<p class="sheet-reward">${building.effect}</p>`;
+      else if (building) body = `<label class="field-label">Edificio</label><select class="select-input" data-building-select="${index}"><option value="">Seleziona…</option>${options}</select><div class="sheet-costs">${renderAllocation('building', index, building.cost, slot.allocations, slot.florins, building.florins)}</div><p class="sheet-reward">${building.effect}</p><button class="primary-button" type="button" data-build-slot="${index}" ${canBuild ? '' : 'disabled'}>Costruisci</button>${index !== firstOpenSlot ? '<span class="note">Completa prima gli spazi precedenti.</span>' : ''}`;
+      else body = `<label class="field-label">Edificio</label><select class="select-input" data-building-select="${index}"><option value="">Seleziona…</option>${options}</select>`;
+      const points = completed ? BUILDING_POINTS[building.id] + [0, 0, 0, 0, 1, 1, 2, 3][index] : BUILDING_POINTS[building?.id] || 0;
+      return `<article class="building-slot ${completed ? 'completed' : ''}"><div class="sheet-card-head"><div><span class="eyebrow">Spazio Rione ${index + 1}</span><h3>${completed ? building.name : 'Scegli edificio'}</h3></div><strong class="work-points">${points} PV</strong></div>${body}</article>`;
     }
     function renderResource(key) {
-      return `<div class="reserve-item"><span>${RESOURCE_NAMES[key]}</span><div class="stepper"><button type="button" data-resource="${key}" data-delta="-1" aria-label="Rimuovi ${RESOURCE_NAMES[key]}">−</button><strong>${game.resources[key]}</strong><button type="button" data-resource="${key}" data-delta="1" aria-label="Aggiungi ${RESOURCE_NAMES[key]}">+</button></div></div>`;
+      return `<div class="reserve-item"><span>${RESOURCE_NAMES[key]} da assegnare</span><strong>${game.resources[key]}</strong></div>`;
     }
     function totalScore() {
-      const captain = game.playerTracks.captain === trackLimit('captain') ? 7 : 0;
-      return Number(game.palacePoints || 0) + Number(game.churchPoints || 0) + Number(game.buildingPoints || 0) + Number(game.captainPoints || 0) + Number(game.otherPoints || 0) + captain + game.stars + game.extras + Math.floor(game.florins / 200);
+      const artPoints = WORKS.reduce((sum, work) => sum + (game.works[work.id].completed ? work.points + game.works[work.id].artistPoints : 0), 0);
+      const buildingPoints = game.buildingSlots.reduce((sum, slot, index) => sum + (slot.built ? BUILDING_POINTS[slot.buildingId] + [0, 0, 0, 0, 1, 1, 2, 3][index] : 0), 0);
+      return artPoints + game.palaceBonusPoints + buildingPoints + Number(game.captainPoints || 0) + Number(game.otherPoints || 0) + game.stars + game.extras + Math.floor(game.florins / 200);
     }
     function electionStatus() {
       if (game.round === 1) return 'Primo round · ottieni l’edificio iniziale gratuito.';
@@ -463,35 +738,65 @@
       ].join('');
       return `<div class="die-action-row"><div class="die-action-title">${color.name}<span>valore ${die.value}</span></div><div class="die-actions">${buttons}</div></div>`;
     }
+    function bonusDicePanel() {
+      if (!game.bonusDice) return '';
+      const laterPhase = ['passive-select', 'round-end', 'finished'].includes(game.phase);
+      const dice = laterPhase && game.ghostDice.length ? game.ghostDice : game.activeDice.length ? game.activeDice : game.ghostDice;
+      if (!dice.length) return `<p class="notice">${game.bonusDice} dado bonus in attesa del prossimo lancio.</p>`;
+      const options = dice.map(die => `<option value="${die.color}">${colorFor(die.color).name} · ${die.value}</option>`).join('');
+      return `<div class="notice"><strong>Dado bonus · ${game.bonusDice} disponibili</strong><div class="bonus-controls"><select id="bonusDieColor" class="select-input">${options}</select><select id="bonusDieAction" class="select-input"><option value="resource">Ottieni risorse</option><option value="florins">Ottieni 200 Fiorini</option><option value="track">Avanza sul tracciato</option><option value="artist">Ingaggia un artista</option></select><button id="useBonusDie" class="secondary-button" type="button">Usa dado</button></div></div>`;
+    }
+    function useBonusDie() {
+      const laterPhase = ['passive-select', 'round-end', 'finished'].includes(game.phase);
+      const dice = laterPhase && game.ghostDice.length ? game.ghostDice : game.activeDice.length ? game.activeDice : game.ghostDice;
+      const die = dice.find(item => item.color === document.getElementById('bonusDieColor').value);
+      const action = document.getElementById('bonusDieAction').value;
+      if (!die || (action === 'track' && !colorFor(die.color).track) || (action === 'artist' && colorFor(die.color).track)) return;
+      if (action === 'artist') { showArtworkChoices(die, true); return; }
+      useDie('player', die, action);
+      game.bonusDice -= 1;
+      addLog(`Dado bonus usato: ${colorFor(die.color).name}.`);
+      saveGame();
+      render();
+    }
     function renderBoard() {
       const finished = game.phase === 'finished';
       const currentIndex = game.round - 1;
       const score = totalScore();
+      const workPrestige = WORKS.reduce((sum, work) => sum + (game.works[work.id].completed ? work.points + game.works[work.id].artistPoints : 0), 0);
+      const buildingPrestige = game.buildingSlots.reduce((sum, slot, index) => sum + (slot.built ? BUILDING_POINTS[slot.buildingId] + [0, 0, 0, 0, 1, 1, 2, 3][index] : 0), 0);
+      const completedWorks = WORKS.filter(work => game.works[work.id].completed).length;
+      const completedBuildings = game.buildingSlots.filter(slot => slot.built).length;
       document.getElementById('board').innerHTML = `
         <div class="game-layout">
           <div class="left-column">
             <section class="panel"><div class="panel-head"><div><p class="eyebrow">Cronaca della partita</p><h2>Round ${game.round} / 6</h2></div><span class="eyebrow">Papa Sisto IV · ${game.target}</span></div>
               <div class="round-ribbon" aria-label="Avanzamento partita">${Array.from({ length: 6 }, (_, index) => `<span class="round-step ${index < currentIndex ? 'done' : ''} ${index === currentIndex ? 'current' : ''}">${index + 1}</span>`).join('')}</div>
               ${game.captainBonusPending ? `<div class="notice">Sei Capitano del Popolo: ottieni una risorsa a tua scelta. <select id="captainReward" class="select-input" style="width:auto;min-height:32px;margin-left:7px">${RESOURCE_KEYS.map(key => `<option value="${key}">${RESOURCE_NAMES[key]}</option>`).join('')}</select> <button class="secondary-button" id="claimCaptain" type="button">Riscatta</button></div>` : ''}
+              ${game.pendingResourceChoices ? `<div class="notice">Bonus risorsa: scegli quale materiale ottenere. <select id="choiceResource" class="select-input" style="width:auto;min-height:32px">${RESOURCE_KEYS.map(key => `<option value="${key}">${RESOURCE_NAMES[key]}</option>`).join('')}</select> <button class="secondary-button" id="claimResourceChoice" type="button">Riscatta</button></div>` : ''}
+              ${game.pendingTrackAdvances ? `<div class="notice">Bonus Chiesa: assegna i ${game.pendingTrackAdvances} avanzamenti a un tracciato. <select id="churchTrackChoice" class="select-input" style="width:auto;min-height:32px">${TRACKS.map(track => `<option value="${track.id}">${track.name}</option>`).join('')}</select> <button class="secondary-button" id="claimChurchAdvances" type="button">Avanza</button></div>` : ''}
               ${phaseContent()}
+              ${bonusDicePanel()}
             </section>
             <section class="panel"><div class="panel-head"><div><p class="eyebrow">Confronto</p><h2>Tracciati</h2></div><span class="note">Verde: tu · rosso: Fantasma</span></div>${TRACKS.map(renderTrack).join('')}</section>
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Palazzo</p><h2>Opere d’arte</h2></div><span class="note">Costi da allocare · artista a completamento</span></div><div class="art-grid">${WORKS.filter(work => work.area === 'Palazzo').map(renderWork).join('')}</div></section>
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Chiesa</p><h2>Opere e rendite</h2></div><span class="note">La rendita si ripete a ogni round successivo</span></div><div class="art-grid">${WORKS.filter(work => work.area === 'Chiesa').map(renderWork).join('')}</div></section>
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Rione</p><h2>Costruisci in ordine</h2></div><span class="note">L’edificio iniziale è gratuito</span></div><div class="building-grid">${game.buildingSlots.map(renderBuildingSlot).join('')}</div></section>
             <section class="panel"><div class="panel-head"><div><p class="eyebrow">La tua partita</p><h2>Punteggio e progressi</h2></div></div>
-              <div class="score-grid">
-                ${scoreInput('palacePoints', 'Opere del Palazzo')}${scoreInput('churchPoints', 'Opere della Chiesa')}
-                ${scoreInput('buildingPoints', 'Edifici di Rione')}${scoreInput('captainPoints', 'Punti tracciati Capitano')}
-                ${scoreInput('otherPoints', 'Altri Punti Prestigio')}${scoreInput('hiredArtists', 'Artisti ingaggiati', true)}
-              </div>
-              <div class="score-total"><span>Totale · include riserva e bonus tracciato</span><strong>${score}</strong></div>
+              <div class="score-grid"><div class="reserve-item"><span>Opere completate</span><strong>${completedWorks}/8</strong></div><div class="reserve-item"><span>Edifici costruiti</span><strong>${completedBuildings}/8</strong></div><div class="reserve-item"><span>Punti opere</span><strong>${workPrestige}</strong></div><div class="reserve-item"><span>Punti Rione</span><strong>${buildingPrestige}</strong></div><div class="reserve-item"><span>Bonus Palazzo</span><strong>${game.palaceBonusPoints}</strong></div><div class="reserve-item"><span>Artisti ingaggiati</span><strong>${game.hiredArtists}</strong></div></div>
+              <div class="score-total"><span>Totale · opere, Rione, tracciati e riserva</span><strong>${score}</strong></div>
               ${finished ? `<p class="notice" style="margin:13px 0 0">${score >= game.target ? `Hai superato Papa Sisto IV di ${score - game.target} punti.` : `Ti separano ${game.target - score} punti da Papa Sisto IV.`}</p>` : ''}
             </section>
           </div>
           <aside class="right-column">
-            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Riserva</p><h2>Risorse</h2></div></div><div class="reserve-grid">${RESOURCE_KEYS.map(renderResource).join('')}</div>
-              <div class="reserve-grid" style="margin-top:8px">${reserveCounter('Fiorini', 'florins', 'ƒ')}${reserveCounter('Stelle', 'stars', '')}${reserveCounter('Risorse extra', 'extras', '')}</div>
-              <p class="note" style="margin:10px 0 0">Le modifiche manuali ai materiali sono salvate automaticamente.</p>
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Materiali</p><h2>Da assegnare</h2></div></div><div class="reserve-grid">${RESOURCE_KEYS.map(renderResource).join('')}</div>
+              <p class="note" style="margin:10px 0 0">Le risorse ottenute coi dadi vanno allocate nelle opere o negli edifici; non si accumulano nella Riserva.</p>
             </section>
-            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Edificio gratuito</p><h2>Il tuo avvio</h2></div></div><p style="margin-bottom:7px;font:700 27px var(--serif)">N. ${game.startingBuilding}</p><p class="note">Tira un dado nel primo round e annota l’edificio verde corrispondente sulla scheda Rione.</p><a class="quiet-link" href="docs/SCHEDA%201.pdf" target="_blank" rel="noreferrer">Tabella edifici ↗</a></section>
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Riserva</p><h2>Segnalini</h2></div></div>
+              <div class="reserve-grid">${reserveCounter('Monete da 100', 'florins', '')}${reserveCounter('Stelle · max 5', 'stars', '')}${reserveCounter('Casse jolly · max 10', 'extras', '')}</div>
+              <p class="note" style="margin:10px 0 0">Partenza: 2 monete e 1 cassa jolly.</p>
+            </section>
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Chiesa</p><h2>Rendite attive</h2></div></div><ul class="log">${WORKS.filter(work => work.area === 'Chiesa' && game.works[work.id].completed).map(work => `<li>${work.name}: ${work.income === 'money' ? '100 Fiorini' : `+1 ${TRACKS.find(track => track.id === work.income).name}`} a ogni round.</li>`).join('') || '<li>Nessuna rendita attiva.</li>'}</ul><a class="quiet-link" href="docs/SCHEDA%201.pdf" target="_blank" rel="noreferrer">Tabella edifici ↗</a></section>
             <section class="panel"><div class="panel-head"><div><p class="eyebrow">Memoria del rione</p><h2>Registro</h2></div></div><ul class="log">${game.log.map(entry => `<li>${escapeHtml(entry)}</li>`).join('') || '<li>La partita inizierà qui.</li>'}</ul></section>
           </aside>
         </div>`;
@@ -501,7 +806,8 @@
       return `<label><span class="field-label">${label}</span><input class="number-input" type="number" min="0" step="1" data-score="${key}" value="${game[key]}" ${readonly ? 'readonly title="Aggiornato dagli ingaggi"' : ''}></label>`;
     }
     function reserveCounter(label, key, suffix) {
-      return `<div class="reserve-item"><span>${label}</span><div class="stepper"><button type="button" data-counter="${key}" data-delta="-1" aria-label="Diminuisci ${label}">−</button><strong>${game[key]}${suffix}</strong><button type="button" data-counter="${key}" data-delta="1" aria-label="Aumenta ${label}">+</button></div></div>`;
+      const value = key === 'florins' ? game.florins / 100 : game[key];
+      return `<div class="reserve-item"><span>${label}</span><div class="stepper"><button type="button" data-counter="${key}" data-delta="-1" aria-label="Diminuisci ${label}">−</button><strong>${value}${suffix}</strong><button type="button" data-counter="${key}" data-delta="1" aria-label="Aumenta ${label}">+</button></div></div>`;
     }
     function escapeHtml(value) { return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]); }
     function bindBoardEvents() {
@@ -513,20 +819,47 @@
       document.querySelectorAll('[data-active-die]').forEach(button => button.addEventListener('click', () => toggleDie(game.activeDice.find(die => die.color === button.dataset.activeDie))));
       document.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => {
         const die = game.phase === 'active-use' ? game.activeSelected.find(item => item.color === button.dataset.color) : game.ghostDice.find(item => item.color === button.dataset.color);
+        if (button.dataset.action === 'artist') { showArtworkChoices(die); return; }
         if (game.phase === 'active-use') completeActiveDie(die, button.dataset.action); else finishPassiveTurn(die, button.dataset.action);
       }));
       document.querySelectorAll('[data-passive-die]').forEach(button => button.addEventListener('click', () => {
         const die = game.ghostDice.find(item => item.color === button.dataset.passiveDie);
         document.getElementById('modalHost').innerHTML = `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="dieModalTitle"><p class="eyebrow">Turno non attivo</p><h2 id="dieModalTitle">${colorFor(die.color).name} · ${die.value}</h2><p class="note">Scegli come usare il dado selezionato.</p><div class="die-actions">${actionRow(die, false).replace(/^.*?<div class="die-actions">/, '').replace(/<\/div>$/, '')}</div><div class="modal-actions"><button class="secondary-button" id="cancelDie">Annulla</button></div></section></div>`;
-        document.querySelectorAll('#modalHost [data-action]').forEach(action => action.addEventListener('click', () => { document.getElementById('modalHost').innerHTML = ''; finishPassiveTurn(die, action.dataset.action); }));
+        document.querySelectorAll('#modalHost [data-action]').forEach(action => action.addEventListener('click', () => {
+          document.getElementById('modalHost').innerHTML = '';
+          if (action.dataset.action === 'artist') { showArtworkChoices(die); return; }
+          finishPassiveTurn(die, action.dataset.action);
+        }));
         document.getElementById('cancelDie').addEventListener('click', () => { document.getElementById('modalHost').innerHTML = ''; });
       }));
       document.getElementById('nextRound')?.addEventListener('click', startRound);
+      document.getElementById('useBonusDie')?.addEventListener('click', useBonusDie);
       document.getElementById('claimCaptain')?.addEventListener('click', () => {
         const key = document.getElementById('captainReward').value; game.resources[key] += 1; game.captainBonusPending = false; addLog(`Bonus Capitano: +1 ${RESOURCE_NAMES[key]}.`); saveGame(); render();
       });
-      document.querySelectorAll('[data-resource]').forEach(button => button.addEventListener('click', () => { const key = button.dataset.resource; game.resources[key] = Math.max(0, game.resources[key] + Number(button.dataset.delta)); saveGame(); render(); }));
-      document.querySelectorAll('[data-counter]').forEach(button => button.addEventListener('click', () => { const key = button.dataset.counter; game[key] = Math.max(0, game[key] + Number(button.dataset.delta) * (key === 'florins' ? 100 : 1)); saveGame(); render(); }));
+      document.getElementById('claimResourceChoice')?.addEventListener('click', () => {
+        const key = document.getElementById('choiceResource').value;
+        game.resources[key] += 1;
+        game.pendingResourceChoices -= 1;
+        saveGame(); render();
+      });
+      document.getElementById('claimChurchAdvances')?.addEventListener('click', () => {
+        const track = document.getElementById('churchTrackChoice').value;
+        advanceTrack('player', track, game.pendingTrackAdvances);
+        game.pendingTrackAdvances = 0;
+        saveGame(); render();
+      });
+      document.querySelectorAll('[data-allocate-resource]').forEach(button => button.addEventListener('click', () => allocateResource(button.dataset.kind, button.dataset.target, button.dataset.resource)));
+      document.querySelectorAll('[data-allocate-extra]').forEach(button => button.addEventListener('click', () => allocateResource(button.dataset.kind, button.dataset.target, button.dataset.resource, true)));
+      document.querySelectorAll('[data-allocate-florin]').forEach(button => button.addEventListener('click', () => allocateFlorin(button.dataset.kind, button.dataset.target)));
+      document.querySelectorAll('[data-building-select]').forEach(select => select.addEventListener('change', () => setBuilding(Number(select.dataset.buildingSelect), select.value)));
+      document.querySelectorAll('[data-build-slot]').forEach(button => button.addEventListener('click', () => buildBuilding(Number(button.dataset.buildSlot))));
+      document.querySelectorAll('[data-counter]').forEach(button => button.addEventListener('click', () => {
+        const key = button.dataset.counter;
+        const next = game[key] + Number(button.dataset.delta) * (key === 'florins' ? 100 : 1);
+        game[key] = key === 'stars' ? Math.max(0, Math.min(5, next)) : key === 'extras' ? Math.max(0, Math.min(10, next)) : Math.max(0, next);
+        saveGame(); render();
+      }));
       document.querySelectorAll('[data-score]').forEach(input => input.addEventListener('change', () => { game[input.dataset.score] = Math.max(0, Number(input.value) || 0); saveGame(); render(); }));
     }
     function showMessage(title, message) {
