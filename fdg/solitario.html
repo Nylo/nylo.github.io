@@ -79,7 +79,16 @@
     .phase-line strong { display: block; font: 700 13px var(--serif); }
     .phase-line span { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
     .dice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
-    .dice-board { margin-top: 14px; border: 1px solid var(--line); background: #f6eedb; }
+    .dice-board { position: relative; margin-top: 14px; overflow: hidden; }
+    .dice-board-image { display: block; width: 100%; height: auto; }
+    .dice-marker { position: absolute; left: 1.7%; width: 6.7%; aspect-ratio: 1; display: grid; place-items: center; padding: 0; border: 2px solid var(--die); color: var(--die); background: #fffaf0ed; transform: translateY(-50%); }
+    .dice-marker.white { --die: #8896a0; top: 24.5%; }.dice-marker.brown { --die: #806149; top: 38.2%; }.dice-marker.gray { --die: #73736b; top: 51.9%; }.dice-marker.green { --die: #687e53; top: 65.6%; }.dice-marker.red { --die: #ad4938; top: 79.3%; }.dice-marker.yellow { --die: #bd8730; top: 93%; }
+    .dice-marker .pip { width: 100%; height: 100%; border: 0; color: inherit; background: transparent; font-size: 18px; }
+    .dice-marker:hover:not(:disabled), .dice-marker.selected { outline: 3px solid var(--red); outline-offset: 2px; }
+    .dice-marker:disabled { cursor: default; }
+    .dice-marker.blocked { opacity: .45; }
+    .dice-marker.used::after { content: '✓'; position: absolute; top: -5px; right: -5px; width: 17px; height: 17px; display: grid; place-items: center; border-radius: 50%; color: #fffaf0; background: var(--green); font: 11px var(--sans); }
+    .dice-marker-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .dice-board-head, .dice-row { display: grid; grid-template-columns: 105px minmax(180px, 1fr) minmax(145px, .7fr) 92px; align-items: center; gap: 10px; }
     .dice-board-head { min-height: 33px; padding: 0 10px; color: var(--muted); border-bottom: 1px solid var(--line); font: 9px var(--mono); text-transform: uppercase; }
     .dice-row { min-height: 72px; padding: 8px 10px; border-bottom: 1px solid #c8b99580; }
@@ -131,6 +140,19 @@
     .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
     .art-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
     .building-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .building-workspace { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(250px, .8fr); gap: 16px; align-items: start; }
+    .building-catalog { position: sticky; top: 12px; max-height: 78vh; overflow: auto; border: 1px solid var(--line); background: #fffaf0; }
+    .building-catalog { margin: 0; }
+    .building-catalog img { display: block; width: 100%; height: auto; }
+    .player-mat-nav { position: relative; margin-bottom: 16px; overflow: hidden; }
+    .player-mat-image { display: block; width: 100%; height: auto; }
+    .mat-hotspot { position: absolute; display: block; border: 2px solid transparent; }
+    .mat-hotspot:hover, .mat-hotspot:focus-visible { border-color: var(--red); outline: 0; background: #9d3e3212; }
+    .mat-status { position: absolute; right: 5px; bottom: 5px; padding: 3px 6px; border: 1px solid var(--line); color: var(--ink); background: #fffaf0ed; font: 10px var(--mono); }
+    .mat-palace { left: 1%; top: 5%; width: 34%; height: 36%; }
+    .mat-church { left: 1%; top: 42%; width: 34%; height: 45%; }
+    .mat-rione { left: 65%; top: 6%; width: 34%; height: 61%; }
+    .mat-tracks { left: 52%; top: 80%; width: 47%; height: 18%; }
     .sheet-card, .building-slot { min-width: 0; padding: 12px; border: 1px solid var(--line); background: #fffaf0a8; }
     .sheet-card.completed, .building-slot.completed { border-color: var(--green); background: #596e4d0e; }
     .sheet-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
@@ -165,12 +187,6 @@
     .log { max-height: 210px; overflow: auto; display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
     .log li { padding-left: 10px; border-left: 2px solid var(--gold); color: var(--muted); font-size: 10px; line-height: 1.5; }
     .log li:first-child { color: var(--ink); border-color: var(--red); }
-    .reference-sheets { margin-top: 16px; }
-    .reference-list { display: grid; gap: 8px; }
-    .reference-sheet { border-top: 1px solid var(--line); }
-    .reference-sheet summary { padding: 12px 2px; color: var(--ink); font: 700 12px var(--mono); cursor: pointer; }
-    .reference-image { max-height: 75vh; overflow: auto; border: 1px solid var(--line); background: #fffaf0; }
-    .reference-image img { display: block; width: min(100%, 1400px); min-width: 760px; height: auto; margin: 0 auto; }
     .difficulty { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 18px; }
     .difficulty label { position: relative; }
     .difficulty input { position: absolute; opacity: 0; }
@@ -182,10 +198,10 @@
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
     .hidden { display: none !important; }
     .footer { padding: 14px 20px; border-top: 1px solid var(--line); color: var(--muted); text-align: center; font: 9px var(--mono); }
-    @media (max-width: 900px) { .building-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 900px) { .building-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.building-workspace { grid-template-columns: minmax(0, 1fr) minmax(190px, .7fr); gap: 10px; } }
     @media (max-width: 820px) { .game-layout { grid-template-columns: 1fr; }.right-column { grid-template-columns: repeat(2, minmax(0, 1fr)); }.right-column .panel:last-child { grid-column: 1 / -1; } }
-    @media (max-width: 700px) { .dice-board-head, .dice-row { grid-template-columns: 82px minmax(118px, 1fr) 95px; gap: 6px; padding-inline: 7px; }.dice-board-head span:nth-child(3), .dice-function { display: none; }.dice-slot { min-height: 46px; gap: 4px; padding: 4px; }.dice-slot .pip { width: 30px; height: 30px; flex-basis: 30px; }.dice-slot-name { font-size: 8px; }.dice-values { gap: 2px; }.dice-value { min-width: 0; font-size: 9px; }.dice-state { font-size: 8px; } }
-    @media (max-width: 540px) { main { width: min(100% - 24px, 1220px); padding-top: 22px; }.topbar { padding-inline: 12px; }.brand-name { font-size: 12px; }.quiet-link { padding: 0 8px; font-size: 10px; }.head-actions { width: 100%; }.head-actions button { flex: 1; }.setup-grid { grid-template-columns: 1fr; }.right-column { grid-template-columns: 1fr; }.right-column .panel:last-child { grid-column: auto; }.dice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.art-grid { grid-template-columns: 1fr; }.building-grid { grid-template-columns: 1fr; }.panel { padding: 14px; }.phase-line { align-items: flex-start; flex-direction: column; }.phase-line .primary-button { width: 100%; } }
+    @media (max-width: 700px) { .dice-marker { border-width: 1px; }.dice-marker .pip { font-size: 14px; }.dice-marker.used::after { width: 13px; height: 13px; font-size: 9px; } }
+    @media (max-width: 540px) { main { width: min(100% - 24px, 1220px); padding-top: 22px; }.topbar { padding-inline: 12px; }.brand-name { font-size: 12px; }.quiet-link { padding: 0 8px; font-size: 10px; }.head-actions { width: 100%; }.head-actions button { flex: 1; }.setup-grid { grid-template-columns: 1fr; }.right-column { grid-template-columns: 1fr; }.right-column .panel:last-child { grid-column: auto; }.dice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.art-grid { grid-template-columns: 1fr; }.building-grid { grid-template-columns: 1fr; }.building-workspace { grid-template-columns: 1fr; }.building-catalog { position: static; max-height: 55vh; }.mat-hotspot { border-width: 1px; }.panel { padding: 14px; }.phase-line { align-items: flex-start; flex-direction: column; }.phase-line .primary-button { width: 100%; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
   </style>
 </head>
@@ -542,26 +558,20 @@
       const selectedDice = active ? game.activeSelected : passive ? game.ghostSelected : game.activeSelected;
       const completedDice = mode === 'active-use' ? game.activeDone : [];
       const bishop = game.bishopAdvantage;
-      return `<div class="dice-board" role="table" aria-label="Plancia dei dadi">
-        <div class="dice-board-head" role="row"><span>Colore / dado</span><span>Valore</span><span>Azione del dado</span><span>Stato</span></div>
+      return `<div class="dice-board" role="group" aria-label="Plancia dei dadi"><img class="dice-board-image" src="images/DB.fw.png" alt="Plancia originale dei dadi: risultati e bonus per colore" decoding="async">
         ${COLORS.map(color => {
           const die = dice.find(item => item.color === color.id);
           const selected = selectedDice.some(item => item.color === color.id);
           const used = completedDice.some(item => item.color === color.id);
           const blocked = passive && !bishop && selected;
           const clickable = active || (passive && !blocked);
-          const state = blocked ? 'Fantasma' : used ? 'Usato' : selected ? 'Selezionato' : passive ? 'Libero' : 'Disponibile';
-          const stateClass = blocked ? '' : used ? 'used' : selected ? 'selected' : '';
           const tag = clickable ? 'button' : 'div';
           const event = active ? `data-active-die="${color.id}"` : passive ? `data-passive-die="${color.id}"` : '';
-          return `<div class="dice-row ${color.id}" role="row">
-            <${tag} class="dice-slot ${selected ? 'is-selected' : ''}" ${tag === 'button' ? `type="button" ${blocked ? 'disabled' : ''} ${event}` : ''}>
-              <span class="pip">${die ? die.value : '·'}</span><span class="dice-slot-name">${color.name}</span>
-            </${tag}>
-            <div class="dice-values" aria-label="Valore del dado ${die?.value || 'non lanciato'}">${Array.from({ length: 6 }, (_, index) => `<span class="dice-value ${die && die.value === index + 1 ? 'current' : ''}">${index + 1}</span>`).join('')}</div>
-            <div class="dice-function">${die ? diceFunction(color, die.value) : color.resource}</div>
-            <span class="dice-state ${stateClass}">${state}</span>
-          </div>`;
+          const stateClass = [selected ? 'selected' : '', used ? 'used' : '', blocked ? 'blocked' : ''].filter(Boolean).join(' ');
+          const ariaState = blocked ? 'bloccato dal Fantasma' : used ? 'usato' : selected ? 'selezionato' : passive ? 'libero' : 'disponibile';
+          return `<${tag} class="dice-marker ${color.id} ${stateClass}" ${tag === 'button' ? `type="button" ${blocked || !die ? 'disabled' : ''} ${event}` : `role="img"`} aria-label="${color.name}: ${die ? `dado ${die.value}, ${ariaState}` : `dado non lanciato, ${ariaState}`}" title="${color.name}${die ? ` · ${die.value}` : ''} · ${ariaState}">
+            <span class="pip">${die ? die.value : '·'}</span><span class="dice-marker-name">${color.name}</span>
+          </${tag}>`;
         }).join('')}
       </div>`;
     }
@@ -778,7 +788,7 @@
       return `Capitano: ${captain > 0 ? 'tu' : captain < 0 ? 'Fantasma' : 'nessuno'} · Vescovo: ${bishop > 0 ? 'tu' : bishop < 0 ? 'Fantasma' : 'nessuno'}.`;
     }
     function phaseContent() {
-      if (game.phase === 'active-roll') return `<div class="phase-line"><div><strong>Turno attivo · Round ${game.round}</strong><span>${game.round === 1 ? `Edificio iniziale gratuito: ${game.startingBuilding}. ` : ''}${electionStatus()} Lancia i sei dadi.</span></div><button class="primary-button" type="button" id="rollActive">Lancia i dadi</button></div>`;
+      if (game.phase === 'active-roll') return `<div class="phase-line"><div><strong>Turno attivo · Round ${game.round}</strong><span>${game.round === 1 ? `Edificio iniziale gratuito: ${game.startingBuilding}. ` : ''}${electionStatus()} Lancia i sei dadi.</span></div><button class="primary-button" type="button" id="rollActive">Lancia i dadi</button></div>${renderDiceBoard([], 'active-roll')}`;
       if (game.phase === 'active-select') return `<div class="phase-line"><div><strong>Turno attivo · scegli 3 dadi</strong><span>Selezionati ${game.activeSelected.length} di 3. Clicca un dado sulla plancia.</span></div><button class="primary-button" type="button" id="confirmActive" ${game.activeSelected.length !== 3 ? 'disabled' : ''}>Conferma dadi</button></div>${renderDiceBoard(game.activeDice, 'active-select')}`;
       if (game.phase === 'active-use') return `<div class="phase-line"><div><strong>Turno attivo · usa i dadi</strong><span>Scegli un utilizzo per ciascun dado selezionato.</span></div><span class="eyebrow">${game.activeDone.length}/3</span></div>${renderDiceBoard(game.activeDice, 'active-use')}<div style="margin-top:14px">${game.activeSelected.filter(die => !game.activeDone.some(item => item.color === die.color)).map(die => actionRow(die, true)).join('')}</div>`;
       if (game.phase === 'passive-select') {
@@ -828,6 +838,13 @@
       const completedWorks = WORKS.filter(work => game.works[work.id].completed).length;
       const completedBuildings = game.buildingSlots.filter(slot => slot.built).length;
       document.getElementById('board').innerHTML = `
+        <nav class="player-mat-nav" aria-label="Vai a una sezione della plancia personale">
+          <img class="player-mat-image" src="images/PB.fw.png" alt="Plancia personale: Palazzo, Chiesa, Rione e tracciati" decoding="async">
+          <a class="mat-hotspot mat-palace" href="#palacePanel" aria-label="Vai alle opere del Palazzo" title="Palazzo"><span class="mat-status">${WORKS.filter(work => work.area === 'Palazzo' && game.works[work.id].completed).length}/4</span></a>
+          <a class="mat-hotspot mat-church" href="#churchPanel" aria-label="Vai alle opere della Chiesa" title="Chiesa"><span class="mat-status">${WORKS.filter(work => work.area === 'Chiesa' && game.works[work.id].completed).length}/4</span></a>
+          <a class="mat-hotspot mat-rione" href="#rionePanel" aria-label="Vai agli edifici del Rione" title="Rione"><span class="mat-status">${completedBuildings}/8</span></a>
+          <a class="mat-hotspot mat-tracks" href="#tracksPanel" aria-label="Vai ai tracciati" title="Tracciati"><span class="mat-status">${game.playerTracks.captain}/${game.playerTracks.bishop}/${game.playerTracks.preacher}</span></a>
+        </nav>
         <div class="game-layout">
           <div class="left-column">
             <section class="panel"><div class="panel-head"><div><p class="eyebrow">Cronaca della partita</p><h2>Round ${game.round} / 6</h2></div><span class="eyebrow">Papa Sisto IV · ${game.target}</span></div>
@@ -838,10 +855,10 @@
               ${phaseContent()}
               ${bonusDicePanel()}
             </section>
-            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Confronto</p><h2>Tracciati</h2></div><span class="note">Verde: tu · rosso: Fantasma</span></div><div class="track-legend"><span>ƒ Fiorini</span><span>1/2/3 Punti Prestigio</span><span>★ Stella</span><span>C Cassa</span><span>D Dado bonus</span><span>R Risorsa</span><span>Cap/Ves/Pre Avanzamento</span></div>${TRACKS.map(renderTrack).join('')}</section>
-            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Palazzo</p><h2>Opere d’arte</h2></div><span class="note">Costi da allocare · artista a completamento</span></div><div class="art-grid">${WORKS.filter(work => work.area === 'Palazzo').map(renderWork).join('')}</div></section>
-            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Chiesa</p><h2>Opere e rendite</h2></div><span class="note">La rendita si ripete a ogni round successivo</span></div><div class="art-grid">${WORKS.filter(work => work.area === 'Chiesa').map(renderWork).join('')}</div></section>
-            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Rione</p><h2>Costruisci in ordine</h2></div><span class="note">L’edificio iniziale è gratuito</span></div><div class="building-grid">${game.buildingSlots.map(renderBuildingSlot).join('')}</div></section>
+            <section class="panel" id="tracksPanel"><div class="panel-head"><div><p class="eyebrow">Confronto</p><h2>Tracciati</h2></div><span class="note">Verde: tu · rosso: Fantasma</span></div><div class="track-legend"><span>ƒ Fiorini</span><span>1/2/3 Punti Prestigio</span><span>★ Stella</span><span>C Cassa</span><span>D Dado bonus</span><span>R Risorsa</span><span>Cap/Ves/Pre Avanzamento</span></div>${TRACKS.map(renderTrack).join('')}</section>
+            <section class="panel" id="palacePanel"><div class="panel-head"><div><p class="eyebrow">Palazzo</p><h2>Opere d’arte</h2></div><span class="note">Costi da allocare · artista a completamento</span></div><div class="art-grid">${WORKS.filter(work => work.area === 'Palazzo').map(renderWork).join('')}</div></section>
+            <section class="panel" id="churchPanel"><div class="panel-head"><div><p class="eyebrow">Chiesa</p><h2>Opere e rendite</h2></div><span class="note">La rendita si ripete a ogni round successivo</span></div><div class="art-grid">${WORKS.filter(work => work.area === 'Chiesa').map(renderWork).join('')}</div></section>
+            <section class="panel" id="rionePanel"><div class="panel-head"><div><p class="eyebrow">Rione</p><h2>Costruisci in ordine</h2></div><span class="note">L’edificio iniziale è gratuito</span></div><div class="building-workspace"><div class="building-grid">${game.buildingSlots.map(renderBuildingSlot).join('')}</div><figure class="building-catalog"><img src="images/BB.fw.png" alt="Elenco originale degli edifici, con costi ed effetti" loading="lazy" decoding="async"></figure></div></section>
             <section class="panel"><div class="panel-head"><div><p class="eyebrow">La tua partita</p><h2>Punteggio e progressi</h2></div></div>
               <div class="score-grid"><div class="reserve-item"><span>Opere completate</span><strong>${completedWorks}/8</strong></div><div class="reserve-item"><span>Edifici costruiti</span><strong>${completedBuildings}/8</strong></div><div class="reserve-item"><span>Punti opere</span><strong>${workPrestige}</strong></div><div class="reserve-item"><span>Punti Rione</span><strong>${buildingPrestige}</strong></div><div class="reserve-item"><span>Bonus Palazzo</span><strong>${game.palaceBonusPoints}</strong></div><div class="reserve-item"><span>Artisti ingaggiati</span><strong>${game.hiredArtists}</strong></div></div>
               <div class="score-total"><span>Totale · opere, Rione, tracciati e riserva</span><strong>${score}</strong></div>
@@ -856,18 +873,11 @@
               <div class="reserve-grid">${reserveCounter('Monete da 100', 'florins', '')}${reserveCounter('Stelle · max 5', 'stars', '')}${reserveCounter('Casse jolly · max 10', 'extras', '')}</div>
               <p class="note" style="margin:10px 0 0">Partenza: 2 monete e 1 cassa jolly.</p>
             </section>
-            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Chiesa</p><h2>Rendite attive</h2></div></div><ul class="log">${WORKS.filter(work => work.area === 'Chiesa' && game.works[work.id].completed).map(work => `<li>${work.name}: ${work.income === 'money' ? '100 Fiorini' : `+1 ${TRACKS.find(track => track.id === work.income).name}`} a ogni round.</li>`).join('') || '<li>Nessuna rendita attiva.</li>'}</ul><a class="quiet-link" href="docs/SCHEDA%201.pdf" target="_blank" rel="noreferrer">Tabella edifici ↗</a></section>
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Chiesa</p><h2>Rendite attive</h2></div></div><ul class="log">${WORKS.filter(work => work.area === 'Chiesa' && game.works[work.id].completed).map(work => `<li>${work.name}: ${work.income === 'money' ? '100 Fiorini' : `+1 ${TRACKS.find(track => track.id === work.income).name}`} a ogni round.</li>`).join('') || '<li>Nessuna rendita attiva.</li>'}</ul></section>
             <section class="panel"><div class="panel-head"><div><p class="eyebrow">Memoria del rione</p><h2>Registro</h2></div></div><ul class="log">${game.log.map(entry => `<li>${escapeHtml(entry)}</li>`).join('') || '<li>La partita inizierà qui.</li>'}</ul></section>
           </aside>
         </div>
-        <section class="panel reference-sheets" aria-labelledby="referenceSheetsTitle">
-          <div class="panel-head"><div><p class="eyebrow">Materiale di gioco</p><h2 id="referenceSheetsTitle">Plance originali</h2></div></div>
-          <div class="reference-list">
-            <details class="reference-sheet"><summary>DB · Plancia dei dadi</summary><div class="reference-image"><a href="images/DB.fw.png" target="_blank" rel="noreferrer"><img src="images/DB.fw.png" alt="Plancia dei dadi con i risultati e i bonus associati ai dadi" loading="lazy" decoding="async"></a></div></details>
-            <details class="reference-sheet"><summary>BB · Elenco degli edifici</summary><div class="reference-image"><a href="images/BB.fw.png" target="_blank" rel="noreferrer"><img src="images/BB.fw.png" alt="Elenco degli edifici con costi ed effetti" loading="lazy" decoding="async"></a></div></details>
-            <details class="reference-sheet"><summary>PB · Plancia personale</summary><div class="reference-image"><a href="images/PB.fw.png" target="_blank" rel="noreferrer"><img src="images/PB.fw.png" alt="Plancia personale con Palazzo, Chiesa, Rione e tracciati" loading="lazy" decoding="async"></a></div></details>
-          </div>
-        </section>`;
+        `;
       bindBoardEvents();
     }
     function scoreInput(key, label, readonly = false) {
