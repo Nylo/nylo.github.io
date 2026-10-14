@@ -165,6 +165,12 @@
     .log { max-height: 210px; overflow: auto; display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
     .log li { padding-left: 10px; border-left: 2px solid var(--gold); color: var(--muted); font-size: 10px; line-height: 1.5; }
     .log li:first-child { color: var(--ink); border-color: var(--red); }
+    .reference-sheets { margin-top: 16px; }
+    .reference-list { display: grid; gap: 8px; }
+    .reference-sheet { border-top: 1px solid var(--line); }
+    .reference-sheet summary { padding: 12px 2px; color: var(--ink); font: 700 12px var(--mono); cursor: pointer; }
+    .reference-image { max-height: 75vh; overflow: auto; border: 1px solid var(--line); background: #fffaf0; }
+    .reference-image img { display: block; width: min(100%, 1400px); min-width: 760px; height: auto; margin: 0 auto; }
     .difficulty { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 18px; }
     .difficulty label { position: relative; }
     .difficulty input { position: absolute; opacity: 0; }
@@ -853,7 +859,15 @@
             <section class="panel"><div class="panel-head"><div><p class="eyebrow">Chiesa</p><h2>Rendite attive</h2></div></div><ul class="log">${WORKS.filter(work => work.area === 'Chiesa' && game.works[work.id].completed).map(work => `<li>${work.name}: ${work.income === 'money' ? '100 Fiorini' : `+1 ${TRACKS.find(track => track.id === work.income).name}`} a ogni round.</li>`).join('') || '<li>Nessuna rendita attiva.</li>'}</ul><a class="quiet-link" href="docs/SCHEDA%201.pdf" target="_blank" rel="noreferrer">Tabella edifici ↗</a></section>
             <section class="panel"><div class="panel-head"><div><p class="eyebrow">Memoria del rione</p><h2>Registro</h2></div></div><ul class="log">${game.log.map(entry => `<li>${escapeHtml(entry)}</li>`).join('') || '<li>La partita inizierà qui.</li>'}</ul></section>
           </aside>
-        </div>`;
+        </div>
+        <section class="panel reference-sheets" aria-labelledby="referenceSheetsTitle">
+          <div class="panel-head"><div><p class="eyebrow">Materiale di gioco</p><h2 id="referenceSheetsTitle">Plance originali</h2></div></div>
+          <div class="reference-list">
+            <details class="reference-sheet"><summary>DB · Plancia dei dadi</summary><div class="reference-image"><a href="images/DB.fw.png" target="_blank" rel="noreferrer"><img src="images/DB.fw.png" alt="Plancia dei dadi con i risultati e i bonus associati ai dadi" loading="lazy" decoding="async"></a></div></details>
+            <details class="reference-sheet"><summary>BB · Elenco degli edifici</summary><div class="reference-image"><a href="images/BB.fw.png" target="_blank" rel="noreferrer"><img src="images/BB.fw.png" alt="Elenco degli edifici con costi ed effetti" loading="lazy" decoding="async"></a></div></details>
+            <details class="reference-sheet"><summary>PB · Plancia personale</summary><div class="reference-image"><a href="images/PB.fw.png" target="_blank" rel="noreferrer"><img src="images/PB.fw.png" alt="Plancia personale con Palazzo, Chiesa, Rione e tracciati" loading="lazy" decoding="async"></a></div></details>
+          </div>
+        </section>`;
       bindBoardEvents();
     }
     function scoreInput(key, label, readonly = false) {
