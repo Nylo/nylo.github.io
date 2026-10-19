@@ -87,11 +87,6 @@
           ".read": "auth != null &amp;&amp; root.child('rooms').child($room).child('members').child(auth.uid).val() === true",
           ".write": "auth != null &amp;&amp; root.child('rooms').child($room).child('members').child(auth.uid).val() === true"
         },
-        "lobby": {
-          ".read": "auth != null &amp;&amp; root.child('rooms').child($room).child('members').child(auth.uid).val() === true",
-          ".write": "auth != null &amp;&amp; root.child('rooms').child($room).child('members').child(auth.uid).val() === true"
-          }
-        },
         "state": {
           ".read": "auth != null &amp;&amp; root.child('rooms').child($room).child('members').child(auth.uid).val() === true",
           ".write": "auth != null &amp;&amp; root.child('rooms').child($room).child('members').child(auth.uid).val() === true"
@@ -211,25 +206,29 @@
     }catch(error){setStatus(error.code==='PERMISSION_DENIED'?'Stanza non trovata, piena o non accessibile.':(error.message||'Errore durante l’accesso alla stanza.'))}
   }
   function reserveSeat(playerName){
-    return new Promise(function(resolve,reject){
-      roomRef.child('lobby').transaction(function(current){
-        if(!current||!current.playerCount)return;
-        current.players=current.players||{};
-        if(current.players[user.uid])return current;
-        if(current.started)return;
-        var occupied={};
-        Object.keys(current.players).forEach(function(uid){occupied[current.players[uid].seat]=true});
-        var seat=1;
-        while(seat<=current.playerCount&&occupied[seat])seat++;
-        if(seat>current.playerCount)return;
-        current.players[user.uid]={uid:user.uid,name:playerName,seat:seat};
-        return current;
-      },function(error,committed,snapshot){
-        if(error){reject(error);return}
-        var current=snapshot&&snapshot.val();
-        if(!current||!current.players||!current.players[user.uid]){reject(new Error('La stanza è piena o la partita è già iniziata.'));return}
-        lobbyData=current;enterRoom();resolve();
-      },false);
+    var lobbyRef=roomRef.child('lobby');
+    return lobbyRef.once('value').then(function(initialSnapshot){
+      if(!initialSnapshot.exists())throw new Error('Lobby non trovata: controlla che la stanza esista e che le regole Firebase siano aggiornate.');
+      return new Promise(function(resolve,reject){
+        lobbyRef.transaction(function(current){
+          if(current===null||!current.playerCount)return;
+          current.players=current.players||{};
+          if(current.players[user.uid])return current;
+          if(current.started)return;
+          var occupied={};
+          Object.keys(current.players).forEach(function(uid){occupied[current.players[uid].seat]=true});
+          var seat=1;
+          while(seat<=current.playerCount&&occupied[seat])seat++;
+          if(seat>current.playerCount)return;
+          current.players[user.uid]={uid:user.uid,name:playerName,seat:seat};
+          return current;
+        },function(error,committed,snapshot){
+          if(error){reject(error);return}
+          var current=snapshot&&snapshot.val();
+          if(!current||!current.players||!current.players[user.uid]){reject(new Error('Posto non assegnato: la stanza potrebbe essere piena o la partita già iniziata. Riprova o crea una nuova stanza.'));return}
+          lobbyData=current;enterRoom();resolve();
+        },false);
+      });
     });
   }
   function orderedPlayers(data){
