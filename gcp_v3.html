@@ -144,6 +144,16 @@
     if(value&&typeof value==='object')return '{'+Object.keys(value).sort().map(function(key){return JSON.stringify(key)+':'+stableStringify(value[key])}).join(',')+'}';
     return JSON.stringify(value);
   }
+  function normalizeGameState(value){
+    if(!value||!Array.isArray(value.players))return value;
+    value.players.forEach(function(player){
+      var cards=Array(49).fill(false),source=player.cards;
+      if(Array.isArray(source))for(var i=0;i<49;i++)cards[i]=source[i]===true;
+      else if(source&&typeof source==='object')Object.keys(source).forEach(function(index){if(Number(index)>=0&&Number(index)<49)cards[Number(index)]=source[index]===true});
+      player.cards=cards;
+    });
+    return value;
+  }
   function validConfig(){return FIREBASE_CONFIG.apiKey!=='INSERISCI_API_KEY'&&FIREBASE_CONFIG.projectId!=='INSERISCI_PROJECT_ID'&&FIREBASE_CONFIG.appId!=='INSERISCI_APP_ID'&&FIREBASE_CONFIG.databaseURL.indexOf('INSERISCI_PROJECT_ID')===-1}
   function generateCode(){var bytes=new Uint8Array(12);crypto.getRandomValues(bytes);return Array.from(bytes,function(value){return ALPHABET[value%ALPHABET.length]}).join('')}
   function withTimeout(promise,milliseconds,message){
@@ -258,7 +268,7 @@
   }
   function makeInitialState(data){
     return {
-      players:orderedPlayers(data).map(function(player){return {uid:player.uid,name:player.name,money:5000,roundPV:0,totalPV:0,cards:Array(49).fill(null),refundCard:false}}),
+      players:orderedPlayers(data).map(function(player){return {uid:player.uid,name:player.name,money:5000,roundPV:0,totalPV:0,cards:Array(49).fill(false),refundCard:false}}),
       round:1,maxRounds:Number(data.playerCount),pendingTopCardPlayer:null,pendingTopCardStage:null,refundModePlayer:null,refundCardDrawn:false
     };
   }
@@ -286,7 +296,7 @@
     lobbyRef.on('value',lobbyHandler,lobbyError);roomListeners.push({ref:lobbyRef,handler:lobbyHandler});
     var stateRef=roomRef.child('state'),stateHandler=function(snapshot){
       if(!snapshot.exists())return;
-      var incoming=stableStringify(snapshot.val());
+      var incoming=stableStringify(normalizeGameState(snapshot.val()));
       if(!writePending)lastRemoteState=incoming;
       var local=localStorage.getItem(storageKey);
       var localNormalized=local?stableStringify(JSON.parse(local)):null;
@@ -333,7 +343,7 @@
       writePending=true;
       document.getElementById('connectionStatus').textContent='Sincronizzazione...';
       roomRef.child('state').transaction(function(current){
-        var currentVersion=current===null?null:stableStringify(current);
+        var currentVersion=current===null?null:stableStringify(normalizeGameState(current));
         if(currentVersion!==baseline)return;
         return gameState;
       },function(error,committed,snapshot){
