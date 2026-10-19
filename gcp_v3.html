@@ -209,9 +209,11 @@
     var lobbyRef=roomRef.child('lobby');
     return lobbyRef.once('value').then(function(initialSnapshot){
       if(!initialSnapshot.exists())throw new Error('Lobby non trovata: controlla che la stanza esista e che le regole Firebase siano aggiornate.');
+      var initialLobby=initialSnapshot.val();
       return new Promise(function(resolve,reject){
         lobbyRef.transaction(function(current){
-          if(current===null||!current.playerCount)return;
+          if(current===null)current=initialLobby;
+          if(!current||!current.playerCount)return;
           current.players=current.players||{};
           if(current.players[user.uid])return current;
           if(current.started)return;
@@ -225,7 +227,10 @@
         },function(error,committed,snapshot){
           if(error){reject(error);return}
           var current=snapshot&&snapshot.val();
-          if(!current||!current.players||!current.players[user.uid]){reject(new Error('Posto non assegnato: la stanza potrebbe essere piena o la partita già iniziata. Riprova o crea una nuova stanza.'));return}
+          if(!current||!current.players||!current.players[user.uid]){
+            var reason=!current?'Firebase non ha restituito i dati della lobby.':current.started?'La partita è già iniziata.':!current.playerCount?'La lobby non contiene il numero di posti previsto.':Object.keys(current.players||{}).length>=Number(current.playerCount)?'La stanza è piena.':'Firebase ha annullato la prenotazione senza assegnare il posto.';
+            reject(new Error(reason+' Se sei l’host, crea una nuova stanza; altrimenti controlla il codice e le regole Firebase.'));return;
+          }
           lobbyData=current;enterRoom();resolve();
         },false);
       });
