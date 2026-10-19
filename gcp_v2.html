@@ -119,7 +119,7 @@
 
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
   function makeEmptyCards(){return Array.from({length:49},function(){return null;})}
-  function newState(players){return {players:players.map(function(name){return {name:name,money:START_MONEY,roundPV:0,totalPV:0,cards:makeEmptyCards(),refundCard:false};}),round:1,maxRounds:players.length,pendingTopCardPlayer:null,pendingTopCardStage:null,refundModePlayer:null}}
+  function newState(players){return {players:players.map(function(name){return {name:name,money:START_MONEY,roundPV:0,totalPV:0,cards:makeEmptyCards(),refundCard:false};}),round:1,maxRounds:players.length,pendingTopCardPlayer:null,pendingTopCardStage:null,refundModePlayer:null,refundCardDrawn:false}}
   function save(){try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){}}
   function load(){try{var s=JSON.parse(localStorage.getItem(STORAGE));if(s&&s.players&&s.players.length>=3&&s.players.length<=4)return s}catch(e){}return null}
   function ownerOf(cardId){for(var p=0;p<state.players.length;p++)if(state.players[p].cards[cardId])return p;return null}
@@ -194,14 +194,20 @@
     },null,'Sì','No');
   }
   function askRefundQuestion(pi){
+    if(state.refundCardDrawn){beginTopCardPick(pi,true);return}
     ask('Carta Refund','Hai pescato la carta Refund?',function(){
+      if(state.refundCardDrawn){beginTopCardPick(pi,true);return}
       var p=state.players[pi];p.refundCard=true;
+      state.refundCardDrawn=true;
       pendingTopCardPlayer=null;state.pendingTopCardPlayer=null;state.pendingTopCardStage=null;
       save();render();
     },function(){
-      pendingTopCardPlayer=pi;state.pendingTopCardStage='pick';save();render();
-      showMessage('Scegli il Gachapon','Scegli il Gachapon che hai trovato in cima al mazzo.','Scegli carta');
+      beginTopCardPick(pi,false);
     },'Sì','No');
+  }
+  function beginTopCardPick(pi,refundAlreadyDrawn){
+    pendingTopCardPlayer=pi;state.pendingTopCardPlayer=pi;state.pendingTopCardStage='pick';save();render();
+    showMessage('Scegli il Gachapon',(refundAlreadyDrawn?'La carta Refund è già stata pescata in questo round. ':'')+'Scegli il Gachapon che hai trovato in cima al mazzo.','Scegli carta');
   }
   function toggleRefundMode(pi){
     var p=state.players[pi];if(!p.refundCard||pendingTopCardPlayer!==null)return;
@@ -264,7 +270,7 @@
   document.getElementById('newRoundBtn').onclick=function(){
     if(state.round>=state.maxRounds)return;
     ask('Nuovo round','Vuoi chiudere il round '+state.round+'? I PV del round verranno aggiunti al totale di ogni giocatore e i soldi/gachapon del round saranno azzerati.',function(){
-      state.players.forEach(function(p){p.totalPV+=calcPV(p).total;p.money=START_MONEY;p.cards=makeEmptyCards();p.roundPV=0;p.refundCard=false});state.pendingTopCardPlayer=null;state.pendingTopCardStage=null;state.refundModePlayer=null;pendingTopCardPlayer=null;refundModePlayer=null;state.round++;save();render();
+      state.players.forEach(function(p){p.totalPV+=calcPV(p).total;p.money=START_MONEY;p.cards=makeEmptyCards();p.roundPV=0;p.refundCard=false});state.pendingTopCardPlayer=null;state.pendingTopCardStage=null;state.refundModePlayer=null;state.refundCardDrawn=false;pendingTopCardPlayer=null;refundModePlayer=null;state.round++;save();render();
     });
   };
   document.getElementById('startBtn').onclick=function(){
@@ -274,7 +280,7 @@
     state=newState(names);save();document.getElementById('setupOverlay').classList.remove('open');render();
   };
   var loaded=load();
-  if(loaded){state=loaded;pendingTopCardPlayer=state.pendingTopCardPlayer===null||state.pendingTopCardPlayer===undefined?null:state.pendingTopCardPlayer;refundModePlayer=state.refundModePlayer===null||state.refundModePlayer===undefined?null:state.refundModePlayer;document.getElementById('setupOverlay').classList.remove('open');render();if(state.pendingTopCardStage==='refund')askRefundQuestion(pendingTopCardPlayer);else if(state.pendingTopCardStage==='pick')showMessage('Scegli il Gachapon','Scegli il Gachapon che hai trovato in cima al mazzo.','Scegli carta')}
+  if(loaded){state=loaded;if(state.refundCardDrawn===undefined){var refundFound=false;state.players.forEach(function(p){if(p.refundCard){if(refundFound)p.refundCard=false;else refundFound=true}});state.refundCardDrawn=refundFound}pendingTopCardPlayer=state.pendingTopCardPlayer===null||state.pendingTopCardPlayer===undefined?null:state.pendingTopCardPlayer;refundModePlayer=state.refundModePlayer===null||state.refundModePlayer===undefined?null:state.refundModePlayer;document.getElementById('setupOverlay').classList.remove('open');render();if(state.pendingTopCardStage==='refund')askRefundQuestion(pendingTopCardPlayer);else if(state.pendingTopCardStage==='pick')showMessage('Scegli il Gachapon','Scegli il Gachapon che hai trovato in cima al mazzo.','Scegli carta')}
   else{
     setupPlayerCount=3;
     updateSetupUI();
