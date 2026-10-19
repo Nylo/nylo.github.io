@@ -26,8 +26,11 @@
   .btn-reset{background:#8e2f37}
   #players{display:flex;flex-direction:column;gap:12px;align-items:stretch;width:100%}
   .player-card{background:#f8f8f8;color:var(--ink);border-radius:16px;overflow:hidden;box-shadow:0 5px 18px rgba(0,0,0,.35);min-width:0}
-  .player-head{padding:11px 12px 9px;display:grid;grid-template-columns:1fr auto;gap:5px 10px;align-items:center;border-bottom:1px solid #ddd}
+  .player-head{padding:11px 12px 9px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:5px 10px;align-items:center;border-bottom:1px solid #ddd}
   .player-name{font-weight:900;font-size:clamp(15px,2.6vw,22px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .head-card-actions{display:flex;gap:5px;align-items:center}
+  .head-action{border:0;border-radius:7px;padding:7px 8px;font-size:10px;font-weight:900;color:#fff;background:#4b4e57;white-space:nowrap}
+  .head-action.refund{background:var(--green-dark)}.head-action.refund.active{background:#b07813;box-shadow:0 0 0 2px #f0cf76}
   .money{text-align:right;font-size:clamp(18px,3vw,25px);font-weight:900;white-space:nowrap}
   .money small{font-size:.58em;color:#777;font-weight:800}
   .pv-row{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
@@ -39,6 +42,8 @@
   .cell img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none}
   .cell.available:hover{box-shadow:inset 0 0 0 2px #aaa}
   .cell.mine{background:#4fe27f;border-color:#198d4c;box-shadow:inset 0 0 0 2px rgba(16,101,50,.35)}
+  .cell.refund-target{cursor:pointer;box-shadow:inset 0 0 0 3px #d89b24}
+  .cell.refund-target:hover{filter:brightness(.9)}
   .cell.taken{background:#c8c9cc;filter:grayscale(.2);cursor:not-allowed;opacity:.75}
   .cell .yen{position:absolute;right:3px;bottom:2px;font-size:clamp(7px,1.1vw,10px);font-weight:900;color:#333;background:rgba(255,255,255,.78);border-radius:4px;padding:1px 2px;line-height:1}
   .cell.mine .yen{background:rgba(255,255,255,.82)}
@@ -104,7 +109,7 @@
   var TYPE_LABELS=['Maiale','Rana','Cactus','Gatto','Moto','Blob','Robot'];
   var IMG=[];
   var state=null;
-  var confirmAction=null;
+  var confirmAction=null,confirmCancelAction=null,pendingTopCardPlayer=null,refundModePlayer=null;
 
   // Le 49 carte sono le 7x7 dell'immagine gcp2.jpg. La disposizione è ciclica:
   // nella riga r, la colonna c contiene il tipo (c-r) mod 7; il colore è quello della riga.
@@ -114,7 +119,7 @@
 
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
   function makeEmptyCards(){return Array.from({length:49},function(){return null;})}
-  function newState(players){return {players:players.map(function(name){return {name:name,money:START_MONEY,roundPV:0,totalPV:0,cards:makeEmptyCards()};}),round:1,maxRounds:players.length}}
+  function newState(players){return {players:players.map(function(name){return {name:name,money:START_MONEY,roundPV:0,totalPV:0,cards:makeEmptyCards(),refundCard:false};}),round:1,maxRounds:players.length,pendingTopCardPlayer:null,pendingTopCardStage:null,refundModePlayer:null}}
   function save(){try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){}}
   function load(){try{var s=JSON.parse(localStorage.getItem(STORAGE));if(s&&s.players&&s.players.length>=3&&s.players.length<=4)return s}catch(e){}return null}
   function ownerOf(cardId){for(var p=0;p<state.players.length;p++)if(state.players[p].cards[cardId])return p;return null}
@@ -133,7 +138,9 @@
       var pv=calcPV(p);p.roundPV=pv.total;
       var card=document.createElement('section');card.className='player-card';
       var head=document.createElement('div');head.className='player-head';
-      head.innerHTML='<div class="player-name">'+esc(p.name||('Giocatore '+(pi+1)))+'</div><div class="money">'+p.money.toLocaleString('it-IT')+'<small> ¥</small></div><div class="pv-row"><span class="round-pv">PV round: <b>'+pv.total+'</b></span><span class="round-details"><span>Set: <b>'+pv.set+'</b></span><span>Yen/200: <b>'+pv.yen+'</b></span><span>Carte: <b>'+p.cards.filter(Boolean).length+'</b></span></span><span class="total-pv">Totale PV: <span>'+p.totalPV+'</span></span></div>';
+      head.innerHTML='<div class="player-name">'+esc(p.name||('Giocatore '+(pi+1)))+'</div><div class="head-card-actions"><button class="head-action top-card" type="button">Top card</button>'+(p.refundCard?'<button class="head-action refund'+(refundModePlayer===pi?' active':'')+'" type="button">'+(refundModePlayer===pi?'Annulla Refund':'Refund card')+'</button>':'')+'</div><div class="money">'+p.money.toLocaleString('it-IT')+'<small> ¥</small></div><div class="pv-row"><span class="round-pv">PV round: <b>'+pv.total+'</b></span><span class="round-details"><span>Set: <b>'+pv.set+'</b></span><span>Yen/200: <b>'+pv.yen+'</b></span><span>Carte: <b>'+p.cards.filter(Boolean).length+'</b></span></span><span class="total-pv">Totale PV: <span>'+p.totalPV+'</span></span></div>';
+      head.querySelector('.top-card').addEventListener('click',function(){buyTopCard(pi)});
+      if(p.refundCard)head.querySelector('.refund').addEventListener('click',function(){toggleRefundMode(pi)});
       card.appendChild(head);
       var wrap=document.createElement('div');wrap.className='grid-wrap';
       var grid=document.createElement('div');grid.className='toy-grid';
@@ -141,8 +148,21 @@
         var id=r*7+c, owner=ownerOf(id), cell=document.createElement('button');cell.className='cell';cell.type='button';
         var img=document.createElement('img');img.src=IMAGES[id];img.alt=TYPE_LABELS[(c-r+7)%7]+' '+VALUES[c]+' Yen';cell.appendChild(img);
         var yen=document.createElement('span');yen.className='yen';yen.textContent='¥'+VALUES[c];cell.appendChild(yen);
-        if(owner===null){cell.classList.add('available');cell.addEventListener('click',function(id,pi){return function(){takeCard(pi,id)}}(id,pi))}
-        else if(owner===pi){cell.classList.add('mine');cell.addEventListener('click',function(id,pi){return function(){releaseCard(pi,id)}}(id,pi))}
+        if(owner===null){
+          cell.classList.add('available');
+          if(pendingTopCardPlayer!==null){
+            if(pi===pendingTopCardPlayer)cell.addEventListener('click',function(id,pi){return function(){takeTopCard(pi,id)}}(id,pi));
+            else cell.disabled=true;
+          }else if(refundModePlayer!==null)cell.disabled=true;
+          else cell.addEventListener('click',function(id,pi){return function(){takeCard(pi,id)}}(id,pi));
+        }
+        else if(owner===pi){
+          cell.classList.add('mine');
+          if(refundModePlayer!==null){
+            if(refundModePlayer===pi){cell.classList.add('refund-target');cell.addEventListener('click',function(id,pi){return function(){refundOwnedCard(pi,id)}}(id,pi))}
+            else cell.disabled=true;
+          }else cell.addEventListener('click',function(id,pi){return function(){releaseCard(pi,id)}}(id,pi));
+        }
         else{cell.classList.add('taken');cell.disabled=true}
         grid.appendChild(cell);
       }
@@ -158,12 +178,48 @@
     if(p.money<value){alert('Soldi insufficienti per questo gachapon.');return}
     p.cards[id]=true;p.money-=value;refreshPlayerPV(p);save();render();
   }
+  function takeTopCard(pi,id){
+    if(pendingTopCardPlayer!==pi||ownerOf(id)!==null)return;
+    state.players[pi].cards[id]=true;
+    pendingTopCardPlayer=null;state.pendingTopCardPlayer=null;state.pendingTopCardStage=null;
+    refreshPlayerPV(state.players[pi]);save();render();
+  }
+  function buyTopCard(pi){
+    var p=state.players[pi];
+    if(p.money<500){alert('Yen insufficienti per comprare una Top card.');return}
+    if(pendingTopCardPlayer!==null||refundModePlayer!==null)return;
+    ask('Top card','Sei sicuro di voler comprare una carta per 500 Yen? L’operazione è irreversibile.',function(){
+      p.money-=500;state.pendingTopCardPlayer=pi;state.pendingTopCardStage='refund';pendingTopCardPlayer=pi;
+      refreshPlayerPV(p);save();render();askRefundQuestion(pi);
+    },null,'Sì','No');
+  }
+  function askRefundQuestion(pi){
+    ask('Carta Refund','Hai pescato la carta Refund?',function(){
+      var p=state.players[pi];p.refundCard=true;
+      pendingTopCardPlayer=null;state.pendingTopCardPlayer=null;state.pendingTopCardStage=null;
+      save();render();
+    },function(){
+      pendingTopCardPlayer=pi;state.pendingTopCardStage='pick';save();render();
+      showMessage('Scegli il Gachapon','Scegli il Gachapon che hai trovato in cima al mazzo.','Scegli carta');
+    },'Sì','No');
+  }
+  function toggleRefundMode(pi){
+    var p=state.players[pi];if(!p.refundCard||pendingTopCardPlayer!==null)return;
+    refundModePlayer=refundModePlayer===pi?null:pi;state.refundModePlayer=refundModePlayer;save();render();
+  }
+  function refundOwnedCard(pi,id){
+    if(refundModePlayer!==pi||ownerOf(id)!==pi)return;
+    var p=state.players[pi];p.cards[id]=false;p.money+=VALUES[id%7];p.refundCard=false;
+    refundModePlayer=null;state.refundModePlayer=null;
+    refreshPlayerPV(p);save();render();
+  }
   function releaseCard(pi,id){
     var p=state.players[pi];if(!p.cards[id])return;p.cards[id]=false;p.money+=VALUES[id%7];refreshPlayerPV(p);save();render();
   }
-  function ask(title,text,fn){document.getElementById('confirmTitle').textContent=title;document.getElementById('confirmText').textContent=text;confirmAction=fn;document.getElementById('confirmOverlay').classList.add('open')}
-  function closeConfirm(){confirmAction=null;document.getElementById('confirmOverlay').classList.remove('open')}
-  document.getElementById('confirmNo').onclick=closeConfirm;
+  function ask(title,text,fn,onCancel,yesText,noText){document.getElementById('confirmTitle').textContent=title;document.getElementById('confirmText').textContent=text;confirmAction=fn;confirmCancelAction=onCancel;document.getElementById('confirmYes').textContent=yesText||'Conferma';document.getElementById('confirmNo').textContent=noText||'Annulla';document.getElementById('confirmNo').style.display='';document.getElementById('confirmOverlay').classList.add('open')}
+  function showMessage(title,text,buttonText){document.getElementById('confirmTitle').textContent=title;document.getElementById('confirmText').textContent=text;confirmAction=null;confirmCancelAction=null;document.getElementById('confirmYes').textContent=buttonText;document.getElementById('confirmNo').style.display='none';document.getElementById('confirmOverlay').classList.add('open')}
+  function closeConfirm(){confirmAction=null;confirmCancelAction=null;document.getElementById('confirmYes').textContent='Conferma';document.getElementById('confirmNo').textContent='Annulla';document.getElementById('confirmNo').style.display='';document.getElementById('confirmOverlay').classList.remove('open')}
+  document.getElementById('confirmNo').onclick=function(){var fn=confirmCancelAction;closeConfirm();if(fn)fn()};
   document.getElementById('confirmYes').onclick=function(){var fn=confirmAction;closeConfirm();if(fn)fn()};
   var setupPlayerCount=3;
   function updateSetupUI(){
@@ -208,7 +264,7 @@
   document.getElementById('newRoundBtn').onclick=function(){
     if(state.round>=state.maxRounds)return;
     ask('Nuovo round','Vuoi chiudere il round '+state.round+'? I PV del round verranno aggiunti al totale di ogni giocatore e i soldi/gachapon del round saranno azzerati.',function(){
-      state.players.forEach(function(p){p.totalPV+=calcPV(p).total;p.money=START_MONEY;p.cards=makeEmptyCards();p.roundPV=0});state.round++;save();render();
+      state.players.forEach(function(p){p.totalPV+=calcPV(p).total;p.money=START_MONEY;p.cards=makeEmptyCards();p.roundPV=0;p.refundCard=false});state.pendingTopCardPlayer=null;state.pendingTopCardStage=null;state.refundModePlayer=null;pendingTopCardPlayer=null;refundModePlayer=null;state.round++;save();render();
     });
   };
   document.getElementById('startBtn').onclick=function(){
@@ -218,7 +274,7 @@
     state=newState(names);save();document.getElementById('setupOverlay').classList.remove('open');render();
   };
   var loaded=load();
-  if(loaded){state=loaded;document.getElementById('setupOverlay').classList.remove('open');render()}
+  if(loaded){state=loaded;pendingTopCardPlayer=state.pendingTopCardPlayer===null||state.pendingTopCardPlayer===undefined?null:state.pendingTopCardPlayer;refundModePlayer=state.refundModePlayer===null||state.refundModePlayer===undefined?null:state.refundModePlayer;document.getElementById('setupOverlay').classList.remove('open');render();if(state.pendingTopCardStage==='refund')askRefundQuestion(pendingTopCardPlayer);else if(state.pendingTopCardStage==='pick')showMessage('Scegli il Gachapon','Scegli il Gachapon che hai trovato in cima al mazzo.','Scegli carta')}
   else{
     setupPlayerCount=3;
     updateSetupUI();
