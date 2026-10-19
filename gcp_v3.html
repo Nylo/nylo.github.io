@@ -111,7 +111,6 @@
     <h1 id="waitingTitle">Lobby</h1>
     <p id="waitingDescription">In attesa dei giocatori.</p>
     <ul class="roster" id="roomRoster"></ul>
-    <button class="action" id="startGame" type="button" style="display:none" disabled>Avvia partita</button>
   </div>
   <iframe id="gameFrame" title="Partita Gachapon Trick" style="display:none"></iframe>
 </section>
@@ -136,7 +135,7 @@
   var status=document.getElementById('status');
   var frame=document.getElementById('gameFrame');
   var db=null,user=null,roomRef=null,roomCode='',storageKey='',roomListeners=[],lobbyData=null;
-  var frameReady=false,lastLocalState=null,lastRemoteState=null,loadingRemote=false,writePending=false,pollTimer=null;
+  var frameReady=false,lastLocalState=null,lastRemoteState=null,loadingRemote=false,writePending=false,startingGame=false,pollTimer=null;
   var gameHtmlPromise=null,gameHtml=null;
 
   function setStatus(text){status.textContent=text}
@@ -253,10 +252,9 @@
       }else{name.textContent='In attesa di un giocatore';name.style.color='var(--muted)';item.appendChild(name)}
       list.appendChild(item);
     }
-    var start=document.getElementById('startGame');
-    start.style.display=isHost&&!data.started?'block':'none';start.disabled=!full||Boolean(data.started);
-    start.textContent=full?'Avvia partita':'In attesa dei giocatori';
-    document.getElementById('connectionStatus').textContent=data.started?'Avvio...':(full?'Pronta per iniziare':'In attesa');
+    document.getElementById('connectionStatus').textContent=data.started?'Avvio...':(full?'Tutti presenti':'In attesa');
+    document.getElementById('waitingDescription').textContent=data.started?'La partita si sta caricando...':(players.length+' / '+count+' giocatori'+(full?' - avvio automatico in corso':' - in attesa degli altri'));
+    if(full&&isHost&&!data.started&&!startingGame)startGame();
   }
   function makeInitialState(data){
     return {
@@ -265,13 +263,14 @@
     };
   }
   function startGame(){
-    if(!lobbyData||lobbyData.hostUid!==user.uid||orderedPlayers(lobbyData).length!==Number(lobbyData.playerCount)||lobbyData.started)return;
-    var initialState=makeInitialState(lobbyData),button=document.getElementById('startGame');
-    button.disabled=true;document.getElementById('connectionStatus').textContent='Avvio della partita...';
+    if(!lobbyData||lobbyData.hostUid!==user.uid||orderedPlayers(lobbyData).length!==Number(lobbyData.playerCount)||lobbyData.started||startingGame)return;
+    startingGame=true;
+    var initialState=makeInitialState(lobbyData);
+    document.getElementById('connectionStatus').textContent='Avvio automatico...';
     roomRef.child('state').transaction(function(current){if(current!==null)return;return initialState},function(error,committed,snapshot){
-      if(error){button.disabled=false;setStatus('Errore durante l’avvio: '+error.message);return}
-      if(!committed&&snapshot&&snapshot.exists()){setStatus('La partita è già stata avviata.');return}
-      roomRef.child('lobby/started').set(true).catch(function(writeError){setStatus('Partita avviata, ma la lobby non si è aggiornata: '+writeError.message)});
+      if(error){startingGame=false;setStatus('Errore durante l’avvio: '+error.message);return}
+      if(!committed&&snapshot&&snapshot.exists()){startingGame=false;return}
+      roomRef.child('lobby/started').set(true).catch(function(writeError){startingGame=false;setStatus('Partita avviata, ma la lobby non si è aggiornata: '+writeError.message)});
     },false);
   }
   function enterRoom(){
@@ -307,7 +306,7 @@
     else localStorage.removeItem(storageKey);
     if(!gameHtmlPromise)gameHtmlPromise=fetch('gcp_v2.html').then(function(response){if(!response.ok)throw new Error('Impossibile caricare gcp_v2.html.');return response.text()});
     gameHtmlPromise.then(function(html){
-      html=html.replace('<head>','<head><base href="./"><script>window.GCP_LOCAL_PLAYER_UID='+JSON.stringify(user.uid)+';<\/script>');
+      html=html.replace('<head>','<head><base href="./"><script>window.GCP_LOCAL_PLAYER_UID='+JSON.stringify(user.uid)+';window.addEventListener("error",function(event){parent.postMessage({type:"gcp-v3-frame-error",message:event.message||"Errore JavaScript nella griglia"},"*")});window.addEventListener("unhandledrejection",function(event){parent.postMessage({type:"gcp-v3-frame-error",message:event.reason&&event.reason.message||String(event.reason)},"*")});<\/script>');
       html=html.replace(/var STORAGE='[^']+';/,"var STORAGE='"+storageKey+"';");
       html=html.replace('Counter v2','Counter v3');
       var renderMarker='state.players.forEach(function(p,pi){';
@@ -386,7 +385,6 @@
   }
   document.getElementById('createRoom').onclick=createRoom;
   document.getElementById('joinRoom').onclick=joinRoom;
-  document.getElementById('startGame').onclick=startGame;
   document.getElementById('joinCode').addEventListener('input',function(){this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')});
   document.getElementById('joinCode').addEventListener('keydown',function(event){if(event.key==='Enter')joinRoom()});
   document.getElementById('copyCode').onclick=function(){
@@ -395,6 +393,11 @@
     else window.prompt('Copia il codice stanza:',text);
   };
   document.getElementById('leaveRoom').onclick=leaveRoom;
+  window.addEventListener('message',function(event){
+    if(event.source!==frame.contentWindow||!event.data||event.data.type!=='gcp-v3-frame-error')return;
+    document.getElementById('connectionStatus').textContent='Errore nella griglia';
+    setStatus('Errore JavaScript nell’interfaccia di gioco: '+event.data.message);
+  });
   window.addEventListener('beforeunload',cleanup);
 })();
 </script>
