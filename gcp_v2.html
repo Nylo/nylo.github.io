@@ -30,8 +30,9 @@
   .player-name{font-weight:900;font-size:clamp(15px,2.6vw,22px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .money{text-align:right;font-size:clamp(18px,3vw,25px);font-weight:900;white-space:nowrap}
   .money small{font-size:.58em;color:#777;font-weight:800}
-  .pv-row{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .pv-row{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
   .round-pv{font-size:12px;color:#666;font-weight:800}.total-pv{font-size:13px;color:#222;font-weight:900}.total-pv span{font-size:20px;color:var(--red)}
+  .round-details{display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:#666;font-weight:700}.round-details b{color:#222}
   .grid-wrap{padding:8px;background:#eee}
   .toy-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;background:#d8d8d8;padding:4px;border-radius:10px}
   .cell{position:relative;aspect-ratio:1;background:#fff;border:1px solid #e4e4e4;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;transition:.12s;min-width:0}
@@ -41,9 +42,6 @@
   .cell.taken{background:#c8c9cc;filter:grayscale(.2);cursor:not-allowed;opacity:.75}
   .cell .yen{position:absolute;right:3px;bottom:2px;font-size:clamp(7px,1.1vw,10px);font-weight:900;color:#333;background:rgba(255,255,255,.78);border-radius:4px;padding:1px 2px;line-height:1}
   .cell.mine .yen{background:rgba(255,255,255,.82)}
-  .legend{padding:8px 10px 11px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;color:#777}
-  .legend span{display:flex;align-items:center;gap:4px}.dot{width:10px;height:10px;border-radius:3px;border:1px solid #aaa;background:#fff}.dot.g{background:#4fe27f;border-color:#198d4c}.dot.x{background:#c8c9cc}
-  .score-breakdown{padding:0 10px 11px;font-size:11px;color:#666;display:flex;gap:8px;flex-wrap:wrap}.score-breakdown b{color:#222}
   .empty{padding:35px;text-align:center;color:#aaa}
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;display:none;align-items:center;justify-content:center;padding:18px}
   .overlay.open{display:flex}
@@ -51,7 +49,7 @@
   .modal h1{margin:0 0 5px;font-size:22px}.modal p{margin:0 0 18px;color:#666;font-size:13px;line-height:1.4}
   .player-setup{display:grid;gap:10px}
   .setup-row{display:grid;grid-template-columns:100px 1fr;gap:8px;align-items:center}
-  .setup-row label{font-weight:900;font-size:13px}.setup-row input{height:40px;border:1px solid #c9c9c9;border-radius:9px;padding:0 10px;background:#fff;min-width:0}.setup-add{width:100%;margin-top:2px;height:40px;border:1px dashed #aaa;border-radius:9px;background:#fff;color:#333;font-weight:900;cursor:pointer}.setup-add:active{transform:scale(.99)}
+  .setup-row label{font-weight:900;font-size:13px}.setup-row input{height:40px;border:1px solid #c9c9c9;border-radius:9px;padding:0 10px;background:#fff;min-width:0}.setup-add,.setup-remove{width:100%;margin-top:2px;height:40px;border:1px dashed #aaa;border-radius:9px;background:#fff;color:#333;font-weight:900;cursor:pointer}.setup-add:active,.setup-remove:active{transform:scale(.99)}.setup-remove{border-color:#c99;color:#8e2f37}
   .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:17px}.primary{background:var(--red);color:#fff;border:0;border-radius:10px;padding:11px 17px;font-weight:900}.secondary{background:#ddd;color:#222;border:0;border-radius:10px;padding:11px 17px;font-weight:900}
   .confirm-text{font-size:15px;line-height:1.45;margin:6px 0 0}
   @media(min-width:720px){.player-card{width:100%}}
@@ -82,6 +80,7 @@
       <div class="setup-row"><label>Giocatore 3</label><input id="name3" maxlength="18" placeholder="Nome"></div>
     </div>
     <button class="setup-add" id="addPlayerBtn" type="button">+ Aggiungi giocatore</button>
+    <button class="setup-remove" id="removePlayerBtn" type="button" style="display:none">- Rimuovi quarto giocatore</button>
     <div class="modal-actions"><button class="primary" id="startBtn">Inizia partita</button></div>
   </div>
 </div>
@@ -120,10 +119,11 @@
   function load(){try{var s=JSON.parse(localStorage.getItem(STORAGE));if(s&&s.players&&s.players.length>=3&&s.players.length<=4)return s}catch(e){}return null}
   function ownerOf(cardId){for(var p=0;p<state.players.length;p++)if(state.players[p].cards[cardId])return p;return null}
   function calcPV(p){
-    var counts=Array(7).fill(0), yen=0;
-    p.cards.forEach(function(v,id){if(v){var r=Math.floor(id/7),c=id%7,t=(c-r+7)%7;counts[t]++;yen+=VALUES[c]}});
+    var counts=Array(7).fill(0);
+    p.cards.forEach(function(v,id){if(v){var r=Math.floor(id/7),c=id%7,t=(c-r+7)%7;counts[t]++}});
     var set=counts.reduce(function(a,n){return a+n*n},0);
-    return {set:set,yen:Math.floor(yen/200),total:set+Math.floor(yen/200)};
+    var yenPoints=Math.floor(p.money/200);
+    return {set:set,yen:yenPoints,total:set+yenPoints};
   }
   function refreshPlayerPV(p){var x=calcPV(p);p.roundPV=x.total;return x}
   function render(){
@@ -133,7 +133,7 @@
       var pv=calcPV(p);p.roundPV=pv.total;
       var card=document.createElement('section');card.className='player-card';
       var head=document.createElement('div');head.className='player-head';
-      head.innerHTML='<div class="player-name">'+esc(p.name||('Giocatore '+(pi+1)))+'</div><div class="money">'+p.money.toLocaleString('it-IT')+'<small> ¥</small></div><div class="pv-row"><span class="round-pv">PV round: <b>'+pv.total+'</b></span><span class="total-pv">Totale PV: <span>'+p.totalPV+'</span></span></div>';
+      head.innerHTML='<div class="player-name">'+esc(p.name||('Giocatore '+(pi+1)))+'</div><div class="money">'+p.money.toLocaleString('it-IT')+'<small> ¥</small></div><div class="pv-row"><span class="round-pv">PV round: <b>'+pv.total+'</b></span><span class="round-details"><span>Set: <b>'+pv.set+'</b></span><span>Yen/200: <b>'+pv.yen+'</b></span><span>Carte: <b>'+p.cards.filter(Boolean).length+'</b></span></span><span class="total-pv">Totale PV: <span>'+p.totalPV+'</span></span></div>';
       card.appendChild(head);
       var wrap=document.createElement('div');wrap.className='grid-wrap';
       var grid=document.createElement('div');grid.className='toy-grid';
@@ -147,10 +147,7 @@
         grid.appendChild(cell);
       }
       wrap.appendChild(grid);card.appendChild(wrap);
-      var breakdown=document.createElement('div');breakdown.className='score-breakdown';breakdown.innerHTML='<span>Set: <b>'+pv.set+'</b></span><span>Yen/200: <b>'+pv.yen+'</b></span><span>Carte: <b>'+p.cards.filter(Boolean).length+'</b></span>';
-      card.appendChild(breakdown);
-      var legend=document.createElement('div');legend.className='legend';legend.innerHTML='<span><i class="dot g"></i> mio</span><span><i class="dot"></i> disponibile</span><span><i class="dot x"></i> altro giocatore</span>';
-      card.appendChild(legend);root.appendChild(card);
+      root.appendChild(card);
     });
     document.getElementById('newRoundBtn').disabled=state.round>=state.maxRounds;
     document.getElementById('newRoundBtn').style.opacity=state.round>=state.maxRounds?.45:1;
@@ -178,9 +175,11 @@
         document.getElementById('playerSetup').appendChild(row4);
       }
       document.getElementById('addPlayerBtn').style.display='none';
+      document.getElementById('removePlayerBtn').style.display='block';
     }else{
       if(row4)row4.remove();
       document.getElementById('addPlayerBtn').style.display='block';
+      document.getElementById('removePlayerBtn').style.display='none';
     }
   }
   document.getElementById('addPlayerBtn').onclick=function(){
@@ -188,6 +187,11 @@
     setupPlayerCount=4;
     updateSetupUI();
     document.getElementById('name4').focus();
+  };
+  document.getElementById('removePlayerBtn').onclick=function(){
+    if(setupPlayerCount<4)return;
+    setupPlayerCount=3;
+    updateSetupUI();
   };
   function openSetupForNewGame(){
     setupPlayerCount=state&&state.players&&state.players.length===4?4:3;
