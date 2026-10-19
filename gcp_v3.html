@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gachapon Trick - Stanze</title>
+<style>
+  :root{color-scheme:dark;--bg:#202126;--panel:#2a2b31;--line:#454750;--red:#d2232b;--green:#1d7e45;--blue:#159ac2;--text:#f5f5f5;--muted:#b9bbc0}
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+  button,input{font:inherit}
+  button{cursor:pointer;touch-action:manipulation}
+  .lobby{min-height:100dvh;display:grid;place-items:center;padding:20px}
+  .lobby-inner{width:min(460px,100%)}
+  .brand{margin:0 0 6px;font-size:24px;font-weight:900}
+  .subtitle{margin:0 0 22px;color:var(--muted);font-size:14px}
+  .panel{padding:18px 0;border-top:1px solid var(--line)}
+  .panel h2{margin:0 0 12px;font-size:16px}
+  .field{height:42px;width:100%;padding:0 11px;border:1px solid #555862;border-radius:8px;background:#17181c;color:#fff}
+  .action{width:100%;min-height:42px;margin-top:9px;padding:10px 13px;border:0;border-radius:8px;background:var(--green);color:#fff;font-weight:800}
+  .action.join{background:var(--blue)}
+  .status{min-height:20px;margin:14px 0 0;color:var(--muted);font-size:13px;line-height:1.4}
+  details{margin-top:20px;color:var(--muted);font-size:12px;line-height:1.5}
+  summary{cursor:pointer;color:#ddd;font-weight:700}
+  details p{margin:8px 0 0}
+  .rules{overflow:auto;max-height:230px;margin-top:10px;padding:10px;border-radius:6px;background:#17181c;color:#ddd;font:11px/1.4 Consolas,monospace;white-space:pre-wrap;word-break:break-all}
+  .room{display:none;height:100dvh;grid-template-rows:auto minmax(0,1fr)}
+  .room-bar{display:flex;align-items:center;gap:9px;min-height:42px;padding:5px 10px;background:#17181c;color:#fff;font-size:12px}
+  .room-label{font-weight:900;white-space:nowrap}
+  .room-code{padding:4px 7px;border:1px solid #52545d;border-radius:5px;font-family:Consolas,monospace;letter-spacing:1px}
+  .room-spacer{flex:1}
+  .room-bar button{border:0;border-radius:6px;padding:7px 9px;background:#444751;color:#fff;font-size:11px;font-weight:800}
+  .room-bar .leave{background:#8e2f37}
+  #gameFrame{width:100%;height:100%;border:0;background:var(--bg)}
+  @media(max-width:480px){.room-bar{gap:6px;padding:5px}.room-bar button{padding:7px;font-size:10px}.room-label{font-size:10px}.room-code{padding:4px;font-size:11px}}
+</style>
+</head>
+<body>
+<section class="lobby" id="lobby">
+  <div class="lobby-inner">
+    <h1 class="brand">GACHAPON TRICK</h1>
+    <p class="subtitle">Crea una stanza o unisciti a una partita condivisa.</p>
+    <div class="panel">
+      <h2>Crea una stanza</h2>
+      <button class="action" id="createRoom" type="button">Crea stanza</button>
+    </div>
+    <div class="panel">
+      <h2>Unisciti a una stanza</h2>
+      <input class="field" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" aria-label="Codice stanza">
+      <button class="action join" id="joinRoom" type="button">Unisciti</button>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <details>
+      <summary>Configurazione Firebase richiesta</summary>
+      <p>Inserisci la configurazione Web Firebase nel codice di questo file, abilita Firebase Authentication anonima e crea un Realtime Database. Applica queste regole al database:</p>
+      <pre class="rules">{
+  "rules": {
+    "rooms": {
+      "$room": {
+        "hostUid": {
+          ".write": "auth != null &amp;&amp; !data.exists() &amp;&amp; newData.val() === auth.uid"
+        },
+        "members": {
+          "$uid": {
+            ".write": "auth != null &amp;&amp; $uid === auth.uid &amp;&amp; !data.exists() &amp;&amp; newData.val() === true &amp;&amp; root.child('rooms').child($room).child('hostUid').exists() &amp;&amp; root.child('rooms').child($room).child('members').numChildren() &lt; 4"
+          }
+        },
+        "state": {
+          ".read": "auth != null &amp;&amp; root.child('rooms').child($room).child('members').child(auth.uid).val() === true",
+          ".write": "auth != null &amp;&amp; root.child('rooms').child($room).child('members').child(auth.uid).val() === true"
+        }
+      }
+    }
+  }
+}</pre>
+    </details>
+  </div>
+</section>
+<section class="room" id="room">
+  <header class="room-bar">
+    <span class="room-label">STANZA</span>
+    <span class="room-code" id="roomCodeLabel"></span>
+    <button id="copyCode" type="button">Copia codice</button>
+    <span class="room-spacer"></span>
+    <span id="connectionStatus">Connesso</span>
+    <button class="leave" id="leaveRoom" type="button">Esci</button>
+  </header>
+  <iframe id="gameFrame" title="Partita Gachapon Trick"></iframe>
+</section>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+(function(){
+  'use strict';
+  var FIREBASE_CONFIG={
+    apiKey:'INSERISCI_API_KEY',
+    authDomain:'INSERISCI_PROJECT_ID.firebaseapp.com',
+    databaseURL:'https://INSERISCI_PROJECT_ID-default-rtdb.europe-west1.firebasedatabase.app',
+    projectId:'INSERISCI_PROJECT_ID',
+    appId:'INSERISCI_APP_ID'
+  };
+  var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var lobby=document.getElementById('lobby');
+  var room=document.getElementById('room');
+  var status=document.getElementById('status');
+  var frame=document.getElementById('gameFrame');
+  var db=null,user=null,roomRef=null,roomCode='',storageKey='',roomListener=null;
+  var frameReady=false,lastLocalState=null,lastRemoteState=null,loadingRemote=false,writePending=false,pollTimer=null;
+  var gameHtmlPromise=null;
+
+  function setStatus(text){status.textContent=text}
+  function stableStringify(value){
+    if(Array.isArray(value))return '['+value.map(stableStringify).join(',')+']';
+    if(value&&typeof value==='object')return '{'+Object.keys(value).sort().map(function(key){return JSON.stringify(key)+':'+stableStringify(value[key])}).join(',')+'}';
+    return JSON.stringify(value);
+  }
+  function validConfig(){return FIREBASE_CONFIG.apiKey!=='INSERISCI_API_KEY'&&FIREBASE_CONFIG.projectId!=='INSERISCI_PROJECT_ID'&&FIREBASE_CONFIG.appId!=='INSERISCI_APP_ID'&&FIREBASE_CONFIG.databaseURL.indexOf('INSERISCI_PROJECT_ID')===-1}
+  function generateCode(){var bytes=new Uint8Array(12);crypto.getRandomValues(bytes);return Array.from(bytes,function(value){return ALPHABET[value%ALPHABET.length]}).join('')}
+  async function connect(){
+    if(!validConfig())throw new Error('Configura Firebase nei valori FIREBASE_CONFIG in gcp_v3.html.');
+    if(!window.firebase)throw new Error('Firebase non è stato caricato. Controlla la connessione a Internet.');
+    if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+    db=firebase.database();
+    var result=await firebase.auth().signInAnonymously();
+    user=result.user;
+  }
+  async function createRoom(){
+    try{
+      setStatus('Connessione a Firebase...');
+      await connect();
+      var created=false;
+      for(var attempt=0;attempt<5&&!created;attempt++){
+        roomCode=generateCode();
+        roomRef=db.ref('rooms/'+roomCode);
+        try{
+          await roomRef.child('hostUid').set(user.uid);
+          await roomRef.child('members/'+user.uid).set(true);
+          created=true;
+        }catch(error){roomRef=null}
+      }
+      if(!created)throw new Error('Non riesco a creare una stanza. Verifica le regole del Realtime Database.');
+      enterRoom(true);
+    }catch(error){setStatus(error.message||'Errore durante la creazione della stanza.')}
+  }
+  async function joinRoom(){
+    try{
+      roomCode=document.getElementById('joinCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+      if(roomCode.length!==12)throw new Error('Inserisci un codice stanza di 12 caratteri.');
+      setStatus('Connessione alla stanza...');
+      await connect();
+      roomRef=db.ref('rooms/'+roomCode);
+      await roomRef.child('members/'+user.uid).set(true);
+      enterRoom(false);
+    }catch(error){setStatus(error.code==='PERMISSION_DENIED'?'Stanza non trovata, piena o non accessibile.':(error.message||'Errore durante l’accesso alla stanza.'))}
+  }
+  function enterRoom(isHost){
+    storageKey='gcp-v3-room-'+roomCode;
+    document.getElementById('roomCodeLabel').textContent=roomCode;
+    document.getElementById('connectionStatus').textContent=isHost?'In attesa della partita':'In attesa dell’host';
+    lobby.style.display='none';room.style.display='grid';
+    if(isHost)loadGameFrame(null);
+    roomListener=roomRef.child('state').on('value',function(snapshot){
+      if(!snapshot.exists())return;
+      var incoming=stableStringify(snapshot.val());
+      if(!writePending)lastRemoteState=incoming;
+      var local=localStorage.getItem(storageKey);
+      var localNormalized=local?stableStringify(JSON.parse(local)):null;
+      if(!frameReady){
+        localStorage.setItem(storageKey,incoming);
+        lastLocalState=incoming;
+        loadGameFrame(incoming);
+      }else if(incoming!==localNormalized&&incoming!==lastLocalState){
+        loadingRemote=true;
+        localStorage.setItem(storageKey,incoming);
+        lastLocalState=incoming;
+        document.getElementById('connectionStatus').textContent='Partita sincronizzata';
+        frame.contentWindow.location.reload();
+        window.setTimeout(function(){loadingRemote=false},400);
+      }
+    },function(error){document.getElementById('connectionStatus').textContent='Errore di connessione';setStatus(error.message)});
+    pollTimer=window.setInterval(publishLocalState,400);
+  }
+  function loadGameFrame(initialState){
+    if(initialState!==null)localStorage.setItem(storageKey,initialState);
+    else localStorage.removeItem(storageKey);
+    if(!gameHtmlPromise)gameHtmlPromise=fetch('gcp_v2.html').then(function(response){if(!response.ok)throw new Error('Impossibile caricare gcp_v2.html.');return response.text()});
+    gameHtmlPromise.then(function(html){
+      html=html.replace('<head>','<head><base href="./">');
+      html=html.replace(/var STORAGE='[^']+';/,"var STORAGE='"+storageKey+"';");
+      html=html.replace('Counter v2','Counter v3');
+      frame.onload=function(){frameReady=true;document.getElementById('connectionStatus').textContent='Connesso'};
+      frame.srcdoc=html;
+    }).catch(function(error){setStatus(error.message)});
+  }
+  function publishLocalState(){
+    if(!roomRef||!frameReady||loadingRemote||writePending)return;
+    var serialized=localStorage.getItem(storageKey);
+    if(!serialized)return;
+    try{
+      var gameState=JSON.parse(serialized);
+      var normalized=stableStringify(gameState);
+      if(normalized===lastLocalState)return;
+      lastLocalState=normalized;
+      var baseline=lastRemoteState;
+      writePending=true;
+      document.getElementById('connectionStatus').textContent='Sincronizzazione...';
+      roomRef.child('state').transaction(function(current){
+        var currentVersion=current===null?null:stableStringify(current);
+        if(currentVersion!==baseline)return;
+        return gameState;
+      },function(error,committed,snapshot){
+        writePending=false;
+        var current=snapshot&&snapshot.val();
+        lastRemoteState=current===null||current===undefined?null:stableStringify(current);
+        if(error){document.getElementById('connectionStatus').textContent='Errore di sincronizzazione';setStatus(error.message);return}
+        if(committed){lastLocalState=lastRemoteState;document.getElementById('connectionStatus').textContent='Connesso'}
+        else if(current){applyRemoteState(lastRemoteState)}
+      },false);
+    }catch(error){setStatus('Lo stato della partita non è valido.')}
+  }
+  function applyRemoteState(serialized){
+    loadingRemote=true;
+    localStorage.setItem(storageKey,serialized);
+    lastLocalState=serialized;
+    document.getElementById('connectionStatus').textContent='Partita sincronizzata';
+    frame.contentWindow.location.reload();
+    window.setTimeout(function(){loadingRemote=false},400);
+  }
+  function cleanup(){
+    if(roomRef&&roomListener)roomRef.child('state').off('value',roomListener);
+    if(pollTimer)window.clearInterval(pollTimer);
+  }
+  document.getElementById('createRoom').onclick=createRoom;
+  document.getElementById('joinRoom').onclick=joinRoom;
+  document.getElementById('joinCode').addEventListener('input',function(){this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')});
+  document.getElementById('joinCode').addEventListener('keydown',function(event){if(event.key==='Enter')joinRoom()});
+  document.getElementById('copyCode').onclick=function(){
+    var text=roomCode;
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(function(){document.getElementById('connectionStatus').textContent='Codice copiato'});
+    else window.prompt('Copia il codice stanza:',text);
+  };
+  document.getElementById('leaveRoom').onclick=function(){cleanup();window.location.reload()};
+  window.addEventListener('beforeunload',cleanup);
+})();
+</script>
+</body>
+</html>
