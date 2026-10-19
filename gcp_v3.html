@@ -138,7 +138,7 @@
   var frame=document.getElementById('gameFrame');
   var roomError=document.getElementById('roomError');
   var db=null,user=null,roomRef=null,roomCode='',storageKey='',roomListeners=[],lobbyData=null;
-  var frameReady=false,lastLocalState=null,lastRemoteState=null,loadingRemote=false,writePending=false,startingGame=false,pollTimer=null;
+  var frameReady=false,lastLocalState=null,lastRemoteState=null,loadingRemote=false,writePending=false,startingGame=false,returningToLobby=false,pollTimer=null;
   var gameHtmlPromise=null,gameHtml=null;
 
   function setStatus(text){status.textContent=text}
@@ -196,7 +196,7 @@
         try{
           await roomRef.child('hostUid').set(user.uid);
           await roomRef.child('members/'+user.uid).set(true);
-          await roomRef.child('lobby').set({hostUid:user.uid,playerCount:playerCount,started:false,players:{}});
+          await roomRef.child('lobby').set({hostUid:user.uid,playerCount:playerCount,started:false,closed:false,players:{}});
           created=true;
         }catch(error){lastError=error;roomRef=null}
       }
@@ -226,7 +226,7 @@
       return new Promise(function(resolve,reject){
         lobbyRef.transaction(function(current){
           if(current===null)current=initialLobby;
-          if(!current||!current.playerCount)return;
+          if(!current||!current.playerCount||current.closed)return;
           current.players=current.players||{};
           if(current.players[user.uid])return current;
           if(current.started)return;
@@ -253,6 +253,7 @@
     return Object.keys(data.players||{}).map(function(uid){return data.players[uid]}).sort(function(a,b){return a.seat-b.seat});
   }
   function renderLobby(data){
+    if(data.closed){returnToRoomSelection();return}
     var players=orderedPlayers(data),count=Number(data.playerCount)||3,full=players.length===count,isHost=user&&data.hostUid===user.uid;
     var list=document.getElementById('roomRoster');list.textContent='';
     document.getElementById('waitingTitle').textContent='Stanza '+roomCode;
@@ -301,6 +302,7 @@
       if(!snapshot.exists())return;
       lobbyData=snapshot.val();renderLobby(lobbyData);
     },lobbyError=function(error){setStatus(error.message)};
+    returningToLobby=false;
     lobbyRef.on('value',lobbyHandler,lobbyError);roomListeners.push({ref:lobbyRef,handler:lobbyHandler});
     var stateRef=roomRef.child('state'),stateHandler=function(snapshot){
       if(!snapshot.exists())return;
@@ -327,6 +329,9 @@
       html=html.replace('<head>','<head><base href="./"><script>window.GCP_LOCAL_PLAYER_UID='+JSON.stringify(user.uid)+';window.addEventListener("error",function(event){parent.postMessage({type:"gcp-v3-frame-error",message:event.message||"Errore JavaScript nella griglia"},"*")});window.addEventListener("unhandledrejection",function(event){parent.postMessage({type:"gcp-v3-frame-error",message:event.reason&&event.reason.message||String(event.reason)},"*")});<\/script>');
       html=html.replace(/var STORAGE='[^']+';/,"var STORAGE='"+storageKey+"';");
       html=html.replace('Counter v2','Counter v3');
+      var newGameMarker='openSetupForNewGame();';
+      if(html.indexOf(newGameMarker)===-1)throw new Error('Non trovo la conferma Nuova partita in gcp_v2.html.');
+      html=html.replace(newGameMarker,"parent.postMessage({type:'gcp-v3-new-game-confirmed'},'*');");
       var renderMarker='state.players.forEach(function(p,pi){';
       if(html.indexOf(renderMarker)===-1)throw new Error('Non trovo il punto di rendering giocatori in gcp_v2.html.');
       html=html.replace(renderMarker,'var playerOrder=state.players.map(function(_,index){return index});playerOrder.sort(function(a,b){var aSelf=state.players[a].uid===window.GCP_LOCAL_PLAYER_UID,bSelf=state.players[b].uid===window.GCP_LOCAL_PLAYER_UID;return aSelf===bSelf?0:(aSelf?-1:1)});playerOrder.forEach(function(pi){var p=state.players[pi];');
@@ -376,6 +381,24 @@
     roomListeners.forEach(function(listener){listener.ref.off('value',listener.handler)});roomListeners=[];
     if(pollTimer)window.clearInterval(pollTimer);
   }
+  function returnToRoomSelection(){
+    if(returningToLobby)return;
+    returningToLobby=true;
+    var oldRoomRef=roomRef,oldStorageKey=storageKey,oldUid=user&&user.uid;
+    cleanup();roomRef=null;roomCode='';storageKey='';lobbyData=null;
+    frameReady=false;loadingRemote=false;writePending=false;startingGame=false;lastLocalState=null;lastRemoteState=null;
+    frame.onload=null;frame.srcdoc='';frame.style.display='none';
+    document.getElementById('waitingRoom').style.display='grid';
+    roomError.hidden=true;room.style.display='none';lobby.style.display='grid';
+    setStatus('Partita terminata. Crea una nuova stanza o unisciti a una nuova partita.');
+    if(oldStorageKey)localStorage.removeItem(oldStorageKey);
+    if(oldRoomRef&&oldUid)oldRoomRef.child('members/'+oldUid).remove().catch(function(){});
+  }
+  async function closeRoomForNewGame(){
+    if(!roomRef||!user||returningToLobby)return;
+    try{await roomRef.child('lobby/closed').set(true)}
+    catch(error){showRoomError('Non riesco a chiudere la stanza: '+error.message)}
+  }
   async function leaveRoom(){
     if(!roomRef||!user){cleanup();window.location.reload();return}
     try{
@@ -412,8 +435,9 @@
   };
   document.getElementById('leaveRoom').onclick=leaveRoom;
   window.addEventListener('message',function(event){
-    if(event.source!==frame.contentWindow||!event.data||event.data.type!=='gcp-v3-frame-error')return;
-    showRoomError('Errore JavaScript nell’interfaccia di gioco: '+event.data.message);
+    if(event.source!==frame.contentWindow||!event.data)return;
+    if(event.data.type==='gcp-v3-new-game-confirmed'){closeRoomForNewGame();return}
+    if(event.data.type==='gcp-v3-frame-error')showRoomError('Errore JavaScript nell’interfaccia di gioco: '+event.data.message);
   });
   window.addEventListener('beforeunload',cleanup);
 })();
