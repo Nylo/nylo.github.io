@@ -17,6 +17,10 @@
   .panel{padding:18px 0;border-top:1px solid var(--line)}
   .panel h2{margin:0 0 12px;font-size:16px}
   .field{height:42px;width:100%;padding:0 11px;border:1px solid #555862;border-radius:8px;background:#17181c;color:#fff}
+  .field+.field{margin-top:8px}
+  .player-count{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .player-count label{display:flex;align-items:center;justify-content:center;gap:7px;min-height:38px;border:1px solid #555862;border-radius:7px;color:#ddd;font-size:13px;font-weight:700;cursor:pointer}
+  .player-count input{accent-color:var(--green)}
   .action{width:100%;min-height:42px;margin-top:9px;padding:10px 13px;border:0;border-radius:8px;background:var(--green);color:#fff;font-weight:800}
   .action.join{background:var(--blue)}
   .status{min-height:20px;margin:14px 0 0;color:var(--muted);font-size:13px;line-height:1.4}
@@ -31,6 +35,14 @@
   .room-spacer{flex:1}
   .room-bar button{border:0;border-radius:6px;padding:7px 9px;background:#444751;color:#fff;font-size:11px;font-weight:800}
   .room-bar .leave{background:#8e2f37}
+  .waiting{width:min(520px,100%);align-self:center;justify-self:center;padding:24px}
+  .waiting h1{margin:0 0 6px;font-size:22px}
+  .waiting p{color:var(--muted);font-size:13px;line-height:1.45}
+  .roster{display:grid;gap:7px;padding:0;margin:18px 0;list-style:none}
+  .roster li{display:flex;align-items:center;gap:9px;padding:10px 11px;border:1px solid var(--line);border-radius:7px;background:var(--panel);font-size:13px}
+  .roster .seat{color:var(--muted);font-size:11px}
+  .roster .host{margin-left:auto;color:#91d6a2;font-size:10px;font-weight:800}
+  .waiting .action:disabled{opacity:.45;cursor:not-allowed}
   #gameFrame{width:100%;height:100%;border:0;background:var(--bg)}
   @media(max-width:480px){.room-bar{gap:6px;padding:5px}.room-bar button{padding:7px;font-size:10px}.room-label{font-size:10px}.room-code{padding:4px;font-size:11px}}
 </style>
@@ -42,27 +54,42 @@
     <p class="subtitle">Crea una stanza o unisciti a una partita condivisa.</p>
     <div class="panel">
       <h2>Crea una stanza</h2>
+      <input class="field" id="createName" maxlength="18" placeholder="Il tuo nome" autocomplete="name" aria-label="Il tuo nome">
+      <div class="player-count" role="radiogroup" aria-label="Numero di giocatori">
+        <label><input type="radio" name="playerCount" value="3" checked> 3 giocatori</label>
+        <label><input type="radio" name="playerCount" value="4"> 4 giocatori</label>
+      </div>
       <button class="action" id="createRoom" type="button">Crea stanza</button>
     </div>
     <div class="panel">
       <h2>Unisciti a una stanza</h2>
+      <input class="field" id="joinName" maxlength="18" placeholder="Il tuo nome" autocomplete="name" aria-label="Il tuo nome">
       <input class="field" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" aria-label="Codice stanza">
       <button class="action join" id="joinRoom" type="button">Unisciti</button>
     </div>
     <p class="status" id="status" role="status" aria-live="polite"></p>
     <details style="display: none !important;">
       <summary>Configurazione Firebase richiesta</summary>
-      <p>Inserisci la configurazione Web Firebase nel codice di questo file, abilita Firebase Authentication anonima e crea un Realtime Database. Applica queste regole al database. Il codice stanza autorizza chiunque lo conosca, quindi condividilo solo con i partecipanti; queste regole non impongono un limite numerico ai membri:</p>
+      <p>Per le lobby e il roster condiviso, sostituisci le regole del Realtime Database con queste e pubblicale. Il codice stanza autorizza chiunque lo conosca, quindi condividilo solo con i partecipanti; il numero di posti viene controllato dall’app:</p>
       <pre class="rules">{
   "rules": {
     "rooms": {
       "$room": {
         "hostUid": {
-          ".write": "auth != null &amp;&amp; !data.exists() &amp;&amp; newData.val() === auth.uid"
+          ".write": "auth != null &amp;&amp; ((!data.exists() &amp;&amp; newData.val() === auth.uid) || (data.val() === auth.uid &amp;&amp; root.child('rooms').child($room).child('members').child(newData.val()).val() === true))"
         },
         "members": {
           "$uid": {
-            ".write": "auth != null &amp;&amp; $uid === auth.uid &amp;&amp; !data.exists() &amp;&amp; newData.val() === true &amp;&amp; root.child('rooms').child($room).child('hostUid').exists()"
+            ".write": "auth != null &amp;&amp; $uid === auth.uid &amp;&amp; root.child('rooms').child($room).child('hostUid').exists() &amp;&amp; (newData.val() === true || !newData.exists())"
+          }
+        },
+        "lobby": {
+          ".read": "auth != null &amp;&amp; root.child('rooms').child($room).child('members').child(auth.uid).val() === true",
+          ".write": "auth != null &amp;&amp; root.child('rooms').child($room).child('members').child(auth.uid).val() === true"
+        },
+        "lobby": {
+          ".read": "auth != null &amp;&amp; root.child('rooms').child($room).child('members').child(auth.uid).val() === true",
+          ".write": "auth != null &amp;&amp; root.child('rooms').child($room).child('members').child(auth.uid).val() === true"
           }
         },
         "state": {
@@ -85,7 +112,13 @@
     <span id="connectionStatus">Connesso</span>
     <button class="leave" id="leaveRoom" type="button">Esci</button>
   </header>
-  <iframe id="gameFrame" title="Partita Gachapon Trick"></iframe>
+  <div class="waiting" id="waitingRoom">
+    <h1 id="waitingTitle">Lobby</h1>
+    <p id="waitingDescription">In attesa dei giocatori.</p>
+    <ul class="roster" id="roomRoster"></ul>
+    <button class="action" id="startGame" type="button" style="display:none" disabled>Avvia partita</button>
+  </div>
+  <iframe id="gameFrame" title="Partita Gachapon Trick" style="display:none"></iframe>
 </section>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -107,9 +140,9 @@
   var room=document.getElementById('room');
   var status=document.getElementById('status');
   var frame=document.getElementById('gameFrame');
-  var db=null,user=null,roomRef=null,roomCode='',storageKey='',roomListener=null;
+  var db=null,user=null,roomRef=null,roomCode='',storageKey='',roomListeners=[],lobbyData=null;
   var frameReady=false,lastLocalState=null,lastRemoteState=null,loadingRemote=false,writePending=false,pollTimer=null;
-  var gameHtmlPromise=null;
+  var gameHtmlPromise=null,gameHtml=null;
 
   function setStatus(text){status.textContent=text}
   function stableStringify(value){
@@ -119,50 +152,136 @@
   }
   function validConfig(){return FIREBASE_CONFIG.apiKey!=='INSERISCI_API_KEY'&&FIREBASE_CONFIG.projectId!=='INSERISCI_PROJECT_ID'&&FIREBASE_CONFIG.appId!=='INSERISCI_APP_ID'&&FIREBASE_CONFIG.databaseURL.indexOf('INSERISCI_PROJECT_ID')===-1}
   function generateCode(){var bytes=new Uint8Array(12);crypto.getRandomValues(bytes);return Array.from(bytes,function(value){return ALPHABET[value%ALPHABET.length]}).join('')}
+  function withTimeout(promise,milliseconds,message){
+    return new Promise(function(resolve,reject){
+      var timer=window.setTimeout(function(){reject(new Error(message))},milliseconds);
+      promise.then(function(value){window.clearTimeout(timer);resolve(value)},function(error){window.clearTimeout(timer);reject(error)});
+    });
+  }
+  function authErrorMessage(error){
+    if(error.code==='auth/operation-not-allowed')return 'Attiva il provider Anonimo in Firebase Authentication > Metodo di accesso.';
+    if(error.code==='auth/unauthorized-domain')return 'Dominio non autorizzato: aggiungi il dominio di questo sito in Authentication > Impostazioni > Domini autorizzati.';
+    if(error.code==='auth/network-request-failed')return 'Firebase non raggiungibile: controlla connessione, blocchi del browser e che il sito sia aperto in HTTPS.';
+    return error.message||'Errore durante l’autenticazione Firebase.';
+  }
   async function connect(){
     if(!validConfig())throw new Error('Configura Firebase nei valori FIREBASE_CONFIG in gcp_v3.html.');
     if(!window.firebase)throw new Error('Firebase non è stato caricato. Controlla la connessione a Internet.');
     if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
     db=firebase.database();
-    var result=await firebase.auth().signInAnonymously();
+    setStatus('Autenticazione anonima Firebase...');
+    var result;
+    try{result=await withTimeout(firebase.auth().signInAnonymously(),15000,'Autenticazione scaduta dopo 15 secondi. Controlla il provider Anonimo, i domini autorizzati e la connessione.')}catch(error){throw new Error(authErrorMessage(error))}
     user=result.user;
   }
   async function createRoom(){
     try{
+      var hostName=document.getElementById('createName').value.trim();
+      if(!hostName)throw new Error('Inserisci il tuo nome per creare la stanza.');
+      var playerCount=Number(document.querySelector('input[name="playerCount"]:checked').value);
       setStatus('Connessione a Firebase...');
       await connect();
-      var created=false;
+      setStatus('Creo la stanza nel database...');
+      var created=false,lastError=null;
       for(var attempt=0;attempt<5&&!created;attempt++){
-        roomCode=generateCode();
-        roomRef=db.ref('rooms/'+roomCode);
+        roomCode=generateCode();roomRef=db.ref('rooms/'+roomCode);
         try{
           await roomRef.child('hostUid').set(user.uid);
           await roomRef.child('members/'+user.uid).set(true);
+          await roomRef.child('lobby').set({hostUid:user.uid,playerCount:playerCount,started:false,players:{}});
           created=true;
-        }catch(error){roomRef=null}
+        }catch(error){lastError=error;roomRef=null}
       }
-      if(!created)throw new Error('Non riesco a creare una stanza. Verifica le regole del Realtime Database.');
-      enterRoom(true);
+      if(!created)throw lastError||new Error('Non riesco a creare una stanza. Verifica le regole del Realtime Database.');
+      await reserveSeat(hostName);
     }catch(error){setStatus(error.message||'Errore durante la creazione della stanza.')}
   }
   async function joinRoom(){
     try{
+      var playerName=document.getElementById('joinName').value.trim();
+      if(!playerName)throw new Error('Inserisci il tuo nome per entrare nella stanza.');
       roomCode=document.getElementById('joinCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
       if(roomCode.length!==12)throw new Error('Inserisci un codice stanza di 12 caratteri.');
       setStatus('Connessione alla stanza...');
       await connect();
+      setStatus('Accesso alla stanza nel database...');
       roomRef=db.ref('rooms/'+roomCode);
       await roomRef.child('members/'+user.uid).set(true);
-      enterRoom(false);
+      await reserveSeat(playerName);
     }catch(error){setStatus(error.code==='PERMISSION_DENIED'?'Stanza non trovata, piena o non accessibile.':(error.message||'Errore durante l’accesso alla stanza.'))}
   }
-  function enterRoom(isHost){
+  function reserveSeat(playerName){
+    return new Promise(function(resolve,reject){
+      roomRef.child('lobby').transaction(function(current){
+        if(!current||!current.playerCount)return;
+        current.players=current.players||{};
+        if(current.players[user.uid])return current;
+        if(current.started)return;
+        var occupied={};
+        Object.keys(current.players).forEach(function(uid){occupied[current.players[uid].seat]=true});
+        var seat=1;
+        while(seat<=current.playerCount&&occupied[seat])seat++;
+        if(seat>current.playerCount)return;
+        current.players[user.uid]={uid:user.uid,name:playerName,seat:seat};
+        return current;
+      },function(error,committed,snapshot){
+        if(error){reject(error);return}
+        var current=snapshot&&snapshot.val();
+        if(!current||!current.players||!current.players[user.uid]){reject(new Error('La stanza è piena o la partita è già iniziata.'));return}
+        lobbyData=current;enterRoom();resolve();
+      },false);
+    });
+  }
+  function orderedPlayers(data){
+    return Object.keys(data.players||{}).map(function(uid){return data.players[uid]}).sort(function(a,b){return a.seat-b.seat});
+  }
+  function renderLobby(data){
+    var players=orderedPlayers(data),count=Number(data.playerCount)||3,full=players.length===count,isHost=user&&data.hostUid===user.uid;
+    var list=document.getElementById('roomRoster');list.textContent='';
+    document.getElementById('waitingTitle').textContent='Stanza '+roomCode;
+    document.getElementById('waitingDescription').textContent=data.started?'Partita in avvio...':players.length+' / '+count+' giocatori';
+    for(var seat=1;seat<=count;seat++){
+      var item=document.createElement('li'),number=document.createElement('span'),name=document.createElement('span');
+      number.className='seat';number.textContent=seat+'.';item.appendChild(number);
+      if(players[seat-1]){
+        name.textContent=players[seat-1].name;item.appendChild(name);
+        if(players[seat-1].uid===data.hostUid){var host=document.createElement('span');host.className='host';host.textContent='HOST';item.appendChild(host)}
+      }else{name.textContent='In attesa di un giocatore';name.style.color='var(--muted)';item.appendChild(name)}
+      list.appendChild(item);
+    }
+    var start=document.getElementById('startGame');
+    start.style.display=isHost&&!data.started?'block':'none';start.disabled=!full||Boolean(data.started);
+    start.textContent=full?'Avvia partita':'In attesa dei giocatori';
+    document.getElementById('connectionStatus').textContent=data.started?'Avvio...':(full?'Pronta per iniziare':'In attesa');
+  }
+  function makeInitialState(data){
+    return {
+      players:orderedPlayers(data).map(function(player){return {uid:player.uid,name:player.name,money:5000,roundPV:0,totalPV:0,cards:Array(49).fill(null),refundCard:false}}),
+      round:1,maxRounds:Number(data.playerCount),pendingTopCardPlayer:null,pendingTopCardStage:null,refundModePlayer:null,refundCardDrawn:false
+    };
+  }
+  function startGame(){
+    if(!lobbyData||lobbyData.hostUid!==user.uid||orderedPlayers(lobbyData).length!==Number(lobbyData.playerCount)||lobbyData.started)return;
+    var initialState=makeInitialState(lobbyData),button=document.getElementById('startGame');
+    button.disabled=true;document.getElementById('connectionStatus').textContent='Avvio della partita...';
+    roomRef.child('state').transaction(function(current){if(current!==null)return;return initialState},function(error,committed,snapshot){
+      if(error){button.disabled=false;setStatus('Errore durante l’avvio: '+error.message);return}
+      if(!committed&&snapshot&&snapshot.exists()){setStatus('La partita è già stata avviata.');return}
+      roomRef.child('lobby/started').set(true).catch(function(writeError){setStatus('Partita avviata, ma la lobby non si è aggiornata: '+writeError.message)});
+    },false);
+  }
+  function enterRoom(){
     storageKey='gcp-v3-room-'+roomCode;
     document.getElementById('roomCodeLabel').textContent=roomCode;
-    document.getElementById('connectionStatus').textContent=isHost?'In attesa della partita':'In attesa dell’host';
+    document.getElementById('connectionStatus').textContent='Lobby';
     lobby.style.display='none';room.style.display='grid';
-    if(isHost)loadGameFrame(null);
-    roomListener=roomRef.child('state').on('value',function(snapshot){
+    renderLobby(lobbyData);
+    var lobbyRef=roomRef.child('lobby'),lobbyHandler=function(snapshot){
+      if(!snapshot.exists())return;
+      lobbyData=snapshot.val();renderLobby(lobbyData);
+    },lobbyError=function(error){setStatus(error.message)};
+    lobbyRef.on('value',lobbyHandler,lobbyError);roomListeners.push({ref:lobbyRef,handler:lobbyHandler});
+    var stateRef=roomRef.child('state'),stateHandler=function(snapshot){
       if(!snapshot.exists())return;
       var incoming=stableStringify(snapshot.val());
       if(!writePending)lastRemoteState=incoming;
@@ -173,14 +292,10 @@
         lastLocalState=incoming;
         loadGameFrame(incoming);
       }else if(incoming!==localNormalized&&incoming!==lastLocalState){
-        loadingRemote=true;
-        localStorage.setItem(storageKey,incoming);
-        lastLocalState=incoming;
-        document.getElementById('connectionStatus').textContent='Partita sincronizzata';
-        frame.contentWindow.location.reload();
-        window.setTimeout(function(){loadingRemote=false},400);
+        applyRemoteState(incoming);
       }
-    },function(error){document.getElementById('connectionStatus').textContent='Errore di connessione';setStatus(error.message)});
+    },stateError=function(error){document.getElementById('connectionStatus').textContent='Errore di connessione';setStatus(error.message)};
+    stateRef.on('value',stateHandler,stateError);roomListeners.push({ref:stateRef,handler:stateHandler});
     pollTimer=window.setInterval(publishLocalState,400);
   }
   function loadGameFrame(initialState){
@@ -188,11 +303,18 @@
     else localStorage.removeItem(storageKey);
     if(!gameHtmlPromise)gameHtmlPromise=fetch('gcp_v2.html').then(function(response){if(!response.ok)throw new Error('Impossibile caricare gcp_v2.html.');return response.text()});
     gameHtmlPromise.then(function(html){
-      html=html.replace('<head>','<head><base href="./">');
+      html=html.replace('<head>','<head><base href="./"><script>window.GCP_LOCAL_PLAYER_UID='+JSON.stringify(user.uid)+';<\/script>');
       html=html.replace(/var STORAGE='[^']+';/,"var STORAGE='"+storageKey+"';");
       html=html.replace('Counter v2','Counter v3');
-      frame.onload=function(){frameReady=true;document.getElementById('connectionStatus').textContent='Connesso'};
-      frame.srcdoc=html;
+      var renderMarker='state.players.forEach(function(p,pi){';
+      if(html.indexOf(renderMarker)===-1)throw new Error('Non trovo il punto di rendering giocatori in gcp_v2.html.');
+      html=html.replace(renderMarker,'var playerOrder=state.players.map(function(_,index){return index});playerOrder.sort(function(a,b){var aSelf=state.players[a].uid===window.GCP_LOCAL_PLAYER_UID,bSelf=state.players[b].uid===window.GCP_LOCAL_PLAYER_UID;return aSelf===bSelf?0:(aSelf?-1:1)});playerOrder.forEach(function(pi){var p=state.players[pi];');
+      html=html.replace("var card=document.createElement('section');card.className='player-card';","var card=document.createElement('section');card.className='player-card';if(p.uid===window.GCP_LOCAL_PLAYER_UID)card.classList.add('current-player');");
+      html=html.replace('</style>',' .player-card.current-player{outline:3px solid #159ac2;outline-offset:-3px}</style>');
+      gameHtml=html;
+      document.getElementById('waitingRoom').style.display='none';frame.style.display='block';
+      frame.onload=function(){frameReady=true;loadingRemote=false;document.getElementById('connectionStatus').textContent='Connesso'};
+      frame.srcdoc=gameHtml;
     }).catch(function(error){setStatus(error.message)});
   }
   function publishLocalState(){
@@ -226,15 +348,41 @@
     localStorage.setItem(storageKey,serialized);
     lastLocalState=serialized;
     document.getElementById('connectionStatus').textContent='Partita sincronizzata';
-    frame.contentWindow.location.reload();
-    window.setTimeout(function(){loadingRemote=false},400);
+    frameReady=false;
+    frame.srcdoc=gameHtml;
   }
   function cleanup(){
-    if(roomRef&&roomListener)roomRef.child('state').off('value',roomListener);
+    roomListeners.forEach(function(listener){listener.ref.off('value',listener.handler)});roomListeners=[];
     if(pollTimer)window.clearInterval(pollTimer);
+  }
+  async function leaveRoom(){
+    if(!roomRef||!user){cleanup();window.location.reload();return}
+    try{
+      var stateSnapshot=await roomRef.child('state').once('value');
+      if(stateSnapshot.exists()){cleanup();window.location.reload();return}
+      var wasHost=lobbyData&&lobbyData.hostUid===user.uid,nextHostUid=null;
+      await new Promise(function(resolve,reject){
+        roomRef.child('lobby').transaction(function(current){
+          if(!current||current.started)return;
+          current.players=current.players||{};
+          delete current.players[user.uid];
+          var remaining=orderedPlayers(current);
+          if(current.hostUid===user.uid){nextHostUid=remaining.length?remaining[0].uid:null;if(nextHostUid)current.hostUid=nextHostUid;else current.started=true}
+          return current;
+        },function(error,committed,snapshot){
+          if(error){reject(error);return}
+          var current=snapshot&&snapshot.val();
+          if(current&&wasHost&&nextHostUid)roomRef.child('hostUid').set(nextHostUid).then(resolve,reject);
+          else resolve();
+        },false);
+      });
+      await roomRef.child('members/'+user.uid).remove();
+    }catch(error){setStatus('Errore durante l’uscita: '+error.message);return}
+    cleanup();window.location.reload();
   }
   document.getElementById('createRoom').onclick=createRoom;
   document.getElementById('joinRoom').onclick=joinRoom;
+  document.getElementById('startGame').onclick=startGame;
   document.getElementById('joinCode').addEventListener('input',function(){this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')});
   document.getElementById('joinCode').addEventListener('keydown',function(event){if(event.key==='Enter')joinRoom()});
   document.getElementById('copyCode').onclick=function(){
@@ -242,7 +390,7 @@
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(function(){document.getElementById('connectionStatus').textContent='Codice copiato'});
     else window.prompt('Copia il codice stanza:',text);
   };
-  document.getElementById('leaveRoom').onclick=function(){cleanup();window.location.reload()};
+  document.getElementById('leaveRoom').onclick=leaveRoom;
   window.addEventListener('beforeunload',cleanup);
 })();
 </script>
