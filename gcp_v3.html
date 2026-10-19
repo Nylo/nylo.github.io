@@ -35,6 +35,7 @@
   .room-spacer{flex:1}
   .room-bar button{border:0;border-radius:6px;padding:7px 9px;background:#444751;color:#fff;font-size:11px;font-weight:800}
   .room-bar .leave{background:#8e2f37}
+  .room-error{position:fixed;z-index:120;left:12px;right:12px;bottom:12px;max-width:680px;margin:0 auto;padding:12px 14px;border:1px solid #f0a6a6;border-radius:8px;background:#641e24;color:#fff;font-size:13px;line-height:1.4;box-shadow:0 8px 24px rgba(0,0,0,.45)}
   .waiting{width:min(520px,100%);align-self:center;justify-self:center;padding:24px}
   .waiting h1{margin:0 0 6px;font-size:22px}
   .waiting p{color:var(--muted);font-size:13px;line-height:1.45}
@@ -107,6 +108,7 @@
     <span id="connectionStatus">Connesso</span>
     <button class="leave" id="leaveRoom" type="button">Esci</button>
   </header>
+  <div class="room-error" id="roomError" role="alert" hidden></div>
   <div class="waiting" id="waitingRoom">
     <h1 id="waitingTitle">Lobby</h1>
     <p id="waitingDescription">In attesa dei giocatori.</p>
@@ -134,11 +136,13 @@
   var room=document.getElementById('room');
   var status=document.getElementById('status');
   var frame=document.getElementById('gameFrame');
+  var roomError=document.getElementById('roomError');
   var db=null,user=null,roomRef=null,roomCode='',storageKey='',roomListeners=[],lobbyData=null;
   var frameReady=false,lastLocalState=null,lastRemoteState=null,loadingRemote=false,writePending=false,startingGame=false,pollTimer=null;
   var gameHtmlPromise=null,gameHtml=null;
 
   function setStatus(text){status.textContent=text}
+  function showRoomError(text){roomError.textContent=text;roomError.hidden=false;document.getElementById('connectionStatus').textContent='Errore'}
   function stableStringify(value){
     if(Array.isArray(value))return '['+value.map(stableStringify).join(',')+']';
     if(value&&typeof value==='object')return '{'+Object.keys(value).sort().map(function(key){return JSON.stringify(key)+':'+stableStringify(value[key])}).join(',')+'}';
@@ -278,9 +282,13 @@
     var initialState=makeInitialState(lobbyData);
     document.getElementById('connectionStatus').textContent='Avvio automatico...';
     roomRef.child('state').transaction(function(current){if(current!==null)return;return initialState},function(error,committed,snapshot){
-      if(error){startingGame=false;setStatus('Errore durante l’avvio: '+error.message);return}
-      if(!committed&&snapshot&&snapshot.exists()){startingGame=false;return}
-      roomRef.child('lobby/started').set(true).catch(function(writeError){startingGame=false;setStatus('Partita avviata, ma la lobby non si è aggiornata: '+writeError.message)});
+      if(error){startingGame=false;showRoomError('Errore durante l’avvio della partita: '+error.message);return}
+      if(!committed&&snapshot&&snapshot.exists()){
+        var current=stableStringify(normalizeGameState(snapshot.val()));
+        if(!frameReady){localStorage.setItem(storageKey,current);lastLocalState=current;loadGameFrame(current)}
+        else if(current!==lastLocalState)applyRemoteState(current);
+      }
+      roomRef.child('lobby/started').set(true).catch(function(writeError){startingGame=false;showRoomError('Partita creata, ma la lobby non si è aggiornata: '+writeError.message)});
     },false);
   }
   function enterRoom(){
@@ -405,8 +413,7 @@
   document.getElementById('leaveRoom').onclick=leaveRoom;
   window.addEventListener('message',function(event){
     if(event.source!==frame.contentWindow||!event.data||event.data.type!=='gcp-v3-frame-error')return;
-    document.getElementById('connectionStatus').textContent='Errore nella griglia';
-    setStatus('Errore JavaScript nell’interfaccia di gioco: '+event.data.message);
+    showRoomError('Errore JavaScript nell’interfaccia di gioco: '+event.data.message);
   });
   window.addEventListener('beforeunload',cleanup);
 })();
