@@ -123,19 +123,27 @@ select option{background:var(--surface)}
 .view-toggle button{background:transparent;border:0;border-right:1px solid var(--border);color:var(--text-soft);padding:6px 9px;font:500 12px 'Inter',sans-serif;cursor:pointer;white-space:nowrap}
 .view-toggle button:last-child{border-right:0}
 .view-toggle button.active{background:var(--accent-soft);color:var(--accent)}
-.game-grid.list-view{display:flex;flex-direction:column;gap:0;min-width:720px}
-.game-row{display:grid;grid-template-columns:minmax(220px,1fr) 90px repeat(3,32px) 88px 56px 84px 56px 44px;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer}
-.game-grid.list-view.admin-view .game-row{grid-template-columns:minmax(220px,1fr) 90px repeat(3,32px) 88px 56px 84px 48px 56px 44px}
-.game-row:hover{background:var(--surface-hover)}
-.game-row-header{position:sticky;top:-20px;z-index:1;background:var(--bg);color:var(--text-soft);font-size:10px;font-weight:600;text-transform:uppercase}
-.game-row > :not(:last-child){position:relative}
-.game-row > :not(:last-child)::after{content:'';position:absolute;top:-10px;right:-4px;bottom:-10px;width:1px;background:var(--border);pointer-events:none}
-.game-row-title{min-width:0}
-.game-row-title strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Libre Baskerville',serif;font-size:13px;font-weight:400;color:var(--text)}
-.game-row-title small{display:block;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-soft);font-size:11px}
-.game-row-cell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-soft);font-size:12px}
-.game-row > :not(:first-child){text-align:center}
-.game-row .status-badge{justify-self:center}
+.game-grid.list-view{display:block;min-width:720px}
+.game-table{width:100%;min-width:830px;border-collapse:collapse;table-layout:fixed}
+.game-grid.list-view.admin-view .game-table{min-width:894px}
+.game-table th,.game-table td{padding:10px 8px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center;vertical-align:middle;white-space:nowrap}
+.game-table th:last-child,.game-table td:last-child{border-right:0}
+.game-table th{position:sticky;top:-20px;z-index:1;background:var(--bg);color:var(--text-soft);font-size:10px;font-weight:600;text-transform:uppercase}
+.game-table tbody tr{cursor:pointer}
+.game-table tbody tr:hover{background:var(--surface-hover)}
+.game-table .col-title{width:auto;text-align:left;white-space:normal}
+.game-table .col-status{width:100px}
+.game-table .col-player{width:40px}
+.game-table .col-must{width:98px}
+.game-table .col-trump{width:64px}
+.game-table .col-prediction{width:92px}
+.game-table .col-played{width:64px}
+.game-table .col-duration{width:72px}
+.game-table .col-rating{width:64px}
+.game-table-title{min-width:0}
+.game-table-title strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Libre Baskerville',serif;font-size:13px;font-weight:400;color:var(--text)}
+.game-table-title small{display:block;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-soft);font-size:11px}
+.game-table td.col-status .status-badge{display:inline-block}
 
 /* ── DETAIL PANEL ── */
 .panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;display:none;align-items:stretch;justify-content:flex-end}
@@ -1136,21 +1144,21 @@ function renderGrid(){
 
   if(rowsView){
     const rowFlag = v=>({yes:'V',no:'X',part:'~',hybrid:'~'})[flagVal(v)];
-    grid.innerHTML = `<div class="game-row game-row-header" aria-hidden="true"><span>Gioco</span><span>Stato</span><span>3p</span><span>4p</span><span>5p</span><span>Must-follow</span><span>Trump</span><span>Prediction</span>${isAdmin?'<span>Giocato</span>':''}<span>Durata</span><span>Voto</span></div>`+
+    grid.innerHTML = `<table class="game-table"><thead><tr><th class="col-title" scope="col">Gioco</th><th class="col-status" scope="col">Stato</th><th class="col-player" scope="col">3p</th><th class="col-player" scope="col">4p</th><th class="col-player" scope="col">5p</th><th class="col-must" scope="col">Must-follow</th><th class="col-trump" scope="col">Trump</th><th class="col-prediction" scope="col">Prediction</th>${isAdmin?'<th class="col-played" scope="col">Giocato</th>':''}<th class="col-duration" scope="col">Durata</th><th class="col-rating" scope="col">Voto</th></tr></thead><tbody>`+
       list.map(g=>{
         const avg = weightedAvg(g.ratings);
-        return `<div class="game-row" onclick="openGame('${g.id}')">
-          <div class="game-row-title"><strong>${esc(g.title||'—')}</strong><small>${esc(g.hook||'')}</small></div>
-          <span class="status-badge" style="${getStatusBadgeStyle(g.status)}">${esc(g.status||'—')}</span>
-          ${['3','4','5'].map(n=>`<span class="game-row-cell">${rowFlag(g['playersFor'+n])}</span>`).join('')}
-          <span class="game-row-cell">${rowFlag(g.mustFollow)}</span>
-          <span class="game-row-cell">${rowFlag(g.trump)}</span>
-          <span class="game-row-cell">${rowFlag(g.prediction)}</span>
-          ${isAdmin?`<span class="game-row-cell">${rowFlag(g.played)}</span>`:''}
-          <span class="game-row-cell">${esc(g.playingTime||'—')}</span>
-          <span class="game-row-cell">${avg?(avg*2).toFixed(1):'—'}</span>
-        </div>`;
-      }).join('');
+        return `<tr onclick="openGame('${g.id}')">
+          <td class="col-title"><div class="game-table-title"><strong>${esc(g.title||'—')}</strong><small>${esc(g.hook||'')}</small></div></td>
+          <td class="col-status"><span class="status-badge" style="${getStatusBadgeStyle(g.status)}">${esc(g.status||'—')}</span></td>
+          ${['3','4','5'].map(n=>`<td class="col-player">${rowFlag(g['playersFor'+n])}</td>`).join('')}
+          <td class="col-must">${rowFlag(g.mustFollow)}</td>
+          <td class="col-trump">${rowFlag(g.trump)}</td>
+          <td class="col-prediction">${rowFlag(g.prediction)}</td>
+          ${isAdmin?`<td class="col-played">${rowFlag(g.played)}</td>`:''}
+          <td class="col-duration">${esc(g.playingTime||'—')}</td>
+          <td class="col-rating">${avg?(avg*2).toFixed(1):'—'}</td>
+        </tr>`;
+      }).join('')+'</tbody></table>';
     return;
   }
 
