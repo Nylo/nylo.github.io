@@ -124,14 +124,17 @@ select option{background:var(--surface)}
 .view-toggle button:last-child{border-right:0}
 .view-toggle button.active{background:var(--accent-soft);color:var(--accent)}
 .game-grid.list-view{display:block;min-width:720px}
-.game-table{width:100%;min-width:830px;border-collapse:collapse;table-layout:fixed}
+.game-table{width:100%;min-width:830px;border-collapse:separate;border-spacing:0 8px;table-layout:fixed}
 .game-grid.list-view.admin-view .game-table{min-width:894px}
-.game-table th,.game-table td{padding:10px 8px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center;vertical-align:middle;white-space:nowrap}
-.game-table th:last-child,.game-table td:last-child{border-right:0}
-.game-table th{position:sticky;top:-20px;z-index:1;background:var(--bg);color:var(--text-soft);font-size:10px;font-weight:600;text-transform:uppercase}
+.game-table th,.game-table td{padding:12px 8px;text-align:center;vertical-align:middle;white-space:nowrap}
+.game-table th{position:sticky;top:-20px;z-index:1;background:var(--bg);color:var(--text-soft);font-size:10px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;padding:6px 8px}
+.game-table td{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);transition:background 0.15s,border-color 0.15s}
+.game-table td:first-child{border-left:1px solid var(--border);border-radius:var(--radius) 0 0 var(--radius);padding-left:16px}
+.game-table td:last-child{border-right:1px solid var(--border);border-radius:0 var(--radius) var(--radius) 0}
 .game-table tbody tr{cursor:pointer}
-.game-table tbody tr:hover{background:var(--surface-hover)}
-.game-table .col-title{width:auto;text-align:left;white-space:normal}
+.game-table tbody tr:hover td{background:var(--surface-hover);border-color:rgba(91,141,217,0.3)}
+.game-table .flag{display:inline-block;min-width:26px;text-align:center}
+.game-table .col-duration,.game-table .col-rating{font-family:'Libre Baskerville',serif;font-size:13px}.game-table .col-title{width:auto;text-align:left;white-space:normal}
 .game-table .col-status{width:100px}
 .game-table .col-player{width:40px}
 .game-table .col-must{width:98px}
@@ -1143,7 +1146,11 @@ function renderGrid(){
   }
 
   if(rowsView){
-    const rowFlag = v=>({yes:'V',no:'X',part:'~',hybrid:'~'})[flagVal(v)];
+    const rowFlag = v=>{
+      const f=flagVal(v);
+      const k=f==='hybrid'?'part':f;
+      return `<span class="flag ${flagClass(k)}">${({yes:'✓',no:'✗',part:'~'})[k]}</span>`;
+    };
     grid.innerHTML = `<table class="game-table"><thead><tr><th class="col-title" scope="col">Gioco</th><th class="col-status" scope="col">Stato</th><th class="col-player" scope="col">3p</th><th class="col-player" scope="col">4p</th><th class="col-player" scope="col">5p</th><th class="col-must" scope="col">Must-follow</th><th class="col-trump" scope="col">Trump</th><th class="col-prediction" scope="col">Prediction</th>${isAdmin?'<th class="col-played" scope="col">Giocato</th>':''}<th class="col-duration" scope="col">Durata</th><th class="col-rating" scope="col">Voto</th></tr></thead><tbody>`+
       list.map(g=>{
         const avg = weightedAvg(g.ratings);
