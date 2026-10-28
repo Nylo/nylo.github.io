@@ -125,6 +125,7 @@ select option{background:var(--surface)}
 .view-toggle button.active{background:var(--accent-soft);color:var(--accent)}
 .game-grid.list-view{display:flex;flex-direction:column;gap:0;min-width:720px}
 .game-row{display:grid;grid-template-columns:minmax(190px,2fr) 90px 125px minmax(155px,1.5fr) 72px 64px;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer}
+.game-grid.list-view.admin-view .game-row{grid-template-columns:minmax(190px,2fr) 90px 125px minmax(155px,1.5fr) 64px 72px 64px}
 .game-row:hover{background:var(--surface-hover)}
 .game-row-header{position:sticky;top:-20px;z-index:1;background:var(--bg);color:var(--text-soft);font-size:10px;font-weight:600;text-transform:uppercase}
 .game-row-title{min-width:0}
@@ -156,6 +157,7 @@ select option{background:var(--surface)}
 .flag-toggle.active-yes{background:rgba(76,175,125,0.15);border-color:rgba(76,175,125,0.4);color:var(--success)}
 .flag-toggle.active-no{background:rgba(217,107,107,0.1);border-color:rgba(217,107,107,0.3);color:var(--danger)}
 .flag-toggle.active-part{background:rgba(224,164,74,0.15);border-color:rgba(224,164,74,0.35);color:var(--warn)}
+.flag-toggle.active-hybrid{background:rgba(91,141,217,0.15);border-color:rgba(91,141,217,0.4);color:var(--accent)}
 .ratings-edit{display:flex;flex-direction:column;gap:10px}
 .rating-edit-row{display:flex;align-items:center;gap:10px}
 .rating-edit-label{font-size:12px;color:var(--text-soft);width:130px;flex-shrink:0}
@@ -1117,6 +1119,7 @@ function renderGrid(){
   const grid = document.getElementById('gameGrid');
   const rowsView = getViewMode()==='rows';
   grid.classList.toggle('list-view',rowsView);
+  grid.classList.toggle('admin-view',isAdmin);
   document.getElementById('viewCards').classList.toggle('active',!rowsView);
   document.getElementById('viewCards').setAttribute('aria-pressed',String(!rowsView));
   document.getElementById('viewRows').classList.toggle('active',rowsView);
@@ -1129,8 +1132,8 @@ function renderGrid(){
   }
 
   if(rowsView){
-    const rowFlag = v=>({yes:'✓',no:'✗',part:'~',hybrid:'Ibrido'})[flagVal(v)];
-    grid.innerHTML = `<div class="game-row game-row-header" aria-hidden="true"><span>Gioco</span><span>Stato</span><span>Giocatori</span><span>Meccaniche</span><span>Min.</span><span>Voto</span></div>`+
+    const rowFlag = v=>({yes:'✓',no:'✗',part:'~',hybrid:'~'})[flagVal(v)];
+    grid.innerHTML = `<div class="game-row game-row-header" aria-hidden="true"><span>Gioco</span><span>Stato</span><span>Giocatori</span><span>Meccaniche</span>${isAdmin?'<span>Giocato</span>':''}<span>Min.</span><span>Voto</span></div>`+
       list.map(g=>{
         const avg = weightedAvg(g.ratings);
         const mechanics = `MF ${rowFlag(g.mustFollow)} · B ${rowFlag(g.trump)} · P ${rowFlag(g.prediction)}`;
@@ -1139,6 +1142,7 @@ function renderGrid(){
           <span class="status-badge" style="${getStatusBadgeStyle(g.status)}">${esc(g.status||'—')}</span>
           <span class="game-row-cell">${['3','4','5'].map(n=>`${n} ${rowFlag(g['playersFor'+n])}`).join(' · ')}</span>
           <span class="game-row-cell" title="${esc(mechanics)}">${esc(mechanics)}</span>
+          ${isAdmin?`<span class="game-row-cell">${rowFlag(g.played)}</span>`:''}
           <span class="game-row-cell">${esc(g.playingTime||'—')}</span>
           <span class="game-row-cell">${avg?(avg*2).toFixed(1):'—'}</span>
         </div>`;
