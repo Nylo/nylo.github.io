@@ -189,7 +189,8 @@ select option{background:var(--surface)}
 .rules-head h2{flex:1;font-family:"Roboto Serif", serif;,serif;font-size:16px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rules-frame{flex:1;width:100%;border:1px solid var(--border);border-radius:8px;background:#fff}
 .rules-btn{background:none;border:0;cursor:pointer;font-size:16px;padding:2px 6px;border-radius:6px;line-height:1}
-.rules-btn:hover{background:var(--accent-soft)}
+.rules-btn:hover:not(:disabled){background:var(--accent-soft)}
+.rules-btn:disabled{opacity:0.25;filter:grayscale(1);cursor:not-allowed}
 .col-rules{width:56px}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(600px,95vw);padding:28px;display:flex;flex-direction:column;gap:18px}
 .modal h2{font-family:"Roboto Serif", serif;,serif;font-size:18px}
@@ -1176,7 +1177,7 @@ function renderGrid(){
         const avg = weightedAvg(g.ratings);
         return `<tr onclick="openGame('${g.id}')">
           <td class="col-title"><div class="game-table-title"><strong>${esc(g.title||'—')}</strong><small>${esc(g.hook||'')}</small></div></td>
-          <td class="col-rules">${g.regolamento?`<button type="button" class="rules-btn" title="Apri le regole" aria-label="Apri le regole" onclick="event.stopPropagation();openRules('${g.id}')">📄</button>`:''}</td>
+          <td class="col-rules">${g.regolamento?`<button type="button" class="rules-btn" title="Apri le regole" aria-label="Apri le regole" onclick="event.stopPropagation();openRules('${g.id}')">📄</button>`:`<button type="button" class="rules-btn" disabled title="Regolamento non disponibile" aria-label="Regolamento non disponibile" onclick="event.stopPropagation()">📄</button>`}</td>
           <td class="col-status"><span class="status-badge" style="${getStatusBadgeStyle(g.status)}">${esc(g.status||'—')}</span></td>
           ${['3','4','5'].map(n=>`<td class="col-player">${rowFlag(g['playersFor'+n])}</td>`).join('')}
           <td class="col-must">${rowFlag(g.mustFollow)}</td>
