@@ -43,7 +43,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
 .sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
 .topbar{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface)}
-.content{flex:1;overflow-y:auto;padding:20px}
+.content{flex:1;overflow:auto;padding:20px}
 
 /* ── SIDEBAR ── */
 .sidebar-header{padding:16px;border-bottom:1px solid var(--border)}
@@ -91,9 +91,8 @@ select option{background:var(--surface)}
 .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .card-title{font-family:'Libre Baskerville',serif;font-size:15px;line-height:1.35;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
 .status-badge{flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;white-space:nowrap}
-.status-Owned{background:rgba(76,175,125,0.15);color:var(--success)}
+.status-Retail{background:rgba(76,175,125,0.15);color:var(--success)}
 .status-PNP{background:rgba(224,164,74,0.15);color:var(--warn)}
-.status-WTB,.status-WTB\ Essen,.status-WTB\ Gen,.status-WTB\ altri{background:rgba(91,141,217,0.15);color:var(--accent)}
 .status-Proxy,.status-Proxy\ Rage{background:rgba(217,107,107,0.15);color:var(--danger)}
 .status-Preordered{background:rgba(150,100,200,0.15);color:#b388d6}
 .card-meta{display:flex;gap:10px;flex-wrap:wrap}
@@ -103,6 +102,7 @@ select option{background:var(--surface)}
 .flag-yes{background:rgba(76,175,125,0.12);color:var(--success)}
 .flag-no{background:rgba(217,107,107,0.08);color:var(--danger)}
 .flag-part{background:rgba(224,164,74,0.12);color:var(--warn)}
+.flag-hybrid{background:rgba(91,141,217,0.15);color:var(--accent)}
 .card-ratings{display:grid;grid-template-columns:1fr 1fr;gap:4px}
 .rating-row{display:flex;align-items:center;gap:6px}
 .rating-label{font-size:10px;color:var(--text-soft);width:64px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -119,6 +119,19 @@ select option{background:var(--surface)}
 .empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-soft)}
 .empty-state p{font-family:'Libre Baskerville',serif;font-size:18px;margin-bottom:8px;color:var(--text)}
 .empty-state small{font-size:13px}
+.view-toggle{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden;flex-shrink:0}
+.view-toggle button{background:transparent;border:0;border-right:1px solid var(--border);color:var(--text-soft);padding:6px 9px;font:500 12px 'Inter',sans-serif;cursor:pointer;white-space:nowrap}
+.view-toggle button:last-child{border-right:0}
+.view-toggle button.active{background:var(--accent-soft);color:var(--accent)}
+.game-grid.list-view{display:flex;flex-direction:column;gap:0;min-width:720px}
+.game-row{display:grid;grid-template-columns:minmax(190px,2fr) 90px 125px minmax(155px,1.5fr) 72px 64px;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer}
+.game-row:hover{background:var(--surface-hover)}
+.game-row-header{position:sticky;top:-20px;z-index:1;background:var(--bg);color:var(--text-soft);font-size:10px;font-weight:600;text-transform:uppercase}
+.game-row-title{min-width:0}
+.game-row-title strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Libre Baskerville',serif;font-size:13px;font-weight:400;color:var(--text)}
+.game-row-title small{display:block;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-soft);font-size:11px}
+.game-row-cell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-soft);font-size:12px}
+.game-row .status-badge{justify-self:start}
 
 /* ── DETAIL PANEL ── */
 .panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;display:none;align-items:stretch;justify-content:flex-end}
@@ -209,6 +222,10 @@ select option{background:var(--surface)}
   .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--border)}
   .sidebar-section,.sidebar-header{display:none}
   .sidebar-actions{flex-direction:row;border-top:none;padding:10px 12px;flex-wrap:wrap}
+  .topbar{flex-wrap:wrap;padding:10px;gap:7px}
+  .search-wrap{flex-basis:100%}
+  .count-badge{margin-right:auto}
+  .view-toggle button,.theme-toggle,.auth-btn{padding-left:8px;padding-right:8px}
   .content{padding:12px}
 }
 </style>
@@ -226,9 +243,8 @@ select option{background:var(--surface)}
       <div class="sidebar-label">Filtra per stato</div>
       <select id="filterStatus">
         <option value="">Tutti gli stati</option>
-        <option>Owned</option>
+        <option>Retail</option>
         <option>PNP</option>
-        <option>Want to buy</option>
         <option>Proxy</option>
         <option>Preordered</option>
       </select>
@@ -265,6 +281,7 @@ select option{background:var(--surface)}
           <option value="">Must-follow (qualsiasi)</option>
           <option value="yes">Sì</option>
           <option value="no">No</option>
+          <option value="hybrid">Ibrido</option>
         </select>
         <select id="filterTrump">
           <option value="">Trump/briscola (qualsiasi)</option>
@@ -321,6 +338,10 @@ select option{background:var(--surface)}
         <input type="text" id="searchInput" placeholder="Cerca gioco…">
       </div>
       <div class="count-badge" id="countBadge">0 giochi</div>
+      <div class="view-toggle" role="group" aria-label="Modalità di visualizzazione">
+        <button type="button" id="viewCards" class="active" aria-pressed="true" title="Visualizza a schede">▦ Schede</button>
+        <button type="button" id="viewRows" aria-pressed="false" title="Visualizza in righe">☷ Righe</button>
+      </div>
       <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
       <button class="auth-btn" id="authBtn" onclick="openAuthModal()">🔒 Accedi</button>
     </div>
@@ -385,9 +406,8 @@ select option{background:var(--surface)}
           <div class="field">
             <label>Status</label>
             <select id="fStatus">
-              <option>Owned</option>
+              <option>Retail</option>
               <option>PNP</option>
-              <option>Want to buy</option>
               <option>Proxy</option>
               <option>Preordered</option>
             </select>
@@ -419,6 +439,7 @@ select option{background:var(--surface)}
             <div class="flag-toggles" id="togMustFollow" data-field="mustFollow">
               <button class="flag-toggle" data-val="yes" onclick="toggleFlag(this,'mustFollow')">Sì</button>
               <button class="flag-toggle" data-val="no" onclick="toggleFlag(this,'mustFollow')">No</button>
+              <button class="flag-toggle" data-val="hybrid" onclick="toggleFlag(this,'mustFollow')">Ibrido</button>
             </div>
           </div>
           <div class="field full">
@@ -811,6 +832,7 @@ async function ghFetch(){
       } else {
         games = remote;
       }
+      games = normalizeGames(games);
       save();
       const now = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
       setSyncUI('ok',`Sincronizzato (${games.length} giochi)`, now);
@@ -840,6 +862,7 @@ async function ghFetch(){
     } else {
       games = decoded;
     }
+    games = normalizeGames(games);
     save();
     const now = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
     setSyncUI('ok',`Sincronizzato (${games.length} giochi)`, now);
@@ -993,8 +1016,17 @@ async function ghPushWeights(retry=true){
 function load(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw) games = JSON.parse(raw);
+    if(raw) games = normalizeGames(JSON.parse(raw));
   }catch(e){ games = []; }
+}
+function normalizeGames(list){
+  return list.map(g=>{
+    const status = g.status||'';
+    return Object.assign({},g,{
+      status: status==='Owned' ? 'Retail' : /^(wtb|want to buy)/i.test(status) ? '' : status,
+      mustFollow: g.mustFollow==='part' ? 'hybrid' : g.mustFollow,
+    });
+  });
 }
 function save(){
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(games)); }catch(e){}
@@ -1011,11 +1043,20 @@ function genId(){ return Date.now().toString(36)+Math.random().toString(36).slic
 // ─────────────── RENDER ───────────────
 function flagVal(v){
   if(v==='yes'||v===true||v==='v'||v==='V') return 'yes';
+  if(v==='hybrid') return 'hybrid';
   if(v==='part'||v==='~') return 'part';
   return 'no';
 }
 function flagClass(v){
-  return v==='yes'?'flag-yes':v==='part'?'flag-part':'flag-no';
+  return v==='yes'?'flag-yes':v==='part'?'flag-part':v==='hybrid'?'flag-hybrid':'flag-no';
+}
+const VIEW_KEY = 'trick-view-mode';
+function getViewMode(){
+  try{ return localStorage.getItem(VIEW_KEY)==='rows'?'rows':'cards'; }catch(e){ return 'cards'; }
+}
+function setViewMode(mode){
+  try{ localStorage.setItem(VIEW_KEY,mode); }catch(e){}
+  renderGrid();
 }
 function pipsHtml(val,n=5){
   let h='<div class="pips">';
@@ -1074,10 +1115,34 @@ function renderGrid(){
   });
 
   const grid = document.getElementById('gameGrid');
+  const rowsView = getViewMode()==='rows';
+  grid.classList.toggle('list-view',rowsView);
+  document.getElementById('viewCards').classList.toggle('active',!rowsView);
+  document.getElementById('viewCards').setAttribute('aria-pressed',String(!rowsView));
+  document.getElementById('viewRows').classList.toggle('active',rowsView);
+  document.getElementById('viewRows').setAttribute('aria-pressed',String(rowsView));
   document.getElementById('countBadge').textContent = list.length+(list.length===1?' gioco':' giochi');
 
   if(!list.length){
     grid.innerHTML='<div class="empty-state"><p>Nessun gioco trovato</p><small>Prova a modificare i filtri o aggiungi il tuo primo gioco.</small></div>';
+    return;
+  }
+
+  if(rowsView){
+    const rowFlag = v=>({yes:'✓',no:'✗',part:'~',hybrid:'Ibrido'})[flagVal(v)];
+    grid.innerHTML = `<div class="game-row game-row-header" aria-hidden="true"><span>Gioco</span><span>Stato</span><span>Giocatori</span><span>Meccaniche</span><span>Min.</span><span>Voto</span></div>`+
+      list.map(g=>{
+        const avg = weightedAvg(g.ratings);
+        const mechanics = `MF ${rowFlag(g.mustFollow)} · B ${rowFlag(g.trump)} · P ${rowFlag(g.prediction)}`;
+        return `<div class="game-row" onclick="openGame('${g.id}')">
+          <div class="game-row-title"><strong>${esc(g.title||'—')}</strong><small>${esc(g.hook||'')}</small></div>
+          <span class="status-badge" style="${getStatusBadgeStyle(g.status)}">${esc(g.status||'—')}</span>
+          <span class="game-row-cell">${['3','4','5'].map(n=>`${n} ${rowFlag(g['playersFor'+n])}`).join(' · ')}</span>
+          <span class="game-row-cell" title="${esc(mechanics)}">${esc(mechanics)}</span>
+          <span class="game-row-cell">${esc(g.playingTime||'—')}</span>
+          <span class="game-row-cell">${avg?(avg*2).toFixed(1):'—'}</span>
+        </div>`;
+      }).join('');
     return;
   }
 
@@ -1110,7 +1175,7 @@ function renderGrid(){
         ${['mustFollow','trump','prediction'].map(f=>{
           const v=flagVal(g[f]);
           const labels={mustFollow:'Must-follow',trump:'Trump',prediction:'Prediction'};
-          const short={yes:'✓',no:'✗',part:'~'};
+          const short={yes:'✓',no:'✗',part:'~',hybrid:'Ibrido'};
           return `<span class="flag ${flagClass(v)}">${labels[f]}: ${short[v]}</span>`;
         }).join('')}
       </div>
@@ -1129,9 +1194,8 @@ function renderGrid(){
 
 function getStatusBadgeStyle(st){
   const map={
-    'Owned':'background:rgba(76,175,125,0.15);color:#4caf7d',
+    'Retail':'background:rgba(76,175,125,0.15);color:#4caf7d',
     'PNP':'background:rgba(224,164,74,0.15);color:#e0a44a',
-    'Want to buy':'background:rgba(91,141,217,0.15);color:#5b8dd9',
     'Proxy':'background:rgba(217,107,107,0.15);color:#d96b6b',
     'Preordered':'background:rgba(150,100,200,0.15);color:#b388d6',
   };
@@ -1148,7 +1212,7 @@ function openNewGame(){
   currentId = null;
   currentFlags = {playersFor3:'no',playersFor4:'yes',playersFor5:'no',mustFollow:'no',trump:'no',prediction:'no',played:'no'};
   currentRatings = {};
-  fillPanel({title:'',playingTime:'',status:'Owned',regolamento:'',bgg:'',notes:'',playersFor3:'no',playersFor4:'yes',playersFor5:'no',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
+  fillPanel({title:'',playingTime:'',status:'Retail',regolamento:'',bgg:'',notes:'',playersFor3:'no',playersFor4:'yes',playersFor5:'no',mustFollow:'no',trump:'no',prediction:'no',played:'no',ratings:{}});
   document.getElementById('btnDelete').style.display='none';
   document.getElementById('panelOverlay').classList.add('open');
   document.querySelectorAll('.panel-body input, .panel-body select, .panel-body textarea').forEach(el=>{ el.disabled = !isAdmin; });
@@ -1177,7 +1241,7 @@ function fillPanel(g){
 
   document.getElementById('fTitle').value = g.title||'';
   document.getElementById('fTime').value = g.playingTime||'';
-  document.getElementById('fStatus').value = g.status||'Owned';
+  document.getElementById('fStatus').value = g.status||'Retail';
   document.getElementById('fRegolamento').value = g.regolamento||'';
   document.getElementById('fBgg').value = g.bgg||'';
   document.getElementById('fHook').value = g.hook||'';
@@ -1310,11 +1374,13 @@ function parseCSV(text){
     const fv=v=>{
       v=v.toLowerCase();
       if(v==='v'||v==='yes'||v==='sì'||v==='si') return 'yes';
+      if(v==='hybrid'||v==='ibrido') return 'hybrid';
       if(v==='~'||v==='part'||v==='parziale') return 'part';
       return 'no';
     };
     const normalizeStatus=s=>{
-      if(s && s.toLowerCase().startsWith('wtb')) return 'Want to buy';
+      if(s && (/^(wtb|want to buy)/i).test(s)) return '';
+      if(s==='Owned') return 'Retail';
       if(s && s.toLowerCase()==='proxy rage') return 'Proxy';
       return s;
     };
@@ -1463,6 +1529,9 @@ function saveWeights(){
 // ─────────────── LIVE FILTERS ───────────────
 ['searchInput','filterStatus','filterPlayers3','filterPlayers4','filterPlayers5','filterMustFollow','filterTrump','filterPrediction','filterPlayed','sortField','sortDir']
   .forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input',renderGrid); });
+
+document.getElementById('viewCards').addEventListener('click',()=>setViewMode('cards'));
+document.getElementById('viewRows').addEventListener('click',()=>setViewMode('rows'));
 
 document.getElementById('fTitle').addEventListener('input',()=>{
   document.getElementById('panelTitle').textContent = document.getElementById('fTitle').value||'Nuovo gioco';
