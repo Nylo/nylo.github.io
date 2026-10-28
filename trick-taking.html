@@ -124,8 +124,8 @@ select option{background:var(--surface)}
 .view-toggle button:last-child{border-right:0}
 .view-toggle button.active{background:var(--accent-soft);color:var(--accent)}
 .game-grid.list-view{display:flex;flex-direction:column;gap:0;min-width:720px}
-.game-row{display:grid;grid-template-columns:minmax(190px,2fr) 90px 125px minmax(155px,1.5fr) 72px 64px;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer}
-.game-grid.list-view.admin-view .game-row{grid-template-columns:minmax(190px,2fr) 90px 125px minmax(155px,1.5fr) 64px 72px 64px}
+.game-row{display:grid;grid-template-columns:minmax(220px,1fr) max-content repeat(3,32px) max-content max-content max-content 52px 44px;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer}
+.game-grid.list-view.admin-view .game-row{grid-template-columns:minmax(220px,1fr) max-content repeat(3,32px) max-content max-content max-content 44px 52px 44px}
 .game-row:hover{background:var(--surface-hover)}
 .game-row-header{position:sticky;top:-20px;z-index:1;background:var(--bg);color:var(--text-soft);font-size:10px;font-weight:600;text-transform:uppercase}
 .game-row-title{min-width:0}
@@ -1132,16 +1132,17 @@ function renderGrid(){
   }
 
   if(rowsView){
-    const rowFlag = v=>({yes:'✓',no:'✗',part:'~',hybrid:'~'})[flagVal(v)];
-    grid.innerHTML = `<div class="game-row game-row-header" aria-hidden="true"><span>Gioco</span><span>Stato</span><span>Giocatori</span><span>Meccaniche</span>${isAdmin?'<span>Giocato</span>':''}<span>Min.</span><span>Voto</span></div>`+
+    const rowFlag = v=>({yes:'V',no:'X',part:'~',hybrid:'~'})[flagVal(v)];
+    grid.innerHTML = `<div class="game-row game-row-header" aria-hidden="true"><span>Gioco</span><span>Stato</span><span>3p</span><span>4p</span><span>5p</span><span>Must-follow</span><span>Trump</span><span>Prediction</span>${isAdmin?'<span>Giocato</span>':''}<span>Durata</span><span>Voto</span></div>`+
       list.map(g=>{
         const avg = weightedAvg(g.ratings);
-        const mechanics = `MF ${rowFlag(g.mustFollow)} · B ${rowFlag(g.trump)} · P ${rowFlag(g.prediction)}`;
         return `<div class="game-row" onclick="openGame('${g.id}')">
           <div class="game-row-title"><strong>${esc(g.title||'—')}</strong><small>${esc(g.hook||'')}</small></div>
           <span class="status-badge" style="${getStatusBadgeStyle(g.status)}">${esc(g.status||'—')}</span>
-          <span class="game-row-cell">${['3','4','5'].map(n=>`${n} ${rowFlag(g['playersFor'+n])}`).join(' · ')}</span>
-          <span class="game-row-cell" title="${esc(mechanics)}">${esc(mechanics)}</span>
+          ${['3','4','5'].map(n=>`<span class="game-row-cell">${rowFlag(g['playersFor'+n])}</span>`).join('')}
+          <span class="game-row-cell">${rowFlag(g.mustFollow)}</span>
+          <span class="game-row-cell">${rowFlag(g.trump)}</span>
+          <span class="game-row-cell">${rowFlag(g.prediction)}</span>
           ${isAdmin?`<span class="game-row-cell">${rowFlag(g.played)}</span>`:''}
           <span class="game-row-cell">${esc(g.playingTime||'—')}</span>
           <span class="game-row-cell">${avg?(avg*2).toFixed(1):'—'}</span>
