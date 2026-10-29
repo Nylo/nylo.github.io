@@ -175,7 +175,7 @@ details.rules ul{margin:10px 0 0 18px;font-size:12px;line-height:1.6;color:var(-
   <section id="lobby">
     <div class="panel">
       <h2>Crea una stanza</h2>
-      <p class="muted">Servono 4 giocatori. I posti 1 e 3 formano C.A.T., i posti 2 e 4 B.I.R.D.: i compagni siedono uno di fronte all'altro. I posti vengono assegnati in ordine di arrivo.</p>
+      <p class="muted">Servono 4 giocatori. Quando la stanza è piena, posti e squadre (C.A.T. e B.I.R.D.) vengono assegnati a caso: i compagni siedono uno di fronte all'altro.</p>
       <input type="text" id="createName" maxlength="18" placeholder="Il tuo nome" autocomplete="name">
       <button class="btn btn-primary" id="createRoom" type="button">Crea stanza</button>
     </div>
@@ -502,10 +502,9 @@ function renderLobby(d){
   $('waitDesc').textContent=d.started?'La partita si sta caricando...':players.length+' / 4 giocatori'+(full?' · avvio in corso':' · condividi il codice con gli altri');
   var html='';
   for(var seat=1;seat<=4;seat++){
-    var p=players[seat-1],t=(seat-1)%2;
+    var p=players[seat-1];
     html+='<li><span class="seat-n">'+seat+'.</span>'+
       (p?'<span class="grow">'+esc(p.name)+(p.uid===user.uid?' (tu)':'')+'</span>':'<span class="grow" style="color:var(--text-soft)">In attesa di un giocatore</span>')+
-      '<span class="flag '+(t?'flag-no':'flag-yes')+'">'+TEAMS[t].name+'</span>'+
       (p&&p.uid===d.hostUid?'<span class="flag flag-accent">HOST</span>':'')+'</li>';
   }
   $('roster').innerHTML=html;
@@ -514,7 +513,9 @@ function renderLobby(d){
 }
 function startGame(){
   startingGame=true;
-  var init=initialState(orderedPlayers(lobbyData));
+  var seated=orderedPlayers(lobbyData);   // posti e squadre assegnati a caso all'avvio
+  for(var i=seated.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=seated[i];seated[i]=seated[j];seated[j]=tmp}
+  var init=initialState(seated);
   roomRef.child('state').transaction(function(cur){if(cur!==null)return;return init},function(err){
     if(err){startingGame=false;showErr('Errore durante l\'avvio: '+err.message);return}
     roomRef.child('lobby/started').set(true).catch(function(e){startingGame=false;showErr(e.message)});
@@ -695,7 +696,7 @@ function renderGame(){
   $('game').innerHTML=scoreHtml()+'<div class="dock">'+dockHtml()+'</div>'+
     '<div class="table">'+seatHtml(seatAt(2),'top')+seatHtml(seatAt(1),'left')+centerHtml()+seatHtml(seatAt(3),'right')+seatHtml(seatAt(0),'bottom')+'</div>'+
     '<details class="rules"><summary>PROMEMORIA REGOLE</summary><ul>'+
-    '<li>Due squadre da due: C.A.T. (posti 1 e 3) contro B.I.R.D. (posti 2 e 4). Vince chi completa per primo le tre missioni.</li>'+
+    '<li>Due squadre da due: C.A.T. contro B.I.R.D., con i compagni seduti di fronte. Vince chi completa per primo le tre missioni.</li>'+
     '<li>Si può giocare solo la carta all\'estremo sinistro o destro del proprio portacarte, di qualsiasi colore.</li>'+
     '<li>Vince la presa la carta più alta del colore della prima carta giocata. <strong>Camouflage:</strong> se le 4 carte hanno lo stesso colore vince la più bassa.</li>'+
     '<li>Missione compiuta: entrambi i compagni hanno vinto esattamente le prese della tile. Sabotaggio: chi supera il proprio obiettivo fa fallire la sua missione.</li>'+
