@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spy Team · Online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f1117;
+  --surface:#1a1f2e;
+  --surface-raised:#232840;
+  --surface-hover:#2a3050;
+  --accent:#5b8dd9;
+  --accent-soft:rgba(91,141,217,0.13);
+  --text:#fafafa;
+  --text-soft:#dfdfdf;
+  --success:#4caf7d;
+  --warn:#e0a44a;
+  --danger:#d96b6b;
+  --border:rgba(255,255,255,0.07);
+  --radius:10px;
+  --cat:#4caf7d;
+  --cat-soft:rgba(76,175,125,0.13);
+  --bird:#d96b6b;
+  --bird-soft:rgba(217,107,107,0.13);
+  --c0:#d6457c;
+  --c1:#2f94d8;
+  --cw:46px;
+  --ch:68px;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+.app{max-width:820px;margin:0 auto;padding:0 12px 48px}
+[hidden]{display:none!important}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:12px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.logo{font-family:'Libre Baskerville',serif;font-size:19px;line-height:1.2;flex:1}
+.logo span{color:var(--accent);font-style:italic}
+.round-badge{background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;white-space:nowrap}
+.room-code{padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:Consolas,monospace;letter-spacing:1px;font-size:12px}
+.conn{font-size:11px;color:var(--text-soft)}
+.btn{border:none;border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:7px;justify-content:center;transition:background 0.15s,transform 0.07s}
+.btn:active{transform:scale(0.96)}
+.btn:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover:not(:disabled){background:#4a7cc5}
+.btn-ghost{background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn-ghost:hover:not(:disabled){background:var(--surface-raised);color:var(--text)}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* ── LOBBY ── */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px}
+.panel h2{font-family:'Libre Baskerville',serif;font-size:16px;font-weight:400}
+input[type=text]{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:13px;width:100%;outline:none}
+input[type=text]:focus{border-color:var(--accent)}
+.status{font-size:13px;color:var(--text-soft);min-height:20px;line-height:1.5}
+.muted{color:var(--text-soft);font-size:12px;line-height:1.5}
+.roster{list-style:none;display:flex;flex-direction:column;gap:8px}
+.roster li{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:13px}
+.roster .seat-n{font-family:'Libre Baskerville',serif;color:var(--text-soft);width:20px}
+.roster .grow{flex:1}
+.err{position:fixed;left:12px;right:12px;bottom:12px;max-width:680px;margin:0 auto;padding:12px 14px;border:1px solid rgba(217,107,107,0.5);border-radius:8px;background:#3a1d22;color:#fff;font-size:13px;line-height:1.4;z-index:50}
+
+/* ── PUNTEGGIO ── */
+.score{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.score-team{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;display:flex;align-items:center;gap:10px}
+.score-team .who{flex:1;min-width:0}
+.score-team .nm{font-family:'Libre Baskerville',serif;font-size:14px}
+.score-team .sub{font-size:11px;color:var(--text-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score-team.cat .nm{color:var(--cat)}
+.score-team.bird .nm{color:var(--bird)}
+.tile-chip{font-family:'Libre Baskerville',serif;font-size:11px;padding:4px 7px;border-radius:5px;border:1px solid var(--border);color:var(--text-soft);background:var(--bg)}
+.score-team.cat .tile-chip.done{background:var(--cat-soft);border-color:rgba(76,175,125,0.4);color:var(--cat);text-decoration:line-through}
+.score-team.bird .tile-chip.done{background:var(--bird-soft);border-color:rgba(217,107,107,0.4);color:var(--bird);text-decoration:line-through}
+.tiles{display:flex;gap:4px}
+
+/* ── DOCK ── */
+.dock{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;min-height:84px;display:flex;flex-direction:column;gap:10px;justify-content:center}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-sub{font-size:12px;color:var(--text-soft);line-height:1.5}
+.section-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.04em}
+.toggles{display:flex;gap:8px;flex-wrap:wrap}
+.toggle{background:var(--bg);border:1px solid var(--border);color:var(--text-soft);border-radius:6px;padding:7px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s}
+.toggle:hover:not(:disabled){border-color:rgba(91,141,217,0.4)}
+.toggle:disabled{opacity:0.3;cursor:not-allowed;text-decoration:line-through}
+.toggle.tile{font-family:'Libre Baskerville',serif;font-size:14px;padding:8px 16px}
+.toggle.on{background:var(--accent-soft);border-color:rgba(91,141,217,0.45);color:var(--accent)}
+.result{border-radius:var(--radius);padding:14px;text-align:center}
+.result.cat{background:var(--cat-soft);border:1px solid rgba(76,175,125,0.4)}
+.result.bird{background:var(--bird-soft);border:1px solid rgba(217,107,107,0.4)}
+.result .t{font-family:'Libre Baskerville',serif;font-size:17px;margin-bottom:6px}
+.result.cat .t{color:var(--cat)}
+.result.bird .t{color:var(--bird)}
+.result p{font-size:13px;color:var(--text-soft);line-height:1.5;margin-bottom:12px}
+.flag{font-size:11px;padding:2px 6px;border-radius:4px;font-weight:500;white-space:nowrap;display:inline-block}
+.flag-yes{background:rgba(76,175,125,0.12);color:var(--success)}
+.flag-no{background:rgba(217,107,107,0.12);color:var(--danger)}
+.flag-part{background:rgba(224,164,74,0.12);color:var(--warn)}
+.flag-accent{background:var(--accent-soft);color:var(--accent)}
+
+/* ── TAVOLO ── */
+.table{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"top top top" "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#16302a 0%,#10201f 70%);border:1px solid var(--border);border-radius:14px;padding:12px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;transition:border-color 0.15s,background 0.15s}
+.seat.top{grid-area:top}
+.seat.left{grid-area:left;justify-content:center}
+.seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.active{border-color:var(--accent);background:var(--accent-soft)}
+.seat.winner{border-color:var(--success);background:var(--cat-soft)}
+.seat-info{font-size:12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;text-align:center}
+.seat-info .nm{font-weight:600}
+.seat.cat .nm{color:var(--cat)}
+.seat.bird .nm{color:var(--bird)}
+.hand{display:flex;gap:3px;justify-content:center;flex-wrap:wrap}
+.hand.col{flex-direction:column;flex-wrap:nowrap;align-items:center}
+.icard{width:var(--cw);height:var(--ch);border-radius:6px;border:2px solid rgba(255,255,255,0.85);display:flex;align-items:center;justify-content:center;font-family:'Libre Baskerville',serif;font-weight:700;font-size:20px;color:#fff;position:relative;flex-shrink:0;user-select:none}
+.icard.c0{background:var(--c0)}
+.icard.c1{background:var(--c1)}
+.icard .corner{position:absolute;top:2px;left:4px;font-size:10px;font-family:'Inter',sans-serif}
+.icard.back{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.14) 0 4px,transparent 4px 8px)}
+.icard.back.c0{background-color:var(--c0)}
+.icard.back.c1{background-color:var(--c1)}
+.icard.sm{width:22px;height:34px;border-width:1px;border-radius:4px}
+.icard.sm.side{width:34px;height:20px}
+button.icard{cursor:pointer;padding:0;transition:transform 0.12s,box-shadow 0.12s}
+button.icard:hover:not(:disabled){transform:translateY(-6px);box-shadow:0 6px 12px rgba(0,0,0,0.4)}
+button.icard:disabled{cursor:default}
+.icard.dim{opacity:0.45;filter:saturate(0.6)}
+.icard.playable{box-shadow:0 0 0 2px var(--warn)}
+.gap{width:14px;height:var(--ch);border:1px dashed var(--accent);background:var(--accent-soft);border-radius:4px;color:var(--accent);font-size:12px;cursor:pointer;padding:0}
+.gap:hover{background:var(--accent);color:#fff}
+.center{grid-area:center;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto auto;align-items:center;justify-items:center;min-height:calc(var(--ch)*3 + 30px)}
+.slot{min-height:var(--ch)}
+.slot.p2{grid-column:2;grid-row:1}
+.slot.p1{grid-column:1;grid-row:2}
+.slot.p3{grid-column:3;grid-row:2}
+.slot.p0{grid-column:2;grid-row:3}
+.slot .icard.win{box-shadow:0 0 0 3px var(--success)}
+.center-note{grid-column:2;grid-row:2;font-size:11px;color:var(--text-soft);text-align:center}
+
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-top:12px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.04em}
+details.rules ul{margin:10px 0 0 18px;font-size:12px;line-height:1.6;color:var(--text-soft)}
+
+@media(max-width:560px){
+  :root{--cw:27px;--ch:42px}
+  .icard{font-size:13px;border-width:1px;border-radius:4px}
+  .icard .corner{display:none}
+  .icard.sm{width:14px;height:22px}
+  .icard.sm.side{width:22px;height:13px}
+  .gap{width:10px}
+  .hand{gap:2px}
+  .table{padding:8px;gap:6px}
+  .seat{padding:4px}
+  .score-team{flex-direction:column;align-items:flex-start;gap:6px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">Spy <span>Team</span> · Online</div>
+    <span id="roundBadge" class="round-badge" hidden></span>
+    <span id="roomCode" class="room-code" hidden></span>
+    <button id="copyCode" class="btn btn-ghost btn-sm" type="button" hidden>Copia codice</button>
+    <span id="conn" class="conn"></span>
+    <button id="leave" class="btn btn-ghost btn-sm" type="button" hidden>Esci</button>
+  </div>
+
+  <!-- LOBBY: crea / unisciti -->
+  <section id="lobby">
+    <div class="panel">
+      <h2>Crea una stanza</h2>
+      <p class="muted">Servono 4 giocatori. I posti 1 e 3 formano C.A.T., i posti 2 e 4 B.I.R.D.: i compagni siedono uno di fronte all'altro. I posti vengono assegnati in ordine di arrivo.</p>
+      <input type="text" id="createName" maxlength="18" placeholder="Il tuo nome" autocomplete="name">
+      <button class="btn btn-primary" id="createRoom" type="button">Crea stanza</button>
+    </div>
+    <div class="panel">
+      <h2>Unisciti a una stanza</h2>
+      <p class="muted">Se hai perso la connessione, inserisci di nuovo lo stesso codice dallo stesso browser per rientrare nella partita.</p>
+      <input type="text" id="joinName" maxlength="18" placeholder="Il tuo nome" autocomplete="name">
+      <input type="text" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off">
+      <button class="btn btn-primary" id="joinRoom" type="button">Unisciti</button>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <!-- ATTESA -->
+  <section id="waiting" hidden>
+    <div class="panel">
+      <h2 id="waitTitle">Lobby</h2>
+      <p class="muted" id="waitDesc">In attesa dei giocatori.</p>
+      <ul class="roster" id="roster"></ul>
+    </div>
+  </section>
+
+  <!-- PARTITA -->
+  <section id="game" hidden></section>
+</div>
+<div class="err" id="err" role="alert" hidden></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+(function(){
+'use strict';
+
+// ─────────────── CONFIG ───────────────
+// Stesso progetto Firebase di gcp_v3.html: le regole già pubblicate (rooms/$room con
+// hostUid, members, lobby, state) funzionano senza modifiche.
+var FIREBASE_CONFIG={
+  apiKey:"AIzaSyAoOMLytOqFY9GRXpi2kUGEyzLK-r00nvQ",
+  authDomain:"gachapon-trick.firebaseapp.com",
+  databaseURL:"https://gachapon-trick-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"gachapon-trick",
+  storageBucket:"gachapon-trick.firebasestorage.app",
+  messagingSenderId:"869677835302",
+  appId:"1:869677835302:web:85768d5a6ac0d94f8372e7"
+};
+var GAME_ID='spy-team';
+var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+var SAVE_KEY='spy-team-online-last';
+
+// ─────────────── REGOLE (funzioni pure, usate dentro le transazioni) ───────────────
+var TEAMS=[{name:'C.A.T.',cls:'cat'},{name:'B.I.R.D.',cls:'bird'}];
+var TILES=['1/5','2/4','3/3'];
+var teamOf=function(s){return s%2};
+var mates=function(t){return [t,t+2]};
+var cc=function(i){return i<24?0:1};          // colore della carta (0 rosa, 1 azzurro)
+var cn=function(i){return i%24+1};            // numero della carta
+
+// RTDB non conserva array vuoti né null: tutto passa da questa normalizzazione.
+function A(v){
+  if(Array.isArray(v))return v.filter(function(x){return x!==null&&x!==undefined});
+  if(v&&typeof v==='object')return Object.keys(v).sort(function(a,b){return a-b}).map(function(k){return v[k]});
+  return [];
+}
+function fixed(v,n,fill){ // array di lunghezza n con sentinella, indicizzato (non compattato)
+  var out=[];for(var i=0;i<n;i++){var x=Array.isArray(v)||(v&&typeof v==='object')?v[i]:undefined;out.push(x===null||x===undefined?fill:x)}return out;
+}
+function norm(raw){
+  var s=raw||{};
+  return {
+    v:s.v||0, names:fixed(s.names,4,'?'), uids:fixed(s.uids,4,''),
+    round:s.round||1, start:s.start||0, phase:s.phase||'tiles', tstep:s.tstep||0,
+    ptile:fixed(s.ptile,2,''), plow:fixed(s.plow,2,-1),
+    tile:fixed(s.tile,2,''), low:fixed(s.low,2,-1),
+    passed:fixed(s.passed,4,-1), recv:fixed(s.recv,4,-1), won:fixed(s.won,4,0),
+    hands:[0,1,2,3].map(function(i){return A(s.hands&&s.hands[i])}),
+    trick:A(s.trick), turn:s.turn||0, winner:s.winner==null?-1:s.winner,
+    rem:[A(s.rem0),A(s.rem1)], result:s.result||null, over:s.over==null?-1:s.over, msg:s.msg||''
+  };
+}
+function pack(w){ // forma da scrivere nel database
+  return JSON.parse(JSON.stringify({
+    v:w.v,names:w.names,uids:w.uids,round:w.round,start:w.start,phase:w.phase,tstep:w.tstep,
+    ptile:w.ptile,plow:w.plow,tile:w.tile,low:w.low,passed:w.passed,recv:w.recv,won:w.won,
+    hands:w.hands,trick:w.trick,turn:w.turn,winner:w.winner,rem0:w.rem[0],rem1:w.rem[1],
+    result:w.result,over:w.over,msg:w.msg,game:GAME_ID
+  }));
+}
+function validDeck(d){
+  if(!Array.isArray(d)||d.length!==48)return false;
+  var seen={};for(var i=0;i<48;i++){var x=d[i];if(x!==(x|0)||x<0||x>47||seen[x])return false;seen[x]=1}return true;
+}
+function deal(w,deck){
+  w.hands=[0,1,2,3].map(function(i){return deck.slice(i*11,i*11+11)});   // 4 carte restano da parte
+  w.phase='tiles';w.tstep=0;w.ptile=['',''];w.plow=[-1,-1];w.tile=['',''];w.low=[-1,-1];
+  w.passed=[-1,-1,-1,-1];w.recv=[-1,-1,-1,-1];w.won=[0,0,0,0];w.trick=[];w.winner=-1;w.result=null;
+  w.turn=w.start;
+  w.msg='Round '+w.round+': inizia '+w.names[w.start]+'. Si scelgono le Mission Tile.';
+}
+function newDeck(){
+  var d=[];for(var i=0;i<48;i++)d.push(i);
+  for(var j=47;j>0;j--){var k=Math.floor(Math.random()*(j+1));var t=d[j];d[j]=d[k];d[k]=t}
+  return d;
+}
+function initialState(players){
+  var w=norm(null);
+  w.names=players.map(function(p){return p.name});
+  w.uids=players.map(function(p){return p.uid});
+  w.start=Math.floor(Math.random()*4);
+  deal(w,newDeck());
+  return pack(w);
+}
+function tileTargets(t,tile,low){
+  var ab=tile.split('/').map(Number),m=mates(t),o={};
+  if(ab[0]===ab[1]){o[m[0]]=ab[0];o[m[1]]=ab[1]}
+  else{var hi=low===m[0]?m[1]:m[0];o[low]=ab[0];o[hi]=ab[1]}
+  return o;
+}
+function tileDesc(w,t,tile,low){
+  var tg=tileTargets(t,tile,low);
+  return '['+tile+'] ('+mates(t).map(function(p){return w.names[p]+' '+tg[p]}).join(', ')+')';
+}
+function targets(w){
+  var T=[];for(var t=0;t<2;t++)Object.assign(T,tileTargets(t,w.tile[t],w.low[t]));return T;
+}
+function evaluate(w){
+  var T=targets(w);
+  for(var t=0;t<2;t++){
+    var over=mates(t).filter(function(p){return w.won[p]>T[p]})[0];
+    if(over!==undefined)return {winner:1-t,failed:t,reason:'sabotage',player:over};
+  }
+  for(var u=0;u<2;u++){
+    if(mates(u).every(function(p){return w.won[p]===T[p]}))return {winner:u,reason:'mission'};
+  }
+  return null;
+}
+function trickWinner(trick){
+  var lead=cc(trick[0].c),camo=trick.every(function(x){return cc(x.c)===lead}),best=trick[0];
+  trick.forEach(function(x){
+    if(camo){if(cn(x.c)<cn(best.c))best=x}
+    else if(cc(x.c)===lead&&(cc(best.c)!==lead||cn(x.c)>cn(best.c)))best=x;
+  });
+  return best.p;
+}
+
+// Applica un'azione di `seat` allo stato. Restituisce il nuovo stato oppure null se non valida.
+function reduce(raw,seat,a){
+  if(!raw||seat<0||seat>3)return null;
+  var w=norm(raw),hand=w.hands[seat];
+  switch(a.type){
+
+  case 'tile':{
+    if(w.phase!=='tiles'||(w.start+w.tstep)%4!==seat)return null;
+    var t=teamOf(seat);
+    if(TILES.indexOf(a.tile)<0||w.rem[t].indexOf(a.tile)>=0)return null;
+    var ab=a.tile.split('/'),low=-1;
+    if(ab[0]!==ab[1]){if(mates(t).indexOf(a.low)<0)return null;low=a.low}
+    var same=w.ptile[t]===a.tile&&w.plow[t]===low;
+    var verb=w.tstep<2?'propone':(same?'accetta':'cambia in');
+    w.ptile[t]=a.tile;w.plow[t]=low;
+    w.msg=w.names[seat]+' '+verb+' '+tileDesc(w,t,a.tile,low)+'.';
+    w.tstep++;
+    if(w.tstep===4){w.tile=w.ptile.slice();w.low=w.plow.slice();w.phase='exchange';w.passed=[-1,-1,-1,-1];w.msg+=' Ognuno sceglie una carta da passare al compagno.'}
+    break;}
+
+  case 'pass':{
+    if(w.phase!=='exchange'||w.passed[seat]!==-1||hand.indexOf(a.card)<0)return null;
+    w.passed[seat]=a.card;
+    if(w.passed.every(function(x){return x!==-1})){
+      for(var p=0;p<4;p++)w.hands[p].splice(w.hands[p].indexOf(w.passed[p]),1);
+      for(var q=0;q<4;q++)w.recv[q]=w.passed[(q+2)%4];
+      w.phase='insert';w.msg='Scambio fatto: ognuno inserisce la carta ricevuta dove preferisce.';
+    }
+    break;}
+
+  case 'insert':{
+    if(w.phase!=='insert'||w.recv[seat]===-1)return null;
+    if(a.pos!==(a.pos|0)||a.pos<0||a.pos>hand.length)return null;
+    hand.splice(a.pos,0,w.recv[seat]);w.recv[seat]=-1;
+    if(w.recv.every(function(x){return x===-1})){
+      w.phase='play';w.turn=w.start;w.trick=[];w.winner=-1;
+      w.msg='Si gioca: apre '+w.names[w.start]+'.';
+    }
+    break;}
+
+  case 'play':{
+    if(w.phase!=='play'||w.turn!==seat||hand.length===0)return null;
+    if(a.idx!==0&&a.idx!==hand.length-1)return null;
+    if(w.trick.length===4){w.trick=[];w.winner=-1}
+    var card=hand.splice(a.idx,1)[0];
+    w.trick.push({p:seat,c:card});
+    if(w.trick.length===4){
+      var win=trickWinner(w.trick);
+      w.won[win]++;w.winner=win;w.turn=win;
+      var r=evaluate(w);
+      if(r){w.phase='roundEnd';w.result=r;w.msg=w.names[win]+' vince la presa. Round concluso.'}
+      else if(w.hands.every(function(h){return h.length===0})){w.phase='roundEnd';w.result=null;w.msg='Round concluso senza esito.'}
+      else w.msg=w.names[win]+' vince la presa e apre la prossima.';
+    }else{
+      w.turn=(seat+1)%4;w.msg='Tocca a '+w.names[w.turn]+'.';
+    }
+    break;}
+
+  case 'next':{
+    if(w.phase!=='roundEnd'||!validDeck(a.deck))return null;
+    var res=w.result;
+    if(res){
+      w.rem[res.winner].push(w.tile[res.winner]);
+      if(w.rem[res.winner].length===3){w.phase='gameEnd';w.over=res.winner;w.msg='Partita conclusa.';break}
+    }
+    w.start=(w.start+1)%4;w.round++;
+    deal(w,a.deck);
+    break;}
+
+  case 'rematch':{
+    if(w.phase!=='gameEnd'||!validDeck(a.deck))return null;
+    w.rem=[[],[]];w.over=-1;w.round=1;w.start=Math.floor(Math.random()*4);
+    deal(w,a.deck);
+    break;}
+
+  default:return null;
+  }
+  w.v++;
+  return pack(w);
+}
+
+// ─────────────── STATO CLIENT ───────────────
+var $=function(id){return document.getElementById(id)};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var db=null,user=null,roomRef=null,roomCode='',lobbyData=null,S=null,me=-1,listeners=[],startingGame=false;
+var ui={key:'',tile:'',low:-1};
+
+function setStatus(t){$('status').textContent=t}
+function showErr(t){$('err').textContent=t;$('err').hidden=false;$('conn').textContent='Errore';setTimeout(function(){$('err').hidden=true},8000)}
+function validConfig(){return FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.databaseURL}
+function genCode(){var b=new Uint8Array(12);crypto.getRandomValues(b);return Array.from(b,function(x){return ALPHABET[x%ALPHABET.length]}).join('')}
+function withTimeout(p,ms,msg){
+  return new Promise(function(res,rej){var t=setTimeout(function(){rej(new Error(msg))},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})});
+}
+function authMsg(e){
+  if(e.code==='auth/operation-not-allowed')return 'Attiva il provider Anonimo in Firebase Authentication.';
+  if(e.code==='auth/unauthorized-domain')return 'Dominio non autorizzato: aggiungilo in Authentication > Impostazioni > Domini autorizzati.';
+  if(e.code==='auth/network-request-failed')return 'Firebase non raggiungibile: controlla la connessione e che il sito sia in HTTPS.';
+  return e.message||'Errore di autenticazione Firebase.';
+}
+async function connect(){
+  if(!validConfig())throw new Error('Configura Firebase in FIREBASE_CONFIG.');
+  if(!window.firebase)throw new Error('Firebase non caricato. Controlla la connessione.');
+  if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+  db=firebase.database();
+  if(user)return;
+  try{user=(await withTimeout(firebase.auth().signInAnonymously(),15000,'Autenticazione scaduta dopo 15 secondi.')).user}
+  catch(e){throw new Error(authMsg(e))}
+}
+function saveLast(name){try{localStorage.setItem(SAVE_KEY,JSON.stringify({code:roomCode,name:name}))}catch(e){}}
+
+// ─────────────── LOBBY ───────────────
+async function createRoom(){
+  try{
+    var name=$('createName').value.trim();
+    if(!name)throw new Error('Inserisci il tuo nome.');
+    setStatus('Connessione a Firebase...');await connect();
+    var created=false,lastErr=null;
+    for(var i=0;i<5&&!created;i++){
+      roomCode=genCode();roomRef=db.ref('rooms/'+roomCode);
+      try{
+        await roomRef.child('hostUid').set(user.uid);
+        await roomRef.child('members/'+user.uid).set(true);
+        await roomRef.child('lobby').set({game:GAME_ID,hostUid:user.uid,playerCount:4,started:false,closed:false,players:{}});
+        created=true;
+      }catch(e){lastErr=e;roomRef=null}
+    }
+    if(!created)throw lastErr||new Error('Impossibile creare la stanza. Verifica le regole del database.');
+    await reserveSeat(name);
+  }catch(e){setStatus(e.message||'Errore durante la creazione della stanza.')}
+}
+async function joinRoom(){
+  try{
+    var name=$('joinName').value.trim();
+    if(!name)throw new Error('Inserisci il tuo nome.');
+    roomCode=$('joinCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(roomCode.length!==12)throw new Error('Il codice stanza è di 12 caratteri.');
+    setStatus('Connessione...');await connect();
+    roomRef=db.ref('rooms/'+roomCode);
+    await roomRef.child('members/'+user.uid).set(true);
+    await reserveSeat(name);
+  }catch(e){setStatus(e.code==='PERMISSION_DENIED'?'Stanza non trovata o non accessibile.':(e.message||'Errore durante l\'accesso alla stanza.'))}
+}
+function reserveSeat(name){
+  var lobbyRef=roomRef.child('lobby');
+  return lobbyRef.once('value').then(function(snap){
+    if(!snap.exists())throw new Error('Lobby non trovata: controlla il codice.');
+    var initial=snap.val();
+    if(initial.game!==GAME_ID)throw new Error('Questo codice appartiene a un altro gioco.');
+    return new Promise(function(resolve,reject){
+      lobbyRef.transaction(function(cur){
+        if(cur===null)cur=initial;
+        if(!cur||!cur.playerCount||cur.closed)return;
+        cur.players=cur.players||{};
+        if(cur.players[user.uid])return cur;            // rientro: il posto è già tuo
+        if(cur.started)return;
+        var occ={};Object.keys(cur.players).forEach(function(u){occ[cur.players[u].seat]=true});
+        var seat=1;while(seat<=cur.playerCount&&occ[seat])seat++;
+        if(seat>cur.playerCount)return;
+        cur.players[user.uid]={uid:user.uid,name:name,seat:seat};
+        return cur;
+      },function(err,committed,snap2){
+        if(err){reject(err);return}
+        var cur=snap2&&snap2.val();
+        if(!cur||!cur.players||!cur.players[user.uid]){
+          reject(new Error(cur&&cur.started?'La partita è già iniziata.':'La stanza è piena o non disponibile.'));return;
+        }
+        lobbyData=cur;saveLast(name);enterRoom();resolve();
+      },false);
+    });
+  });
+}
+function orderedPlayers(d){
+  return Object.keys(d.players||{}).map(function(u){return d.players[u]}).sort(function(a,b){return a.seat-b.seat});
+}
+function renderLobby(d){
+  var players=orderedPlayers(d),full=players.length===4,isHost=d.hostUid===user.uid;
+  $('waitTitle').textContent='Stanza '+roomCode;
+  $('waitDesc').textContent=d.started?'La partita si sta caricando...':players.length+' / 4 giocatori'+(full?' · avvio in corso':' · condividi il codice con gli altri');
+  var html='';
+  for(var seat=1;seat<=4;seat++){
+    var p=players[seat-1],t=(seat-1)%2;
+    html+='<li><span class="seat-n">'+seat+'.</span>'+
+      (p?'<span class="grow">'+esc(p.name)+(p.uid===user.uid?' (tu)':'')+'</span>':'<span class="grow" style="color:var(--text-soft)">In attesa di un giocatore</span>')+
+      '<span class="flag '+(t?'flag-no':'flag-yes')+'">'+TEAMS[t].name+'</span>'+
+      (p&&p.uid===d.hostUid?'<span class="flag flag-accent">HOST</span>':'')+'</li>';
+  }
+  $('roster').innerHTML=html;
+  $('conn').textContent=full?'Tutti presenti':'In attesa';
+  if(full&&isHost&&!d.started&&!startingGame)startGame();
+}
+function startGame(){
+  startingGame=true;
+  var init=initialState(orderedPlayers(lobbyData));
+  roomRef.child('state').transaction(function(cur){if(cur!==null)return;return init},function(err){
+    if(err){startingGame=false;showErr('Errore durante l\'avvio: '+err.message);return}
+    roomRef.child('lobby/started').set(true).catch(function(e){startingGame=false;showErr(e.message)});
+  },false);
+}
+
+// ─────────────── STANZA ───────────────
+function enterRoom(){
+  $('lobby').hidden=true;$('waiting').hidden=false;
+  $('roomCode').textContent=roomCode;$('roomCode').hidden=false;$('copyCode').hidden=false;$('leave').hidden=false;
+  $('conn').textContent='Lobby';
+  renderLobby(lobbyData);
+  var lobbyRef=roomRef.child('lobby');
+  var lh=function(snap){if(!snap.exists())return;lobbyData=snap.val();if(!S)renderLobby(lobbyData)};
+  lobbyRef.on('value',lh,function(e){showErr(e.message)});listeners.push({ref:lobbyRef,h:lh});
+  var stateRef=roomRef.child('state');
+  var sh=function(snap){
+    if(!snap.exists())return;
+    S=norm(snap.val());
+    me=S.uids.indexOf(user.uid);
+    if(me<0){showErr('Non risulti tra i giocatori di questa partita.');return}
+    $('waiting').hidden=true;$('game').hidden=false;$('conn').textContent='Connesso';
+    renderGame();
+  };
+  stateRef.on('value',sh,function(e){showErr('Connessione persa: '+e.message)});listeners.push({ref:stateRef,h:sh});
+}
+function leave(){
+  listeners.forEach(function(l){l.ref.off('value',l.h)});
+  if(!roomRef||S||!user){window.location.reload();return}
+  // prima dell'inizio libera il posto; a partita avviata si può rientrare con lo stesso codice
+  roomRef.child('lobby').transaction(function(cur){
+    if(!cur||cur.started)return;
+    cur.players=cur.players||{};delete cur.players[user.uid];
+    var rest=orderedPlayers(cur);
+    if(cur.hostUid===user.uid&&rest.length)cur.hostUid=rest[0].uid;
+    return cur;
+  },function(){
+    roomRef.child('members/'+user.uid).remove().catch(function(){}).then(function(){window.location.reload()});
+  },false);
+}
+
+// azioni: ogni azione è una transazione sullo stato, validata da reduce() sull'ultima versione
+function act(a){
+  if(!roomRef||me<0)return;
+  var seat=me;
+  roomRef.child('state').transaction(function(cur){
+    var r=reduce(cur,seat,a);
+    return r===null?undefined:r;
+  },function(err,committed){
+    if(err)showErr('Errore di sincronizzazione: '+err.message);
+    else if(!committed)$('conn').textContent='Azione non più valida';
+  },false);
+}
+
+// ─────────────── RENDER PARTITA ───────────────
+var colName=function(c){return c?'azzurro':'rosa'};
+var cardFace=function(i,extra){return '<span class="icard c'+cc(i)+' '+(extra||'')+'"><span class="corner">'+cn(i)+'</span>'+cn(i)+'</span>'};
+var cardBtn=function(i,idx,action,cls,enabled){
+  return '<button class="icard c'+cc(i)+' '+cls+'" '+(enabled?'':'disabled')+' data-a="'+action+'" data-i="'+idx+'" title="'+cn(i)+' '+colName(cc(i))+'"><span class="corner">'+cn(i)+'</span>'+cn(i)+'</button>';
+};
+var seatAt=function(r){return (me+r)%4};
+
+function seatTarget(p){
+  if(S.phase==='tiles'){var t=teamOf(p);return S.ptile[t]?tileTargets(t,S.ptile[t],S.plow[t])[p]:null}
+  return targets(S)[p];
+}
+
+function scoreHtml(){
+  return '<div class="score">'+[0,1].map(function(t){
+    return '<div class="score-team '+TEAMS[t].cls+'"><div class="who"><div class="nm">'+TEAMS[t].name+'</div><div class="sub">'+
+      mates(t).map(function(p){return esc(S.names[p])}).join(' · ')+'</div></div><div class="tiles">'+
+      TILES.map(function(x){return '<span class="tile-chip '+(S.rem[t].indexOf(x)>=0?'done':'')+'">'+x+'</span>'}).join('')+'</div></div>';
+  }).join('')+'</div>';
+}
+
+function tileForm(){
+  var t=teamOf(me),mate=(me+2)%4,fin=S.tstep>=2;
+  var avail=TILES.filter(function(x){return S.rem[t].indexOf(x)<0});
+  var key=S.round+':'+S.tstep;
+  if(ui.key!==key){ui={key:key,tile:fin?S.ptile[t]:'',low:fin?S.plow[t]:-1}}
+  var ab=ui.tile?ui.tile.split('/'):[],split=ui.tile&&ab[0]!==ab[1];
+  var ready=ui.tile&&(!split||ui.low!==-1);
+  var unchanged=ui.tile===S.ptile[t]&&(split?ui.low:-1)===S.plow[t];
+  var label=fin?(unchanged?'Accetta':'Cambia'):'Proponi';
+  return '<div class="section-title">'+(fin?'IL COMPAGNO HA PROPOSTO — ACCETTA O CAMBIA':'LA TUA PROPOSTA DI MISSION TILE')+'</div>'+
+    '<div class="toggles">'+TILES.map(function(x){return '<button class="toggle tile '+(ui.tile===x?'on':'')+'" '+(avail.indexOf(x)<0?'disabled':'')+' data-a="uiTile" data-v="'+x+'">'+x+'</button>'}).join('')+'</div>'+
+    (split?'<div class="toggles">'+
+      '<button class="toggle '+(ui.low===me?'on':'')+'" data-a="uiLow" data-v="'+me+'">Tu '+ab[0]+' · '+esc(S.names[mate])+' '+ab[1]+'</button>'+
+      '<button class="toggle '+(ui.low===mate?'on':'')+'" data-a="uiLow" data-v="'+mate+'">Tu '+ab[1]+' · '+esc(S.names[mate])+' '+ab[0]+'</button></div>':'')+
+    '<div><button class="btn btn-primary btn-sm" '+(ready?'':'disabled')+' data-a="tile">'+label+'</button></div>';
+}
+
+function dockHtml(){
+  var msg='<div class="dock-msg">'+esc(S.msg)+'</div>';
+  if(S.phase==='gameEnd'){
+    var tm=TEAMS[S.over],mine=teamOf(me)===S.over;
+    return '<div class="result '+tm.cls+'"><div class="t">'+(mine?'Avete vinto!':'Hanno vinto gli avversari')+' · '+tm.name+'</div>'+
+      '<p>'+mates(S.over).map(function(p){return esc(S.names[p])}).join(' e ')+' hanno completato tutte e tre le missioni.</p>'+
+      '<button class="btn btn-primary" data-a="rematch">Rivincita</button></div>';
+  }
+  if(S.phase==='roundEnd'){
+    var r=S.result;
+    if(!r)return '<div class="result"><div class="t">Round concluso senza esito</div><button class="btn btn-primary" data-a="next">Prossimo round</button></div>';
+    var t2=TEAMS[r.winner],T=targets(S),last=S.rem[r.winner].length===2;
+    var why=r.reason==='mission'?'Entrambi i compagni hanno vinto esattamente le prese richieste.':
+      esc(S.names[r.player])+' ha vinto '+S.won[r.player]+' prese contro un obiettivo di '+T[r.player]+': '+TEAMS[r.failed].name+' fallisce.';
+    return '<div class="result '+t2.cls+'"><div class="t">'+(r.reason==='mission'?'Missione compiuta':'Sabotaggio riuscito')+' · '+t2.name+'</div>'+
+      '<p>'+why+'<br>La tile '+S.tile[r.winner]+' di '+t2.name+' viene rimossa.</p>'+
+      '<button class="btn btn-primary" data-a="next">'+(last?'Concludi partita':'Prossimo round')+'</button></div>';
+  }
+  var sub='';
+  if(S.phase==='tiles'){
+    var actor=(S.start+S.tstep)%4;
+    if(actor===me)return msg+tileForm();
+    sub=esc(S.names[actor])+' sta scegliendo…';
+  }else if(S.phase==='exchange'){
+    sub=S.passed[me]===-1?'Tocca una carta della tua mano per passarla al compagno.':'Carta scelta: aspetto gli altri giocatori…';
+  }else if(S.phase==='insert'){
+    sub=S.recv[me]!==-1?'Hai ricevuto '+cardFace(S.recv[me],'sm')+' — clicca uno spazio tratteggiato nella tua mano.':'Carta inserita: aspetto gli altri giocatori…';
+  }else if(S.phase==='play'){
+    sub=S.turn===me?'Tocca a te: puoi giocare solo la carta più a sinistra o più a destra.':'Tocca a '+esc(S.names[S.turn])+'.';
+  }
+  return msg+'<div class="dock-sub">'+sub+'</div>';
+}
+
+function seatHtml(seat,pos){
+  var tg=seatTarget(seat),cls=TEAMS[teamOf(seat)].cls;
+  var info='<span class="nm">'+esc(S.names[seat])+(seat===me?' (tu)':'')+'</span>';
+  if(tg!=null){
+    info+='<span class="flag flag-accent">obiettivo '+tg+'</span>';
+    if(S.phase!=='tiles'){var w=S.won[seat];info+='<span class="flag '+(w>tg?'flag-no':w===tg?'flag-yes':'flag-part')+'">prese '+w+'/'+tg+'</span>'}
+  }
+  var active=S.phase==='play'&&S.turn===seat&&S.trick.length<4;
+  var hand=S.hands[seat],body;
+  if(seat===me)body=myHand();
+  else if(pos==='top')body='<div class="hand">'+hand.map(function(c){return '<span class="icard sm back c'+cc(c)+'"></span>'}).join('')+'</div>';
+  else body='<div class="hand col">'+hand.map(function(c){return '<span class="icard sm side back c'+cc(c)+'"></span>'}).join('')+'</div>';
+  var winner=S.winner===seat&&S.trick.length===4;
+  return '<div class="seat '+pos+' '+cls+' '+(active?'active':'')+' '+(winner?'winner':'')+'">'+
+    (pos==='bottom'?body+'<div class="seat-info">'+info+'</div>':'<div class="seat-info">'+info+'</div>'+body)+'</div>';
+}
+
+function myHand(){
+  var h=S.hands[me],len=h.length,out='';
+  if(S.phase==='insert'&&S.recv[me]!==-1){
+    for(var i=0;i<=len;i++){
+      out+='<button class="gap" data-a="insert" data-i="'+i+'" title="Inserisci qui">▾</button>';
+      if(i<len)out+=cardFace(h[i]);
+    }
+    return '<div class="hand">'+out+'</div>';
+  }
+  return '<div class="hand">'+h.map(function(c,i){
+    if(S.phase==='exchange'){
+      var picked=S.passed[me]===c;
+      return cardBtn(c,i,'pass',picked?'playable':'',S.passed[me]===-1);
+    }
+    if(S.phase==='play'){
+      var can=S.turn===me&&(i===0||i===len-1);
+      return cardBtn(c,i,'play',can?'playable':'dim',can);
+    }
+    return cardFace(c);
+  }).join('')+'</div>';
+}
+
+function centerHtml(){
+  var slots=[0,1,2,3].map(function(r){
+    var seat=seatAt(r),x=S.trick.filter(function(t){return t.p===seat})[0];
+    var win=S.trick.length===4&&S.winner===seat;
+    return '<div class="slot p'+r+'">'+(x?cardFace(x.c,win?'win':''):'')+'</div>';
+  }).join('');
+  var played=S.won.reduce(function(a,b){return a+b},0);
+  return '<div class="center">'+slots+'<div class="center-note">'+(S.phase==='play'?'Presa '+Math.min(played+(S.trick.length===4?0:1),11)+'/11':'')+'</div></div>';
+}
+
+function renderGame(){
+  $('roundBadge').hidden=false;
+  $('roundBadge').textContent=S.phase==='gameEnd'?'Partita conclusa':'Round '+S.round;
+  $('game').innerHTML=scoreHtml()+'<div class="dock">'+dockHtml()+'</div>'+
+    '<div class="table">'+seatHtml(seatAt(2),'top')+seatHtml(seatAt(1),'left')+centerHtml()+seatHtml(seatAt(3),'right')+seatHtml(seatAt(0),'bottom')+'</div>'+
+    '<details class="rules"><summary>PROMEMORIA REGOLE</summary><ul>'+
+    '<li>Due squadre da due: C.A.T. (posti 1 e 3) contro B.I.R.D. (posti 2 e 4). Vince chi completa per primo le tre missioni.</li>'+
+    '<li>Si può giocare solo la carta all\'estremo sinistro o destro del proprio portacarte, di qualsiasi colore.</li>'+
+    '<li>Vince la presa la carta più alta del colore della prima carta giocata. <strong>Camouflage:</strong> se le 4 carte hanno lo stesso colore vince la più bassa.</li>'+
+    '<li>Missione compiuta: entrambi i compagni hanno vinto esattamente le prese della tile. Sabotaggio: chi supera il proprio obiettivo fa fallire la sua missione.</li>'+
+    '<li>Le carte restano visibili sul tavolo finché il vincitore non gioca la presa successiva.</li></ul></details>';
+}
+
+// ─────────────── EVENTI ───────────────
+$('game').addEventListener('click',function(e){
+  var b=e.target.closest('[data-a]');
+  if(!b||b.disabled||!S)return;
+  var a=b.dataset.a,i=Number(b.dataset.i);
+  if(a==='uiTile'){if(ui.tile!==b.dataset.v)ui.low=-1;ui.tile=b.dataset.v;renderGame()}
+  else if(a==='uiLow'){ui.low=Number(b.dataset.v);renderGame()}
+  else if(a==='tile'){
+    var ab=ui.tile.split('/');
+    act({type:'tile',tile:ui.tile,low:ab[0]===ab[1]?-1:ui.low});
+  }
+  else if(a==='pass')act({type:'pass',card:S.hands[me][i]});
+  else if(a==='insert')act({type:'insert',pos:i});
+  else if(a==='play')act({type:'play',idx:i});
+  else if(a==='next')act({type:'next',deck:newDeck()});
+  else if(a==='rematch')act({type:'rematch',deck:newDeck()});
+});
+$('createRoom').onclick=createRoom;
+$('joinRoom').onclick=joinRoom;
+$('leave').onclick=leave;
+$('joinCode').addEventListener('input',function(){this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')});
+$('joinCode').addEventListener('keydown',function(e){if(e.key==='Enter')joinRoom()});
+$('copyCode').onclick=function(){
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(roomCode).then(function(){$('conn').textContent='Codice copiato'});
+  else window.prompt('Copia il codice stanza:',roomCode);
+};
+try{var last=JSON.parse(localStorage.getItem(SAVE_KEY));if(last){$('joinCode').value=last.code||'';$('joinName').value=last.name||'';$('createName').value=last.name||''}}catch(e){}
+})();
+</script>
+</body>
+</html>
