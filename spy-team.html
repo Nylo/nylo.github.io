@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spy Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f1117;
+  --surface:#1a1f2e;
+  --surface-raised:#232840;
+  --surface-hover:#2a3050;
+  --accent:#5b8dd9;
+  --accent-soft:rgba(91,141,217,0.13);
+  --text:#fafafa;
+  --text-soft:#dfdfdf;
+  --success:#4caf7d;
+  --warn:#e0a44a;
+  --danger:#d96b6b;
+  --border:rgba(255,255,255,0.07);
+  --radius:10px;
+  --cat:#4caf7d;
+  --cat-soft:rgba(76,175,125,0.13);
+  --bird:#d96b6b;
+  --bird-soft:rgba(217,107,107,0.13);
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+.app{max-width:760px;margin:0 auto;padding:0 16px 48px}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;gap:10px;padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:18px}
+.logo{font-family:'Libre Baskerville',serif;font-size:19px;line-height:1.2;flex:1}
+.logo span{color:var(--accent);font-style:italic}
+.round-badge{background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;white-space:nowrap}
+.btn{border:none;border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:7px;justify-content:center;transition:background 0.15s,transform 0.07s}
+.btn:active{transform:scale(0.96)}
+.btn:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover:not(:disabled){background:#4a7cc5}
+.btn-secondary{background:var(--surface-raised);color:var(--text)}
+.btn-secondary:hover:not(:disabled){background:var(--surface-hover)}
+.btn-ghost{background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn-ghost:hover:not(:disabled){background:var(--surface-raised);color:var(--text)}
+.btn-lg{padding:12px 20px;font-size:14px}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;position:relative}
+.card::before{content:'';position:absolute;top:0;left:16px;right:16px;height:2px;border-radius:0 0 2px 2px;background:linear-gradient(90deg,transparent,rgba(91,141,217,0.4),transparent)}
+.card.cat::before{background:linear-gradient(90deg,transparent,var(--cat),transparent)}
+.card.bird::before{background:linear-gradient(90deg,transparent,var(--bird),transparent)}
+.stack{display:flex;flex-direction:column;gap:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.section-title{font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.04em;margin-bottom:12px}
+.muted{color:var(--text-soft);font-size:12px;line-height:1.5}
+.title{font-family:'Libre Baskerville',serif;font-size:15px;line-height:1.35}
+h2.title{font-size:18px}
+.team-name{font-family:'Libre Baskerville',serif;font-size:16px}
+.team-cat .team-name{color:var(--cat)}
+.team-bird .team-name{color:var(--bird)}
+.team-sub{font-size:11px;color:var(--text-soft);margin-top:2px}
+
+/* ── SCOREBOARD ── */
+.score-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:12px}
+.score-count{font-family:'Libre Baskerville',serif;font-size:22px}
+.tile-row{display:flex;gap:6px}
+.tile-chip{flex:1;text-align:center;font-family:'Libre Baskerville',serif;font-size:12px;padding:6px 0;border-radius:6px;border:1px solid var(--border);color:var(--text-soft);background:var(--bg)}
+.team-cat .tile-chip.done{background:var(--cat-soft);border-color:rgba(76,175,125,0.4);color:var(--cat);text-decoration:line-through}
+.team-bird .tile-chip.done{background:var(--bird-soft);border-color:rgba(217,107,107,0.4);color:var(--bird);text-decoration:line-through}
+
+/* ── FORMS ── */
+input[type=text]{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:13px;width:100%;outline:none}
+input[type=text]:focus{border-color:var(--accent)}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.field label{font-size:11px;color:var(--text-soft);font-weight:500}
+.toggles{display:flex;gap:8px;flex-wrap:wrap}
+.toggle{background:var(--bg);border:1px solid var(--border);color:var(--text-soft);border-radius:6px;padding:7px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s}
+.toggle:hover:not(:disabled){border-color:rgba(91,141,217,0.4)}
+.toggle:disabled{opacity:0.3;cursor:not-allowed;text-decoration:line-through}
+.toggle.tile{font-family:'Libre Baskerville',serif;font-size:14px;padding:9px 16px}
+.toggle.on{background:var(--accent-soft);border-color:rgba(91,141,217,0.45);color:var(--accent)}
+.order{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.order .arrow{color:var(--text-soft);font-size:12px}
+
+/* ── BADGES (stesso stile della collezione) ── */
+.flag{font-size:11px;padding:2px 6px;border-radius:4px;font-weight:500;white-space:nowrap;display:inline-block}
+.flag-yes{background:rgba(76,175,125,0.12);color:var(--success)}
+.flag-no{background:rgba(217,107,107,0.12);color:var(--danger)}
+.flag-part{background:rgba(224,164,74,0.12);color:var(--warn)}
+.flag-accent{background:var(--accent-soft);color:var(--accent)}
+
+/* ── PLAYERS ── */
+.player-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border)}
+.player-row:first-of-type{border-top:0}
+.player-info{flex:1;min-width:0}
+.player-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pips{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap}
+.pip{width:9px;height:9px;border-radius:50%;background:var(--border);border:1px solid rgba(255,255,255,0.12)}
+.team-cat .pip.filled{background:var(--cat);border-color:var(--cat)}
+.team-bird .pip.filled{background:var(--bird);border-color:var(--bird)}
+.pip.over{background:var(--warn);border-color:var(--warn)}
+.big-count{font-family:'Libre Baskerville',serif;font-size:24px;line-height:1;text-align:right;min-width:62px}
+.big-count small{font-size:12px;color:var(--text-soft)}
+
+/* ── WINNER BUTTONS ── */
+.winner-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.winner-btn{background:var(--surface-raised);border:1px solid var(--border);border-left-width:4px;border-radius:8px;color:var(--text);padding:12px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-align:left;transition:background 0.15s,transform 0.07s}
+.winner-btn:hover:not(:disabled){background:var(--surface-hover)}
+.winner-btn:active:not(:disabled){transform:scale(0.97)}
+.winner-btn:disabled{opacity:0.35;cursor:not-allowed}
+.winner-btn.cat{border-left-color:var(--cat)}
+.winner-btn.bird{border-left-color:var(--bird)}
+.winner-btn small{display:block;font-weight:400;font-size:11px;color:var(--text-soft);margin-top:3px}
+
+/* ── RESULT ── */
+.result{border-radius:var(--radius);padding:18px;text-align:center}
+.result.cat{background:var(--cat-soft);border:1px solid rgba(76,175,125,0.4)}
+.result.bird{background:var(--bird-soft);border:1px solid rgba(217,107,107,0.4)}
+.result .title{font-size:19px;margin-bottom:6px}
+.result p{font-size:13px;color:var(--text-soft);line-height:1.5;margin-bottom:14px}
+.result.cat .title{color:var(--cat)}
+.result.bird .title{color:var(--bird)}
+
+/* ── LOG ── */
+.log-row{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--border);font-size:12px}
+.log-row:first-of-type{border-top:0}
+.log-n{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--text-soft)}
+.log-main strong{font-weight:600}
+.log-main small{display:block;color:var(--text-soft);margin-top:2px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.04em}
+details.rules ul{margin:10px 0 0 18px;font-size:12px;line-height:1.6;color:var(--text-soft)}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+
+@media(max-width:560px){
+  .grid2{grid-template-columns:1fr}
+  .grid2.keep{grid-template-columns:1fr 1fr}
+  .grid2.keep .tile-chip{font-size:11px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ─────────────── DATI ───────────────
+const KEY = 'spy-team-v1';
+const TEAMS = [
+  {name:'C.A.T.', full:'Covert Agents of Tactics',                        cls:'cat'},
+  {name:'B.I.R.D.', full:'Bureau of Intelligence, Reconnaissance & Detection', cls:'bird'}
+];
+const TILES = ['1/5','2/4','3/3'];
+const TRICKS_PER_ROUND = 11;
+
+// Posti in senso orario: 0 C.A.T., 1 B.I.R.D., 2 C.A.T., 3 B.I.R.D. (i compagni non sono mai vicini)
+const teamOf = i => i % 2;
+const mates = t => [t, t+2];
+
+const newCur = () => ({playing:false, tile:[null,null], low:[null,null], tricks:[]});
+const fresh = () => ({started:false, names:['','','',''], start:0, removed:[[],[]], log:[], over:null, cur:newCur()});
+
+let S = load();
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.cur) return s; }catch(e){}
+  return fresh();
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function commit(){ save(); render(); }
+
+const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const pname = i => esc(S.names[i].trim() || `${TEAMS[teamOf(i)].name} ${i<2?1:2}`);
+
+// ─────────────── LOGICA ───────────────
+function targets(cur=S.cur){
+  const T = [];
+  for(const t of [0,1]){
+    const [a,b] = (cur.tile[t]||'0/0').split('/').map(Number);
+    const [p0,p1] = mates(t);
+    if(a===b){ T[p0]=a; T[p1]=b; }
+    else{ const lo=cur.low[t], hi = lo===p0?p1:p0; T[lo]=a; T[hi]=b; }
+  }
+  return T;
+}
+function counts(cur=S.cur){
+  const c=[0,0,0,0]; cur.tricks.forEach(w=>c[w]++); return c;
+}
+function teamReady(t){
+  const tile = S.cur.tile[t];
+  return !!tile && (tile==='3/3' || S.cur.low[t]!=null);
+}
+function evaluate(){
+  const T=targets(), c=counts();
+  for(const t of [0,1]){
+    const over = mates(t).find(p=>c[p]>T[p]);
+    if(over!=null) return {winner:1-t, failed:t, reason:'sabotage', player:over};
+  }
+  for(const t of [0,1]){
+    if(mates(t).every(p=>c[p]===T[p])) return {winner:t, reason:'mission'};
+  }
+  return null;
+}
+const leader = () => S.cur.tricks.length ? S.cur.tricks[S.cur.tricks.length-1] : S.start;
+
+// ─────────────── AZIONI ───────────────
+function setName(i, v){ S.names[i]=v; save(); }
+function setStart(i){ S.start=+i; save(); }
+function startGame(){ S.started=true; commit(); }
+function pickTile(t, tile){
+  S.cur.tile[t] = tile;
+  S.cur.low[t] = null;
+  commit();
+}
+function pickLow(t, p){ S.cur.low[t]=p; commit(); }
+function startRound(){ S.cur.playing=true; commit(); }
+function backToSetup(){ S.cur.playing=false; S.cur.tricks=[]; commit(); }
+function addTrick(p){
+  if(evaluate() || S.cur.tricks.length>=TRICKS_PER_ROUND) return;
+  S.cur.tricks.push(p); commit();
+}
+function undoTrick(){ S.cur.tricks.pop(); commit(); }
+function nextRound(){
+  const r = evaluate(); if(!r) return;
+  const T=targets(), c=counts();
+  S.log.push({n:S.log.length+1, start:S.start, tiles:[...S.cur.tile], winner:r.winner, reason:r.reason,
+              failed:r.failed, player:r.player, T, c});
+  S.removed[r.winner].push(S.cur.tile[r.winner]);
+  if(S.removed[r.winner].length===3){ S.over=r.winner; }
+  else{ S.start=(S.start+1)%4; }
+  S.cur=newCur();
+  commit();
+}
+function newGame(){
+  if(!confirm('Iniziare una nuova partita? I progressi attuali andranno persi.')) return;
+  const names=S.names;
+  S=fresh(); S.names=names; commit();
+}
+
+// ─────────────── RENDER ───────────────
+function render(){
+  const app=document.getElementById('app');
+  const round = S.log.length + (S.over==null ? 1 : 0);
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="logo">Spy <span>Team</span></div>
+      ${S.started?`<span class="round-badge">${S.over!=null?'Partita conclusa':'Round '+round}</span>
+      <button class="btn btn-ghost btn-sm" onclick="newGame()">Nuova partita</button>`:''}
+    </div>
+    ${S.started ? gameView() : setupView()}`;
+}
+
+function setupView(){
+  const order=[0,1,2,3].map(i=>`<span class="flag ${teamOf(i)?'flag-no':'flag-yes'}">${TEAMS[teamOf(i)].name}</span>`).join('<span class="arrow">→</span>');
+  return `<div class="stack">
+    <div class="card">
+      <h2 class="title" style="margin-bottom:6px">Nuova partita</h2>
+      <p class="muted" style="margin-bottom:14px">Due squadre da due giocatori: vince la prima che completa tutte e tre le proprie missioni. Inserisci i nomi in ordine di seduta, in senso orario: i compagni non devono sedere vicini.</p>
+      <div class="order" style="margin-bottom:16px">${order}<span class="arrow">↺</span></div>
+      <div class="grid2 keep">
+        ${[0,1,2,3].map(i=>`<div class="field">
+          <label>${TEAMS[teamOf(i)].name} · giocatore ${i<2?1:2}</label>
+          <input type="text" value="${esc(S.names[i])}" placeholder="${TEAMS[teamOf(i)].name} ${i<2?1:2}" maxlength="20" oninput="setName(${i},this.value)">
+        </div>`).join('')}
+      </div>
+      <div class="field" style="margin-top:6px">
+        <label>Primo Start Player (chi sembra avere più segreti)</label>
+        <select id="startSel" onchange="setStart(this.value)" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 10px;font-family:inherit;font-size:13px">
+          ${[0,1,2,3].map(i=>`<option value="${i}" ${S.start===i?'selected':''}>${S.names[i].trim()||TEAMS[teamOf(i)].name+' '+(i<2?1:2)}</option>`).join('')}
+        </select>
+      </div>
+      <div style="margin-top:16px"><button class="btn btn-primary btn-lg" onclick="startGame()">Inizia</button></div>
+    </div>
+    ${rulesBox()}
+  </div>`;
+}
+
+function scoreboard(){
+  const T=targets();
+  return `<div class="grid2 keep">${[0,1].map(t=>{
+    const tm=TEAMS[t], done=S.removed[t];
+    return `<div class="card ${tm.cls} team-${tm.cls}">
+      <div class="score-head">
+        <div><div class="team-name">${tm.name}</div><div class="team-sub">${mates(t).map(pname).join(' · ')}</div></div>
+        <div class="score-count">${done.length}<span style="font-size:13px;color:var(--text-soft)">/3</span></div>
+      </div>
+      <div class="tile-row">${TILES.map(x=>`<span class="tile-chip ${done.includes(x)?'done':''}">${x}</span>`).join('')}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function gameView(){
+  if(S.over!=null) return `<div class="stack">${scoreboard()}${winnerBanner()}${logCard()}</div>`;
+  return `<div class="stack">
+    ${scoreboard()}
+    ${S.cur.playing ? playView() : roundSetupView()}
+    ${rulesBox()}
+    ${logCard()}
+  </div>`;
+}
+
+function turnOrder(from){
+  return [0,1,2,3].map(k=>(from+k)%4);
+}
+
+function roundSetupView(){
+  const ready = teamReady(0) && teamReady(1);
+  const order = turnOrder(S.start).map(i=>`<span class="flag ${teamOf(i)?'flag-no':'flag-yes'}">${pname(i)}</span>`).join('<span class="arrow">→</span>');
+  return `<div class="card">
+    <h2 class="title" style="margin-bottom:6px">Preparazione del round</h2>
+    <p class="muted" style="margin-bottom:12px">Distribuite 11 carte a testa, scambiate la carta con il compagno, poi scegliete le Mission Tile (senza parlare!). Registra qui il risultato finale.</p>
+    <div class="section-title">ORDINE DI GIOCO · APRE ${pname(S.start)}</div>
+    <div class="order">${order}</div>
+  </div>
+  <div class="grid2">${[0,1].map(t=>{
+    const tm=TEAMS[t], tile=S.cur.tile[t];
+    const [a,b] = tile ? tile.split('/') : [];
+    const [p0,p1]=mates(t);
+    return `<div class="card ${tm.cls} team-${tm.cls}">
+      <div class="team-name" style="margin-bottom:12px">${tm.name}</div>
+      <div class="section-title">MISSION TILE</div>
+      <div class="toggles">${TILES.map(x=>`<button class="toggle tile ${tile===x?'on':''}" ${S.removed[t].includes(x)?'disabled':''} onclick="pickTile(${t},'${x}')">${x}</button>`).join('')}</div>
+      ${tile && a!==b?`<div class="section-title" style="margin-top:16px">CHI PUNTA A SOLE ${a} PRESE?</div>
+      <div class="toggles">${[p0,p1].map(p=>`<button class="toggle ${S.cur.low[t]===p?'on':''}" onclick="pickLow(${t},${p})">${pname(p)}</button>`).join('')}</div>`:''}
+      ${tile && a===b?`<p class="muted" style="margin-top:14px">Entrambi puntano a ${a} prese.</p>`:''}
+    </div>`;
+  }).join('')}</div>
+  <div class="row-actions"><span class="muted">${ready?'Tutto pronto.':'Scegli la tile di entrambe le squadre.'}</span>
+    <button class="btn btn-primary btn-lg" ${ready?'':'disabled'} onclick="startRound()">Inizia round</button></div>`;
+}
+
+function playView(){
+  const T=targets(), c=counts(), res=evaluate(), n=S.cur.tricks.length;
+  const lead=leader();
+  const teamCards = [0,1].map(t=>{
+    const tm=TEAMS[t];
+    return `<div class="card ${tm.cls} team-${tm.cls}">
+      <div class="team-name" style="margin-bottom:6px">${tm.name} <span class="flag flag-accent" style="margin-left:6px;font-family:'Libre Baskerville',serif">${S.cur.tile[t]}</span></div>
+      ${mates(t).map(p=>{
+        const st = c[p]>T[p] ? '<span class="flag flag-no">Oltre!</span>' : c[p]===T[p] ? '<span class="flag flag-yes">Obiettivo ✓</span>' : '';
+        const pips = Array.from({length:Math.max(T[p],c[p])},(_,k)=>`<span class="pip ${k<c[p]?(k>=T[p]?'over':'filled'):''}"></span>`).join('');
+        return `<div class="player-row">
+          <div class="player-info">
+            <div class="player-name">${pname(p)} ${st}</div>
+            <div class="pips">${pips}</div>
+          </div>
+          <div class="big-count">${c[p]}<small> / ${T[p]}</small></div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+
+  const action = res ? resultBox(res) : `<div class="card">
+      <div class="section-title">PRESA ${n+1} DI ${TRICKS_PER_ROUND} · CHI L'HA VINTA?</div>
+      <div class="winner-grid">${turnOrder(lead).map((p,k)=>`<button class="winner-btn ${TEAMS[teamOf(p)].cls}" onclick="addTrick(${p})">${pname(p)}<small>${k===0?'ha aperto la presa':'+1 presa'}</small></button>`).join('')}</div>
+      ${n>=TRICKS_PER_ROUND?'<p class="muted" style="margin-top:12px">Tutte le 11 prese sono state giocate ma nessuna missione risulta conclusa: controlla le prese registrate.</p>':''}
+    </div>`;
+
+  return `<div class="grid2">${teamCards}</div>
+    ${action}
+    <div class="row-actions">
+      <button class="btn btn-ghost btn-sm" ${n?'':'disabled'} onclick="undoTrick()">↶ Annulla ultima presa</button>
+      ${n===0?`<button class="btn btn-ghost btn-sm" onclick="backToSetup()">← Cambia tile</button>`:'<span></span>'}
+    </div>`;
+}
+
+function resultBox(r){
+  const tm=TEAMS[r.winner], T=targets(), c=counts();
+  const last = S.removed[r.winner].length===2;
+  const why = r.reason==='mission'
+    ? `Entrambi i compagni hanno vinto esattamente le prese richieste. Il round termina subito.`
+    : `${pname(r.player)} ha vinto ${c[r.player]} prese contro un obiettivo di ${T[r.player]}: ${TEAMS[r.failed].name} fallisce e ${tm.name} completa la sua missione.`;
+  return `<div class="result ${tm.cls}">
+    <div class="title">${r.reason==='mission'?'Missione compiuta!':'Sabotaggio riuscito!'} · ${tm.name}</div>
+    <p>${why}<br>La tile <strong>${S.cur.tile[r.winner]}</strong> di ${tm.name} viene rimossa dal gioco.</p>
+    <button class="btn btn-primary btn-lg" onclick="nextRound()">${last?'Concludi partita':'Prossimo round'}</button>
+  </div>`;
+}
+
+function winnerBanner(){
+  const tm=TEAMS[S.over];
+  return `<div class="result ${tm.cls}">
+    <div class="title">${tm.name} vince la partita!</div>
+    <p>${mates(S.over).map(pname).join(' e ')} hanno completato tutte e tre le missioni in ${S.log.length} round.</p>
+    <button class="btn btn-primary btn-lg" onclick="newGame()">Nuova partita</button>
+  </div>`;
+}
+
+function logCard(){
+  if(!S.log.length) return '';
+  return `<div class="card">
+    <div class="section-title">STORICO ROUND</div>
+    ${S.log.slice().reverse().map(l=>{
+      const tm=TEAMS[l.winner];
+      return `<div class="log-row">
+        <span class="log-n">${l.n}</span>
+        <div class="log-main"><strong style="color:var(--${tm.cls})">${tm.name}</strong> ${l.reason==='mission'?'completa':'completa per sabotaggio'} ${l.tiles[l.winner]}
+          <small>C.A.T. ${l.tiles[0]} · B.I.R.D. ${l.tiles[1]} · ${l.reason==='sabotage'?'Sabotaggio di '+pname(l.player):'apre '+pname(l.start)}</small></div>
+        <span class="flag ${l.reason==='mission'?'flag-yes':'flag-part'}">${l.reason==='mission'?'Missione':'Sabotaggio'}</span>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function rulesBox(){
+  return `<details class="rules card">
+    <summary>PROMEMORIA REGOLE</summary>
+    <ul>
+      <li>Si gioca una carta per turno, sempre dall'estremità sinistra o destra della propria mano, di qualsiasi colore.</li>
+      <li>Vince la presa la carta più alta del colore della prima carta giocata.</li>
+      <li><strong>Camouflage:</strong> se le 4 carte sono dello stesso colore, vince la più bassa.</li>
+      <li>Chi vince la presa apre la successiva.</li>
+      <li><strong>Missione compiuta:</strong> entrambi i compagni hanno vinto esattamente le prese della tile. Il round finisce subito.</li>
+      <li><strong>Sabotaggio:</strong> se un giocatore supera il proprio obiettivo, la sua missione fallisce e quella avversaria riesce.</li>
+      <li>La squadra che completa la missione rimuove la tile usata. Vince chi le rimuove tutte e tre.</li>
+      <li>A fine round il segnalino Start Player passa al giocatore alla sinistra.</li>
+    </ul>
+  </details>`;
+}
+
+render();
+</script>
+</body>
+</html>
