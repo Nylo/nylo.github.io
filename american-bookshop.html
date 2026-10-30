@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<script src="/auth-gate.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>American Bookshop</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#233540;
+  --surface:#2f4452;
+  --surface-raised:#3a5262;
+  --accent:#8fc1da;
+  --accent-soft:rgba(143,193,218,0.16);
+  --text:#f1f6f8;
+  --text-soft:#c3d3dc;
+  --danger:#ff9a8a;
+  --success:#7fe0a8;
+  --border:rgba(190,220,235,0.2);
+  --radius:10px;
+  --s0:#b9548f; --s1:#3f7fc4; --s2:#4f9a3f; --s3:#d27428;
+  --cw:46px; --ch:66px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#33505f 0%,#1b2a33 100%) fixed}
+.app{max-width:980px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1;flex:1;letter-spacing:0.04em;color:#fff}
+.logo small{font-size:15px;letter-spacing:0.08em;color:var(--accent);display:block}
+.badge{background:var(--accent);color:#13222b;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.45)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#46697c 0%,#2b4350 85%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:520px}
+.table.n5{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
+.seat.top{grid-area:top}
+.seat.tl{grid-area:tl}
+.seat.tr{grid-area:tr}
+.seat.left{grid-area:left;justify-content:center}
+.seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.07)}
+.seat.active{border-color:#ffe27a;background:rgba(255,226,122,0.14)}
+.seat.winner{border-color:var(--success);background:rgba(127,224,168,0.16)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.3);border-radius:4px;padding:2px 6px}
+.tag b{color:var(--accent)}
+.piles{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.pile{display:inline-flex;align-items:center;gap:3px;border-radius:5px;padding:2px 6px;font-size:12px;color:#fff;border:1px solid rgba(255,255,255,0.25);opacity:0.55}
+.pile b{font-weight:700}
+.pile i{font-size:13px}
+.pile.has{opacity:1}
+.pile.lead{box-shadow:0 0 0 2px #ffe27a;opacity:1}
+.pile.s0{background-color:var(--s0)} .pile.s1{background-color:var(--s1)} .pile.s2{background-color:var(--s2)} .pile.s3{background-color:var(--s3)}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:14px;height:21px;border-radius:3px;background:linear-gradient(135deg,#6d93a7,#33505f);border:1px solid #cfe3ec}
+.seat.left .backs,.seat.right .backs{max-width:130px}
+.tableau{display:flex;gap:6px;align-items:center;justify-content:center;min-height:62px;padding:4px 6px;border-radius:8px;background:rgba(0,0,0,0.18);min-width:56px}
+.tableau .empty{width:38px;height:54px;border:1px dashed rgba(255,255,255,0.3);border-radius:6px}
+
+.pc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Libre Baskerville',serif;font-weight:700;font-size:22px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
+.pc i{font-size:20px}
+.pc.s0{background-color:var(--s0)} .pc.s1{background-color:var(--s1)} .pc.s2{background-color:var(--s2)} .pc.s3{background-color:var(--s3)}
+.pc.mini{width:38px;height:54px;font-size:18px;border-width:2px}
+.pc.mini i{font-size:16px}
+.pc.win{box-shadow:0 0 0 3px var(--success)}
+.pc.fresh{box-shadow:0 0 0 3px #ffe27a}
+button.pc{cursor:pointer;transition:transform 0.12s}
+button.pc:hover:not(:disabled){transform:translateY(-6px)}
+button.pc:disabled{cursor:default}
+.pc.dim{opacity:0.4;filter:saturate(0.5)}
+.pc.legal{box-shadow:0 0 0 3px #ffe27a}
+.pc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+body.a11y .pc.s0,body.a11y .pile.s0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .pc.s1,body.a11y .pile.s1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .pc.s2,body.a11y .pile.s2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .pc.s3,body.a11y .pile.s3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:var(--text-soft)}
+.center b{color:#fff}
+.sum{font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:1;color:#fff;letter-spacing:0.04em}
+.sum small{font-size:22px;color:var(--text-soft)}
+.sum.over{color:var(--success)}
+
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:44px}
+  .pc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
+  .pc i{font-size:13px}
+  .pc.mini{width:30px;height:44px;font-size:14px}
+  .pc.mini i{font-size:12px}
+  .tableau .empty{width:30px;height:44px}
+  .table{padding:8px;gap:6px;grid-template-columns:1fr 1fr 1fr}
+  .table.n5{grid-template-columns:1fr 1fr 1fr 1fr}
+  .back{width:9px;height:14px}
+  .hand{gap:2px}
+  .pile{padding:2px 4px;font-size:11px}
+  .sum{font-size:40px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const SUITS = [
+  {n:'Teiera',  book:'Alla ricerca del tempo perduto', icon:'coffee'},
+  {n:'Treno',   book:'Notte sulla Via Lattea',          icon:'train'},
+  {n:'Pesce',   book:'Il vecchio e il mare',            icon:'fish'},
+  {n:'Mulino',  book:'Don Chisciotte',                  icon:'windmill'}
+];
+const RED = 3;                                         // colore rosso/arancio: tolto in 3 giocatori
+const LIMIT = {3:14, 4:16, 5:17};
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+const HUM = 0;
+const NAMES = ['Tu','AI Acciaio','AI Salvia','AI Ruggine','AI Ambra'];
+const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right'], 5:['bottom','left','tl','tr','right']};
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('abs-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('abs-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>60) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const cname = c => `${SUITS[c.s].n} ${c.v}`;
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options,o={}){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  if(p!==HUM){
+    if(o.pause) await sleep(o.pause);
+    return ok[rnd(ok.length)].value;
+  }
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askCard(legal,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askMulti(hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'multi',hint,sel:new Set(),res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function playIdx(i){
+  if(PR&&PR.type==='multi'){ if(PR.sel.has(i)) PR.sel.delete(i); else PR.sel.add(i); render(); return; }
+  if(!PR||PR.type!=='card'||!PR.legal.has(i)) return;
+  if(OPT.undo){ PR.sel=i; render(); return; }
+  const r=PR.res; PR=null; render(); r(i);
+}
+function confirmCard(ok){
+  if(!PR||PR.type!=='card'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const i=PR.sel, r=PR.res; PR=null; render(); r(i);
+}
+function confirmMulti(){
+  if(!PR||PR.type!=='multi') return;
+  const v=[...PR.sel], r=PR.res; PR=null; render(); r(v);
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+function fullDeck(n){
+  const d=[];
+  for(let s=0;s<4;s++){
+    if(n===3&&s===RED) continue;
+    d.push({s,v:0},{s,v:0});
+    for(let v=1;v<=11;v++) d.push({s,v});
+  }
+  return d;
+}
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
+const legalIdx = (hand,led) => {                       // obbligo di rispondere al colore
+  const all=hand.map((_,i)=>i);
+  if(led==null) return all;
+  const same=all.filter(i=>hand[i].s===led);
+  return same.length?same:all;
+};
+function uniqueIdx(hand,idxs){
+  const seen=new Set(), out=[];
+  idxs.forEach(i=>{ const k=hand[i].s*12+hand[i].v; if(!seen.has(k)){ seen.add(k); out.push(i); } });
+  return out;
+}
+// punteggio di un giocatore: -1 per carta, +1 per carta nei colori in cui ne ha strettamente di più
+function colorScore(counts,me){
+  let t=0;
+  for(let k=0;k<4;k++){
+    const c=counts[me][k]; let mx=0;
+    counts.forEach((a,q)=>{ if(q!==me&&a[k]>mx) mx=a[k]; });
+    t+=c>mx?c:-c;
+  }
+  return t;
+}
+// vincitore a somma non raggiunta: carta più alta del colore di mano, a parità (solo 0) la prima giocata
+function trickWinner(cards,led){
+  let best=-1;
+  cards.forEach((x,i)=>{ if(x.c.s===led&&(best<0||x.c.v>cards[best].c.v)) best=i; });
+  return cards[best].p;
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Ogni carta legale viene valutata simulando il resto della presa (mani altrui pescate a caso tra le carte non viste)
+// e misurando la variazione del proprio punteggio colore.
+function unseenFor(p){
+  const un=fullDeck(G.n);
+  const rm=c=>{ const i=un.findIndex(x=>x.s===c.s&&x.v===c.v); if(i>=0) un.splice(i,1); };
+  P(p).hand.forEach(rm); G.gone.forEach(rm); G.trick.forEach(x=>rm(x.c));
+  return un;
+}
+function evalCard(me,c,unseen,samples){
+  const counts=G.pl.map(q=>q.pile.slice());
+  const base=colorScore(counts,me);
+  const led=G.led==null?c.s:G.led;
+  const idx=G.order.indexOf(me);
+  const rest=G.order.slice(idx+1);
+  let tot=0;
+  for(let s=0;s<samples;s++){
+    const deck=shuffle(unseen.slice());
+    let sum=G.sum+c.v, win=-1;
+    const cards=G.trick.map(x=>({p:x.p,c:x.c})); cards.push({p:me,c});
+    if(sum>=G.limit) win=me;
+    else{
+      let off=0;
+      for(const r of rest){
+        const hs=P(r).hand.length, h=deck.slice(off,off+hs); off+=hs;
+        const same=h.filter(x=>x.s===led), pool=same.length?same:h;
+        if(!pool.length) continue;
+        const k=pool[rnd(pool.length)];
+        cards.push({p:r,c:k}); sum+=k.v;
+        if(sum>=G.limit){ win=r; break; }
+      }
+      if(win<0) win=trickWinner(cards,led);
+    }
+    const c2=counts.map(a=>a.slice());
+    cards.forEach(x=>c2[win][x.c.s]++);
+    tot+=colorScore(c2,me)-base;
+  }
+  return tot/samples;
+}
+function aiPick(p){
+  const hand=P(p).hand;
+  const idxs=uniqueIdx(hand,legalIdx(hand,G.led));
+  if(idxs.length===1) return idxs[0];
+  const un=unseenFor(p);
+  let best=idxs[0], bv=-1e9;
+  idxs.forEach(i=>{
+    const v=evalCard(p,hand[i],un,36)-0.02*hand[i].v+Math.random()*0.05;
+    if(v>bv){ bv=v; best=i; }
+  });
+  return best;
+}
+// carte rimaste: le scarto coperte solo nei colori dove ho (probabile) la maggioranza
+function aiRemaining(p){
+  const hand=P(p).hand, un=unseenFor(p), out=[];
+  const others=G.pl.filter(q=>q.id!==p), hsum=others.reduce((a,q)=>a+q.hand.length,0);
+  for(let k=0;k<4;k++){
+    const mine=P(p).pile[k], mh=hand.filter(c=>c.s===k);
+    if(!mh.length) continue;
+    const uk=un.filter(c=>c.s===k).length;
+    let pot=0, exp=0;
+    others.forEach(q=>{
+      pot=Math.max(pot,q.pile[k]+Math.min(q.hand.length,uk));
+      exp=Math.max(exp,q.pile[k]+(hsum?uk*q.hand.length/hsum:0)*0.6);
+    });
+    if(mine+mh.length>pot||mine+mh.length>exp+0.5) hand.forEach((c,i)=>{ if(c.s===k) out.push(i); });
+  }
+  return out;
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,round:0,first0:rnd(n),first:0,msg:'',log:[],over:null,limit:LIMIT[n],gone:[],aside:0,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],pile:[0,0,0,0],total:0,hist:[],played:null})),
+     leader:0,turn:-1,winner:-1,led:null,sum:0,trick:[],order:[],show:null,fresh:-1};
+  run();
+}
+function deal(){
+  const deck=shuffle(fullDeck(G.n)), per=Math.floor(deck.length/G.n);
+  G.pl.forEach((p,i)=>{ p.hand=sortHand(deck.slice(i*per,(i+1)*per)); p.pile=[0,0,0,0]; p.played=null; });
+  G.aside=deck.length-per*G.n; G.gone=[]; G.trick=[]; G.sum=0; G.led=null; G.winner=-1; G.show=null;
+}
+
+async function humanPlay(p){
+  const pl=P(p);
+  const legal=legalIdx(pl.hand,G.led);
+  const hint=G.led==null?'Sei il giocatore iniziale: gioca una carta a tua scelta.'
+    :(pl.hand.some(c=>c.s===G.led)?`Devi rispondere al colore di mano (${SUITS[G.led].n}).`:`Non hai il colore di mano (${SUITS[G.led].n}): gioca una carta qualsiasi.`);
+  const i=await askCard(legal,hint+` Somma attuale: ${G.sum} (limite ${G.limit}).`);
+  return i;
+}
+async function oneTrick(){
+  const order=Array.from({length:G.n},(_,i)=>(G.leader+i)%G.n);
+  G.order=order; G.trick=[]; G.sum=0; G.led=null; G.winner=-1; G.fresh=-1;
+  G.pl.forEach(p=>p.played=null);
+  let win=-1;
+  for(let i=0;i<G.n;i++){
+    const p=order[i]; G.turn=p;
+    status(`Giocatore iniziale ${P(G.leader).name}. Tocca a ${P(p).name}. Somma: ${G.sum}/${G.limit}.`);
+    let idx;
+    if(p===HUM) idx=await humanPlay(p);
+    else{ await sleep(700); idx=aiPick(p); }
+    const c=P(p).hand.splice(idx,1)[0];
+    P(p).played=c; G.trick.push({p,c}); G.sum+=c.v; G.fresh=p;
+    if(i===0) G.led=c.s;
+    logMsg(`${P(p).name} gioca ${cname(c)} e dice ${G.sum}.`);
+    if(G.sum>=G.limit){ win=p; break; }
+  }
+  G.turn=-1;
+  const byLimit=win>=0;
+  if(!byLimit) win=trickWinner(G.trick,G.led);
+  G.winner=win;
+  G.trick.forEach(x=>{ P(win).pile[x.c.s]++; G.gone.push(x.c); });
+  const m=byLimit?`${P(win).name} raggiunge il limite (${G.sum}≥${G.limit}) e vince ${G.trick.length} carte.`
+                  :`${P(win).name} vince ${G.trick.length} carte con la carta più alta del colore di mano (somma ${G.sum}).`;
+  status(m); logMsg(m);
+  await sleep(2200);
+  G.leader=win;
+}
+async function tricks(){
+  G.leader=G.first;
+  while(true){
+    await oneTrick();
+    if(G.pl.some(p=>p.hand.length===0)) break;
+  }
+  G.winner=-1; G.turn=-1; G.trick=[]; G.pl.forEach(p=>p.played=null); G.sum=0; G.led=null;
+}
+async function remaining(){
+  const holders=G.pl.filter(p=>p.hand.length>0);
+  if(!holders.length) return;
+  status('Carte rimaste: ognuno può giocarne coperte quante vuole per aumentare le proprie maggioranze.');
+  const picks={};
+  for(const pl of holders){
+    if(pl.id===HUM) picks[pl.id]=await askMulti('Seleziona le carte da giocare coperte (anche nessuna). Ogni carta vale −1, ma +1 se ottieni la maggioranza in quel colore.');
+    else{ await sleep(500); picks[pl.id]=aiRemaining(pl.id); }
+  }
+  holders.forEach(pl=>{
+    const idxs=picks[pl.id]||[];
+    const cards=idxs.map(i=>pl.hand[i]);
+    cards.forEach(c=>{ pl.pile[c.s]++; G.gone.push(c); });
+    pl.hand=pl.hand.filter((_,i)=>!idxs.includes(i));
+    logMsg(`${pl.name} gioca coperte ${cards.length} ${cards.length===1?'carta':'carte'}${cards.length?': '+cards.map(cname).join(', '):''}.`);
+  });
+  G.pl.forEach(p=>{ p.hand=[]; });
+  await sleep(900);
+}
+function scoreRound(){
+  const counts=G.pl.map(p=>p.pile);
+  const rows=G.pl.map(p=>{
+    const per=[]; let pt=0;
+    for(let k=0;k<4;k++){
+      const c=p.pile[k]; let mx=0;
+      counts.forEach((a,q)=>{ if(q!==p.id&&a[k]>mx) mx=a[k]; });
+      const lead=c>mx;
+      per.push({c,lead}); pt+=lead?c:-c;
+    }
+    p.total+=pt; p.hist.push(pt);
+    return {p:p.id,per,pt};
+  });
+  return rows;
+}
+async function scoring(){
+  const rows=scoreRound();
+  G.show={rows};
+  status(`Round ${G.round+1} concluso.`);
+  const last=G.round===G.n-1;
+  await ask(HUM,'Punteggio del round',[{label:last?'Vedi il risultato finale':'Avanti',value:1}]);
+  G.show=null;
+  if(last) return;
+  // il miglior punteggio del round sceglie il nuovo giocatore iniziale (a parità: il più vicino in senso orario al vecchio)
+  const best=Math.max(...rows.map(r=>r.pt));
+  let chooser=-1;
+  for(let i=0;i<G.n;i++){ const q=(G.first+i)%G.n; if(rows[q].pt===best){ chooser=q; break; } }
+  let next=chooser;
+  if(chooser===HUM){
+    next=await ask(HUM,'Hai il punteggio migliore: scegli chi inizia il prossimo round',G.pl.map(p=>({label:p.id===HUM?'Io':p.name,value:p.id})));
+  }
+  G.first=next;
+  logMsg(`${chooser===HUM?'Tu scegli':P(chooser).name+' sceglie'} ${next===chooser?'sé stesso':P(next).name} come primo giocatore.`);
+}
+
+async function run(){
+  const g=G;
+  try{
+    g.first=g.first0;
+    for(let k=0;k<g.n;k++){
+      g.round=k;
+      deal();
+      logMsg(`— Round ${k+1}/${g.n}: inizia ${P(g.first).name}${g.aside?` (${g.aside} carte messe da parte)`:''} —`);
+      await tricks();
+      await remaining();
+      await scoring();
+    }
+    const m=Math.max(...g.pl.map(p=>p.total));
+    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const cardInner = c => `<span>${c.v}</span>${ico(SUITS[c.s].icon)}`;
+const cardFace=(c,cls='')=>`<span class="pc s${c.s} ${cls}" title="${cname(c)}">${cardInner(c)}</span>`;
+function handBtn(c,i,ok,sel){
+  return `<button class="pc s${c.s} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}">${cardInner(c)}</button>`;
+}
+function pilesHtml(p){
+  return `<div class="piles">${[0,1,2,3].filter(k=>G.n!==3||k!==RED).map(k=>{
+    const c=P(p).pile[k]; let mx=0;
+    G.pl.forEach(q=>{ if(q.id!==p&&q.pile[k]>mx) mx=q.pile[k]; });
+    return `<span class="pile s${k} ${c>0?'has':''} ${c>0&&c>mx?'lead':''}" title="${SUITS[k].n}: ${c} carte">${ico(SUITS[k].icon)}<b>${c}</b></span>`;
+  }).join('')}</div>`;
+}
+function tableauHtml(p){
+  const pl=P(p), win=G.winner===p;
+  return `<div class="tableau">${pl.played?cardFace(pl.played,`mini ${G.fresh===p?'fresh':''} ${win?'win':''}`):'<span class="empty"></span>'}</div>`;
+}
+function seatHtml(p,pos){
+  const pl=P(p);
+  const isLeader=G.turn>=0&&G.leader===p, active=G.turn===p, winner=G.winner===p;
+  let hand;
+  if(p===HUM){
+    hand=`<div class="hand">${pl.hand.map((c,i)=>{
+      if(PR&&PR.type==='card') return handBtn(c,i,PR.legal.has(i),PR.sel===i);
+      if(PR&&PR.type==='multi') return handBtn(c,i,true,PR.sel.has(i));
+      return cardFace(c);
+    }).join('')}</div>`;
+  }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag">carte <b>${pl.hand.length}</b></span><span class="tag">punti <b>${pl.total}</b></span></div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${isLeader?' · primo':''}</div>`;
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${pilesHtml(p)}${hand}`
+    :(pos==='top'||pos==='tl'||pos==='tr'?`${hand}${name}${meta}${pilesHtml(p)}${tableauHtml(p)}`:`${name}${meta}${pilesHtml(p)}${tableauHtml(p)}${hand}`);
+  return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const over=G.sum>=G.limit;
+  const ledTxt=G.led!=null?`<div>Colore di mano: <b>${SUITS[G.led].n}</b> ${ico(SUITS[G.led].icon)}</div>`:'';
+  const first=G.turn>=0||G.winner>=0;
+  return `<div class="center">
+    <div class="sum ${over?'over':''}">${first?G.sum:0}<small> / ${G.limit}</small></div>
+    <div>somma della presa (limite ${G.limit})</div>${ledTxt}
+    <div>Round <b>${Math.min(G.round+1,G.n)}/${G.n}</b></div></div>`;
+}
+function scoreTable(){
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:G.n},(_,i)=>i<p.hist.length?`<td class="${p.hist[i]<0?'neg':'pos'}">${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th></th>${Array.from({length:G.n},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">American Bookshop contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (vince chi ha più punti)</div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    const cols=[0,1,2,3].filter(k=>G.n!==3||k!==RED);
+    html+=`<table class="score"><tr><th></th>${cols.map(k=>`<th>${SUITS[k].n}</th>`).join('')}<th>Punti round</th></tr>${G.show.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td>${cols.map(k=>`<td class="${r.per[k].lead?'pos':''}">${r.per[k].c?(r.per[k].lead?'+':'−')+r.per[k].c:'0'}</td>`).join('')}<td class="${r.pt<0?'neg':'pos'}"><b>${r.pt>0?'+':''}${r.pt}</b></td></tr>`).join('')}</table>`;
+  }
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`; }
+  }else if(PR&&PR.type==='multi'){
+    html+=`<div class="hint">${esc(PR.hint)}</div><div class="opts"><button class="opt" data-mc="1">${PR.sel.size?`Conferma: gioca ${PR.sel.size} ${PR.sel.size===1?'carta':'carte'} coperte`:'Nessuna carta (conferma)'}</button></div>`;
+  }
+  return html;
+}
+
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Componenti</h4>
+<p>52 carte: 4 colori con 13 carte ciascuno (due carte di valore 0 e una per ciascun valore da 1 a 11). Nell'app i colori sono le quattro storie della carta di riferimento: Teiera (rosa), Treno (azzurro), Pesce (verde) e Mulino (arancio/rosso).</p>
+<h4>Preparazione</h4>
+<p>In 3 giocatori si tolgono le carte rosse (il Mulino) e si mettono da parte. In 4 o 5 giocatori si usano tutte le carte. Si mescolano e si distribuiscono coperte in parti uguali; se non bastano per un'ultima distribuzione, le carte rimanenti si mettono da parte e non si usano in questo round (in 5 giocatori: 10 carte a testa e 2 da parte).</p>
+<h4>1. Acquisire carte (presa)</h4>
+<p>Il primo giocatore gioca una carta a sua scelta. Gli altri, a turno in senso orario, giocano una carta: se hanno carte del colore del primo giocatore DEVONO giocarne una (seguire il colore), altrimenti possono giocare qualsiasi carta.</p>
+<p>Ogni volta che si gioca una carta, si dichiara la somma di tutte le carte giocate nella presa. Se la somma uguaglia o supera il limite (14 in 3 giocatori, 16 in 4, 17 in 5), chi ha giocato quella carta vince la propria carta e tutte le altre carte della presa; chi doveva ancora giocare non gioca.</p>
+<p>Se tutti giocano senza raggiungere il limite, vince tutte le carte della presa chi ha la carta di valore più alto del colore del primo giocatore. In caso di parità (possibile solo con gli 0) vince chi l'ha giocata per prima.</p>
+<h4>2. Presa successiva</h4>
+<p>Le carte vinte si dispongono in file separate, una per colore, in modo che il loro numero sia visibile (nell'app lo vedi accanto a ogni giocatore). Chi ha vinto diventa il primo giocatore e inizia una nuova presa. Si continua finché un giocatore gioca l'ultima carta dalla sua mano: la presa in corso si conclude normalmente.</p>
+<h4>3. Carte rimanenti</h4>
+<p>Quando un giocatore ha esaurito la mano, gli altri possono scegliere quante carte vogliono dalla propria mano (anche nessuna) e giocarle coperte. Quando tutti hanno deciso, le rivelano insieme e le sommano alle proprie carte vinte.</p>
+<h4>4. Punteggio</h4>
+<p>Ogni carta raccolta vale −1 punto. Per ciascun colore, però, chi ne ha raccolte di più (strettamente) guadagna +1 per ogni carta di quel colore. Se più giocatori sono in parità per un colore, quelle carte restano a −1.</p>
+<h4>5. Fine del round e della partita</h4>
+<p>Se all'inizio erano state messe da parte delle carte, si rimescolano con le altre per formare il mazzo del round successivo. Il giocatore con più punti nel round sceglie il nuovo primo giocatore (anche sé stesso); a parità sceglie, tra i pari, quello più vicino in senso orario al vecchio primo giocatore. Si giocano tanti round quanti sono i giocatori (4 round in 4 giocatori). Vince chi ha il totale di punti più alto.</p>
+<p><i>Interpretazioni nell'app:</i> il primo giocatore del primo round è casuale. Quando a scegliere il nuovo primo giocatore è un'AI, sceglie sé stessa. Le AI giocano coperte solo le carte dei colori in cui ritengono di poter ottenere la maggioranza.</p>
+</div></details>`;
+
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori (puntini, righe, diagonali) per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo"><small>TAIKI SHINZAWA'S</small>American Bookshop</div>
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${G.n}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    const pos=POS[G.n];
+    body=`<div class="table ${G.n===5?'n5':''}">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static;border-top-width:1px">${scoreTable()}</div>`:''}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n) newMatch(Number(b.dataset.n));
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+  else if(b.dataset.mc!==undefined) confirmMulti();
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('abs-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('abs-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(PR&&PR.type==='card'&&PR.sel!=null&&!OPT.undo){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+</script>
+</body>
+</html>
