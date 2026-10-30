@@ -22,7 +22,7 @@
   --danger:#a8322b;
   --border:rgba(60,40,15,0.30);
   --radius:8px;
-  --g0:#8d9096; --g1:#7a4a25; --g2:#ec9a2e; --g3:#eceae4;
+  --g0:#7d7f86; --g1:#e9782b; --g2:#7b2d63; --g3:#f1efe8;
 }
 html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
 body{background-color:var(--bg);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.25  0 0 0 0 0.1  0 0 0 0.16 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),radial-gradient(ellipse at 50% 0%,#dcc99e 0%,#c4ad7e 100%);background-attachment:fixed}
@@ -57,9 +57,9 @@ body{background-color:var(--bg);background-image:url("data:image/svg+xml;utf8,<s
 .err{font-size:12px;color:var(--danger);font-weight:600}
 
 /* ── PLANCIA ── */
-.boardwrap{position:relative;height:680px;background:radial-gradient(ellipse at center,#d8c497 0%,#c3aa78 75%);border:3px double rgba(60,40,15,0.55);border-radius:12px;margin-bottom:12px;box-shadow:inset 0 0 60px rgba(60,40,15,0.25)}
-.center-info{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;font-family:'UnifrakturCook',serif;font-size:54px;color:rgba(60,40,15,0.28);line-height:1.1}
-.center-info small{display:block;font-family:'Inter',sans-serif;font-size:11px;color:rgba(60,40,15,0.6);line-height:1.6;margin-top:8px}
+.boardwrap{position:relative;height:720px;background:radial-gradient(ellipse at center,#c9dfe6 0%,#a8c7d3 60%,#9dbfcc 100%);border:6px double rgba(60,40,15,0.6);border-radius:12px;margin-bottom:12px;box-shadow:inset 0 0 70px rgba(40,70,90,0.35)}
+.center-info{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;font-family:'UnifrakturCook',serif;font-size:60px;color:rgba(40,70,90,0.30);line-height:1.1}
+.center-info small{display:block;font-family:'Inter',sans-serif;font-size:11px;color:rgba(30,55,70,0.7);line-height:1.6;margin-top:8px}
 .city{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);width:172px;background:#ecdcb4;border:3px solid var(--cc);outline:1px solid #2b1d10;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:5px;font-size:11px;box-shadow:0 3px 8px rgba(60,40,15,0.35)}
 .city-h{display:flex;align-items:center;gap:6px;font-weight:600;font-family:'UnifrakturCook',serif;font-size:16px}
 .cn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;color:#111;font-weight:700;font-family:'Uncial Antiqua',serif;font-size:14px;border:1px solid #2b1d10}
@@ -81,8 +81,8 @@ body{background-color:var(--bg);background-image:url("data:image/svg+xml;utf8,<s
 /* beni: cubetti */
 .cube{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 3px;border-radius:3px;font-size:10px;font-weight:700;color:#111;box-shadow:inset -2px -2px 0 rgba(0,0,0,0.28),inset 1px 1px 0 rgba(255,255,255,0.45),0 1px 2px rgba(0,0,0,0.4)}
 .cube.c0{background:var(--g0)}
-.cube.c1{background:var(--g1);color:#fff}
-.cube.c2{background:var(--g2)}
+.cube.c1{background:var(--g1)}
+.cube.c2{background:var(--g2);color:#fff}
 .cube.c3{background:var(--g3)}
 .house{font-size:11px;border:1px solid var(--border);border-radius:5px;padding:1px 4px;display:inline-flex;gap:3px;align-items:center;background:rgba(255,255,255,0.35)}
 .house b{font-size:15px;line-height:1}
@@ -122,17 +122,19 @@ table.score td:first-child,table.score th:first-child{text-align:left}
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const NC = 9;                                   // città, numerate 0..8 in senso orario
-// Beni (cubetti di legno): grigio = minerale, marrone = pellicce, arancione = ambra, bianco = sale.
-// Nel regolamento italiano: grigi, arancioni (= marroni), viola (= arancioni), bianchi.
+// Beni: colori del tabellone originale (grigio, arancione, viola, bianco).
 const GOODS = [
-  {n:'Minerale', vp:1, css:'#8d9096'},
-  {n:'Pellicce', vp:3, css:'#7a4a25'},
-  {n:'Ambra',    vp:5, css:'#ec9a2e'},
-  {n:'Sale',     vp:7, css:'#eceae4'}
+  {n:'Grigio',    res:'minerale', vp:1, css:'#7d7f86'},
+  {n:'Arancione', res:'pellicce', vp:3, css:'#e9782b'},
+  {n:'Viola',     res:'ambra',    vp:5, css:'#7b2d63'},
+  {n:'Bianco',    res:'sale',     vp:7, css:'#f1efe8'}
 ];
-// Dalle tessere rotta del PnP: 0-2 grigie, 3-4 marroni, 5-6 arancioni, 7-8 bianche.
-// Il segnalino rotta ha il colore della città con lo stesso numero, quindi:
+// Dal tabellone: le città 0-2 sono grigie, 3-4 arancioni, 5-6 viola, 7-8 bianche (e il segnalino rotta ha il colore della città con quel numero).
 const CITY_COLORS = [0,0,0,1,1,2,2,3,3];
+// Città in senso orario, come sul tabellone (partendo da in alto a sinistra) e posizione sulla mappa (% x, % y)
+const CITY_NAMES = ['Tönsberg','Stockholm','Åbo','Reval','Riga','Danzig','Stralsund','Lübeck','Kopenhagen'];
+const CITY_POS   = [[19,13],[50,9],[81,13],[89,38],[89,72],[63,89],[33,89],[11,71],[11,37]];
+const cname = c => CITY_NAMES[c];
 const RES0    = [14,13,12,11,10,9,8,7,6];       // segnalini rotta 0..8 nella riserva
 const SUPPLY0 = [25,18,13,10];                  // beni: minerale, pellicce, ambra, sale
 // Tessere bonus del PnP (tedesco): Privileg, Seebuch, Holk, Geheimweg
@@ -260,7 +262,7 @@ function placeGoods(c,n){
 function collectAt(p,c){
   const pl=P(p); let n=0;
   pl.houses.forEach(h=>{ if(h.city===c) h.goods.forEach((k,i)=>{ if(k){ pl.goods[i]+=k; n+=k; h.goods[i]=0; } }); });
-  if(n) logMsg(`${pl.name} raccoglie ${n} bene/i accanto alle sue case nella città ${c}.`);
+  if(n) logMsg(`${pl.name} raccoglie ${n} bene/i accanto alle sue case a ${cname(c)}.`);
 }
 const canPay = (pl,n) => totalGoods(pl)+totalTokens(pl)>=n;
 async function payOne(p,why){
@@ -283,7 +285,7 @@ async function setupStart(){
     for(const p of pending){
       const pl=P(p), b=banned[p]||new Set();
       const opts=[];
-      pl.hand.forEach((c,v)=>{ if(c>0) opts.push({label:`Rotta ${v} → città ${v}`,value:v,disabled:b.has(v)||housesIn(v).length>=2}); });
+      pl.hand.forEach((c,v)=>{ if(c>0) opts.push({label:`Rotta ${v} → ${cname(v)}`,value:v,disabled:b.has(v)||housesIn(v).length>=2}); });
       choice[p]=await ask(p,'Scegli la città di partenza (casa e barca)',opts);
     }
     const byCity={};
@@ -292,11 +294,11 @@ async function setupStart(){
     for(const c of Object.keys(byCity).map(Number)){
       const ps=byCity[c];
       if(housesIn(c).length+ps.length>2){
-        logMsg(`Troppi giocatori hanno scelto la città ${c}: devono sceglierne un'altra.`);
+        logMsg(`Troppi giocatori hanno scelto ${cname(c)}: devono sceglierne un'altra.`);
         ps.forEach(p=>{ (banned[p]=banned[p]||new Set()).add(c); next.push(p); });
       }else ps.forEach(p=>{
         P(p).houses.push({owner:p,city:c,goods:[0,0,0,0]}); P(p).boat=c;
-        logMsg(`${P(p).name} parte dalla città ${c}.`);
+        logMsg(`${P(p).name} parte da ${cname(c)}.`);
       });
     }
     pending=next;
@@ -377,11 +379,11 @@ function gmPath(steps){
 async function gmPhase(){
   const p=G.order[0];
   status(`Fase del Gildaio: ${P(p).name} lo muove.`);
-  const opts=[1,2].map(s=>{ const r=gmPath(s); return {label:`Muovi di ${s} → città ${r.c}`,value:s}; });
+  const opts=[1,2].map(s=>{ const r=gmPath(s); return {label:`Muovi di ${s} → ${cname(r.c)}`,value:s}; });
   const s=await ask(p,'Muovi il Gildaio in senso orario',opts,{pause:300});
   const r=gmPath(s);
   G.gm.city=r.c; G.gm.laps+=r.laps;
-  logMsg(`${P(p).name} muove il Gildaio nella città ${r.c}.`);
+  logMsg(`${P(p).name} muove il Gildaio a ${cname(r.c)}.`);
   placeGoods(r.c,2);
   if(G.gm.laps>=2) endGame('gm',null);
 }
@@ -409,7 +411,7 @@ const moveCost=(pl,seq)=>seq===0?0:(seq===1&&hasB(pl,'move2')?0:1);
 
 function boatMove(p,c){
   P(p).boat=c;
-  logMsg(`${P(p).name} muove la barca nella città ${c}.`);
+  logMsg(`${P(p).name} muove la barca a ${cname(c)}.`);
   collectAt(p,c);
 }
 async function movementStage(p){
@@ -419,14 +421,14 @@ async function movementStage(p){
     const city=pl.boat, cost=moveCost(pl,st.seq), opts=[];
     G.board[city].tokens.forEach((t,k)=>{
       const lbl=cost?`(costo ${cost})`:'(gratis)';
-      if(t.up){ if(legalDest(pl,t.n)) opts.push({label:`Rotta ${t.n} → città ${t.n} ${lbl}`,value:{k},disabled:!canPay(pl,cost),w:cost?0.4:1}); }
+      if(t.up){ if(legalDest(pl,t.n)) opts.push({label:`Rotta ${t.n} → ${cname(t.n)} ${lbl}`,value:{k},disabled:!canPay(pl,cost),w:cost?0.4:1}); }
       else opts.push({label:`Rotta coperta ${lbl}`,value:{k},disabled:!canPay(pl,cost),w:cost?0.4:1});
     });
     if(hasB(pl,'secret')&&G.gm.city!==city&&legalDest(pl,G.gm.city))
-      opts.push({label:`Passaggio segreto → città ${G.gm.city} (costo ${cost+1})`,value:{secret:true},disabled:!canPay(pl,cost+1),w:0.3});
+      opts.push({label:`Passaggio segreto → ${cname(G.gm.city)} (costo ${cost+1})`,value:{secret:true},disabled:!canPay(pl,cost+1),w:0.3});
     if(!opts.some(o=>!o.disabled)) break;
     opts.push({label:st.moved?'Fine movimento':'Non muovere / fine movimento',value:null,w:1});
-    status(`${pl.name}: movimento (città ${city}).`);
+    status(`${pl.name}: movimento (${cname(city)}).`);
     const v=await ask(p,'Movimento della barca',opts,{pause:300});
     if(!v) break;
     let dest, c2=cost;
@@ -436,7 +438,7 @@ async function movementStage(p){
       if(!t.up){ t.up=true; logMsg(`${pl.name} scopre il segnalino coperto: rotta ${t.n}.`); }
       dest=t.n;
       if(!legalDest(pl,dest)){
-        logMsg(`${pl.name}: movimento illegale (città ${dest} con una sua Incursione).`);
+        logMsg(`${pl.name}: movimento illegale (${cname(dest)} con una sua Incursione).`);
         if(st.seq===0) st.seq=1;
         continue;
       }
@@ -457,7 +459,7 @@ function doBuild(p){
   [0,1,2,3].forEach(col=>{ if(col!==CITY_COLORS[c]){ pl.goods[col]--; G.supply[col]++; } });
   pl.hand[c]-=n+1; G.reserve[c]+=n+1;
   pl.houses.push({owner:p,city:c,goods:[0,0,0,0]});
-  logMsg(`${pl.name} costruisce una casa nella città ${c}.`);
+  logMsg(`${pl.name} costruisce una casa a ${cname(c)}.`);
   checkDev(p);
 }
 function gmTradeOpts(p){
@@ -520,7 +522,7 @@ async function doCityTrade(p){
     if(col===null||col===-1) break;
     pile[col]--; pl.goods[col]++; took.push(GOODS[col].n);
   }
-  logMsg(`${pl.name} commercia con la città ${c}: mette ${GOODS[g].n}, prende ${took.join(', ')||'niente'}.`);
+  logMsg(`${pl.name} commercia con ${cname(c)}: mette ${GOODS[g].n}, prende ${took.join(', ')||'niente'}.`);
 }
 const routeOK = pl => G.board[pl.boat].tokens.some(t=>t.up) && pl.hand.some((c,m)=>c>0&&m!==pl.boat);
 async function doRoute(p){
@@ -530,7 +532,7 @@ async function doRoute(p){
   const old=toks[k].n;
   pl.hand[m]--; pl.hand[old]++;
   toks[k]={n:m,up:false,by:p};
-  logMsg(`${pl.name} cambia una rotta nella città ${c} (inserisce un segnalino coperto).`);
+  logMsg(`${pl.name} cambia una rotta a ${cname(c)} (inserisce un segnalino coperto).`);
 }
 function splitGoods(pl){
   const items=[]; pl.goods.forEach((c,g)=>{ for(let i=0;i<c;i++) items.push(g); });
@@ -560,12 +562,12 @@ async function doRaid(p){
     const grp=await ask(p,`${t.name} divide i suoi beni: quale gruppo prendi?`,[
       {label:`Gruppo 1: ${groupTxt(A)}`,value:A},{label:`Gruppo 2: ${groupTxt(B)}`,value:B}]);
     grp.forEach(g=>{ t.goods[g]--; pl.goods[g]++; });
-    logMsg(`${pl.name} fa un'Incursione su ${t.name} nella città ${c} e prende ${groupTxt(grp)}.`);
+    logMsg(`${pl.name} fa un'Incursione su ${t.name} a ${cname(c)} e prende ${groupTxt(grp)}.`);
   }else{
     let n=0;
     G.board[c].goods.forEach((k,g)=>{ pl.goods[g]+=k; n+=k; G.board[c].goods[g]=0; });
     G.players.filter(o=>o.boat===c).forEach(o=>o.houses.forEach(h=>{ if(h.city===c) h.goods.forEach((k,g)=>{ pl.goods[g]+=k; n+=k; h.goods[g]=0; }); }));
-    logMsg(`${pl.name} saccheggia la città ${c} e prende ${n} beni.`);
+    logMsg(`${pl.name} saccheggia ${cname(c)} e prende ${n} beni.`);
   }
   // movimento gratuito lungo una rotta scelta dagli altri (qui: a caso tra quelle legali)
   const legal=G.board[c].tokens.filter(t=>legalDest(pl,t.n));
@@ -584,7 +586,7 @@ async function playerTurn(p){
   while(true){
     const c=pl.boat;
     const A=[
-      {k:'build',label:`Costruire una casa (città ${c})`,ok:buildOK(pl),w:3},
+      {k:'build',label:`Costruire una casa (${cname(c)})`,ok:buildOK(pl),w:3},
       {k:'gm',label:'Commerciare con il Gildaio',ok:G.gm.city===c&&gmTradeOpts(p).length>0},
       {k:'buy',label:'Comprare un lotto di segnalini rotta',ok:buyOK(pl)},
       {k:'city',label:'Commerciare con la città',ok:cityTradeOK(pl,moved)},
@@ -594,7 +596,7 @@ async function playerTurn(p){
     const opts=A.filter(a=>!used.has(a.k)).map(a=>({label:a.label,value:a.k,disabled:!a.ok,w:a.w}));
     if(!opts.some(o=>!o.disabled)) break;
     opts.push({label:'Termina il turno',value:'end',w:0.7});
-    status(`${pl.name}: fase delle azioni (città ${c}).`);
+    status(`${pl.name}: fase delle azioni (${cname(c)}).`);
     const k=await ask(p,'Azioni (ognuna una volta per turno)',opts,{pause:300});
     if(k==='end'||k===null) break;
     used.add(k);
@@ -629,7 +631,7 @@ async function run(){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
-const chip=(g,n)=>`<span class="cube c${g}" title="${GOODS[g].n}">${n}</span>`;
+const chip=(g,n)=>`<span class="cube c${g}" title="${GOODS[g].n} (${GOODS[g].res})">${n}</span>`;
 const tokTile=(n,extra='')=>`<span class="tok t${colorOfRoute(n)}" title="Rotta ${n}">${n}${extra}</span>`;
 const tokHtml=t=>t.up
   ?tokTile(t.n)
@@ -638,11 +640,10 @@ const bonusHtml=id=>{ const b=BONUS.find(x=>x.id===id); return `<span class="bon
 
 function cityHtml(c){
   const b=G.board[c], col=GOODS[CITY_COLORS[c]];
-  const ang=(-90+c*360/NC)*Math.PI/180;
-  const x=50+37*Math.cos(ang), y=50+38*Math.sin(ang);
+  const [x,y]=CITY_POS[c];
   const hs=housesIn(c);
   return `<div class="city" style="--x:${x}%;--y:${y}%;--cc:${col.css}">
-    <div class="city-h"><span class="cn" style="background:${col.css}">${c}</span>Città ${c}
+    <div class="city-h"><span class="cn" style="background:${col.css}">${c}</span>${cname(c)}
       <span class="mk">${G.gm.city===c?'<span class="gm" title="Gildaio">♟</span>':''}${G.gm.start===c?'<span title="Partenza / fine partita">⚑</span>':''}</span></div>
     <div class="row"><span class="lbl">ROTTE</span>${b.tokens.map(tokHtml).join('')}</div>
     <div class="row"><span class="lbl">BENI</span>${b.goods.map((n,g)=>n?chip(g,n):'').join('')||'<span class="hint">—</span>'}</div>
@@ -657,10 +658,10 @@ function playerHtml(p){
   const hand=p.id===HUM?(pl.hand.map((c,v)=>c?tokTile(v,c>1?`<sub>×${c}</sub>`:''):'').join('')||'—'):`${totalTokens(pl)} segnalini`;
   return `<div class="card ${turn?'turn':''}" style="--pc:${PCOL[p.id]}">
     <h3><span class="dot" style="background:${PCOL[p.id]}"></span>${esc(pl.name)}${rank?` <span class="badge">ordine ${rank}</span>`:''}</h3>
-    <div class="kv">Punti Sviluppo: <b>${dev(pl)}/5</b> · Città barca: <b>${pl.boat<0?'—':pl.boat}</b></div>
+    <div class="kv">Punti Sviluppo: <b>${dev(pl)}/5</b> · Barca: <b>${pl.boat<0?'—':cname(pl.boat)}</b></div>
     <div class="row"><span class="lbl">BENI</span>${pl.goods.map((n,g)=>n?chip(g,n):'').join('')||'—'}</div>
     <div class="row"><span class="lbl">MANO</span>${hand}</div>
-    <div class="kv">Incursioni (Raub): <b>${pl.raidHand}</b> in mano${pl.raidCities.length?`, usate in ${pl.raidCities.join(', ')}`:''}</div>
+    <div class="kv">Incursioni (Raub): <b>${pl.raidHand}</b> in mano${pl.raidCities.length?`, usate a ${pl.raidCities.map(cname).join(', ')}`:''}</div>
     <div class="kv">Bonus: ${pl.bonus.length?pl.bonus.map(bonusHtml).join(''):'—'}</div>
   </div>`;
 }
@@ -703,8 +704,8 @@ function render(){
           <div class="kv">Bonus disponibili: ${BONUS.map((b,i)=>`${b.name} (${b.desc}) ×${G.bonusAvail[i]}`).join(' · ')}</div></div>
         <div class="card"><h3>Diario</h3><div class="log">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></div></div>
       <details class="rules"><summary>NOTE SULL'IMPLEMENTAZIONE</summary><ul>
-        <li>Plancia: città numerate 0–8 in senso orario nell'ordine dei numeri (la disposizione reale è da confermare). I colori delle città vengono dalle tessere rotta del PnP: 0–2 minerale (grigio), 3–4 pellicce (marrone), 5–6 ambra (arancione), 7–8 sale (bianco).</li>
-        <li>Grafica ricreata in CSS ispirandosi al PnP (pergamena, tessere rotta colorate, cubetti, tessere Raub nei colori dei giocatori, bonus Privileg/Seebuch/Holk/Geheimweg). Le illustrazioni vere non sono incluse.</li>
+        <li>Plancia: città, numeri e colori dal tabellone originale (0 Tönsberg · 1 Stockholm · 2 Åbo · 3 Reval · 4 Riga · 5 Danzig · 6 Stralsund · 7 Lübeck · 8 Kopenhagen), in senso orario. Grigio = 0–2, arancione = 3–4, viola = 5–6, bianco = 7–8.</li>
+        <li>Grafica ricreata in CSS ispirandosi al tabellone e al PnP (mare, tessere rotta colorate, cubetti, tessere Raub nei colori dei giocatori, bonus Privileg/Seebuch/Holk/Geheimweg). Le illustrazioni vere non sono incluse.</li>
         <li>Nell'Incursione il movimento gratuito finale viene scelto a caso tra le rotte legali. Il commercio con altri giocatori e le varianti opzionali non sono implementati.</li>
         <li>Il Gildaio che raggiunge (o attraversa) la partenza per la seconda volta chiude la partita subito dopo il suo movimento, anche se la partenza è saltata per un'Incursione; in caso di pareggio di PV non ci sono spareggi.</li>
         <li>Le AI scelgono a caso tra le mosse legali, con una leggera preferenza per costruire case.</li></ul></details>`;
