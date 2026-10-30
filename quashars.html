@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quashars</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#ecdcb6;
+  --surface:#faf3e1;
+  --surface-raised:#f1e5c6;
+  --accent:#e0561f;
+  --accent-soft:rgba(224,86,31,0.13);
+  --text:#2a1c10;
+  --text-soft:#5c4630;
+  --success:#2f8a5b;
+  --danger:#c0392b;
+  --border:rgba(90,60,25,0.25);
+  --radius:10px;
+  --c0:#c6373f; --c1:#d99a1e; --c2:#2b69b8; --c3:#2f9460;
+  --p0:#7b4aa8; --p1:#8a5a2b; --p2:#3f9a5a; --p3:#2f7fb5;
+  --cw:52px; --ch:76px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#f3e6c4 0%,#e2cd9e 100%) fixed}
+.app{max-width:900px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:12px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.logo{font-family:'Libre Baskerville',serif;font-size:26px;font-weight:700;line-height:1.2;flex:1;color:var(--accent);font-style:italic}
+.badge{background:var(--accent);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 16px rgba(90,60,25,0.25)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{background:#fff;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+
+/* carte Contratto */
+.conds{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.cond{background:var(--surface);border:2px solid var(--pc);border-radius:8px;padding:8px 6px;text-align:center;font-size:11px;line-height:1.35;box-shadow:0 2px 4px rgba(90,60,25,0.2);display:flex;flex-direction:column;gap:3px;align-items:center}
+.cond .pile{font-size:9px;letter-spacing:0.06em;color:#fff;background:var(--pc);border-radius:4px;padding:1px 6px;font-weight:600}
+.cond i{font-size:22px;color:var(--pc)}
+.cond b{font-size:12px}
+
+.table{display:grid;grid-template-columns:1fr 1.4fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#d96a2b 0%,#a93f14 85%);border-radius:14px;padding:12px;margin-bottom:12px;min-height:480px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;color:#fff;text-align:center}
+.seat.top{grid-area:top}
+.seat.left{grid-area:left;justify-content:center}
+.seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.1)}
+.seat.active{border-color:#ffe27a;background:rgba(255,226,122,0.18)}
+.seat.winner{border-color:#8ff0b8;background:rgba(143,240,184,0.2)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.25);border-radius:4px;padding:2px 6px}
+.tag.neg{background:rgba(255,255,255,0.85);color:var(--danger);font-weight:700}
+.chip{display:inline-block;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #f0c9a8}
+.chip.flex{background:#5fbf7f;border-color:#fff}
+.chip.blue{background:#2b69b8;border-color:#fff}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:210px}
+.back{width:16px;height:24px;border-radius:3px;background:linear-gradient(135deg,#f3a15f,#c4531a);border:1px solid #fff}
+.seat.left .backs,.seat.right .backs{max-width:150px}
+
+.pc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Libre Baskerville',serif;font-weight:700;font-size:24px;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.3);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
+.pc.c0{background:var(--c0)} .pc.c1{background:var(--c1)} .pc.c2{background:var(--c2)} .pc.c3{background:var(--c3)}
+.pc small{position:absolute;top:2px;left:4px;font-size:11px;font-family:'Inter',sans-serif;text-shadow:none}
+.pc i{font-size:15px;margin-top:2px}
+button.pc{cursor:pointer;transition:transform 0.12s}
+button.pc:hover:not(:disabled){transform:translateY(-6px)}
+button.pc:disabled{cursor:default}
+.pc.dim{opacity:0.4;filter:saturate(0.5)}
+.pc.legal{box-shadow:0 0 0 3px #ffe27a}
+.pc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+.pc.win{box-shadow:0 0 0 3px #8ff0b8}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+
+.center{grid-area:center;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto auto;align-items:center;justify-items:center;color:#fff;min-height:calc(var(--ch)*3 + 20px)}
+.slot{min-height:var(--ch)}
+.slot.bottom{grid-column:2;grid-row:3}
+.slot.top{grid-column:2;grid-row:1}
+.slot.left{grid-column:1;grid-row:2}
+.slot.right{grid-column:3;grid-row:2}
+.center-note{grid-column:2;grid-row:2;font-size:11px;text-align:center;line-height:1.5}
+
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.rules ul{margin:10px 0 0 18px;font-size:12px;line-height:1.6;color:var(--text-soft)}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:46px}
+  .pc{font-size:15px;border-width:1px;border-radius:5px}
+  .pc small{display:none}
+  .pc i{font-size:10px}
+  .table{padding:8px;gap:6px;grid-template-columns:1fr 1.2fr 1fr}
+  .back{width:10px;height:16px}
+  .hand{gap:2px}
+  .conds{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const COLORS = [
+  {n:'Rosso',  icon:'fire'},
+  {n:'Giallo', icon:'lightning'},
+  {n:'Blu',    icon:'snowflake'},
+  {n:'Verde',  icon:'leaf'}
+];
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+const HUM = 0, TRICKS = 12, MAXPRED = 12;
+const NAMES = ['Tu','AI Viola','AI Marrone','AI Verde'];
+const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
+
+// Carte Contratto: 4 pile (numero, colore, momento, prese vinte), 3 carte per pila
+const PILES = [
+  {name:'Numero',  icon:'hash', cards:[
+    {id:'even', title:'Vincere con numeri pari',   test:c=>c.n%2===0},
+    {id:'odd',  title:'Vincere con numeri dispari',test:c=>c.n%2===1},
+    {id:'s69',  title:'Vincere con carte da 6 a 9',test:c=>c.n>=6&&c.n<=9}]},
+  {name:'Colore',  icon:'palette', cards:[
+    {id:'blue',  title:'Vincere con carte blu',   test:c=>c.c===2},
+    {id:'green', title:'Vincere con carte verdi', test:c=>c.c===3},
+    {id:'yellow',title:'Vincere con carte gialle',test:c=>c.c===1}]},
+  {name:'Momento', icon:'clock-countdown', cards:[
+    {id:'first3',title:'Vincere una delle prime 3 prese',     test:(c,x)=>x.t<3},
+    {id:'last2', title:'Vincere la penultima o l\'ultima presa',test:(c,x)=>x.t>=TRICKS-2},
+    {id:'streak',title:'Vincere prese di fila (dalla 2ª in poi)',test:(c,x)=>x.prev===x.p}]},
+  {name:'Prese',   icon:'target', cards:[
+    {id:'ex2',title:'Vincere esattamente 2 prese',end:2},
+    {id:'ex3',title:'Vincere esattamente 3 prese',end:3},
+    {id:'ex4',title:'Vincere esattamente 4 prese',end:4}]}
+];
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true};
+try{ const s=localStorage.getItem('quashars-undo'); if(s!==null) OPT.undo=s==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>60) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options,o={}){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  if(p!==HUM){
+    if(o.pause) await sleep(o.pause);
+    const tot=ok.reduce((a,x)=>a+(x.w??1),0);
+    let r=Math.random()*tot;
+    for(const x of ok){ r-=(x.w??1); if(r<=0) return x.value; }
+    return ok[ok.length-1].value;
+  }
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askCard(p,legal){
+  if(p!==HUM) return sleep(550).then(()=>legal[rnd(legal.length)]);
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function playIdx(i){
+  if(!PR||PR.type!=='card'||!PR.legal.has(i)) return;
+  if(OPT.undo){ PR.sel=i; render(); return; }
+  const r=PR.res; PR=null; render(); r(i);
+}
+function confirmCard(ok){
+  if(!PR||PR.type!=='card'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const i=PR.sel, r=PR.res; PR=null; render(); r(i);
+}
+
+// ═════════════════════════ REGOLE ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,game:0,start0:rnd(n),start:0,msg:'',log:[],over:null,conds:[],order:PILES.map(()=>shuffle([0,1,2])),
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],pred:null,white:0,flex:false,blue:0,won:0,total:0,hist:[]})),
+     trick:[],leader:0,winner:-1,turn:-1,show:null,prev:-1,t:0};
+  run();
+}
+
+function deal(){
+  const max=G.n===3?9:12, deck=[];
+  for(let c=0;c<4;c++) for(let n=1;n<=max;n++) deck.push({c,n});
+  shuffle(deck);
+  G.pl.forEach((p,i)=>{
+    p.hand=deck.slice(i*12,i*12+12).sort((a,b)=>a.c-b.c||a.n-b.n);
+    p.pred=null; p.white=0; p.flex=false; p.blue=0; p.won=0;
+  });
+  G.trick=[]; G.winner=-1; G.show=null; G.prev=-1; G.t=0;
+  if(G.game===3) G.order=PILES.map(()=>shuffle([0,1,2]));     // 4 giocatori: nuove carte prima dell'ultimo round
+  G.conds=PILES.map((pile,i)=>({pile:i,...pile.cards[G.order[i][G.game%3]]}));
+}
+
+// restituisce k gettoni: prima i bianchi, poi quello di riserva, altrimenti si prende un gettone blu
+function giveBack(pl,k){
+  let r=0,b=0;
+  for(let i=0;i<k;i++){
+    if(pl.white>0){ pl.white--; r++; }
+    else if(pl.flex){ pl.flex=false; r++; }
+    else{ pl.blue++; b++; }
+  }
+  return {r,b};
+}
+const chipTxt = x => x.r+x.b===0?'':`${x.r?`restituisce ${x.r} gettone/i`:''}${x.r&&x.b?' e ':''}${x.b?`prende ${x.b} gettone/i blu`:''}`;
+
+async function predictions(){
+  const order=Array.from({length:G.n},(_,i)=>(G.start+i)%G.n);
+  for(const p of order){
+    const pl=P(p);
+    status(`Previsione: tocca a ${pl.name}.`);
+    while(true){
+      const opts=[];
+      for(let n=0;n<=MAXPRED;n++) opts.push({label:n===0?'0 volte (nessun gettone)':`${n} ${n===1?'volta':'volte'}`,value:n,w:n<=1?1:(n<=4?1.5:0.3)});
+      const n=await ask(p,'Quante volte soddisferai le condizioni dei 4 contratti? (prendi altrettanti gettoni)',opts,{pause:350});
+      const fo=[
+        {label:`No: esattamente ${n}`,value:false,w:1.5},
+        {label:`Sì: ${n} oppure ${n+1} (vale 1× invece di 2×)`,value:true,w:1}];
+      if(p===HUM&&OPT.undo) fo.push({label:'↶ Annulla',value:'undo'});
+      const flex=await ask(p,`Vuoi aggiungere un gettone di riserva (faccia verde)? Prevedi ${n} oppure ${n+1}`,fo,{pause:200});
+      if(flex==='undo') continue;
+      const txt=flex?`${n}–${n+1} volte (con gettone di riserva)`:`${n} ${n===1?'volta':'volte'}`;
+      if(p===HUM&&OPT.undo){
+        const okc=await ask(p,`Confermi la previsione: ${txt}?`,[{label:'Conferma',value:true},{label:'↶ Annulla e riscegli',value:false}]);
+        if(!okc) continue;
+      }
+      pl.pred={n,flex}; pl.white=n; pl.flex=flex;
+      logMsg(`${pl.name} prevede ${txt}.`);
+      break;
+    }
+  }
+}
+
+const legalIdx = (p,lead) => {
+  const h=P(p).hand, all=h.map((_,i)=>i);
+  if(lead==null) return all;
+  const same=all.filter(i=>h[i].c===lead);
+  return same.length?same:all;
+};
+function trickWinner(trick){
+  const reds=trick.filter(x=>x.card.c===0);
+  const cands=reds.length?reds:trick.filter(x=>x.card.c===trick[0].card.c);
+  return cands.reduce((b,x)=>x.card.n>b.card.n?x:b).p;
+}
+
+async function tricks(){
+  G.leader=G.start;
+  for(let t=0;t<TRICKS;t++){
+    G.trick=[]; G.winner=-1; G.t=t;
+    const lp=P(G.leader);
+    for(let i=0;i<G.n;i++){
+      const p=(G.leader+i)%G.n;
+      G.turn=p;
+      status(`Presa ${t+1}/${TRICKS}: giocatore iniziale ${lp.name}. Tocca a ${P(p).name}.`);
+      const lead=G.trick.length?G.trick[0].card.c:null;
+      const idx=await askCard(p,legalIdx(p,lead));
+      const [card]=P(p).hand.splice(idx,1);
+      G.trick.push({p,card});
+      render();
+    }
+    G.turn=-1;
+    const w=trickWinner(G.trick), wc=G.trick.find(x=>x.p===w).card, pl=P(w);
+    G.winner=w; pl.won++;
+    const met=G.conds.filter(c=>c.test&&c.test(wc,{t,p:w,prev:G.prev}));
+    G.prev=w;
+    let msg=`${pl.name} vince la presa con ${wc.n} ${COLORS[wc.c].n.toLowerCase()}`;
+    if(met.length){ const gb=giveBack(pl,met.length); msg+=` e soddisfa: ${met.map(c=>c.title.replace('Vincere ','')).join('; ')} → ${chipTxt(gb)}`; }
+    status(msg+'.');
+    logMsg(msg+'.');
+    await sleep(1900);
+    G.leader=w;
+  }
+  G.trick=[]; G.winner=-1; G.turn=-1;
+  // contratti della pila 4: verificati a fine round
+  G.conds.filter(c=>c.end).forEach(c=>{
+    G.pl.filter(p=>p.won===c.end).forEach(p=>{
+      const gb=giveBack(p,1);
+      logMsg(`${p.name} ha vinto esattamente ${c.end} prese → ${chipTxt(gb)}.`);
+    });
+  });
+}
+
+async function scoring(){
+  const mult=G.game+1;
+  const rows=G.pl.map(p=>{
+    const correct=p.white===0&&p.blue===0;
+    const pt=correct?(p.pred.flex?1:2)*mult:-(p.white+p.blue);
+    p.total+=pt; p.hist.push(pt);
+    return {p:p.id,pred:p.pred,won:p.won,white:p.white,blue:p.blue,correct,pt};
+  });
+  G.show={rows};
+  status(`Round ${G.game+1} concluso.`);
+  const last=G.game===G.n-1;
+  await ask(HUM,'Punteggio del round',[{label:last?'Vedi il risultato finale':'Prossimo round',value:1}]);
+  G.show=null;
+}
+
+async function run(){
+  const g=G;
+  try{
+    for(let k=0;k<g.n;k++){
+      g.game=k; g.start=(g.start0+k)%g.n;
+      deal();
+      logMsg(`— Round ${k+1}/${g.n}: inizia ${P(g.start).name} —`);
+      await predictions();
+      await tricks();
+      await scoring();
+    }
+    const m=Math.max(...g.pl.map(p=>p.total));
+    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const predText = pr => !pr?'—':pr.flex?`${pr.n}–${pr.n+1} volte`:`${pr.n} ${pr.n===1?'volta':'volte'}`;
+const chipsHtml = p => Array.from({length:p.white},()=>'<span class="chip"></span>').join('')+(p.flex?'<span class="chip flex" title="Gettone di riserva"></span>':'')+Array.from({length:p.blue},()=>'<span class="chip blue" title="Gettone blu (−1)"></span>').join('');
+const cardFace=(c,cls='')=>`<span class="pc c${c.c} ${cls}"><small>${c.n}</small>${c.n}${ico(COLORS[c.c].icon)}</span>`;
+
+function seatHtml(p,pos){
+  const pl=P(p);
+  const isLeader=G.trick.length>0&&G.leader===p, active=G.turn===p, winner=G.winner===p&&G.trick.length===G.n;
+  let body='';
+  if(p===HUM){
+    body=`<div class="hand">${pl.hand.map((c,i)=>{
+      if(PR&&PR.type==='card'){ const ok=PR.legal.has(i); return `<button class="pc c${c.c} ${ok?'legal':'dim'} ${PR.sel===i?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${c.n} ${COLORS[c.c].n}"><small>${c.n}</small>${c.n}${ico(COLORS[c.c].icon)}</button>`; }
+      return cardFace(c);
+    }).join('')}</div>`;
+  }else body=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta">
+      <span class="tag">${esc(predText(pl.pred))}</span>
+      <span class="tag">${chipsHtml(pl)||'nessun gettone'}</span>
+      <span class="tag">prese ${pl.won}</span><span class="tag">tot ${pl.total}</span></div>`;
+  return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">
+    <div class="seat-name">${esc(pl.name)}${G.leader===p&&G.turn>=0&&G.trick.length===0?' · giocatore iniziale':''}</div>${pos==='bottom'?body+meta:meta+body}</div>`;
+}
+function centerHtml(){
+  const pos=POS[G.n];
+  const slots=pos.map((ps,i)=>{
+    const x=G.trick.find(t=>t.p===i);
+    return `<div class="slot ${ps}">${x?cardFace(x.card,G.winner===i?'win':''):''}</div>`;
+  }).join('');
+  const note=G.pl.every(q=>q.pred)?`Presa ${Math.min(G.t+1,TRICKS)}/${TRICKS}`:'Fase di previsione';
+  return `<div class="center">${slots}<div class="center-note">${note}</div></div>`;
+}
+function condsHtml(){
+  return `<div class="conds">${G.conds.map(c=>`<div class="cond" style="--pc:var(--p${c.pile})"><span class="pile">${PILES[c.pile].name.toUpperCase()}</span>${ico(PILES[c.pile].icon)}<b>${esc(c.title)}</b></div>`).join('')}</div>`;
+}
+function scoreTable(){
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:G.n},(_,i)=>i<p.hist.length?`<td class="${p.hist[i]<0?'neg':''}">${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th></th>${Array.from({length:G.n},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Quashars contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    html+=`<table class="score"><tr><th></th><th>Previsione</th><th>Prese</th><th>Gettoni rimasti</th><th>Esito</th><th>Punti</th></tr>${G.show.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td>${predText(r.pred)}</td><td>${r.won}</td><td>${r.white} bianchi${r.blue?` + ${r.blue} blu`:''}</td><td>${r.correct?'corretta':'errata'}</td><td class="${r.pt<0?'neg':''}"><b>${r.pt>0?'+':''}${r.pt}</b></td></tr>`).join('')}</table>`;
+  }
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">Tocca a te: gioca una carta evidenziata${G.trick.length?` (devi rispondere al seme ${COLORS[G.trick[0].card.c].n.toLowerCase()} se puoi)`:' (sei il giocatore iniziale: puoi giocare qualsiasi carta)'}.</div>`;
+    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${c.n} ${COLORS[c.c].n.toLowerCase()}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`; }
+  }
+  return html;
+}
+
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO (traduzione di Danilo, allineata al PDF inglese)</summary>
+<div class="rtext">
+<h4>Setup</h4>
+<p>Posiziona i gettoni al centro del tavolo. Separa le carte Contratto per tipologia, mescola i 4 mazzetti e piazzali coperti. In 3 giocatori si usano le carte da gioco dall'1 al 9 (36 carte), in 4 giocatori tutte le 48. Distribuisci 12 carte a ciascun giocatore. Se finiscono i gettoni si possono usare monete: nell'app non c'è alcun limite.</p>
+<h4>Flusso di gioco</h4>
+<p>Ogni round ha quattro fasi: determinazione delle carte Contratto, previsione, prese, punteggio. Si giocano tanti round quanti sono i giocatori; vince il punteggio totale più alto (parità: vittoria condivisa).</p>
+<h4>1. Carte Contratto</h4>
+<p>Si gira una carta da ciascuno dei 4 mazzi. In 4 giocatori, prima dell'ultimo round i mazzi si rimescolano e si gira una nuova carta da ciascuno.</p>
+<h4>2. Previsione</h4>
+<p>Partendo dal giocatore iniziale, in senso orario, ognuno prevede quante volte soddisferà le condizioni delle quattro carte Contratto e prende altrettanti gettoni bianchi (anche zero). Puoi aggiungere un gettone di riserva (faccia verde): con 3 gettoni bianchi e uno di riserva prevedi 3 o 4 volte; con il solo gettone di riserva prevedi 0 o 1 volta.</p>
+<p>Ogni volta che una condizione è soddisfatta si restituisce un gettone. Se ne servono più di quelli che hai (dopo i bianchi, il gettone di riserva), si prende un gettone blu, che vale −1 a fine round.</p>
+<h4>3. Prese</h4>
+<p>Il giocatore iniziale gioca qualsiasi carta, gli altri devono rispondere al seme se possono. Se non vengono giocate carte rosse vince la carta più alta del seme del giocatore iniziale; se ne vengono giocate, vince la carta rossa più alta. Il vincitore restituisce un gettone per ogni condizione soddisfatta, tiene le carte e inizia la presa successiva. Si giocano 12 prese.</p>
+<h4>4. Punteggio</h4>
+<p>Previsione corretta (tutti i gettoni restituiti, il gettone di riserva può restare): 2 punti × numero del round, oppure 1 × il numero del round se hai usato il gettone di riserva. Altrimenti −1 per ogni gettone bianco rimasto e per ogni gettone blu preso (il gettone di riserva non conta). Il giocatore alla sinistra del precedente giocatore iniziale inizia il round successivo.</p>
+<h4>Carte Contratto</h4>
+<ul>
+<li><b>Numero:</b> vincere con numeri pari · con numeri dispari · con le carte dal 6 al 9.</li>
+<li><b>Colore:</b> vincere con carte blu · verdi · gialle.</li>
+<li><b>Momento:</b> vincere una delle prime tre prese (un gettone per ognuna) · vincere la penultima e/o l'ultima presa (un gettone per ognuna) · vincere prese di fila (un gettone per ogni presa vinta consecutiva dalla seconda in poi).</li>
+<li><b>Prese vinte (verificate a fine round):</b> vincere esattamente 2 · 3 · 4 prese (un gettone).</li>
+</ul>
+<p><i>Nota:</i> il PDF inglese indica 16 carte Contratto; la traduzione ne elenca 12 (3 per pila), che sono quelle usate qui.</p>
+</div></details>`;
+
+function render(){
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">Quashars</div>
+    ${G&&!G.over?`<span class="badge">Round ${G.game+1}/${G.n}</span>`:''}
+    <label class="opt-toggle" title="Chiede conferma e permette di annullare previsioni e carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}</div>`;
+  let body='';
+  if(G){
+    const pos=POS[G.n];
+    body=`${G.conds.length?condsHtml():''}
+      <div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static;border-top-width:1px">${scoreTable()}</div>`:''}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.n) newMatch(Number(b.dataset.n));
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('quashars-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(PR&&PR.type==='card'&&PR.sel!=null&&!OPT.undo){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+  render();
+});
+render();
+</script>
+</body>
+</html>
