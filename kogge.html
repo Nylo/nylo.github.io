@@ -6,81 +6,103 @@
 <title>Kogge</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Uncial+Antiqua&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#0f1117;
-  --surface:#1a1f2e;
-  --surface-raised:#232840;
-  --surface-hover:#2a3050;
-  --accent:#5b8dd9;
-  --accent-soft:rgba(91,141,217,0.13);
-  --text:#fafafa;
-  --text-soft:#dfdfdf;
-  --success:#4caf7d;
-  --warn:#e0a44a;
-  --danger:#d96b6b;
-  --border:rgba(255,255,255,0.07);
-  --radius:10px;
+  --bg:#cdb98f;
+  --surface:#e9d9b0;
+  --surface-raised:#dcc89a;
+  --surface-hover:#f2e5c1;
+  --accent:#8c2f27;
+  --accent-soft:rgba(140,47,39,0.12);
+  --text:#2b1d10;
+  --text-soft:#5a4430;
+  --success:#3c7a4f;
+  --danger:#a8322b;
+  --border:rgba(60,40,15,0.30);
+  --radius:8px;
+  --g0:#8d9096; --g1:#7a4a25; --g2:#ec9a2e; --g3:#eceae4;
 }
-html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background-color:var(--bg);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.25  0 0 0 0 0.1  0 0 0 0.16 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),radial-gradient(ellipse at 50% 0%,#dcc99e 0%,#c4ad7e 100%);background-attachment:fixed}
 .app{max-width:1100px;margin:0 auto;padding:0 12px 48px}
 
 /* ── TOPBAR ── */
-.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid var(--border);margin-bottom:12px;flex-wrap:wrap}
-.logo{font-family:'Libre Baskerville',serif;font-size:19px;line-height:1.2;flex:1}
-.logo span{color:var(--accent);font-style:italic}
-.badge{background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;white-space:nowrap}
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:3px double var(--border);margin-bottom:12px;flex-wrap:wrap}
+.logo{font-family:'UnifrakturCook',serif;font-size:34px;line-height:1;flex:1;color:#111}
+.logo .k{color:var(--accent);font-size:42px}
+.badge{background:var(--accent-soft);color:var(--accent);border:1px solid rgba(140,47,39,0.3);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:600;white-space:nowrap}
 .btn{border:none;border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:7px;justify-content:center;transition:background 0.15s,transform 0.07s}
 .btn:active{transform:scale(0.96)}
 .btn:disabled{opacity:0.35;cursor:not-allowed;transform:none}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-primary:hover:not(:disabled){background:#4a7cc5}
 .btn-ghost{background:transparent;color:var(--text-soft);border:1px solid var(--border)}
 .btn-ghost:hover:not(:disabled){background:var(--surface-raised);color:var(--text)}
 .btn-sm{padding:5px 10px;font-size:12px}
 
 /* ── DOCK ── */
-.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 16px rgba(0,0,0,0.35)}
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 16px rgba(60,40,15,0.35)}
 .dock-msg{font-size:13px;line-height:1.5}
-.dock-title{font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.04em}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.06em}
 .opts{display:flex;gap:8px;flex-wrap:wrap}
-.opt{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
-.opt:hover:not(:disabled){border-color:rgba(91,141,217,0.5);background:var(--accent-soft)}
-.opt:disabled{opacity:0.3;cursor:not-allowed}
-.opt.sel{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.opt{background:#f4e9c9;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#fbf2d8}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.opt.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+.opt.tokbtn{padding:0;border:0;background:none}
+.opt.tokbtn .tok{width:36px;height:36px;font-size:19px}
+.opt.tokbtn.sel{background:none}
+.opt.tokbtn.sel .tok{outline:3px solid var(--accent);outline-offset:2px}
 .hint{font-size:12px;color:var(--text-soft)}
-.err{font-size:12px;color:var(--danger)}
+.err{font-size:12px;color:var(--danger);font-weight:600}
 
 /* ── PLANCIA ── */
-.boardwrap{position:relative;height:660px;background:radial-gradient(ellipse at center,#16302a 0%,#10201f 70%);border:1px solid var(--border);border-radius:14px;margin-bottom:12px}
-.center-info{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;font-family:'Libre Baskerville',serif;font-size:22px;color:rgba(255,255,255,0.25);line-height:1.5}
-.city{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);width:168px;background:var(--surface);border:2px solid var(--cc);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:5px;font-size:11px}
-.city-h{display:flex;align-items:center;gap:6px;font-weight:600}
-.cn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;color:#111;font-weight:700;font-family:'Libre Baskerville',serif}
-.mk{margin-left:auto;font-size:14px}
+.boardwrap{position:relative;height:680px;background:radial-gradient(ellipse at center,#d8c497 0%,#c3aa78 75%);border:3px double rgba(60,40,15,0.55);border-radius:12px;margin-bottom:12px;box-shadow:inset 0 0 60px rgba(60,40,15,0.25)}
+.center-info{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;font-family:'UnifrakturCook',serif;font-size:54px;color:rgba(60,40,15,0.28);line-height:1.1}
+.center-info small{display:block;font-family:'Inter',sans-serif;font-size:11px;color:rgba(60,40,15,0.6);line-height:1.6;margin-top:8px}
+.city{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);width:172px;background:#ecdcb4;border:3px solid var(--cc);outline:1px solid #2b1d10;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:5px;font-size:11px;box-shadow:0 3px 8px rgba(60,40,15,0.35)}
+.city-h{display:flex;align-items:center;gap:6px;font-weight:600;font-family:'UnifrakturCook',serif;font-size:16px}
+.cn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;color:#111;font-weight:700;font-family:'Uncial Antiqua',serif;font-size:14px;border:1px solid #2b1d10}
+.mk{margin-left:auto;font-size:16px;display:flex;gap:4px}
+.gm{color:#6b6e75;font-size:20px;line-height:1;text-shadow:0 0 1px #000}
 .row{display:flex;gap:4px;flex-wrap:wrap;align-items:center;min-height:20px}
-.tok{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;border-radius:5px;border:2px solid var(--tc,#888);background:var(--bg);font-family:'Libre Baskerville',serif;font-size:12px;font-weight:700}
-.tok.cov{border-style:dashed;color:var(--text-soft)}
-.tok.cov sub{font-size:8px;color:var(--accent)}
-.chip{display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:10px;font-size:11px;font-weight:600;color:#111}
-.chip.dark{color:#fff}
-.house{font-size:11px;border:1px solid var(--border);border-radius:5px;padding:1px 4px;display:inline-flex;gap:3px;align-items:center}
-.lbl{font-size:9px;color:var(--text-soft);letter-spacing:0.04em;margin-right:2px}
+.lbl{font-size:9px;color:var(--text-soft);letter-spacing:0.06em;margin-right:2px;width:34px}
+
+/* segnalini rotta: colore = colore della città con quel numero */
+.tok{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;border-radius:4px;border:1px solid #2b1d10;font-family:'Uncial Antiqua',serif;font-size:14px;font-weight:700;color:#111;text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;position:relative;box-shadow:0 1px 2px rgba(0,0,0,0.4)}
+.tok.t0{background:var(--g0)}
+.tok.t1{background:var(--g1)}
+.tok.t2{background:var(--g2)}
+.tok.t3{background:var(--g3)}
+.tok.cov{background:#b79a68;color:#5a4430;text-shadow:none;font-family:'Inter',sans-serif;font-size:15px}
+.tok.cov sub{position:absolute;right:1px;bottom:0;font-size:8px;color:var(--accent);font-weight:700;font-family:'Inter',sans-serif}
+.tok sub{font-size:8px;font-family:'Inter',sans-serif;text-shadow:none}
+
+/* beni: cubetti */
+.cube{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 3px;border-radius:3px;font-size:10px;font-weight:700;color:#111;box-shadow:inset -2px -2px 0 rgba(0,0,0,0.28),inset 1px 1px 0 rgba(255,255,255,0.45),0 1px 2px rgba(0,0,0,0.4)}
+.cube.c0{background:var(--g0)}
+.cube.c1{background:var(--g1);color:#fff}
+.cube.c2{background:var(--g2)}
+.cube.c3{background:var(--g3)}
+.house{font-size:11px;border:1px solid var(--border);border-radius:5px;padding:1px 4px;display:inline-flex;gap:3px;align-items:center;background:rgba(255,255,255,0.35)}
+.house b{font-size:15px;line-height:1}
+.raid{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;border:1px solid #2b1d10;font-size:13px;color:#fff;text-shadow:0 0 2px #000}
 
 /* ── PANNELLI ── */
-.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:12px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;gap:7px}
-.card h3{font-family:'Libre Baskerville',serif;font-size:14px;font-weight:400;display:flex;align-items:center;gap:8px}
-.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
-.card.turn{border-color:var(--accent)}
+.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-bottom:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-left:5px solid var(--pc,var(--border));border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;gap:7px}
+.card h3{font-family:'UnifrakturCook',serif;font-size:19px;font-weight:700;display:flex;align-items:center;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;border:1px solid #2b1d10}
+.card.turn{box-shadow:0 0 0 2px var(--accent)}
 .kv{font-size:12px;color:var(--text-soft);line-height:1.5}
 .kv b{color:var(--text);font-weight:600}
 .log{font-size:12px;color:var(--text-soft);line-height:1.6;max-height:240px;overflow:auto}
-.log div:first-child{color:var(--text)}
+.log div:first-child{color:var(--text);font-weight:600}
+.bonus{display:inline-flex;align-items:center;gap:6px;font-size:12px;background:#7d5ea0;color:#fff;border-radius:5px;padding:3px 7px;margin:2px 4px 2px 0}
+.bonus i{font-style:normal;font-family:'UnifrakturCook',serif;font-size:14px}
+.bonus em{font-style:normal;opacity:.85;font-size:11px}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-top:12px}
-details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.04em}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.06em}
 details.rules ul{margin:10px 0 0 18px;font-size:12px;line-height:1.6;color:var(--text-soft)}
 table.score{border-collapse:collapse;font-size:12px;width:100%}
 table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right}
@@ -100,25 +122,29 @@ table.score td:first-child,table.score th:first-child{text-align:left}
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const NC = 9;                                   // città, numerate 0..8 in senso orario
+// Beni (cubetti di legno): grigio = minerale, marrone = pellicce, arancione = ambra, bianco = sale.
+// Nel regolamento italiano: grigi, arancioni (= marroni), viola (= arancioni), bianchi.
 const GOODS = [
-  {n:'Grigio',    vp:1, css:'#9aa0aa', dark:false},
-  {n:'Arancione', vp:3, css:'#e8872b', dark:false},
-  {n:'Viola',     vp:5, css:'#9b5de5', dark:true },
-  {n:'Bianco',    vp:7, css:'#f4f4f4', dark:false}
+  {n:'Minerale', vp:1, css:'#8d9096'},
+  {n:'Pellicce', vp:3, css:'#7a4a25'},
+  {n:'Ambra',    vp:5, css:'#ec9a2e'},
+  {n:'Sale',     vp:7, css:'#eceae4'}
 ];
-// ASSUNZIONE: colore del bene prodotto da ciascuna città (il regolamento non lo dice).
-// Si può cambiare qui quando avremo la plancia vera.
-const CITY_COLORS = [0,1,0,2,3,1,0,2,1];
+// Dalle tessere rotta del PnP: 0-2 grigie, 3-4 marroni, 5-6 arancioni, 7-8 bianche.
+// Il segnalino rotta ha il colore della città con lo stesso numero, quindi:
+const CITY_COLORS = [0,0,0,1,1,2,2,3,3];
 const RES0    = [14,13,12,11,10,9,8,7,6];       // segnalini rotta 0..8 nella riserva
-const SUPPLY0 = [25,18,13,10];                  // beni: grigi, arancioni, viola, bianchi
+const SUPPLY0 = [25,18,13,10];                  // beni: minerale, pellicce, ambra, sale
+// Tessere bonus del PnP (tedesco): Privileg, Seebuch, Holk, Geheimweg
 const BONUS = [
-  {id:'trade',  name:'Commercio 3:1'},
-  {id:'draw',   name:'+1 segnalino rotta'},
-  {id:'move2',  name:'Muovi 2 spazi'},
-  {id:'secret', name:'Passaggio segreto'}
+  {id:'trade',  name:'Privileg',   desc:'commercio 3:1'},
+  {id:'draw',   name:'Seebuch',    desc:'+1 segnalino rotta'},
+  {id:'move2',  name:'Holk',       desc:'muovi 2 spazi'},
+  {id:'secret', name:'Geheimweg',  desc:'passaggio segreto'}
 ];
-const PCOL  = ['#4f8df0','#e0524d','#3fb37f','#e060a8'];
-const PNAME = ['Tu','AI Rosso','AI Verde','AI Rosa'];
+// Colori dei giocatori come nelle tessere Raub del PnP: blu, rosso, giallo, verde
+const PCOL  = ['#6b74c6','#e0594f','#e1c14a','#6fae45'];
+const PNAME = ['Tu','AI Rosso','AI Giallo','AI Verde'];
 const HUM = 0;
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
@@ -603,10 +629,12 @@ async function run(){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
-const chip=(g,n)=>`<span class="chip ${GOODS[g].dark?'dark':''}" style="background:${GOODS[g].css}" title="${GOODS[g].n}">${n}</span>`;
+const chip=(g,n)=>`<span class="cube c${g}" title="${GOODS[g].n}">${n}</span>`;
+const tokTile=(n,extra='')=>`<span class="tok t${colorOfRoute(n)}" title="Rotta ${n}">${n}${extra}</span>`;
 const tokHtml=t=>t.up
-  ?`<span class="tok" style="--tc:${GOODS[colorOfRoute(t.n)].css}" title="Rotta ${t.n}">${t.n}</span>`
-  :`<span class="tok cov" title="Segnalino coperto">?${t.by===HUM?`<sub>${t.n}</sub>`:''}</span>`;
+  ?tokTile(t.n)
+  :`<span class="tok cov" title="Segnalino coperto">✥${t.by===HUM?`<sub>${t.n}</sub>`:''}</span>`;
+const bonusHtml=id=>{ const b=BONUS.find(x=>x.id===id); return `<span class="bonus" title="${b.desc}"><i>${b.name}</i><em>${b.desc}</em></span>`; };
 
 function cityHtml(c){
   const b=G.board[c], col=GOODS[CITY_COLORS[c]];
@@ -615,25 +643,25 @@ function cityHtml(c){
   const hs=housesIn(c);
   return `<div class="city" style="--x:${x}%;--y:${y}%;--cc:${col.css}">
     <div class="city-h"><span class="cn" style="background:${col.css}">${c}</span>Città ${c}
-      <span class="mk">${G.gm.city===c?'<span title="Gildaio">♛</span>':''}${G.gm.start===c?'<span title="Partenza / fine partita">⚑</span>':''}</span></div>
+      <span class="mk">${G.gm.city===c?'<span class="gm" title="Gildaio">♟</span>':''}${G.gm.start===c?'<span title="Partenza / fine partita">⚑</span>':''}</span></div>
     <div class="row"><span class="lbl">ROTTE</span>${b.tokens.map(tokHtml).join('')}</div>
     <div class="row"><span class="lbl">BENI</span>${b.goods.map((n,g)=>n?chip(g,n):'').join('')||'<span class="hint">—</span>'}</div>
-    ${hs.length?`<div class="row">${hs.map(h=>`<span class="house" style="color:${PCOL[h.owner]}">⌂ ${h.goods.map((n,g)=>n?chip(g,n):'').join('')}</span>`).join('')}</div>`:''}
-    <div class="row">${G.players.filter(p=>p.boat===c).map(p=>`<span style="color:${PCOL[p.id]}" title="${esc(p.name)}">⛵${p.id===HUM?' tu':''}</span>`).join(' ')}
-      ${b.raids.map(i=>`<span style="color:${PCOL[i]}" title="Incursione di ${esc(P(i).name)}">✖</span>`).join('')}</div>
+    ${hs.length?`<div class="row">${hs.map(h=>`<span class="house" title="Casa di ${esc(P(h.owner).name)}"><b style="color:${PCOL[h.owner]};text-shadow:0 0 1px #000">⌂</b>${h.goods.map((n,g)=>n?chip(g,n):'').join('')}</span>`).join('')}</div>`:''}
+    <div class="row">${G.players.filter(p=>p.boat===c).map(p=>`<span style="color:${PCOL[p.id]};font-size:18px;text-shadow:0 0 1px #000" title="${esc(p.name)}">⛵</span>`).join('')}
+      ${b.raids.map(i=>`<span class="raid" style="background:${PCOL[i]}" title="Raub di ${esc(P(i).name)}">☠</span>`).join('')}</div>
   </div>`;
 }
 
 function playerHtml(p){
   const pl=P(p.id), rank=G.order.indexOf(p.id)+1, turn=G.msg.startsWith(`Turno di ${pl.name}`)||G.msg.startsWith(`${pl.name}:`);
-  const hand=p.id===HUM?(pl.hand.map((c,v)=>c?`<span class="tok" style="--tc:${GOODS[colorOfRoute(v)].css}">${v}${c>1?`<sub>×${c}</sub>`:''}</span>`:'').join('')||'—'):`${totalTokens(pl)} segnalini`;
-  return `<div class="card ${turn?'turn':''}">
+  const hand=p.id===HUM?(pl.hand.map((c,v)=>c?tokTile(v,c>1?`<sub>×${c}</sub>`:''):'').join('')||'—'):`${totalTokens(pl)} segnalini`;
+  return `<div class="card ${turn?'turn':''}" style="--pc:${PCOL[p.id]}">
     <h3><span class="dot" style="background:${PCOL[p.id]}"></span>${esc(pl.name)}${rank?` <span class="badge">ordine ${rank}</span>`:''}</h3>
     <div class="kv">Punti Sviluppo: <b>${dev(pl)}/5</b> · Città barca: <b>${pl.boat<0?'—':pl.boat}</b></div>
     <div class="row"><span class="lbl">BENI</span>${pl.goods.map((n,g)=>n?chip(g,n):'').join('')||'—'}</div>
     <div class="row"><span class="lbl">MANO</span>${hand}</div>
-    <div class="kv">Incursioni: <b>${pl.raidHand}</b> in mano${pl.raidCities.length?`, usate in ${pl.raidCities.join(', ')}`:''}</div>
-    <div class="kv">Bonus: ${pl.bonus.length?pl.bonus.map(id=>`<b>${BONUS.find(b=>b.id===id).name}</b>`).join(', '):'—'}</div>
+    <div class="kv">Incursioni (Raub): <b>${pl.raidHand}</b> in mano${pl.raidCities.length?`, usate in ${pl.raidCities.join(', ')}`:''}</div>
+    <div class="kv">Bonus: ${pl.bonus.length?pl.bonus.map(bonusHtml).join(''):'—'}</div>
   </div>`;
 }
 
@@ -653,7 +681,7 @@ function dockHtml(){
   }else if(PR&&PR.type==='multi'){
     const vals=[...PR.sel].map(i=>PR.tokens[i]);
     html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div>
-      <div class="opts">${PR.tokens.map((v,i)=>`<button class="opt ${PR.sel.has(i)?'sel':''}" data-t="${i}" style="border-color:${GOODS[colorOfRoute(v)].css}">${v}</button>`).join('')}</div>
+      <div class="opts">${PR.tokens.map((v,i)=>`<button class="opt tokbtn ${PR.sel.has(i)?'sel':''}" data-t="${i}">${tokTile(v)}</button>`).join('')}</div>
       <div class="hint">${vals.length?`Offerta: [${[...vals].sort((a,b)=>b-a).join(', ')}] — ${bidScore(vals)[0]?'serie di segnalini identici':'segnalini diversi (conta la somma: '+bidScore(vals)[1]+')'}`:'Seleziona i segnalini da offrire.'}</div>
       ${PR.err?`<div class="err">${esc(PR.err)}</div>`:''}
       <div class="opts"><button class="opt sel" data-ok="1">Conferma offerta</button></div>`;
@@ -663,20 +691,20 @@ function dockHtml(){
 
 function render(){
   const app=document.getElementById('app');
-  const top=`<div class="topbar"><div class="logo">Kog<span>ge</span></div>
+  const top=`<div class="topbar"><div class="logo"><span class="k">K</span>ogge</div>
     ${G?`<span class="badge">Round ${G.round}</span><span class="badge">Gildaio: giro ${Math.min(G.gm.laps,2)}/2</span>`:''}
     ${G?`<button class="btn btn-ghost btn-sm" data-new="1">Nuova partita</button>`:''}</div>`;
   let body='';
   if(G){
     body=`<div class="boardwrap">${[...Array(NC).keys()].map(cityHtml).join('')}
-        <div class="center-info">KOGGE<br><span style="font-size:13px">♛ Gildaio · ⚑ partenza<br>⛵ barche · ⌂ case · ✖ incursioni</span></div></div>
+        <div class="center-info">Kogge<small>♟ Gildaio · ⚑ partenza · ⛵ barche<br>⌂ case · ☠ incursioni (Raub) · ✥ rotta coperta</small></div></div>
       <div class="panels">${G.players.map(playerHtml).join('')}
         <div class="card"><h3>Mercato</h3>${G.market.map((l,i)=>`<div class="kv">Lotto ${i+1}: <b>${l.length?l.join(' · '):'—'}</b></div>`).join('')}
-          <div class="kv">Bonus disponibili: ${BONUS.map((b,i)=>`${b.name} ×${G.bonusAvail[i]}`).join(' · ')}</div></div>
+          <div class="kv">Bonus disponibili: ${BONUS.map((b,i)=>`${b.name} (${b.desc}) ×${G.bonusAvail[i]}`).join(' · ')}</div></div>
         <div class="card"><h3>Diario</h3><div class="log">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></div></div>
       <details class="rules"><summary>NOTE SULL'IMPLEMENTAZIONE</summary><ul>
-        <li>Plancia: città numerate 0–8 in senso orario nell'ordine dei numeri. I colori dei beni prodotti dalle città sono un'assunzione (grigio: 0,2,6 · arancione: 1,5,8 · viola: 3,7 · bianco: 4).</li>
-        <li>Il segnalino rotta ha il colore della città con lo stesso numero (usato nel commercio con il Gildaio).</li>
+        <li>Plancia: città numerate 0–8 in senso orario nell'ordine dei numeri (la disposizione reale è da confermare). I colori delle città vengono dalle tessere rotta del PnP: 0–2 minerale (grigio), 3–4 pellicce (marrone), 5–6 ambra (arancione), 7–8 sale (bianco).</li>
+        <li>Grafica ricreata in CSS ispirandosi al PnP (pergamena, tessere rotta colorate, cubetti, tessere Raub nei colori dei giocatori, bonus Privileg/Seebuch/Holk/Geheimweg). Le illustrazioni vere non sono incluse.</li>
         <li>Nell'Incursione il movimento gratuito finale viene scelto a caso tra le rotte legali. Il commercio con altri giocatori e le varianti opzionali non sono implementati.</li>
         <li>Il Gildaio che raggiunge (o attraversa) la partenza per la seconda volta chiude la partita subito dopo il suo movimento, anche se la partenza è saltata per un'Incursione; in caso di pareggio di PV non ci sono spareggi.</li>
         <li>Le AI scelgono a caso tra le mosse legali, con una leggera preferenza per costruire case.</li></ul></details>`;
