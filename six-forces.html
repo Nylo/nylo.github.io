@@ -87,6 +87,10 @@ button.pc:disabled{cursor:default}
 .pc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px #5b4aa0}
 .opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
 .opt-toggle input{accent-color:var(--accent);cursor:pointer}
+body.a11y .pc.c0{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .pc.c1{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .pc.c2{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .pc.c3{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 .pc.win{box-shadow:0 0 0 3px #6ee7a3}
 .hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
 
@@ -150,8 +154,8 @@ function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const ABORT = {abort:true};
 let G = null, PR = null;
-const OPT = {undo:true};
-try{ const s=localStorage.getItem('six-forces-undo'); if(s!==null) OPT.undo=s==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('six-forces-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('six-forces-a11y')==='1'; }catch(e){}
 const delay = ms => new Promise(r=>setTimeout(r,ms));
 async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
 const P = i => G.pl[i];
@@ -586,9 +590,11 @@ function dockHtml(){
 
 function render(){
   const app=document.getElementById('app');
+  document.body.classList.toggle('a11y',OPT.a11y);
   const top=`<div class="topbar"><div class="logo"><b>6</b> Forces</div>
     ${G&&!G.over?`<span class="badge">Round ${G.game+1}/${G.n}</span>`:''}
     <label class="opt-toggle" title="Chiede conferma e permette di annullare previsioni, briscola e carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+    <label class="opt-toggle" title="Aggiunge una filigrana alle carte (righe, puntini, diagonali) per distinguere i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}</div>`;
   let body='';
   if(G){
@@ -609,6 +615,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
 });
 document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('six-forces-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
   if(e.target.id!=='optUndo') return;
   OPT.undo=e.target.checked;
   try{ localStorage.setItem('six-forces-undo',OPT.undo?'1':'0'); }catch(err){}
