@@ -84,6 +84,9 @@ button.pc:hover:not(:disabled){transform:translateY(-6px)}
 button.pc:disabled{cursor:default}
 .pc.dim{opacity:0.4;filter:saturate(0.5)}
 .pc.legal{box-shadow:0 0 0 3px #ffd54a}
+.pc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px #5b4aa0}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
 .pc.win{box-shadow:0 0 0 3px #6ee7a3}
 .hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
 
@@ -147,6 +150,8 @@ function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const ABORT = {abort:true};
 let G = null, PR = null;
+const OPT = {undo:true};
+try{ const s=localStorage.getItem('six-forces-undo'); if(s!==null) OPT.undo=s==='1'; }catch(e){}
 const delay = ms => new Promise(r=>setTimeout(r,ms));
 async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
 const P = i => G.pl[i];
@@ -182,7 +187,13 @@ function answer(i){
 }
 function playIdx(i){
   if(!PR||PR.type!=='card'||!PR.legal.has(i)) return;
+  if(OPT.undo){ PR.sel=i; render(); return; }          // prima si seleziona, poi si conferma
   const r=PR.res; PR=null; render(); r(i);
+}
+function confirmCard(ok){
+  if(!PR||PR.type!=='card'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const i=PR.sel, r=PR.res; PR=null; render(); r(i);
 }
 
 // ═════════════════════════ REGOLE ═════════════════════════
@@ -226,27 +237,50 @@ function trumpLegal(p,id){
   return trumpFeasible(counts,remaining);
 }
 
-async function doPredict(p){
-  const pl=P(p), max=Math.min(G.chips,TRICKS);
-  const opts=[];
-  for(let n=0;n<=max;n++) opts.push({label:n===0?'0 prese (nessun segnalino)':`${n} ${n===1?'presa':'prese'}`,value:n,w:n===0?0.6:(n<=5?1:0.2)});
-  const n=await ask(p,'Pronostica quante prese vincerai (prendi altrettanti segnalini previsione)',opts,{pause:350});
-  let flex=false;
-  if(n>=1){
-    flex=await ask(p,`Vuoi usare un segnalino con il pallino? Prevedi ${n-1} oppure ${n} prese`,[
-      {label:`No: esattamente ${n}`,value:false,w:1.5},
-      {label:`Sì: ${n-1} oppure ${n} (vale 2 punti invece di 4)`,value:true,w:1}],{pause:200});
-  }
-  G.chips-=n;
-  pl.pred={n,flex};
-  logMsg(`${pl.name} prevede ${n===0?'0 prese':flex?`${n-1}–${n} prese (con un segnalino col pallino)`:`${n} prese`}.`);
+// Conferma finale di una scelta: l'umano può annullare e riscegliere (le AI confermano sempre)
+async function confirmChoice(p,text){
+  if(p!==HUM||!OPT.undo) return true;
+  return ask(p,text,[{label:'Conferma',value:true},{label:'↶ Annulla e riscegli',value:false}]);
 }
-async function doTrump(p){
+const BACK={label:'← Indietro (cambia azione)',value:'back'};
+
+async function doPredict(p,canBack){
+  const pl=P(p), max=Math.min(G.chips,TRICKS);
+  while(true){
+    const opts=[];
+    for(let n=0;n<=max;n++) opts.push({label:n===0?'0 prese (nessun segnalino)':`${n} ${n===1?'presa':'prese'}`,value:n,w:n===0?0.6:(n<=5?1:0.2)});
+    if(canBack&&p===HUM&&OPT.undo) opts.push(BACK);
+    const n=await ask(p,'Pronostica quante prese vincerai (prendi altrettanti segnalini previsione)',opts,{pause:350});
+    if(n==='back') return 'back';
+    let flex=false;
+    if(n>=1){
+      const fo=[
+        {label:`No: esattamente ${n}`,value:false,w:1.5},
+        {label:`Sì: ${n-1} oppure ${n} (vale 2 punti invece di 4)`,value:true,w:1}];
+      if(p===HUM&&OPT.undo) fo.push({label:'↶ Annulla',value:'undo'});
+      flex=await ask(p,`Vuoi usare un segnalino con il pallino? Prevedi ${n-1} oppure ${n} prese`,fo,{pause:200});
+      if(flex==='undo') continue;
+    }
+    const txt=n===0?'0 prese':flex?`${n-1}–${n} prese (con il pallino)`:`${n} prese`;
+    if(!(await confirmChoice(p,`Confermi la previsione: ${txt}?`))) continue;
+    G.chips-=n;
+    pl.pred={n,flex};
+    logMsg(`${pl.name} prevede ${n===0?'0 prese':flex?`${n-1}–${n} prese (con un segnalino col pallino)`:`${n} prese`}.`);
+    return 'ok';
+  }
+}
+async function doTrump(p,canBack){
   const pl=P(p);
-  const opts=TRUMPS.map(t=>({label:t.label,html:`${tico(t)} ${esc(t.label)}`,value:t.id,disabled:!trumpLegal(p,t.id)}));
-  const id=await ask(p,'Scegli la tua Briscola Personale (vale quando sei il giocatore iniziale)',opts,{pause:350});
-  pl.trump=id;
-  logMsg(`${pl.name} sceglie la Briscola Personale: ${TR(id).label}.`);
+  while(true){
+    const opts=TRUMPS.map(t=>({label:t.label,html:`${tico(t)} ${esc(t.label)}`,value:t.id,disabled:!trumpLegal(p,t.id)}));
+    if(canBack&&p===HUM&&OPT.undo) opts.push(BACK);
+    const id=await ask(p,'Scegli la tua Briscola Personale (vale quando sei il giocatore iniziale)',opts,{pause:350});
+    if(id==='back') return 'back';
+    if(!(await confirmChoice(p,`Confermi la Briscola Personale: ${TR(id).label}?`))) continue;
+    pl.trump=id;
+    logMsg(`${pl.name} sceglie la Briscola Personale: ${TR(id).label}.`);
+    return 'ok';
+  }
 }
 
 async function planning(){
@@ -256,16 +290,18 @@ async function planning(){
     for(const p of order){
       const pl=P(p);
       status(`Previsione, ${pass===0?'primo':'secondo'} giro: tocca a ${pl.name}.`);
-      let a;
-      if(pass===0){
-        const left=G.chips;
-        a=await ask(p,'Cosa fai ora? L\'altra azione la farai nel secondo giro',[
-          {label:`Pronosticare le prese (segnalini rimasti: ${left})`,value:'predict'},
-          {label:'Scegliere la Briscola Personale',value:'trump'}],{pause:350});
+      while(true){
+        let a;
+        if(pass===0){
+          a=await ask(p,'Cosa fai ora? L\'altra azione la farai nel secondo giro',[
+            {label:`Pronosticare le prese (segnalini rimasti: ${G.chips})`,value:'predict'},
+            {label:'Scegliere la Briscola Personale',value:'trump'}],{pause:350});
+        }else a=pl.acts.predict?'trump':'predict';
+        const r=a==='predict'?await doPredict(p,pass===0):await doTrump(p,pass===0);
+        if(r==='back') continue;
         pl.acts[a]=true;
-      }else a=pl.acts.predict?'trump':'predict';
-      if(a==='predict') await doPredict(p); else await doTrump(p);
-      pl.acts[a]=true;
+        break;
+      }
     }
   }
 }
@@ -398,7 +434,7 @@ function seatHtml(p,pos){
   if(p===HUM){
     const lead=G.trick.length?G.trick[0].card.c:null;
     body=`<div class="hand">${pl.hand.map((c,i)=>{
-      if(PR&&PR.type==='card'){ const ok=PR.legal.has(i); return `<button class="pc c${c.c} ${ok?'legal':'dim'}" ${ok?'':'disabled'} data-p="${i}" title="${c.n} ${COLORS[c.c].n}"><small>${c.n}</small>${c.n}${ico(COLORS[c.c].icon)}</button>`; }
+      if(PR&&PR.type==='card'){ const ok=PR.legal.has(i); return `<button class="pc c${c.c} ${ok?'legal':'dim'} ${PR.sel===i?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${c.n} ${COLORS[c.c].n}"><small>${c.n}</small>${c.n}${ico(COLORS[c.c].icon)}</button>`; }
       return cardFace(c);
     }).join('')}</div>`;
   }else body=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
@@ -443,6 +479,7 @@ function dockHtml(){
     html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${o.html||esc(o.label)}</button>`).join('')}</div>`;
   }else if(PR&&PR.type==='card'){
     html+=`<div class="hint">Tocca a te: gioca una carta evidenziata${G.trick.length?` (devi rispondere al colore ${COLORS[G.trick[0].card.c].n.toLowerCase()} se puoi)`:' (sei il giocatore iniziale: puoi giocare qualsiasi carta)'}.</div>`;
+    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${c.n} ${COLORS[c.c].n.toLowerCase()}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`; }
   }
   return html;
 }
@@ -451,6 +488,7 @@ function render(){
   const app=document.getElementById('app');
   const top=`<div class="topbar"><div class="logo"><b>6</b> Forces</div>
     ${G&&!G.over?`<span class="badge">Round ${G.game+1}/${G.n}</span>`:''}
+    <label class="opt-toggle" title="Chiede conferma e permette di annullare previsioni, briscola e carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}</div>`;
   let body='';
   if(G){
@@ -468,6 +506,14 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('six-forces-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(PR&&PR.type==='card'&&PR.sel!=null&&!OPT.undo){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }  // disattivando con una carta selezionata, la gioca
+  render();
 });
 render();
 </script>
