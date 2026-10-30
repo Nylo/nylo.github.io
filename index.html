@@ -19,10 +19,24 @@
     <header class="fixed top-0 left-0 z-20 p-4">
         <button id="menuToggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu"
                 class="flex h-10 w-10 flex-col items-center justify-center gap-[5px] rounded-lg border border-slate-700/50 bg-slate-900/80 backdrop-blur-md hover:border-teal-500/50 hover:bg-slate-800/90 transition-colors">
-            <span class="block h-0.5 w-5 rounded bg-slate-200"></span>
-            <span class="block h-0.5 w-5 rounded bg-slate-200"></span>
-            <span class="block h-0.5 w-5 rounded bg-slate-200"></span>
+            <svg id="iconLock" class="h-5 w-5 text-slate-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <span id="iconBars" hidden class="flex flex-col gap-[5px]">
+                <span class="block h-0.5 w-5 rounded bg-slate-200"></span>
+                <span class="block h-0.5 w-5 rounded bg-slate-200"></span>
+                <span class="block h-0.5 w-5 rounded bg-slate-200"></span>
+            </span>
         </button>
+
+        <form id="pwForm" hidden autocomplete="off"
+              class="mt-2 w-72 rounded-xl border border-slate-700/50 bg-slate-900/95 p-3 text-sm shadow-2xl backdrop-blur-md">
+            <label for="pwInput" class="mb-2 block text-slate-300">Password di accesso</label>
+            <div class="flex gap-2">
+                <input id="pwInput" type="password" autocomplete="off"
+                       class="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 outline-none focus:border-teal-500">
+                <button type="submit" class="rounded-lg bg-teal-600 px-3 py-2 font-semibold text-white hover:bg-teal-500 transition-colors">Entra</button>
+            </div>
+            <p id="pwErr" hidden class="mt-2 text-xs text-red-400">Password errata</p>
+        </form>
 
         <nav id="menu" hidden
              class="mt-2 max-h-[80vh] w-72 overflow-y-auto rounded-xl border border-slate-700/50 bg-slate-900/95 py-1 text-sm shadow-2xl backdrop-blur-md"></nav>
@@ -86,20 +100,61 @@
             var toggle = document.getElementById('menuToggle');
             var menu = document.getElementById('menu');
             menu.innerHTML = MENU.map(level1).join('');
+            var pwForm = document.getElementById('pwForm');
+            var pwInput = document.getElementById('pwInput');
+            var pwErr = document.getElementById('pwErr');
+            var PW_HASH = 'ad2fcdb7122f8f450a8f1c8a9f88a7632b1d5e561b93d66e735564e2e892100d';
+            var KEY = 'nylo-unlocked';
+            var unlocked = false;
+            try { unlocked = localStorage.getItem(KEY) === PW_HASH; } catch (e) {}
+
+            function sha256(s) {
+                return crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)).then(function (b) {
+                    return Array.prototype.map.call(new Uint8Array(b), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+                });
+            }
+            function applyState() {
+                document.getElementById('iconLock').style.display = unlocked ? 'none' : '';
+                document.getElementById('iconBars').hidden = !unlocked;
+                toggle.setAttribute('aria-label', unlocked ? 'Menu' : 'Accedi');
+                if (unlocked) pwForm.hidden = true;
+            }
             function setOpen(open) {
                 menu.hidden = !open;
                 toggle.setAttribute('aria-expanded', String(open));
             }
+            function setPw(open) {
+                pwForm.hidden = !open;
+                toggle.setAttribute('aria-expanded', String(open));
+                if (open) { pwErr.hidden = true; pwInput.value = ''; pwInput.focus(); }
+            }
             toggle.addEventListener('click', function (e) {
                 e.stopPropagation();
-                setOpen(menu.hidden);
+                if (unlocked) setOpen(menu.hidden); else setPw(pwForm.hidden);
+            });
+            pwForm.addEventListener('click', function (e) { e.stopPropagation(); });
+            pwForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                sha256(pwInput.value).then(function (h) {
+                    if (h === PW_HASH) {
+                        unlocked = true;
+                        try { localStorage.setItem(KEY, PW_HASH); } catch (err) {}
+                        applyState();
+                        setOpen(true);
+                    } else {
+                        pwErr.hidden = false;
+                        pwInput.select();
+                    }
+                });
             });
             document.addEventListener('click', function (e) {
                 if (!menu.hidden && !menu.contains(e.target)) setOpen(false);
+                if (!pwForm.hidden) setPw(false);
             });
             document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') setOpen(false);
+                if (e.key === 'Escape') { setOpen(false); if (!pwForm.hidden) setPw(false); }
             });
+            applyState();
         })();
     </script>
 
