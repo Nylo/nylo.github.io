@@ -183,7 +183,7 @@ async function ask(p,title,options,o={}){
   return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
 }
 function askCard(p,legal){
-  if(p!==HUM) return sleep(550).then(()=>legal[rnd(legal.length)]);
+  if(p!==HUM) return sleep(550).then(()=>aiCardQ(p));
   const g=G;
   return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
 }
@@ -242,6 +242,13 @@ async function predictions(){
   for(const p of order){
     const pl=P(p);
     status(`Previsione: tocca a ${pl.name}.`);
+    if(p!==HUM){
+      await sleep(450);
+      const r=aiPredictQ(p);
+      pl.pred=r; pl.white=r.n; pl.flex=r.flex;
+      logMsg(`${pl.name} prevede ${r.flex?`${r.n}–${r.n+1} volte (con gettone di riserva)`:`${r.n} ${r.n===1?'volta':'volte'}`}.`);
+      continue;
+    }
     while(true){
       const opts=[];
       for(let n=0;n<=MAXPRED;n++) opts.push({label:n===0?'0 volte (nessun gettone)':`${n} ${n===1?'volta':'volte'}`,value:n,w:n<=1?1:(n<=4?1.5:0.3)});
@@ -405,6 +412,91 @@ function dockHtml(){
     if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${c.n} ${COLORS[c.c].n.toLowerCase()}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`; }
   }
   return html;
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Le AI stimano la previsione simulando (Monte Carlo) il round con la propria mano e carte altrui a caso,
+// e giocano cercando di vincere le prese che soddisfano i contratti (se servono gettoni) oppure di perderle.
+const MAXN = () => G.n===3?9:12;
+const qStrength = (card,lead,maxN) => card.c===0 ? 0.55+0.45*card.n/maxN : (card.c===lead ? 0.5*card.n/maxN : 0);
+function qChance(card,trick,me,nPl,maxN){
+  const lead=trick.length?trick[0].card.c:card.c;
+  if(trick.length&&trickWinner(trick.concat({p:me,card}))!==me) return 0;
+  const rem=nPl-trick.length-1;
+  return Math.pow(Math.max(qStrength(card,lead,maxN),0.02),0.7*rem);
+}
+function qPick(hand,trick,me,nPl,maxN,need,conds,t,prev){
+  const lead=trick.length?trick[0].card.c:null;
+  let legal=hand.map((_,i)=>i);
+  if(lead!=null){ const s=legal.filter(i=>hand[i].c===lead); if(s.length) legal=s; }
+  if(Math.random()<0.05) return legal[rnd(legal.length)];
+  const ch=legal.map(i=>{
+    const card=hand[i];
+    const met=conds.filter(c=>c.test&&c.test(card,{t,p:me,prev})).length;
+    return {i,met,c:qChance(card,trick,me,nPl,maxN),s:qStrength(card,lead==null?card.c:lead,maxN)};
+  });
+  if(need>0){
+    const val=x=>x.c*x.met;
+    const mx=Math.max(...ch.map(val));
+    if(mx>0){ const good=ch.filter(x=>val(x)>=mx*0.85).sort((a,b)=>a.s-b.s); return good[0].i; }
+    ch.sort((a,b)=>a.c-b.c||a.s-b.s); return ch[0].i;     // nulla di utile da vincere ora: tengo le carte forti
+  }
+  const safe=ch.filter(x=>x.c<0.05).sort((a,b)=>b.s-a.s);
+  if(safe.length) return safe[0].i;
+  ch.sort((a,b)=>a.c-b.c||a.s-b.s); return ch[0].i;
+}
+// simula un round; restituisce quante volte il giocatore "me" soddisfa le condizioni
+function qSim(me,hands,conds,start,nPl,maxN,targets){
+  const needs=targets.slice(), won=Array(nPl).fill(0);
+  let leader=start, prev=-1, k=0;
+  for(let t=0;t<TRICKS;t++){
+    const trick=[];
+    for(let i=0;i<nPl;i++){
+      const p=(leader+i)%nPl;
+      const idx=qPick(hands[p],trick,p,nPl,maxN,needs[p],conds,t,prev);
+      trick.push({p,card:hands[p].splice(idx,1)[0]});
+    }
+    const w=trickWinner(trick), wc=trick.find(x=>x.p===w).card;
+    const m=conds.filter(c=>c.test&&c.test(wc,{t,p:w,prev})).length;
+    won[w]++; needs[w]=Math.max(0,needs[w]-m);
+    if(w===me) k+=m;
+    prev=w; leader=w;
+  }
+  conds.forEach(c=>{ if(c.end&&won[me]===c.end) k++; });
+  return k;
+}
+function aiPredictQ(p){
+  const nPl=G.n, maxN=MAXN(), S=40, mult=G.game+1;
+  const own=P(p).hand, un=[];
+  for(let c=0;c<4;c++) for(let n=1;n<=maxN;n++) if(!own.some(x=>x.c===c&&x.n===n)) un.push({c,n});
+  const others=[...Array(nPl).keys()].filter(i=>i!==p);
+  const cands=[];
+  for(let n=0;n<=8;n++){
+    const dist=Array(30).fill(0);
+    for(let s=0;s<S;s++){
+      const deck=shuffle([...un]), hands=[], targets=[];
+      hands[p]=own.map(c=>({...c}));
+      others.forEach((q,i)=>{ hands[q]=deck.slice(i*12,i*12+12).map(c=>({...c})); });
+      for(let i=0;i<nPl;i++) targets[i]=i===p?n:rnd(4);
+      dist[qSim(p,hands,G.conds,G.start,nPl,maxN,targets)]++;
+    }
+    for(const flex of [false,true]){
+      let ev=0;
+      dist.forEach((cnt,k)=>{
+        let pt;
+        if(!flex) pt=k===n?2*mult:-Math.abs(k-n);
+        else pt=(k===n||k===n+1)?mult:(k<n?-(n-k):-(k-n-1));
+        ev+=cnt*pt;
+      });
+      cands.push({n,flex,ev:ev/S+Math.random()*0.05});
+    }
+  }
+  cands.sort((a,b)=>b.ev-a.ev);
+  return {n:cands[0].n,flex:cands[0].flex};
+}
+function aiCardQ(p){
+  const pl=P(p);
+  return qPick(pl.hand,G.trick,p,G.n,MAXN(),pl.white,G.conds,G.t,G.prev);
 }
 
 const RULES_HTML = `

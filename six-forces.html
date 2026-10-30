@@ -175,7 +175,7 @@ async function ask(p,title,options,o={}){
 }
 function askCard(p,legal){            // legal: indici della mano giocabili
   if(p!==HUM){
-    return sleep(550).then(()=>legal[rnd(legal.length)]);
+    return sleep(550).then(()=>aiCard(p));
   }
   const g=G;
   return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
@@ -246,6 +246,13 @@ const BACK={label:'← Indietro (cambia azione)',value:'back'};
 
 async function doPredict(p,canBack){
   const pl=P(p), max=Math.min(G.chips,TRICKS);
+  if(p!==HUM){
+    await sleep(350);
+    const r=aiPredictMC(p);
+    G.chips-=r.n; pl.pred=r;
+    logMsg(`${pl.name} prevede ${r.n===0?'0 prese':r.flex?`${r.n-1}–${r.n} prese (con un segnalino col pallino)`:`${r.n} prese`}.`);
+    return 'ok';
+  }
   while(true){
     const opts=[];
     for(let n=0;n<=max;n++) opts.push({label:n===0?'0 prese (nessun segnalino)':`${n} ${n===1?'presa':'prese'}`,value:n,w:n===0?0.6:(n<=5?1:0.2)});
@@ -271,6 +278,13 @@ async function doPredict(p,canBack){
 }
 async function doTrump(p,canBack){
   const pl=P(p);
+  if(p!==HUM){
+    await sleep(350);
+    const id=aiTrump(p);
+    pl.trump=id;
+    logMsg(`${pl.name} sceglie la Briscola Personale: ${TR(id).label}.`);
+    return 'ok';
+  }
   while(true){
     const opts=TRUMPS.map(t=>({label:t.label,html:`${tico(t)} ${esc(t.label)}`,value:t.id,disabled:!trumpLegal(p,t.id)}));
     if(canBack&&p===HUM&&OPT.undo) opts.push(BACK);
@@ -293,7 +307,7 @@ async function planning(){
       while(true){
         let a;
         if(pass===0){
-          a=await ask(p,'Cosa fai ora? L\'altra azione la farai nel secondo giro',[
+          a=p!==HUM?'trump':await ask(p,'Cosa fai ora? L\'altra azione la farai nel secondo giro',[
             {label:`Pronosticare le prese (segnalini rimasti: ${G.chips})`,value:'predict'},
             {label:'Scegliere la Briscola Personale',value:'trump'}],{pause:350});
         }else a=pl.acts.predict?'trump':'predict';
@@ -384,6 +398,92 @@ async function run(){
     if(e===ABORT||g!==G) return;
     console.error(e); G.log.unshift('Errore: '+e.message); render();
   }
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Le AI stimano la previsione simulando (Monte Carlo) il round con la propria mano e carte altrui a caso,
+// e giocano cercando di vincere le prese che servono e di perdere le altre.
+const MAXN = () => G.n===3?9:12;
+function strength(card,ind,lead,maxN){
+  if(ind.id==='hi') return card.n/maxN;
+  if(ind.id==='lo') return (maxN+1-card.n)/maxN;
+  if(card.c===ind.color) return 0.55+0.45*card.n/maxN;
+  if(card.c===lead) return 0.5*card.n/maxN;
+  return 0;
+}
+function winChance(card,trick,ind,me,nPl,maxN){
+  const lead=trick.length?trick[0].card.c:card.c;
+  if(trick.length&&trickWinner(trick.concat({p:me,card}),ind)!==me) return 0;
+  const rem=nPl-trick.length-1;
+  return Math.pow(Math.max(strength(card,ind,lead,maxN),0.02),0.7*rem);
+}
+function pickCard(hand,trick,ind,me,nPl,maxN,need){
+  const lead=trick.length?trick[0].card.c:null;
+  let legal=hand.map((_,i)=>i);
+  if(lead!=null){ const s=legal.filter(i=>hand[i].c===lead); if(s.length) legal=s; }
+  if(Math.random()<0.05) return legal[rnd(legal.length)];
+  const ch=legal.map(i=>({i,c:winChance(hand[i],trick,ind,me,nPl,maxN),s:strength(hand[i],ind,lead==null?hand[i].c:lead,maxN)}));
+  if(need>0){
+    const mx=Math.max(...ch.map(x=>x.c));
+    if(mx>0){ const good=ch.filter(x=>x.c>=mx*0.85).sort((a,b)=>a.s-b.s); return good[0].i; }   // vinco con la carta più debole che basta
+    ch.sort((a,b)=>a.s-b.s); return ch[0].i;
+  }
+  const safe=ch.filter(x=>x.c<0.05).sort((a,b)=>b.s-a.s);            // scarico la carta più forte che non vince
+  if(safe.length) return safe[0].i;
+  ch.sort((a,b)=>a.c-b.c||a.s-b.s); return ch[0].i;
+}
+function simRound(hands,trumps,start,needs,nPl,maxN){
+  const won=Array(nPl).fill(0); let leader=start;
+  for(let t=0;t<TRICKS;t++){
+    const trick=[], ind=TR(trumps[leader]);
+    for(let i=0;i<nPl;i++){
+      const p=(leader+i)%nPl;
+      const idx=pickCard(hands[p],trick,ind,p,nPl,maxN,needs[p]-won[p]);
+      trick.push({p,card:hands[p].splice(idx,1)[0]});
+    }
+    leader=trickWinner(trick,ind); won[leader]++;
+  }
+  return won;
+}
+function aiPredictMC(p){
+  const nPl=G.n, maxN=MAXN(), max=Math.min(G.chips,TRICKS), S=40;
+  const own=P(p).hand, un=[];
+  for(let c=0;c<4;c++) for(let n=1;n<=maxN;n++) if(!own.some(x=>x.c===c&&x.n===n)) un.push({c,n});
+  const others=[...Array(nPl).keys()].filter(i=>i!==p);
+  const cands=[];
+  for(let t=0;t<=Math.min(max,9);t++){
+    for(const flex of [false,true]){
+      if(flex&&t===0) continue;
+      const target=flex?t-1:t, dist=Array(TRICKS+1).fill(0);
+      for(let s=0;s<S;s++){
+        const deck=shuffle([...un]), hands=[], trumps=[], needs=[];
+        hands[p]=own.map(c=>({...c}));
+        others.forEach((q,i)=>{ hands[q]=deck.slice(i*12,i*12+12).map(c=>({...c})); });
+        G.pl.forEach((q,i)=>{ trumps[i]=q.trump||TRUMPS[rnd(TRUMPS.length)].id; needs[i]=i===p?target:1+rnd(4); });
+        dist[simRound(hands,trumps,G.start,needs,nPl,maxN)[p]]++;
+      }
+      let ev=0; dist.forEach((cnt,k)=>{ ev+=cnt*points({n:t,flex},k); });
+      cands.push({n:t,flex,ev:ev/S+Math.random()*0.05});
+    }
+  }
+  cands.sort((a,b)=>b.ev-a.ev);
+  return {n:cands[0].n,flex:cands[0].flex};
+}
+function aiTrump(p){
+  const hand=P(p).hand, maxN=MAXN();
+  const scored=TRUMPS.filter(t=>trumpLegal(p,t.id)).map(t=>{
+    let s=0;
+    for(const c of hand){ const r=c.n/maxN;
+      if(t.id==='hi') s+=r>=0.75?1:(r>=0.6?0.4:0);
+      else if(t.id==='lo') s+=c.n<=3?1:(c.n<=5?0.4:0);
+      else if(c.c===t.color) s+=0.3+0.9*r*r; }
+    return {id:t.id,s:s+Math.random()*0.5};
+  });
+  return scored.sort((a,b)=>b.s-a.s)[0].id;
+}
+function aiCard(p){
+  const pl=P(p), ind=TR(P(G.leader).trump), lo=pl.pred.flex?pl.pred.n-1:pl.pred.n;
+  return pickCard(pl.hand,G.trick,ind,p,G.n,MAXN(),lo-pl.won);
 }
 
 const RULES_HTML = `

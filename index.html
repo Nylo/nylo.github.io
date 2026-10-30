@@ -25,28 +25,62 @@
         </button>
 
         <nav id="menu" hidden
-             class="mt-2 w-64 overflow-hidden rounded-xl border border-slate-700/50 bg-slate-900/95 shadow-2xl backdrop-blur-md">
-            <ul class="py-1 text-sm">
-                <li><a href="/trick-taking.html" class="block px-4 py-2.5 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors">Trick-taking collection</a></li>
-                <li><a href="/gcp_v2.html" class="block px-4 py-2.5 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors">Gachapon Trick Basic</a></li>
-                <li><a href="/gcp_v3.html" class="block px-4 py-2.5 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors">Gachapon Trick Pro</a></li>
-                <li><a href="/webapp/index.html" class="block px-4 py-2.5 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors">Cascadia randomizer</a></li>
-                <li><a href="/tnn_encounter_cards_viewer.html" class="block px-4 py-2.5 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors">Tir na nog cards viewer</a></li>
-                <li><a href="/path.html" class="block px-4 py-2.5 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors">The Path of the Priest</a></li>
-                <li><a href="/fdg/solitario.html" class="block px-4 py-2.5 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors">Florenza Dice Game · Solitario</a></li>
-                <li><a href="/six-forces.html" class="block px-4 py-2.5 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors">6 Forces · vs AI</a></li>
-                <li><a href="/quashars.html" class="block px-4 py-2.5 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors">Quashars · vs AI</a></li>
-                <li><a href="/kogge.html" class="block px-4 py-2.5 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors">Kogge · vs AI</a></li>
-                <li><a href="/spy-team.html"class="block px-4 py-2.5 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors">Spy Team · vs AI</a></li>
-                <li><a href="/spy-team-online.html" class="block px-4 py-2.5 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors">Spy Team · Online</a></li>
-            </ul>
-        </nav>
+             class="mt-2 max-h-[80vh] w-72 overflow-y-auto rounded-xl border border-slate-700/50 bg-slate-900/95 py-1 text-sm shadow-2xl backdrop-blur-md"></nav>
     </header>
 
     <script>
         (function () {
+            // Menu: 1° livello = sezioni, 2° livello = link oppure gruppi (se hanno figli, cliccabili solo i figli)
+            var MENU = [
+                { label: 'Trick-taking', children: [
+                    { label: "Nylo's collection", href: '/trick-taking.html' },
+                    { label: 'Gachapon Trick', children: [
+                        { label: 'Helper (stesso device)', href: '/gcp_v2.html' },
+                        { label: 'Helper (Online, a stanze)', href: '/gcp_v3.html' }
+                    ]},
+                    { label: 'Spy Team', children: [
+                        { label: 'vs AI', href: '/spy-team.html' },
+                        { label: 'Online, a stanze', href: '/spy-team-online.html' }
+                    ]},
+                    { label: '6 Forces', children: [
+                        { label: 'vs AI', href: '/six-forces.html' },
+                        { label: 'Online, a stanze', href: null }
+                    ]},
+                    { label: 'Quashars', children: [
+                        { label: 'vs AI', href: '/quashars.html' },
+                        { label: 'Online, a stanze', href: null }
+                    ]}
+                ]},
+                { label: 'Altri boardgames', children: [
+                    { label: 'Cascadia randomizer', href: '/webapp/index.html' },
+                    { label: 'Solitari', children: [
+                        { label: 'The Path of the Priest', href: '/path.html' },
+                        { label: 'Florenza Dice Game', href: '/fdg/solitario.html' }
+                    ]}
+                ]}
+            ];
+
+            var CHEV = '<svg class="h-3 w-3 shrink-0 transition-transform group-open:rotate-90" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2l4 4-4 4"/></svg>';
+            var ROW = 'flex w-full items-center gap-2 text-left text-slate-200 hover:bg-slate-800 hover:text-white transition-colors';
+
+            function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+            function link(item, pad) {
+                if (!item.href) return '<span class="flex items-center justify-between ' + pad + ' py-2 text-slate-500 cursor-not-allowed" title="In arrivo">' + esc(item.label) + '<span class="text-[10px] uppercase tracking-wide">presto</span></span>';
+                return '<a href="' + item.href + '" class="block ' + pad + ' py-2 ' + ROW + '">' + esc(item.label) + '</a>';
+            }
+            function level2(item) {
+                if (!item.children) return '<li>' + link(item, 'pl-8 pr-4') + '</li>';
+                return '<li><details class="group"><summary class="' + ROW + ' cursor-pointer list-none py-2 pl-8 pr-4 [&::-webkit-details-marker]:hidden">' + CHEV + esc(item.label) + '</summary>' +
+                    '<ul class="border-l border-slate-700/60 ml-9 mb-1">' + item.children.map(function (c) { return '<li>' + link(c, 'pl-4 pr-4') + '</li>'; }).join('') + '</ul></details></li>';
+            }
+            function level1(item) {
+                return '<details class="group"><summary class="' + ROW + ' cursor-pointer list-none px-4 py-2.5 font-semibold [&::-webkit-details-marker]:hidden">' + CHEV + esc(item.label) + '</summary>' +
+                    '<ul class="pb-1">' + item.children.map(level2).join('') + '</ul></details>';
+            }
+
             var toggle = document.getElementById('menuToggle');
             var menu = document.getElementById('menu');
+            menu.innerHTML = MENU.map(level1).join('');
             function setOpen(open) {
                 menu.hidden = !open;
                 toggle.setAttribute('aria-expanded', String(open));
