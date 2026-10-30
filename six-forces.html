@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6 Forces</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#d6cbe9;
+  --surface:#f6f2fc;
+  --surface-raised:#ebe4f7;
+  --surface-hover:#e2d8f3;
+  --accent:#5b4aa0;
+  --accent-soft:rgba(91,74,160,0.13);
+  --text:#1f1a33;
+  --text-soft:#4a4366;
+  --success:#2f8a5b;
+  --danger:#c0414a;
+  --border:rgba(60,45,110,0.2);
+  --radius:10px;
+  --c0:#e0404a; --c1:#f2a516; --c2:#1aa2e3; --c3:#17a67b;
+  --cw:52px; --ch:76px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:linear-gradient(180deg,#d9cce8 0%,#c3d0ee 100%) fixed}
+.app{max-width:900px;margin:0 auto;padding:0 12px 48px}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:12px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.logo{font-family:'Libre Baskerville',serif;font-size:22px;line-height:1.2;flex:1;color:var(--accent);font-style:italic}
+.logo b{font-size:30px}
+.badge{background:var(--accent);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;white-space:nowrap}
+.btn{border:none;border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* ── DOCK ── */
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 16px rgba(60,45,110,0.25)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{background:#fff;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+
+/* ── TAVOLO ── */
+.table{display:grid;grid-template-columns:1fr 1.4fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#6c5aae 0%,#4d3f88 80%);border-radius:14px;padding:12px;margin-bottom:12px;min-height:480px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;color:#fff;text-align:center}
+.seat.top{grid-area:top}
+.seat.left{grid-area:left;justify-content:center}
+.seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.1)}
+.seat.active{border-color:#ffd54a;background:rgba(255,213,74,0.14)}
+.seat.winner{border-color:#6ee7a3;background:rgba(110,231,163,0.18)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(255,255,255,0.16);border-radius:4px;padding:2px 6px}
+.ind{display:inline-flex;align-items:center;gap:4px;background:#e8e6ee;color:#2b2540;border-radius:5px;padding:2px 6px;font-size:11px;font-weight:600}
+.ind.cur{outline:2px solid #ffd54a}
+.chip{display:inline-block;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#a58cf0,#4b2f9e);border:1px solid #fff}
+.chip.flex{background:#f4f4f8;border-color:#bbb}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:210px}
+.back{width:16px;height:24px;border-radius:3px;background:linear-gradient(135deg,#8d7bd6,#5b4aa0);border:1px solid #fff}
+.seat.left .backs,.seat.right .backs{max-width:150px}
+
+/* carte */
+.pc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Libre Baskerville',serif;font-weight:700;font-size:24px;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.3);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
+.pc.c0{background:var(--c0)} .pc.c1{background:var(--c1)} .pc.c2{background:var(--c2)} .pc.c3{background:var(--c3)}
+.pc small{position:absolute;top:2px;left:4px;font-size:11px;font-family:'Inter',sans-serif;text-shadow:none}
+.pc i{font-style:normal;font-size:15px;margin-top:2px}
+button.pc{cursor:pointer;transition:transform 0.12s}
+button.pc:hover:not(:disabled){transform:translateY(-6px)}
+button.pc:disabled{cursor:default}
+.pc.dim{opacity:0.4;filter:saturate(0.5)}
+.pc.legal{box-shadow:0 0 0 3px #ffd54a}
+.pc.win{box-shadow:0 0 0 3px #6ee7a3}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+
+.center{grid-area:center;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto auto;align-items:center;justify-items:center;color:#fff;min-height:calc(var(--ch)*3 + 20px)}
+.slot{min-height:var(--ch)}
+.slot.bottom{grid-column:2;grid-row:3}
+.slot.top{grid-column:2;grid-row:1}
+.slot.left{grid-column:1;grid-row:2}
+.slot.right{grid-column:3;grid-row:2}
+.center-note{grid-column:2;grid-row:2;font-size:11px;text-align:center;line-height:1.5}
+
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+details.rules ul{margin:10px 0 0 18px;font-size:12px;line-height:1.6;color:var(--text-soft)}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:46px}
+  .pc{font-size:15px;border-width:1px;border-radius:5px}
+  .pc small{display:none}
+  .pc i{font-size:10px}
+  .table{padding:8px;gap:6px;grid-template-columns:1fr 1.2fr 1fr}
+  .back{width:10px;height:16px}
+  .hand{gap:2px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const COLORS = [
+  {n:'Rosso',  icon:'🔥'},
+  {n:'Giallo', icon:'⚡'},
+  {n:'Blu',    icon:'❄️'},
+  {n:'Verde',  icon:'🌿'}
+];
+// Le 6 carte briscola (indicatori): 4 colori + numeri alti + numeri bassi
+const TRUMPS = [
+  {id:'c0', label:'Fuoco (rosso)',      short:'Fuoco',   icon:'🔥', color:0},
+  {id:'c1', label:'Fulmine (giallo)',   short:'Fulmine', icon:'⚡', color:1},
+  {id:'c2', label:'Ghiaccio (blu)',     short:'Ghiaccio',icon:'❄️', color:2},
+  {id:'c3', label:'Natura (verde)',     short:'Natura',  icon:'🌿', color:3},
+  {id:'hi', label:'Numeri alti: il numero più alto è la carta vincente', short:'Alti 12↑',  icon:'12↑'},
+  {id:'lo', label:'Numeri bassi: il numero più basso è la carta vincente', short:'Bassi 1↓',  icon:'1↓'}
+];
+const TR = id => TRUMPS.find(t=>t.id===id);
+const HUM = 0;
+const CHIPS = 15;
+const TRICKS = 12;
+const NAMES = ['Tu','AI Viola','AI Rosa','AI Verde'];
+const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+const sum = a => a.reduce((x,y)=>x+y,0);
+function logMsg(t){ G.log.unshift(t); if(G.log.length>60) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options,o={}){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  if(p!==HUM){
+    if(o.pause) await sleep(o.pause);
+    const tot=ok.reduce((a,x)=>a+(x.w??1),0);
+    let r=Math.random()*tot;
+    for(const x of ok){ r-=(x.w??1); if(r<=0) return x.value; }
+    return ok[ok.length-1].value;
+  }
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askCard(p,legal){            // legal: indici della mano giocabili
+  if(p!==HUM){
+    return sleep(550).then(()=>legal[rnd(legal.length)]);
+  }
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function playIdx(i){
+  if(!PR||PR.type!=='card'||!PR.legal.has(i)) return;
+  const r=PR.res; PR=null; render(); r(i);
+}
+
+// ═════════════════════════ REGOLE ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,game:0,start0:rnd(n),start:0,msg:'',log:[],over:null,chips:CHIPS,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],pred:null,trump:null,acts:{predict:false,trump:false},won:0,total:0,hist:[]})),
+     trick:[],leader:0,winner:-1,turn:-1,show:null};
+  run();
+}
+
+function deal(){
+  const max=G.n===3?9:12, deck=[];
+  for(let c=0;c<4;c++) for(let n=1;n<=max;n++) deck.push({c,n});
+  shuffle(deck);
+  G.pl.forEach((p,i)=>{
+    p.hand=deck.slice(i*12,i*12+12).sort((a,b)=>a.c-b.c||a.n-b.n);
+    p.pred=null; p.trump=null; p.acts={predict:false,trump:false}; p.won=0;
+  });
+  G.chips=CHIPS; G.trick=[]; G.winner=-1; G.show=null;
+}
+
+// ── scelta della briscola: nessun duplicato in 3 giocatori; in 4 al massimo 2 uguali e almeno 3 tipi diversi
+function trumpFeasible(counts,remaining){
+  if(remaining===0) return Object.values(counts).filter(c=>c>0).length>=3;
+  for(const t of TRUMPS){
+    if((counts[t.id]||0)>=2) continue;
+    counts[t.id]=(counts[t.id]||0)+1;
+    const ok=trumpFeasible(counts,remaining-1);
+    counts[t.id]--;
+    if(ok) return true;
+  }
+  return false;
+}
+function trumpLegal(p,id){
+  const counts={}; G.pl.forEach(q=>{ if(q.trump&&q.id!==p) counts[q.trump]=(counts[q.trump]||0)+1; });
+  if(G.n===3) return !counts[id];
+  if((counts[id]||0)>=2) return false;
+  counts[id]=(counts[id]||0)+1;
+  const remaining=G.pl.filter(q=>!q.trump&&q.id!==p).length;
+  return trumpFeasible(counts,remaining);
+}
+
+async function doPredict(p){
+  const pl=P(p), max=Math.min(G.chips,TRICKS);
+  const opts=[];
+  for(let n=0;n<=max;n++) opts.push({label:n===0?'0 prese (nessun segnalino)':`${n} ${n===1?'presa':'prese'}`,value:n,w:n===0?0.6:(n<=5?1:0.2)});
+  const n=await ask(p,'Pronostica quante prese vincerai (prendi altrettanti segnalini previsione)',opts,{pause:350});
+  let flex=false;
+  if(n>=1){
+    flex=await ask(p,`Vuoi usare un segnalino con il pallino? Prevedi ${n-1} oppure ${n} prese`,[
+      {label:`No: esattamente ${n}`,value:false,w:1.5},
+      {label:`Sì: ${n-1} oppure ${n} (vale 2 punti invece di 4)`,value:true,w:1}],{pause:200});
+  }
+  G.chips-=n;
+  pl.pred={n,flex};
+  logMsg(`${pl.name} prevede ${n===0?'0 prese':flex?`${n-1}–${n} prese (con un segnalino col pallino)`:`${n} prese`}.`);
+}
+async function doTrump(p){
+  const pl=P(p);
+  const opts=TRUMPS.map(t=>({label:`${t.icon} ${t.label}`,value:t.id,disabled:!trumpLegal(p,t.id)}));
+  const id=await ask(p,'Scegli la tua Briscola Personale (vale quando sei il giocatore iniziale)',opts,{pause:350});
+  pl.trump=id;
+  logMsg(`${pl.name} sceglie la Briscola Personale: ${TR(id).label}.`);
+}
+
+async function planning(){
+  const order=Array.from({length:G.n},(_,i)=>(G.start+i)%G.n);
+  status('Fase di previsione: ognuno fa le due azioni, pronosticare le prese e scegliere la Briscola Personale, nell\'ordine che preferisce.');
+  for(let pass=0;pass<2;pass++){
+    for(const p of order){
+      const pl=P(p);
+      status(`Previsione, ${pass===0?'primo':'secondo'} giro: tocca a ${pl.name}.`);
+      let a;
+      if(pass===0){
+        const left=G.chips;
+        a=await ask(p,'Cosa fai ora? L\'altra azione la farai nel secondo giro',[
+          {label:`Pronosticare le prese (segnalini rimasti: ${left})`,value:'predict'},
+          {label:'Scegliere la Briscola Personale',value:'trump'}],{pause:350});
+        pl.acts[a]=true;
+      }else a=pl.acts.predict?'trump':'predict';
+      if(a==='predict') await doPredict(p); else await doTrump(p);
+      pl.acts[a]=true;
+    }
+  }
+}
+
+const legalIdx = (p,lead) => {
+  const h=P(p).hand, all=h.map((_,i)=>i);
+  if(lead==null) return all;
+  const same=all.filter(i=>h[i].c===lead);
+  return same.length?same:all;
+};
+function trickWinner(trick,ind){
+  const lead=trick[0].card.c;
+  let cands;
+  if(ind.id==='hi'||ind.id==='lo'){
+    let best=trick[0];
+    for(const x of trick.slice(1)){
+      if(ind.id==='hi'?x.card.n>=best.card.n:x.card.n<=best.card.n) best=x;   // a parità vince chi ha giocato dopo
+    }
+    return best.p;
+  }
+  const trumps=trick.filter(x=>x.card.c===ind.color);
+  cands=trumps.length?trumps:trick.filter(x=>x.card.c===lead);
+  return cands.reduce((b,x)=>x.card.n>b.card.n?x:b).p;
+}
+
+async function tricks(){
+  G.leader=G.start;
+  for(let t=0;t<TRICKS;t++){
+    G.trick=[]; G.winner=-1;
+    const lp=P(G.leader), ind=TR(lp.trump);
+    for(let i=0;i<G.n;i++){
+      const p=(G.leader+i)%G.n;
+      G.turn=p;
+      status(`Presa ${t+1}/${TRICKS}: giocatore iniziale ${lp.name} (briscola: ${ind.short}). Tocca a ${P(p).name}.`);
+      const lead=G.trick.length?G.trick[0].card.c:null;
+      const idx=await askCard(p,legalIdx(p,lead));
+      const [card]=P(p).hand.splice(idx,1);
+      G.trick.push({p,card});
+      render();
+    }
+    G.turn=-1;
+    const w=trickWinner(G.trick,ind);
+    G.winner=w; P(w).won++;
+    status(`${P(w).name} vince la presa e sarà il giocatore iniziale della prossima presa.`);
+    await sleep(1700);
+    G.leader=w;
+  }
+  G.trick=[]; G.winner=-1;
+}
+
+const points = (pred,won) => {
+  const lo=pred.flex?pred.n-1:pred.n, hi=pred.n;
+  if(won>=lo&&won<=hi) return pred.flex?2:4;
+  return -(won<lo?lo-won:won-hi);
+};
+async function scoring(){
+  const rows=G.pl.map(p=>{ const pt=points(p.pred,p.won); p.total+=pt; p.hist.push(pt); return {p:p.id,pred:p.pred,won:p.won,pt}; });
+  G.show={rows,game:G.game};
+  status(`Round ${G.game+1} concluso.`);
+  const last=G.game===G.n-1;
+  await ask(HUM,'Punteggio del round',[{label:last?'Vedi il risultato finale':'Prossimo round',value:1}]);
+  G.show=null;
+}
+
+async function run(){
+  const g=G;
+  try{
+    for(let k=0;k<g.n;k++){
+      g.game=k; g.start=(g.start0+k)%g.n;
+      deal();
+      logMsg(`— Round ${k+1}/${g.n}: inizia ${P(g.start).name} —`);
+      await planning();
+      await tricks();
+      await scoring();
+    }
+    const m=Math.max(...g.pl.map(p=>p.total));
+    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO (traduzione di Danilo, allineata al PDF inglese)</summary>
+<div class="rtext">
+<h4>Preparazione</h4>
+<p>Il gioco ha 48 carte numerate da 1 a 12 in quattro colori. In 3 giocatori si usano solo le carte da 1 a 9 (le 10–12 tornano nella scatola, restano 36 carte); in 4 giocatori si usano tutte le 48. Ogni giocatore riceve 12 carte e un set di tre carte Briscola Personale (le sei briscole, fronte e retro). I 15 segnalini previsione stanno al centro del tavolo.</p>
+<h4>Introduzione</h4>
+<p>Una partita a 6 Forces è divisa in round ed ogni round si compone di tre fasi: previsione, prese e punteggio, in questo ordine.</p>
+<p>Nella fase di previsione, il giocatore iniziale pronostica quante prese vincerà (prendendo i relativi segnalini dal centro) oppure sceglie quale sarà la sua Briscola Personale. Una volta scelta una delle due opzioni, i giocatori successivi, in senso orario, faranno la stessa cosa. Dopo che tutti i giocatori hanno effettuato un giro di scelte, sempre in senso orario e a partire dal giocatore iniziale, si dovrà scegliere l'opzione non scelta in precedenza.</p>
+<h4>Fase Previsione: numero di prese vinte</h4>
+<p>I giocatori fanno una previsione su quante prese pensano di vincere con le carte che hanno in mano e prendono quel numero di segnalini previsione dal centro del tavolo. È consentito prendere zero segnalini. È possibile inoltre prendere un segnalino dal lato con il pallino per fare una previsione con un margine di errore.</p>
+<p>Ad esempio, se davanti a te hai 3 segnalini previsione normali ed un singolo segnalino con il pallino vuol dire che pensi di vincere 3 oppure 4 prese. Se ne hai uno solo col pallino davanti a te, vuol dire che pensi di vincere zero o una presa.</p>
+<p>Se vinci un numero di prese pari alla tua previsione, ottieni punti: 4 se non hai usato un gettone col pallino, sennò 2 punti.</p>
+<p>Se non ci fossero segnalini sufficienti per formare la tua offerta, puoi fare previsioni di valore solo pari al numero di segnalini disponibili. Se non ci sono segnalini, devi fare una previsione da 0 prese (il numero di gettoni è finito).</p>
+<h4>Fase Previsione: determinare la propria Briscola Personale</h4>
+<p>Il giocatore sceglie una delle sei carte Briscola Personale e la posiziona davanti a sé. Questa carta determina, quando si è il giocatore iniziale, quale carta Briscola è la più forte.</p>
+<p>N.B: in 3 giocatori, tutte le carte Briscola Personale devono essere diverse. In 4 giocatori, al massimo due giocatori possono scegliere lo stesso tipo, ma devono esserci almeno 3 tipi diversi in gioco: quando due giocatori hanno scelto lo stesso tipo, gli altri devono scegliere tra i tipi non ancora scelti.</p>
+<p><b>Briscola Personale - Colore:</b> se un giocatore sceglie una carta Briscola Personale che sia rossa/gialla/verde/blu, la carta di quel colore diventa la più forte quando il giocatore che la sceglie è il giocatore iniziale.</p>
+<p><b>Briscola Personale - Numeri:</b> la carta con il numero più alto è la più forte quando il giocatore che sceglie "il numero più alto è la carta di briscola" è il giocatore iniziale. La carta con il numero più basso è la più forte quando il giocatore che sceglie "il numero più basso è la carta di briscola" è il giocatore iniziale.</p>
+<p>Una volta che tutti hanno previsto e determinato la carta di briscola, la presa è pronta per essere giocata.</p>
+<h4>Fase Prese</h4>
+<p>La presa inizia con il giocatore iniziale che gioca qualsiasi carta desideri dalla sua mano. I giocatori successivi devono giocare una carta dello stesso colore della carta giocata dal giocatore iniziale. Se non ne hanno, possono giocare qualsiasi carta desiderino. Una volta che tutti hanno giocato una carta, si determina il vincitore, in base alla carta di Briscola Personale del giocatore iniziale.</p>
+<p><b>Se la Briscola Personale del giocatore iniziale è un Colore.</b> Se il colore della briscola è presente, vince chi gioca la carta più alta tra quelle del colore di briscola. Se NON è presente, vince chi gioca la carta più alta tra quelle dello stesso colore della carta giocata dal giocatore iniziale.</p>
+<p><b>Se è un Numero.</b> Con "i numeri alti sono la carta vincente" vince il numero più alto, indipendentemente dal colore; in caso di pareggio vince l'ultimo giocatore che ha giocato la carta più alta. Con "i numeri bassi sono la carta vincente" vince il numero più basso, indipendentemente dal colore; in caso di pareggio vince l'ultimo giocatore che ha giocato la carta più bassa.</p>
+<p>Il vincitore della presa prende tutte le carte giocate, crea un mazzetto e lo pone a faccia in giù davanti a sé, e diventa il giocatore iniziale nella presa successiva. Si ripete fino a quando i giocatori non hanno più carte in mano: si giocano 12 prese.</p>
+<h4>Fase Punteggio</h4>
+<p>Chi indovina la propria previsione senza usare un segnalino con il pallino riceve 4 punti, chi la indovina con l'aiuto del segnalino con il pallino ne riceve 2. Se si sbaglia, la differenza tra le prese vinte e la previsione dà al giocatore quel numero di punti negativi. Se un giocatore ha usato un segnalino con il pallino e sbaglia, la penalità si calcola con la differenza minore (cioè la distanza dall'intervallo previsto, es. 2 +1 con pallino e 5 prese vinte: −2).</p>
+<ul>
+<li>Previsione 2, prese vinte 2 → 4 punti</li>
+<li>Previsione 3, prese vinte 1 → −2 punti</li>
+<li>Previsione 2 +1 (con pallino), prese vinte 3 → 2 punti</li>
+<li>Previsione 1 +1 (con pallino), prese vinte 0 → −1 punto</li>
+</ul>
+<h4>Fine di un round e fine del gioco</h4>
+<p>Rimetti i segnalini previsione al centro, riprendi tutte le carte, mischiale e distribuiscine 12 a ciascun giocatore. Il giocatore a sinistra del primo giocatore iniziale del round precedente è il primo giocatore iniziale del round successivo. Si gioca un numero di round pari al numero dei giocatori. Vince il punteggio più alto, in caso di pareggio la vittoria è condivisa.</p>
+</div></details>`;
+
+// ═════════════════════════ RENDER ═════════════════════════
+const predText = pr => !pr?'—':pr.n===0?'0 prese':pr.flex?`${pr.n-1}–${pr.n} prese`:`${pr.n} prese`;
+const chipsHtml = pr => !pr||pr.n===0?'':Array.from({length:pr.n},(_,i)=>`<span class="chip ${pr.flex&&i===pr.n-1?'flex':''}"></span>`).join('');
+const cardFace=(c,cls='')=>`<span class="pc c${c.c} ${cls}"><small>${c.n}</small>${c.n}<i>${COLORS[c.c].icon}</i></span>`;
+
+function seatHtml(p,pos){
+  const pl=P(p), t=pl.trump?TR(pl.trump):null;
+  const isLeader=G.trick.length>0&&G.leader===p, active=G.turn===p, winner=G.winner===p;
+  let body='';
+  if(p===HUM){
+    const lead=G.trick.length?G.trick[0].card.c:null;
+    body=`<div class="hand">${pl.hand.map((c,i)=>{
+      if(PR&&PR.type==='card'){ const ok=PR.legal.has(i); return `<button class="pc c${c.c} ${ok?'legal':'dim'}" ${ok?'':'disabled'} data-p="${i}" title="${c.n} ${COLORS[c.c].n}"><small>${c.n}</small>${c.n}<i>${COLORS[c.c].icon}</i></button>`; }
+      return cardFace(c);
+    }).join('')}</div>`;
+  }else body=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta">
+      ${t?`<span class="ind ${isLeader&&G.leader===p?'cur':''}" title="${esc(t.label)}">${t.icon} ${t.short}</span>`:'<span class="tag">briscola: —</span>'}
+      <span class="tag">${chipsHtml(pl.pred)||''} ${predText(pl.pred)}</span>
+      <span class="tag">prese ${pl.won}</span><span class="tag">tot ${pl.total}</span></div>`;
+  return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">
+    <div class="seat-name">${esc(pl.name)}${G.trick.length===0&&G.start===p&&G.pl.every(q=>q.trump&&q.pred)?' · giocatore iniziale':''}</div>${pos==='bottom'?body+meta:meta+body}</div>`;
+}
+function centerHtml(){
+  const pos=POS[G.n];
+  const slots=pos.map((ps,i)=>{
+    const x=G.trick.find(t=>t.p===i);
+    return `<div class="slot ${ps}">${x?cardFace(x.card,G.winner===i?'win':''):''}</div>`;
+  }).join('');
+  let note='';
+  const ready=G.pl.every(q=>q.trump&&q.pred);
+  if(ready){
+    const lp=P(G.trick.length?G.leader:(G.turn>=0?G.leader:G.start)), ind=TR(lp.trump);
+    note=`Briscola in uso<br><b>${ind.icon} ${ind.short}</b><br>(${esc(lp.name)})`;
+  }else note=`Segnalini previsione rimasti: <b>${G.chips}</b>`;
+  return `<div class="center">${slots}<div class="center-note">${note}</div></div>`;
+}
+function scoreTable(){
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${p.hist.map(h=>`<td class="${h<0?'neg':''}">${h}</td>`).join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th></th>${Array.from({length:G.n},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">6 Forces contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    html+=`<table class="score"><tr><th></th><th>Previsione</th><th>Prese</th><th>Punti</th></tr>${G.show.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td>${predText(r.pred)}</td><td>${r.won}</td><td class="${r.pt<0?'neg':''}"><b>${r.pt>0?'+':''}${r.pt}</b></td></tr>`).join('')}</table>`;
+  }
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">Tocca a te: gioca una carta evidenziata${G.trick.length?` (devi rispondere al colore ${COLORS[G.trick[0].card.c].n.toLowerCase()} se puoi)`:' (sei il giocatore iniziale: puoi giocare qualsiasi carta)'}.</div>`;
+  }
+  return html;
+}
+
+function render(){
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo"><b>6</b> Forces</div>
+    ${G&&!G.over?`<span class="badge">Round ${G.game+1}/${G.n}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}</div>`;
+  let body='';
+  if(G){
+    const pos=POS[G.n];
+    body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static;border-top-width:1px">${scoreTable()}</div>`:''}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.n) newMatch(Number(b.dataset.n));
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+});
+render();
+</script>
+</body>
+</html>
