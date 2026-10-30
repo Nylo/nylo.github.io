@@ -6,6 +6,7 @@
 <title>6 Forces</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -117,21 +118,23 @@ details.rules ul{margin:10px 0 0 18px;font-size:12px;line-height:1.6;color:var(-
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const COLORS = [
-  {n:'Rosso',  icon:'🔥'},
-  {n:'Giallo', icon:'⚡'},
-  {n:'Blu',    icon:'❄️'},
-  {n:'Verde',  icon:'🌿'}
+  {n:'Rosso',  icon:'fire'},
+  {n:'Giallo', icon:'lightning'},
+  {n:'Blu',    icon:'snowflake'},
+  {n:'Verde',  icon:'leaf'}
 ];
 // Le 6 carte briscola (indicatori): 4 colori + numeri alti + numeri bassi
 const TRUMPS = [
-  {id:'c0', label:'Fuoco (rosso)',      short:'Fuoco',   icon:'🔥', color:0},
-  {id:'c1', label:'Fulmine (giallo)',   short:'Fulmine', icon:'⚡', color:1},
-  {id:'c2', label:'Ghiaccio (blu)',     short:'Ghiaccio',icon:'❄️', color:2},
-  {id:'c3', label:'Natura (verde)',     short:'Natura',  icon:'🌿', color:3},
-  {id:'hi', label:'Numeri alti: il numero più alto è la carta vincente', short:'Alti 12↑',  icon:'12↑'},
-  {id:'lo', label:'Numeri bassi: il numero più basso è la carta vincente', short:'Bassi 1↓',  icon:'1↓'}
+  {id:'c0', label:'Fuoco (rosso)',      short:'Fuoco',   icon:'fire', color:0},
+  {id:'c1', label:'Fulmine (giallo)',   short:'Fulmine', icon:'lightning', color:1},
+  {id:'c2', label:'Ghiaccio (blu)',     short:'Ghiaccio',icon:'snowflake', color:2},
+  {id:'c3', label:'Natura (verde)',     short:'Natura',  icon:'leaf', color:3},
+  {id:'hi', label:'Numeri alti: il numero più alto è la carta vincente', short:'Numeri alti',  icon:'arrow-fat-up'},
+  {id:'lo', label:'Numeri bassi: il numero più basso è la carta vincente', short:'Numeri bassi',  icon:'arrow-fat-down'}
 ];
 const TR = id => TRUMPS.find(t=>t.id===id);
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+const tico = t => `<i class="ph-fill ph-${t.icon}"${t.color!==undefined?` style="color:var(--c${t.color})"`:''}></i>`;
 const HUM = 0;
 const CHIPS = 15;
 const TRICKS = 12;
@@ -240,7 +243,7 @@ async function doPredict(p){
 }
 async function doTrump(p){
   const pl=P(p);
-  const opts=TRUMPS.map(t=>({label:`${t.icon} ${t.label}`,value:t.id,disabled:!trumpLegal(p,t.id)}));
+  const opts=TRUMPS.map(t=>({label:t.label,html:`${tico(t)} ${esc(t.label)}`,value:t.id,disabled:!trumpLegal(p,t.id)}));
   const id=await ask(p,'Scegli la tua Briscola Personale (vale quando sei il giocatore iniziale)',opts,{pause:350});
   pl.trump=id;
   logMsg(`${pl.name} sceglie la Briscola Personale: ${TR(id).label}.`);
@@ -386,7 +389,7 @@ const RULES_HTML = `
 // ═════════════════════════ RENDER ═════════════════════════
 const predText = pr => !pr?'—':pr.n===0?'0 prese':pr.flex?`${pr.n-1}–${pr.n} prese`:`${pr.n} prese`;
 const chipsHtml = pr => !pr||pr.n===0?'':Array.from({length:pr.n},(_,i)=>`<span class="chip ${pr.flex&&i===pr.n-1?'flex':''}"></span>`).join('');
-const cardFace=(c,cls='')=>`<span class="pc c${c.c} ${cls}"><small>${c.n}</small>${c.n}<i>${COLORS[c.c].icon}</i></span>`;
+const cardFace=(c,cls='')=>`<span class="pc c${c.c} ${cls}"><small>${c.n}</small>${c.n}${ico(COLORS[c.c].icon)}</span>`;
 
 function seatHtml(p,pos){
   const pl=P(p), t=pl.trump?TR(pl.trump):null;
@@ -395,12 +398,12 @@ function seatHtml(p,pos){
   if(p===HUM){
     const lead=G.trick.length?G.trick[0].card.c:null;
     body=`<div class="hand">${pl.hand.map((c,i)=>{
-      if(PR&&PR.type==='card'){ const ok=PR.legal.has(i); return `<button class="pc c${c.c} ${ok?'legal':'dim'}" ${ok?'':'disabled'} data-p="${i}" title="${c.n} ${COLORS[c.c].n}"><small>${c.n}</small>${c.n}<i>${COLORS[c.c].icon}</i></button>`; }
+      if(PR&&PR.type==='card'){ const ok=PR.legal.has(i); return `<button class="pc c${c.c} ${ok?'legal':'dim'}" ${ok?'':'disabled'} data-p="${i}" title="${c.n} ${COLORS[c.c].n}"><small>${c.n}</small>${c.n}${ico(COLORS[c.c].icon)}</button>`; }
       return cardFace(c);
     }).join('')}</div>`;
   }else body=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
   const meta=`<div class="seat-meta">
-      ${t?`<span class="ind ${isLeader&&G.leader===p?'cur':''}" title="${esc(t.label)}">${t.icon} ${t.short}</span>`:'<span class="tag">briscola: —</span>'}
+      ${t?`<span class="ind ${isLeader&&G.leader===p?'cur':''}" title="${esc(t.label)}">${tico(t)} ${t.short}</span>`:'<span class="tag">briscola: —</span>'}
       <span class="tag">${chipsHtml(pl.pred)||''} ${predText(pl.pred)}</span>
       <span class="tag">prese ${pl.won}</span><span class="tag">tot ${pl.total}</span></div>`;
   return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">
@@ -416,12 +419,12 @@ function centerHtml(){
   const ready=G.pl.every(q=>q.trump&&q.pred);
   if(ready){
     const lp=P(G.trick.length?G.leader:(G.turn>=0?G.leader:G.start)), ind=TR(lp.trump);
-    note=`Briscola in uso<br><b>${ind.icon} ${ind.short}</b><br>(${esc(lp.name)})`;
+    note=`Briscola in uso<br><b>${tico(ind)} ${ind.short}</b><br>(${esc(lp.name)})`;
   }else note=`Segnalini previsione rimasti: <b>${G.chips}</b>`;
   return `<div class="center">${slots}<div class="center-note">${note}</div></div>`;
 }
 function scoreTable(){
-  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${p.hist.map(h=>`<td class="${h<0?'neg':''}">${h}</td>`).join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:G.n},(_,i)=>i<p.hist.length?`<td class="${p.hist[i]<0?'neg':''}">${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
   return `<table class="score"><tr><th></th>${Array.from({length:G.n},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
 }
 function dockHtml(){
@@ -437,7 +440,7 @@ function dockHtml(){
     html+=`<table class="score"><tr><th></th><th>Previsione</th><th>Prese</th><th>Punti</th></tr>${G.show.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td>${predText(r.pred)}</td><td>${r.won}</td><td class="${r.pt<0?'neg':''}"><b>${r.pt>0?'+':''}${r.pt}</b></td></tr>`).join('')}</table>`;
   }
   if(PR&&PR.type==='choose'){
-    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${o.html||esc(o.label)}</button>`).join('')}</div>`;
   }else if(PR&&PR.type==='card'){
     html+=`<div class="hint">Tocca a te: gioca una carta evidenziata${G.trick.length?` (devi rispondere al colore ${COLORS[G.trick[0].card.c].n.toLowerCase()} se puoi)`:' (sei il giocatore iniziale: puoi giocare qualsiasi carta)'}.</div>`;
   }
