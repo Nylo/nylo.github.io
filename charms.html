@@ -119,6 +119,16 @@ details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--
   .back{width:9px;height:14px}
   .hand{gap:2px}
 }
+
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd54a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Libre Baskerville',serif;font-size:16px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.12);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -387,7 +397,7 @@ async function humanFirst(p,isLeader){
 async function humanNext(p,isLeader){
   const pl=P(p);
   const legal=legalNext(pl.hand,pl.sh.s,G.led,isLeader);
-  const hint=isLeader?'Sei il giocatore iniziale: puoi coprire una qualsiasi delle tue carte, seme o numero.'
+  const hint=isLeader?'Sei il giocatore di mano: puoi coprire una qualsiasi delle tue carte, seme o numero.'
     :(pl.sh.s===G.led?`Mostri già il seme di mano (${SUITS[G.led].n}): non puoi coprirlo con un altro seme, ma puoi giocare un numero.`
       :`Devi rispondere al seme di mano (${SUITS[G.led].n}) se ce l'hai, altrimenti gioca una carta qualsiasi.`);
   const i=await askCard(legal,hint);
@@ -411,7 +421,7 @@ async function tricks(){
     G.order=order;
     for(let i=0;i<G.n;i++){
       const p=order[i]; G.turn=p;
-      status(`Presa ${t+1}/${TRICKS}: giocatore iniziale ${P(G.leader).name}. Tocca a ${P(p).name}.`);
+      status(`Presa ${t+1}/${TRICKS}: giocatore di mano ${P(G.leader).name}. Tocca a ${P(p).name}.`);
       if(p===HUM){ if(t===0) await humanFirst(p,i===0); else await humanNext(p,i===0); }
       else await aiPlay(p,i===0,t===0);
       G.done.push(p);
@@ -444,9 +454,10 @@ async function run(){
     for(let k=0;k<HANDS;k++){
       g.game=k; g.start=(g.start0+k)%g.n;
       deal();
-      logMsg(`— Mano ${k+1}/${HANDS}: inizia ${P(g.start).name}. Briscola: ${SUITS[g.trump].n} —`);
+      logMsg(`— Mano ${k+1}/${HANDS}: primo giocatore ${P(g.start).name}. Briscola: ${SUITS[g.trump].n} —`);
       if(g.mull.length) logMsg(`Mano rimescolata per ${g.mull.map(i=>P(i).name).join(', ')} (meno di 3 carte seme o numero).`);
       await bidding();
+      await announceFirst();
       await tricks();
       await scoring();
     }
@@ -487,7 +498,7 @@ function seatHtml(p,pos){
   }else if(pos==='top'||pos==='bottom') hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
   else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
   const meta=`<div class="seat-meta"><span class="tag">puntata <b>${predText(pl)}</b></span><span class="tag">prese <b>${pl.won}</b></span><span class="tag">punti <b>${pl.total}</b></span></div>`;
-  const name=`<div class="seat-name">${esc(pl.name)}${isLeader?' · giocatore iniziale':''}</div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
   const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${hand}`:(pos==='top'?`${hand}${name}${meta}${tableauHtml(p)}`:`${name}${meta}${tableauHtml(p)}${hand}`);
   return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
 }
@@ -568,10 +579,37 @@ function render(){
   app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
 }
 
+// ═════════════════════════ NOME GIOCATORE / PRIMO / DI MANO ═════════════════════════
+// "Primo giocatore" = chi apre il round (puntate/previsioni); "Di mano" = chi apre la presa corrente.
+function flagHtml(p){
+  if(!G||G.over) return '';
+  if(G.turn>=0&&G.leader===p) return '<span class="flag lead">Di mano</span>';
+  if(G.turn<0&&G.winner<0&&!G.show&&G.start===p) return '<span class="flag first">Primo giocatore</span>';
+  return '';
+}
+function askName(n){
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button></div></form>';
+  ov.style.display='flex';
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+async function announceFirst(){
+  const p=G.start, you=p===HUM;
+  status(you?'Sei tu il primo giocatore.':`Primo giocatore: ${P(p).name}.`);
+  await ask(HUM,you?'Sei tu il primo giocatore':`Primo giocatore: ${P(p).name}`,[{label:'Ok, si parte',value:1}]);
+}
 document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
-  if(b.dataset.n) newMatch(Number(b.dataset.n));
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
   else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
