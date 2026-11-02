@@ -146,6 +146,19 @@ details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--
 .name-box input:focus{border-color:var(--accent)}
 .flag.first{background:#231a0e;color:#ffd54a}
 .flag.lead{background:#fff6dc;color:#231a0e;border-color:#231a0e}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
+.recap-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px}
+.recap-row .lbl{min-width:70px;font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:4px}
+.rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,0.35);background:#59606b;text-shadow:0 1px 1px rgba(0,0,0,0.3)}
+.nchip{display:inline-flex;min-width:24px;justify-content:center;padding:2px 6px;border-radius:5px;background:rgba(127,127,127,0.25);font-weight:700;font-size:12px}
+.rchip.s0{background-color:var(--s0)} .rchip.s1{background-color:var(--s1)} .rchip.s2{background-color:var(--s2)} .rchip.s3{background-color:var(--s3)}
+body.a11y .rchip.s0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .rchip.s1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .rchip.s2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .rchip.s3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 </style>
 </head>
 <body>
@@ -534,6 +547,16 @@ function dockHtml(){
   return html;
 }
 
+
+function recapHtml(){
+  const ks=[0,1,2,3].filter(k=>G.n!==3||k!==RED), per=Math.floor(fullDeck(G.n).length/G.n);
+  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Colori</span>${ks.map(k=>`<span class="rchip s${k}">${ico(SUITS[k].icon)} ${SUITS[k].n}</span>`).join('')}<span class="rv">${G.n===3?'Mulino (rosso) tolto · ':''}13 carte per colore</span></div>
+    <div class="recap-row"><span class="lbl">Valori</span><span class="nchip">0</span><span class="nchip">0</span>${Array.from({length:11-1+1},(_,i)=>`<span class="nchip">${i+1}</span>`).join('')}<span class="rv">due 0, poi 1–11</span></div>
+    <div class="recap-row"><span class="lbl">Briscola</span><span class="rv" style="margin-left:0">nessuna: vince la carta più alta del colore di mano</span></div>
+    <div class="recap-row"><span class="lbl">Limite</span><span class="nchip">${G.limit}</span><span class="rv">${per} carte a testa${G.aside?` · ${G.aside} da parte`:''}</span></div></div>`;
+}
+
 const RULES_HTML = `
 <details class="rules"><summary>REGOLAMENTO</summary>
 <div class="rtext">
@@ -576,6 +599,7 @@ function render(){
     const pos=POS[G.n];
     body=`<div class="table ${G.n===5?'n5':''}">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static;border-top-width:1px">${scoreTable()}</div>`:''}
+      ${recapHtml()}
       ${RULES_HTML}`;
   }
   app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
