@@ -172,25 +172,32 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const HUM = 0, TRICKS = 12, MAXPRED = 12;
 const NAMES = ['Tu','AI Viola','AI Marrone','AI Verde'];
 const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
+// ordine in cui escono le carte Contratto di ogni pila (la carta 'four' esiste solo in 4 giocatori: così ogni round ha carte diverse)
+const mkOrder = n => PILES.map(pile=>shuffle(pile.cards.map((c,j)=>j).filter(j=>!pile.cards[j].four||n===4)));
+const endOk = (c,won) => c.end.includes(won);
 
-// Carte Contratto: 4 pile (numero, colore, momento, prese vinte), 3 carte per pila
+// Carte Contratto: 4 pile (numero, colore, momento, prese vinte), 3 carte per pila + 1 carta (four) usata solo in 4 giocatori
 const PILES = [
   {name:'Numero',  icon:'hash', cards:[
     {id:'even', title:'Vincere con numeri pari',   test:c=>c.n%2===0},
     {id:'odd',  title:'Vincere con numeri dispari',test:c=>c.n%2===1},
-    {id:'s69',  title:'Vincere con carte da 6 a 9',test:c=>c.n>=6&&c.n<=9}]},
+    {id:'s69',  title:'Vincere con carte da 6 a 9',test:c=>c.n>=6&&c.n<=9},
+    {id:'s912', title:'Vincere con carte da 9 a 12',test:c=>c.n>=9&&c.n<=12,four:true}]},
   {name:'Colore',  icon:'palette', cards:[
     {id:'blue',  title:'Vincere con carte blu',   test:c=>c.c===2},
     {id:'green', title:'Vincere con carte verdi', test:c=>c.c===3},
-    {id:'yellow',title:'Vincere con carte gialle',test:c=>c.c===1}]},
+    {id:'yellow',title:'Vincere con carte gialle',test:c=>c.c===1},
+    {id:'red',  title:'Vincere con carte rosse', test:c=>c.c===0,four:true}]},
   {name:'Momento', icon:'clock-countdown', cards:[
     {id:'first3',title:'Vincere una delle prime 3 prese',     test:(c,x)=>x.t<3},
     {id:'last2', title:'Vincere la penultima o l\'ultima presa',test:(c,x)=>x.t>=TRICKS-2},
-    {id:'streak',title:'Vincere prese di fila (dalla 2ª in poi)',test:(c,x)=>x.prev===x.p}]},
+    {id:'streak',title:'Vincere prese di fila (dalla 2ª in poi)',test:(c,x)=>x.prev===x.p},
+    {id:'nolead',title:'Vincere una presa senza essere di mano',test:(c,x)=>x.lead!==x.p,four:true}]},
   {name:'Prese',   icon:'target', cards:[
-    {id:'ex2',title:'Vincere esattamente 2 prese',end:2},
-    {id:'ex3',title:'Vincere esattamente 3 prese',end:3},
-    {id:'ex4',title:'Vincere esattamente 4 prese',end:4}]}
+    {id:'ex2',title:'Vincere esattamente 2 prese',end:[2]},
+    {id:'ex3',title:'Vincere esattamente 3 prese',end:[3]},
+    {id:'ex4',title:'Vincere esattamente 4 prese',end:[4]},
+    {id:'ex15',title:'Vincere esattamente 1 oppure 5 prese',end:[1,5],four:true}]}
 ];
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
@@ -245,7 +252,7 @@ function confirmCard(ok){
 // ═════════════════════════ REGOLE ═════════════════════════
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
-  G={n,game:0,start0:rnd(n),start:0,msg:'',log:[],over:null,conds:[],order:PILES.map(()=>shuffle([0,1,2])),
+  G={n,game:0,start0:rnd(n),start:0,msg:'',log:[],over:null,conds:[],order:mkOrder(n),
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],pred:null,white:0,flex:false,blue:0,won:0,total:0,hist:[]})),
      trick:[],leader:0,winner:-1,turn:-1,show:null,prev:-1,t:0};
   run();
@@ -260,8 +267,7 @@ function deal(){
     p.pred=null; p.white=0; p.flex=false; p.blue=0; p.won=0;
   });
   G.trick=[]; G.winner=-1; G.show=null; G.prev=-1; G.t=0;
-  if(G.game===3) G.order=PILES.map(()=>shuffle([0,1,2]));     // 4 giocatori: nuove carte prima dell'ultimo round
-  G.conds=PILES.map((pile,i)=>({pile:i,...pile.cards[G.order[i][G.game%3]]}));
+  G.conds=PILES.map((pile,i)=>({pile:i,...pile.cards[G.order[i][G.game]]}));
 }
 
 // restituisce k gettoni: prima i bianchi, poi quello di riserva, altrimenti si prende un gettone blu
@@ -340,7 +346,7 @@ async function tricks(){
     G.turn=-1;
     const w=trickWinner(G.trick), wc=G.trick.find(x=>x.p===w).card, pl=P(w);
     G.winner=w; pl.won++;
-    const met=G.conds.filter(c=>c.test&&c.test(wc,{t,p:w,prev:G.prev}));
+    const met=G.conds.filter(c=>c.test&&c.test(wc,{t,p:w,prev:G.prev,lead:G.leader}));
     G.prev=w;
     let msg=`${pl.name} vince la presa con ${wc.n} ${COLORS[wc.c].n.toLowerCase()}`;
     if(met.length){ const gb=giveBack(pl,met.length); msg+=` e soddisfa: ${met.map(c=>c.title.replace('Vincere ','')).join('; ')} → ${chipTxt(gb)}`; }
@@ -352,9 +358,9 @@ async function tricks(){
   G.trick=[]; G.winner=-1; G.turn=-1;
   // contratti della pila 4: verificati a fine round
   G.conds.filter(c=>c.end).forEach(c=>{
-    G.pl.filter(p=>p.won===c.end).forEach(p=>{
+    G.pl.filter(p=>endOk(c,p.won)).forEach(p=>{
       const gb=giveBack(p,1);
-      logMsg(`${p.name} ha vinto esattamente ${c.end} prese → ${chipTxt(gb)}.`);
+      logMsg(`${p.name} ha vinto esattamente ${p.won} ${p.won===1?'presa':'prese'} → ${chipTxt(gb)}.`);
     });
   });
 }
@@ -473,7 +479,7 @@ function qPick(hand,trick,me,nPl,maxN,need,conds,t,prev){
   if(Math.random()<0.05) return legal[rnd(legal.length)];
   const ch=legal.map(i=>{
     const card=hand[i];
-    const met=conds.filter(c=>c.test&&c.test(card,{t,p:me,prev})).length;
+    const met=conds.filter(c=>c.test&&c.test(card,{t,p:me,prev,lead:trick.length?trick[0].p:me})).length;
     return {i,met,c:qChance(card,trick,me,nPl,maxN),s:qStrength(card,lead==null?card.c:lead,maxN)};
   });
   if(need>0){
@@ -498,12 +504,12 @@ function qSim(me,hands,conds,start,nPl,maxN,targets){
       trick.push({p,card:hands[p].splice(idx,1)[0]});
     }
     const w=trickWinner(trick), wc=trick.find(x=>x.p===w).card;
-    const m=conds.filter(c=>c.test&&c.test(wc,{t,p:w,prev})).length;
+    const m=conds.filter(c=>c.test&&c.test(wc,{t,p:w,prev,lead:leader})).length;
     won[w]++; needs[w]=Math.max(0,needs[w]-m);
     if(w===me) k+=m;
     prev=w; leader=w;
   }
-  conds.forEach(c=>{ if(c.end&&won[me]===c.end) k++; });
+  conds.forEach(c=>{ if(c.end&&endOk(c,won[me])) k++; });
   return k;
 }
 function aiPredictQ(p){
@@ -557,7 +563,7 @@ const RULES_HTML = `
 <h4>Flusso di gioco</h4>
 <p>Ogni round ha quattro fasi: determinazione delle carte Contratto, previsione, prese, punteggio. Si giocano tanti round quanti sono i giocatori; vince il punteggio totale più alto (parità: vittoria condivisa).</p>
 <h4>1. Carte Contratto</h4>
-<p>Si gira una carta da ciascuno dei 4 mazzi. In 4 giocatori, prima dell'ultimo round i mazzi si rimescolano e si gira una nuova carta da ciascuno.</p>
+<p>Si gira una carta da ciascuno dei 4 mazzi. Ogni round si usa una carta diversa per pila (3 round in 3 giocatori, 4 round in 4 giocatori).</p>
 <h4>2. Previsione</h4>
 <p>Partendo dal giocatore iniziale, in senso orario, ognuno prevede quante volte soddisferà le condizioni delle quattro carte Contratto e prende altrettanti gettoni bianchi (anche zero). Puoi aggiungere un gettone di riserva (faccia verde): con 3 gettoni bianchi e uno di riserva prevedi 3 o 4 volte; con il solo gettone di riserva prevedi 0 o 1 volta.</p>
 <p>Ogni volta che una condizione è soddisfatta si restituisce un gettone. Se ne servono più di quelli che hai (dopo i bianchi, il gettone di riserva), si prende un gettone blu, che vale −1 a fine round.</p>
@@ -567,12 +573,12 @@ const RULES_HTML = `
 <p>Previsione corretta (tutti i gettoni restituiti, il gettone di riserva può restare): 2 punti × numero del round, oppure 1 × il numero del round se hai usato il gettone di riserva. Altrimenti −1 per ogni gettone bianco rimasto e per ogni gettone blu preso (il gettone di riserva non conta). Il giocatore alla sinistra del precedente giocatore iniziale inizia il round successivo.</p>
 <h4>Carte Contratto</h4>
 <ul>
-<li><b>Numero:</b> vincere con numeri pari · con numeri dispari · con le carte dal 6 al 9.</li>
-<li><b>Colore:</b> vincere con carte blu · verdi · gialle.</li>
-<li><b>Momento:</b> vincere una delle prime tre prese (un gettone per ognuna) · vincere la penultima e/o l'ultima presa (un gettone per ognuna) · vincere prese di fila (un gettone per ogni presa vinta consecutiva dalla seconda in poi).</li>
-<li><b>Prese vinte (verificate a fine round):</b> vincere esattamente 2 · 3 · 4 prese (un gettone).</li>
+<li><b>Numero:</b> vincere con numeri pari · con numeri dispari · con le carte dal 6 al 9 · con le carte dal 9 al 12 (solo in 4 giocatori).</li>
+<li><b>Colore:</b> vincere con carte blu · verdi · gialle · rosse (solo in 4 giocatori).</li>
+<li><b>Momento:</b> vincere una delle prime tre prese (un gettone per ognuna) · vincere la penultima e/o l'ultima presa (un gettone per ognuna) · vincere prese di fila (un gettone per ogni presa vinta consecutiva dalla seconda in poi) · vincere una presa senza essere il giocatore di mano (un gettone; solo in 4 giocatori).</li>
+<li><b>Prese vinte (verificate a fine round):</b> vincere esattamente 2 · 3 · 4 prese · esattamente 1 oppure 5 prese, solo in 4 giocatori (un gettone).</li>
 </ul>
-<p><i>Nota:</i> il PDF inglese indica 16 carte Contratto; la traduzione ne elenca 12 (3 per pila), che sono quelle usate qui.</p>
+<p><i>Nota:</i> 16 carte Contratto, 4 per pila: l'ultima di ogni pila si usa solo in 4 giocatori (così ogni round ha contratti diversi). In 3 giocatori ogni pila ha 3 carte.</p>
 </div></details>`;
 
 let LOGOPEN=false;
