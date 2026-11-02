@@ -133,6 +133,10 @@ button.icard:disabled{cursor:default}
 .slot .icard.win{box-shadow:0 0 0 3px var(--success)}
 .center-note{grid-column:2;grid-row:2;font-size:11px;color:var(--text-soft);text-align:center}
 
+details.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+details.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-top:12px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.04em}
 details.rules ul{margin:10px 0 0 18px;font-size:12px;line-height:1.6;color:var(--text-soft)}
@@ -176,10 +180,11 @@ function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]
 // ─────────────── LOGICA DI GIOCO ───────────────
 function newGame(){
   gen++;
-  G = {removed:[[],[]], start:rnd(4), over:null, round:1, history:[]};
+  G = {removed:[[],[]], start:rnd(4), over:null, round:1, history:[], log:[]};
   dealRound();
 }
 
+function logMsg(t){ G.log.unshift(t); if(G.log.length>600) G.log.pop(); }
 function dealRound(){
   const deck=[];
   for(const c of [0,1]) for(let n=1;n<=24;n++) deck.push({c,n});
@@ -192,6 +197,7 @@ function dealRound(){
     result:null, msg:`Round ${G.round}: inizia ${pname(G.start)}. Si scelgono le Mission Tile.`
   });
   ui={tile:null, low:null, initFor:-1};
+  logMsg(`— Round ${G.round}: inizia ${pname(G.start)} —`);
   render(); advance();
 }
 
@@ -227,6 +233,7 @@ function applyTile(p, tile, low){
   const verb = G.tstep<2 ? 'propone' : (same ? 'accetta' : 'cambia in');
   G.prop[t] = {tile, low};
   G.msg = `${pname(p)} ${verb} ${tileDesc(t)}.`;
+  logMsg(G.msg);
   G.tstep++;
   if(G.tstep===4){
     G.tile = G.prop.map(x=>x.tile);
@@ -290,6 +297,7 @@ function passCard(idx){
   for(let p=0;p<4;p++) G.hands[p].splice(G.hands[p].indexOf(G.passed[p]),1);
   for(const p of [1,2,3]) G.hands[p].splice(rnd(G.hands[p].length+1),0,G.passed[(p+2)%4]);
   G.received = G.passed[2];
+  logMsg(`Scambio di carte: passi il ${G.passed[0].n} ${colName(G.passed[0].c)}, ricevi il ${G.received.n} ${colName(G.received.c)} dal compagno.`);
   G.phase='insert';
   G.msg=`Il compagno ti ha passato il <strong>${G.received.n}</strong> ${G.received.c?'azzurro':'rosa'}. Scegli dove inserirlo nel portacarte.`;
   render();
@@ -313,8 +321,10 @@ function humanPlay(idx){
 function playCard(p, idx){
   const [card]=G.hands[p].splice(idx,1);
   G.trick.push({p,card});
+  logMsg(`${pname(p)} gioca ${card.n} ${colName(card.c)}.`);
   if(G.trick.length===4){
     const w=trickWinner();
+    logMsg(`${pname(w)} vince la presa.`);
     G.resolving=true; G.winnerSeat=w;
     G.msg=`<strong>${pname(w)}</strong> vince la presa.`;
     render();
@@ -341,8 +351,13 @@ function finishTrick(w){
   G.won[w]++;
   G.trick=[]; G.resolving=false; G.winnerSeat=null; G.leader=G.turn=w;
   const r=evaluate();
-  if(r){ G.phase='roundEnd'; G.result=r; }
-  else if(!G.hands[0].length){ G.phase='roundEnd'; G.result=null; }
+  if(r){
+    G.phase='roundEnd'; G.result=r;
+    logMsg(r.reason==='sabotage'
+      ? `Sabotaggio: ${pname(r.player)} supera il suo obiettivo, la missione ${G.tile[r.failed]} di ${TEAMS[r.failed].name} fallisce e ${TEAMS[r.winner].name} completa la sua (${G.tile[r.winner]}).`
+      : `${TEAMS[r.winner].name} completa la missione ${G.tile[r.winner]}.`);
+  }
+  else if(!G.hands[0].length){ G.phase='roundEnd'; G.result=null; logMsg('Round concluso senza nessuna missione compiuta.'); }
   else G.msg = w===0 ? 'Hai vinto la presa: apri tu.' : `Apre ${pname(w)}.`;
   render(); advance();
 }
@@ -490,6 +505,11 @@ function centerHtml(){
   return `<div class="center">${slots}<div class="center-note">${G.phase==='play'?`Presa ${Math.min(G.won.reduce((a,b)=>a+b,0)+1,11)}/11`:''}</div></div>`;
 }
 
+let LOGOPEN=false;
+const escL = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function logHtml(){
+  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${escL(l)}</div>`).join('')}</div></details>`;
+}
 function render(){
   const app=document.getElementById('app');
   app.innerHTML=`
@@ -508,6 +528,7 @@ function render(){
       ${seatHtml(3,'right')}
       ${seatHtml(0,'bottom')}
     </div>
+    ${logHtml()}
     <details class="rules">
       <summary>PROMEMORIA REGOLE</summary>
       <ul>
@@ -520,6 +541,7 @@ function render(){
     </details>`;
 }
 
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 newGame();
 </script>
 </body>
