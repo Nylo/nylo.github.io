@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/tambu-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Haru</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#1f2b24;
+  --surface:#2a3a30;
+  --surface-raised:#364a3d;
+  --accent:#c0c598;
+  --accent-soft:rgba(192,197,152,0.16);
+  --violet:#a98be0;
+  --text:#f2f5ec;
+  --text-soft:#c5d0bd;
+  --danger:#ff9a8a;
+  --success:#8fe3a8;
+  --border:rgba(200,215,190,0.22);
+  --radius:10px;
+  --t0:#4a6fc7; --t1:#d96aa0; --t2:#cf3340; --t3:#8a5cc0; --t4:#c9a41a; --t5:#3f9a55;
+  --cw:50px; --ch:72px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#33473a 0%,#18221c 100%) fixed}
+.app{max-width:1040px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Libre Baskerville',serif;font-size:34px;font-weight:700;font-style:italic;line-height:1.05;flex:1;color:var(--violet)}
+.logo small{display:block;font-family:'Inter',sans-serif;font-style:normal;font-size:10px;font-weight:600;letter-spacing:0.12em;color:var(--accent);text-transform:uppercase;margin-top:3px}
+.badge{background:var(--accent);color:#1b2420;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd54a;color:#2a2000}
+.flag.turn{background:#fff;color:#13222b}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Libre Baskerville',serif;font-size:16px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.12);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--violet);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.45)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right}
+table.score td:first-child,table.score th:first-child{text-align:left}
+
+.board{display:grid;grid-template-columns:1fr 230px;gap:12px;margin-bottom:12px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+.panel h3{font-size:11px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft);margin-bottom:8px;text-transform:uppercase}
+.places{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.place{background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 4px 8px;min-height:150px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.place .ph{font-size:11px;color:var(--text-soft);display:flex;align-items:center;gap:4px}
+.pile{display:flex;flex-direction:column;align-items:center}
+.pile .fc+.fc{margin-top:-52px}
+.side{display:flex;flex-direction:column;gap:12px}
+.cnts{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text-soft)}
+.cnts b{color:var(--text)}
+.ins{background:#e9e4cf;color:#2a2a1c;border-radius:8px;padding:6px 8px;font-size:11px;line-height:1.35;border:2px solid transparent}
+.ins b{display:block;font-size:12px}
+.ins.used{opacity:0.5;border-style:dashed;border-color:#7b7d63}
+.ins .pts{float:right;font-weight:700;color:#8a5a00}
+.ins.A b::after{content:' · azione';font-weight:400;color:#a33}
+.tile{background:#efe7d3;color:#2b2a22;border-radius:8px;padding:6px 8px;font-size:11px;line-height:1.35;display:flex;gap:6px;align-items:flex-start}
+.tile i{font-size:20px;color:#7a5e2a}
+.tile.mine{background:#f6e3a6}
+.tile .v{font-weight:700}
+.tiles{display:flex;flex-direction:column;gap:6px}
+
+.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:12px}
+.pp{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.pp.turn{border-color:#fff;box-shadow:0 0 0 1px #fff}
+.pp-name{font-weight:600;font-size:13px}
+.pp-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--text-soft)}
+.water i{font-size:15px;color:#6fb7ff}
+.water i.e{color:rgba(255,255,255,0.18)}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,0.3);background:#59606b}
+.chip.t0{background:var(--t0)} .chip.t1{background:var(--t1)} .chip.t2{background:var(--t2)} .chip.t3{background:var(--t3)} .chip.t4{background:var(--t4)} .chip.t5{background:var(--t5)}
+.chip.ic{background:#e9e4cf;color:#2a2a1c;border-color:#7b7d63}
+.chip.ic.used{opacity:0.45;text-decoration:line-through}
+.chip.tl{background:#f6e3a6;color:#2b2a22;border-color:#a8873a}
+.empty{font-size:11px;color:var(--text-soft);font-style:italic}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff6dc;display:inline-flex;flex-direction:column;align-items:center;justify-content:space-between;padding:4px 2px;font-family:'Libre Baskerville',serif;font-weight:700;color:#fff;position:relative;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.35);font-size:20px;line-height:1}
+.fc i{font-size:22px}
+.fc .sn{font-size:11px;display:flex;gap:0;min-height:11px}
+.fc .sn i{font-size:11px;color:#ffe9a0}
+.fc.t0{background-color:var(--t0)} .fc.t1{background-color:var(--t1)} .fc.t2{background-color:var(--t2)} .fc.t3{background-color:var(--t3)} .fc.t4{background-color:var(--t4)} .fc.t5{background-color:var(--t5)}
+.fc.mini{--cw:42px;--ch:62px;font-size:17px}
+.fc.mini i{font-size:18px}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.legal{box-shadow:0 0 0 3px #fff}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--violet)}
+.hand{display:flex;gap:4px;flex-wrap:wrap}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+body.a11y .fc.t0,body.a11y .chip.t0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .fc.t1,body.a11y .chip.t1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.t2,body.a11y .chip.t2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.t3,body.a11y .chip.t3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.t4,body.a11y .chip.t4{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.t5,body.a11y .chip.t5{background-image:linear-gradient(45deg,rgba(255,255,255,0.3) 25%,transparent 25%,transparent 75%,rgba(255,255,255,0.3) 75%),linear-gradient(45deg,rgba(255,255,255,0.3) 25%,transparent 25%,transparent 75%,rgba(255,255,255,0.3) 75%);background-size:10px 10px;background-position:0 0,5px 5px}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
+.recap-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px}
+.recap-row .lbl{min-width:70px;font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:4px}
+.nchip{display:inline-flex;min-width:24px;justify-content:center;padding:2px 6px;border-radius:5px;background:rgba(127,127,127,0.25);font-weight:700;font-size:12px}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+@media(max-width:760px){
+  :root{--cw:38px;--ch:56px}
+  .board{grid-template-columns:1fr}
+  .fc{font-size:15px}
+  .fc i{font-size:16px}
+  .fc.mini{--cw:34px;--ch:50px;font-size:14px}
+  .pile .fc+.fc{margin-top:-42px}
+  .places{gap:4px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const TYPES = [
+  {n:'Ayame-Shobu', col:'blu',    icon:'flower-lotus'},
+  {n:'Sakura',      col:'rosa',   icon:'flower'},
+  {n:'Botan',       col:'rosso',  icon:'flower-tulip'},
+  {n:'Fuji',        col:'viola',  icon:'plant'},
+  {n:'Nanohana',    col:'giallo', icon:'sparkle'},
+  {n:'Ume',         col:'verde',  icon:'tree'}
+];
+const PLACES = [{n:'Ponte',icon:'bridge'},{n:'Albero',icon:'tree'},{n:'Torii',icon:'columns'},{n:'Stagno koi',icon:'fish'}];
+const VALS = [0,1,1,2,2,3,3,4,4,5,5,6];                     // 12 carte per tipo (distribuzione assunta, non indicata nel regolamento)
+const sunOf = n => n===0?0:n<=3?1:n<=5?2:3;
+const MAXHAND = 7, CAP0 = 5, PLACE_MAX = 7;
+const INS = {
+  kicho:   {n:'Kicho',            A:1, pts:0, d:'Prendi carte, poi gioca carte nello stesso turno (con i bonus).'},
+  ari:     {n:'Ari',              A:1, pts:0, d:'Pesca 4 carte fiore dal mazzo e tienine 3.'},
+  batta:   {n:'Batta',                pts:0, d:'Gioca 1 carta fiore senza pagarne il costo in acqua.'},
+  ga:      {n:'Ga',                   pts:0, d:'Gioca 1 carta fiore sotto la pila corrispondente.'},
+  hachi:   {n:'Hachi',            A:1, pts:0, d:'Gioca carte fiore (con bonus), poi prendi una tessera personaggio nello stesso turno.'},
+  haru:    {n:'Haru Semi',            pts:2, d:'Riempi la riserva d\'acqua al massimo.'},
+  kabuto:  {n:'Kabutomushi',          pts:0, d:'Pesca le prime 4 carte insetto e tienine 1 nella tua area.'},
+  kamakiri:{n:'Kamakiri',             pts:0, d:'Usa l\'abilità di una carta insetto visibile (senza punti finali).'},
+  konchu:  {n:'Konchu',           A:1, pts:0, d:'Prendi tutte le carte fiore da due posti diversi.'},
+  konoha:  {n:'Konoha-Mushi',     A:1, pts:0, d:'Prendi una tessera personaggio, poi prendi carte nello stesso turno (con bonus).'},
+  kuwaga:  {n:'Kuwagatamushi',    A:1, pts:2, d:'Prendi una tessera personaggio dalla scatola.'},
+  midori:  {n:'Midori Kamemushi',     pts:2, d:'Scegli 1 carta qualsiasi dagli scarti dei fiori.'},
+  tama:    {n:'Tamamushi',        A:1, pts:2, d:'Prendi la carta in cima a ciascun posto del giardino.'},
+  tento:   {n:'Tentomushi',           pts:3, d:'Ottieni 2 gocce d\'acqua.'},
+  tonbo:   {n:'Tonbo',                pts:1, d:'La tua riserva d\'acqua aumenta di 1.'}
+};
+const TILE_DEFS = [
+  ...TYPES.map((t,i)=>({k:'type',t:i,label:`Più carte ${t.n} (${t.col})`})),
+  {k:'pair',ts:[0,3],label:'Somma più alta in cima alle pile Ayame-Shobu + Fuji'},
+  {k:'pair',ts:[1,2],label:'Somma più alta in cima alle pile Sakura + Botan'},
+  {k:'pair',ts:[4,5],label:'Somma più alta in cima alle pile Nanohana + Ume'},
+  {k:'zero',label:'Più carte senza sole (numero 0)'},
+  {k:'water',label:'Più acqua a fine partita (riserva + carte in mano)'},
+  {k:'tall',label:'La pila più alta'},
+  {k:'ins',label:'Più carte Insetto'},
+  {k:'sun',label:'Somma più alta di moltiplicatori (soli) in cima alle pile'},
+  {k:'few',label:'Meno pile'}
+];
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+const HUM = 0;
+const NAMES = ['Tu','AI Sakura','AI Fuji','AI Ume','AI Botan'];
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {a11y:false};
+try{ OPT.a11y=localStorage.getItem('haru-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+const topOf = s => s.cards[s.cards.length-1];
+const stackPts = s => s.cards.length*sunOf(topOf(s));
+const maxTop = pl => pl.stacks.reduce((m,s)=>Math.max(m,topOf(s)),-1);
+const totalWater = p => P(p).water+P(p).hand.length;
+function logMsg(t){ G.log.unshift(t); if(G.log.length>80) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+// selezione di carte dalla mano: min..max carte (con max=1,min=1 il clic conferma subito); extra = pulsanti alternativi
+function askHand(o){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'hand',min:o.min,max:o.max,hint:o.hint,extra:o.extra||[],sel:new Set(),res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function handClick(i){
+  if(!PR||PR.type!=='hand') return;
+  if(PR.max===1&&PR.min===1){ const r=PR.res; PR=null; render(); r({idx:[i]}); return; }
+  if(PR.sel.has(i)) PR.sel.delete(i); else if(PR.sel.size<PR.max) PR.sel.add(i);
+  render();
+}
+function handConfirm(){
+  if(!PR||PR.type!=='hand'||PR.sel.size<PR.min||PR.sel.size>PR.max) return;
+  const v={idx:[...PR.sel]}, r=PR.res; PR=null; render(); r(v);
+}
+function handExtra(k){
+  if(!PR||PR.type!=='hand') return;
+  const v={extra:PR.extra[k].value}, r=PR.res; PR=null; render(); r(v);
+}
+
+// ═════════════════════════ REGOLE ═════════════════════════
+function metricOf(pl,t){
+  switch(t.k){
+    case 'type': return pl.stacks.filter(s=>s.t===t.t).reduce((a,s)=>a+s.cards.length,0);
+    case 'pair': return pl.stacks.filter(s=>t.ts.includes(s.t)).reduce((a,s)=>a+topOf(s),0);
+    case 'zero': return pl.stacks.reduce((a,s)=>a+s.cards.filter(n=>n===0).length,0);
+    case 'water': return pl.water+pl.hand.length;
+    case 'tall': return pl.stacks.reduce((m,s)=>Math.max(m,s.cards.length),0);
+    case 'ins': return pl.insects.length;
+    case 'sun': return pl.stacks.reduce((a,s)=>a+sunOf(topOf(s)),0);
+    case 'few': return pl.stacks.length?-pl.stacks.length:-Infinity;
+  }
+}
+// una tessera è soddisfatta da chi ha il valore migliore (anche a pari merito) e almeno qualcosa di valido
+function fulfilled(p,t){
+  const m=metricOf(P(p),t);
+  if(!(m>0)&&t.k!=='few') return false;
+  if(t.k==='few'&&m===-Infinity) return false;
+  return G.pl.every(q=>metricOf(q,t)<=m);
+}
+function scoreOf(p){
+  const pl=P(p);
+  const flowers=pl.stacks.reduce((a,s)=>a+stackPts(s),0);
+  let tiles=0;
+  pl.tiles.forEach(t=>{ if(fulfilled(p,t)) tiles+=8; });
+  G.tiles.forEach(t=>{ if(fulfilled(p,t)) tiles+=3; });
+  const ins=pl.insects.reduce((a,x)=>a+(x.noPts?0:INS[x.type].pts),0);
+  return {flowers,tiles,ins,total:flowers+tiles+ins,water:pl.water+pl.hand.length};
+}
+function targetsFor(stacks,c,free,under){
+  const out=[];
+  stacks.forEach((s,si)=>{
+    if(s.t!==c.t) return;
+    if(under) out.push({kind:'stack',si,cost:0});
+    else if(c.n>=topOf(s)){ const d=c.n-topOf(s); out.push({kind:'stack',si,cost:free?0:(d<=1?0:d)}); }
+  });
+  if(!under) out.push({kind:'new',cost:free?0:(c.n<=1?0:c.n)});
+  return out;
+}
+function drawFlowers(k){
+  const out=[]; for(let i=0;i<k&&G.deck.length;i++) out.push(G.deck.pop());
+  if(!G.deck.length&&!G.ending){ G.ending={by:G.cur}; logMsg('Il mazzo dei fiori è finito: ognuno giocherà un ultimo turno.'); }
+  return out;
+}
+function revealFour(){
+  const cs=drawFlowers(4);
+  cs.forEach(c=>{ const pl=G.places[c.pl]; if(pl.length>=PLACE_MAX){ G.discard.push(...pl); pl.length=0; } pl.push(c); });
+  return cs;
+}
+function gainWater(p,k){
+  const pl=P(p), g=Math.max(0,Math.min(k,pl.cap-pl.water,G.stock));
+  pl.water+=g; G.stock-=g; return g;
+}
+
+// ═════════════════════════ PAGAMENTI ═════════════════════════
+function aiDiscardIdx(p,k){
+  const pl=P(p), keep=c=>{
+    const st=pl.stacks.filter(s=>s.t===c.t);
+    if(st.length){ const m=Math.min(...st.map(s=>topOf(s))); return c.n>=m?3-Math.max(0,c.n-m-1)*0.5+sunOf(c.n)*0.4:0.3; }
+    return c.n<=1?2.5:1-0.15*c.n+sunOf(c.n)*0.3;
+  };
+  return pl.hand.map((c,i)=>({i,v:keep(c)})).sort((a,b)=>a.v-b.v).slice(0,k).map(x=>x.i);
+}
+function removeCards(p,idxs,toDiscard){
+  const pl=P(p), cs=[...idxs].sort((a,b)=>b-a).map(i=>pl.hand.splice(i,1)[0]);
+  if(toDiscard) G.discard.push(...cs);
+  return cs;
+}
+async function payCost(p,c){
+  if(c<=0) return;
+  const pl=P(p);
+  let useCards=false;
+  if(p===HUM&&pl.water>0&&pl.hand.length>=c){
+    useCards=await ask(HUM,`Costo: ${c} ${c===1?'goccia':'gocce'} d'acqua`,[
+      {label:`Paga con le gocce (${Math.min(pl.water,c)}${pl.water<c?` + ${c-pl.water} carte`:''})`,value:false},
+      {label:`Paga solo con carte dalla mano (${c})`,value:true}]);
+  }
+  if(useCards){
+    const r=await askHand({min:c,max:c,hint:`Scegli ${c} ${c===1?'carta':'carte'} da scartare come acqua.`});
+    removeCards(p,r.idx,true); return;
+  }
+  const d=Math.min(pl.water,c); pl.water-=d; G.stock+=d;
+  const rest=c-d;
+  if(rest>0){
+    if(p===HUM){ const r=await askHand({min:rest,max:rest,hint:`Gocce insufficienti: scegli ${rest} ${rest===1?'carta':'carte'} da scartare come acqua.`}); removeCards(p,r.idx,true); }
+    else removeCards(p,aiDiscardIdx(p,rest),true);
+  }
+}
+// attivazione insetto: 1 goccia (resta sulla carta, fuori dal gioco) oppure 1 carta dalla mano (coperta sulla carta)
+async function payInsect(p){
+  const pl=P(p);
+  let useCard=pl.water===0;
+  if(p===HUM&&pl.water>0&&pl.hand.length>0){
+    useCard=await ask(HUM,'Come paghi l\'attivazione?',[{label:'1 goccia d\'acqua',value:false},{label:'1 carta dalla mano',value:true}]);
+  }
+  if(useCard){
+    if(p===HUM){ const r=await askHand({min:1,max:1,hint:'Scegli la carta da usare come goccia d\'acqua.'}); removeCards(p,r.idx,false); }
+    else removeCards(p,aiDiscardIdx(p,1),false);
+  }else pl.water--;
+}
+
+// ═════════════════════════ AZIONI: PRENDERE CARTE ═════════════════════════
+const canTake = () => G.places.some(x=>x.length)||G.deck.length>0;
+function aiColumn(p){
+  const pl=P(p);
+  let best=-1,bv=-1e9;
+  G.places.forEach((col,i)=>{
+    if(!col.length) return;
+    let v=col.length*0.6;
+    col.forEach(c=>{
+      const st=pl.stacks.filter(s=>s.t===c.t);
+      v+=st.length?(c.n>=Math.min(...st.map(s=>topOf(s)))?2.5:0.8):0.7;
+      v+=sunOf(c.n)*0.4;
+    });
+    if(col.length===1&&pl.water<=2) v+=3;
+    v+=Math.random()*0.5;
+    if(v>bv){ bv=v; best=i; }
+  });
+  return best;
+}
+// mode: 'back' (si può annullare prima di fare qualcosa) | 'skip' | null. Ritorna true se eseguita.
+async function takeAction(p,mode){
+  const pl=P(p);
+  let revealed=false;
+  if(G.deck.length>0&&totalWater(p)>=1){
+    let rev=false;
+    if(p===HUM){
+      const opts=[{label:'Paga 1 acqua e rivela 4 nuove carte dal mazzo',value:'rev'},{label:'Non rivelare',value:'no'}];
+      if(mode) opts.push({label:mode==='back'?'↶ Indietro':'Salta',value:'back'});
+      const r=await ask(HUM,'Prendere carte fiore',opts);
+      if(r==='back') return false;
+      rev=r==='rev';
+    }else{
+      const tot=G.places.reduce((a,x)=>a+x.length,0);
+      rev=pl.water>=2&&(tot<=4||Math.random()<0.15)&&G.deck.length>4;
+    }
+    if(rev){ await payCost(p,1); revealFour(); revealed=true; logMsg(`${pl.name} paga 1 acqua e rivela 4 carte.`); }
+  }
+  let col;
+  if(p===HUM){
+    const opts=G.places.map((c,i)=>({label:`${PLACES[i].n} (${c.length} ${c.length===1?'carta':'carte'}${c.length===1?' · bonus acqua':''})`,value:i,disabled:!c.length}));
+    if(mode&&!revealed) opts.push({label:mode==='back'?'↶ Indietro':'Salta',value:-1});
+    col=await ask(HUM,'Da quale posto prendi le carte?',opts);
+    if(col===-1||col==null) return false;
+  }else col=aiColumn(p);
+  if(col<0) return false;
+  const cards=G.places[col]; G.places[col]=[];
+  pl.hand.push(...cards);
+  let bonus='';
+  if(cards.length===1){ pl.water=Math.max(pl.water,0); const g=pl.cap-pl.water; gainWater(p,g); bonus=' e ricarica l\'acqua al massimo'; }
+  logMsg(`${pl.name} prende ${cards.length} ${cards.length===1?'carta':'carte'} da ${PLACES[col].n}${bonus}.`);
+  if(G.places.every(x=>!x.length)&&G.deck.length){ revealFour(); logMsg('Giardino vuoto: rivelate 4 nuove carte.'); }
+  if(p!==HUM) await sleep(700);
+  return true;
+}
+
+// ═════════════════════════ AZIONI: GIOCARE FIORI ═════════════════════════
+function moveDelta(stacks,c,t){
+  if(t.kind==='stack'){
+    const s=stacks[t.si]; const old=s.cards.length*sunOf(topOf(s));
+    const top=c.n>=topOf(s)?c.n:topOf(s);
+    return (s.cards.length+1)*sunOf(top)-old-t.cost*0.9+0.6;
+  }
+  return sunOf(c.n)+1.0-t.cost*0.9-Math.max(0,stacks.length-2)*1.4;
+}
+function bestMove(stacks,hand,water,free,under){
+  let best=null;
+  hand.forEach((c,i)=>{
+    targetsFor(stacks,c,free,under).forEach(t=>{
+      if(t.cost>water+hand.length-1) return;
+      const d=moveDelta(stacks,c,t)+(under?0.2:0);
+      if(!best||d>best.d) best={i,t,d,c};
+    });
+  });
+  return best;
+}
+function planPlay(pl){
+  let w=pl.water, h=pl.hand.slice(), st=pl.stacks.map(s=>({t:s.t,cards:s.cards.slice()})), tot=0,cnt=0;
+  for(let g=0;g<12;g++){
+    const b=bestMove(st,h,w,false,false);
+    if(!b||b.d<0.4) break;
+    h.splice(b.i,1);
+    const d=Math.min(w,b.t.cost); w-=d; let rest=b.t.cost-d; while(rest-->0) h.shift();
+    if(b.t.kind==='stack') st[b.t.si].cards.push(b.c.n); else st.push({t:b.c.t,cards:[b.c.n]});
+    tot+=b.d; cnt++;
+  }
+  return {delta:tot,count:cnt};
+}
+function placeCard(p,c,t,under){
+  const pl=P(p);
+  if(t.kind==='stack'){ const s=pl.stacks[t.si]; if(under) s.cards.unshift(c.n); else s.cards.push(c.n); }
+  else pl.stacks.push({t:c.t,cards:[c.n]});
+}
+function cardLabel(c){ return `${TYPES[c.t].n} ${c.n}`; }
+// opts: {mode, free, under, max}. Ritorna il numero di carte giocate, oppure -1 se annullata senza effetto.
+async function playAction(p,o={}){
+  const pl=P(p), max=o.max||99;
+  let count=0;
+  while(count<max&&pl.hand.length){
+    if(p===HUM){
+      const extra=count>0?[{label:'Fine giocata',value:'done'}]:(o.mode?[{label:o.mode==='back'?'↶ Indietro':'Salta',value:'done'}]:[]);
+      const r=await askHand({min:1,max:1,hint:o.under?'Scegli la carta da giocare sotto una pila.':'Scegli una carta fiore da giocare (acqua disponibile: '+pl.water+', carte in mano oltre a questa: '+(pl.hand.length-1)+').',extra});
+      if(r.extra==='done') break;
+      const i=r.idx[0], c=pl.hand[i];
+      const tg=targetsFor(pl.stacks,c,o.free,o.under).filter(t=>t.cost<=pl.water+pl.hand.length-1);
+      if(!tg.length){ logMsg(`${cardLabel(c)}: nessuna destinazione possibile o acqua insufficiente.`); continue; }
+      const opts=tg.map(t=>({label:t.kind==='stack'?`Sulla pila ${TYPES[c.t].n} (in cima ${topOf(pl.stacks[t.si])}, ${pl.stacks[t.si].cards.length} carte) · costo ${t.cost}`:`Nuova pila ${TYPES[c.t].n} · costo ${t.cost}`,value:t}));
+      opts.push({label:'↶ Annulla',value:null});
+      const t=await ask(HUM,`Dove giochi ${cardLabel(c)}?`,opts);
+      if(!t) continue;
+      pl.hand.splice(i,1);
+      await payCost(p,t.cost);
+      placeCard(p,c,t,o.under);
+      logMsg(`${pl.name} gioca ${cardLabel(c)}${t.cost?` (costo ${t.cost})`:''}.`);
+      count++;
+    }else{
+      const b=bestMove(pl.stacks,pl.hand,pl.water,o.free,o.under);
+      if(!b||b.d<(o.force?-99:0.4)) break;
+      await sleep(600);
+      pl.hand.splice(b.i,1);
+      await payCost(p,b.t.cost);
+      placeCard(p,b.c,b.t,o.under);
+      logMsg(`${pl.name} gioca ${cardLabel(b.c)}${b.t.cost?` (costo ${b.t.cost})`:''}.`);
+      count++;
+    }
+  }
+  if(count===0&&p===HUM&&o.mode) return -1;
+  return count;
+}
+// bonus insetto: se nel turno hai giocato una sola carta fiore
+async function insectBonus(p){
+  const pl=P(p);
+  if(!G.insFace&&!G.insDeck.length) return;
+  let pick='no';
+  if(p===HUM){
+    const opts=[];
+    if(G.insFace) opts.push({label:`Prendi l'insetto scoperto: ${INS[G.insFace.type].n} — ${INS[G.insFace.type].d}`,value:'face'});
+    if(G.insDeck.length) opts.push({label:'Prendi la prima carta del mazzo insetti (coperta)',value:'deck'});
+    opts.push({label:'Nessun insetto',value:'no'});
+    pick=await ask(HUM,'Bonus insetto: hai giocato una sola carta fiore',opts);
+  }else{
+    const f=G.insFace;
+    pick=f&&(INS[f.type].pts>=2||['tento','haru','tama','konchu','ari'].includes(f.type)||!G.insDeck.length)?'face':(G.insDeck.length?'deck':'no');
+  }
+  if(pick==='no') return;
+  let c;
+  if(pick==='face'){ c=G.insFace; G.insFace=G.insDeck.length?G.insDeck.pop():null; }
+  else c=G.insDeck.pop();
+  pl.insects.push({type:c.type,used:false});
+  logMsg(`${pl.name} ottiene l'insetto ${INS[c.type].n}${pick==='deck'&&p!==HUM?'':''}.`);
+}
+
+// ═════════════════════════ AZIONI: TESSERE PERSONAGGIO ═════════════════════════
+const canClaim = (p,from) => { const pl=P(p); return pl.stacks.length>0&&(from==='box'?G.box:G.tiles).length>0&&maxTop(pl)<=totalWater(p); };
+function aiTile(p,from){
+  const pl=P(p), list=from==='box'?G.box:G.tiles;
+  let best=null;
+  list.forEach((t,i)=>{
+    if(!fulfilled(p,t)) return;
+    const m=metricOf(pl,t);
+    if(G.pl.some((q,qi)=>qi!==p&&metricOf(q,t)>=m)) return;                    // solo se sono in vantaggio netto
+    if(pl.stacks.reduce((a,s)=>a+s.cards.length,0)<4&&!G.ending) return;
+    const v=5+Math.random();
+    if(!best||v>best.v) best={i,v};
+  });
+  return best;
+}
+async function claimAction(p,from,mode){
+  const pl=P(p), list=from==='box'?G.box:G.tiles;
+  if(!pl.stacks.length||!list.length){ if(p===HUM) logMsg('Per prendere una tessera serve almeno una carta fiore giocata.'); return false; }
+  const cost=maxTop(pl);
+  if(cost>totalWater(p)){ if(p===HUM) logMsg(`Costo ${cost}: acqua insufficiente.`); return false; }
+  let idx;
+  if(p===HUM){
+    const opts=list.map((t,i)=>({label:`${t.label} · costo ${cost}`,value:i}));
+    if(mode) opts.push({label:mode==='back'?'↶ Indietro':'Salta',value:-1});
+    idx=await ask(HUM,from==='box'?'Scegli una tessera dalla scatola':'Scegli una tessera dal centro del tavolo',opts);
+    if(idx==null||idx<0) return false;
+  }else{
+    const b=aiTile(p,from); if(!b) return false; idx=b.i;
+  }
+  await payCost(p,cost);
+  const t=list.splice(idx,1)[0];
+  pl.tiles.push(t);
+  logMsg(`${pl.name} prende la tessera «${t.label}» (costo ${cost}).`);
+  if(p!==HUM) await sleep(700);
+  return true;
+}
+
+// ═════════════════════════ INSETTI ═════════════════════════
+function visibleInsects(){
+  const out=[];
+  if(G.insFace) out.push({owner:-1,type:G.insFace.type});
+  G.pl.forEach((q,i)=>q.insects.forEach(x=>out.push({owner:i,type:x.type})));
+  return out;
+}
+async function runInsect(p,type){
+  const pl=P(p);
+  switch(type){
+    case 'kicho':{
+      await takeAction(p,'skip');
+      const n=await playAction(p,{mode:'skip'});
+      if(n===1) await insectBonus(p);
+      break; }
+    case 'ari':{
+      const cs=drawFlowers(4);
+      if(!cs.length) break;
+      let drop=[];
+      if(p===HUM){
+        pl.hand.push(...cs);
+        const r=await askHand({min:1,max:1,hint:'Hai pescato 4 carte: scegli quale scartare tra le 4 appena pescate (le ultime in mano).'});
+        removeCards(p,r.idx,true);
+      }else{
+        pl.hand.push(...cs);
+        removeCards(p,aiDiscardIdx(p,1),true);
+      }
+      logMsg(`${pl.name} pesca 4 carte e ne tiene 3.`);
+      break; }
+    case 'batta':{
+      const n=await playAction(p,{mode:'skip',free:true,max:1});
+      if(n===1&&false) await insectBonus(p);
+      break; }
+    case 'ga':{
+      await playAction(p,{mode:'skip',under:true,max:1});
+      break; }
+    case 'hachi':{
+      const n=await playAction(p,{mode:'skip'});
+      if(n===1) await insectBonus(p);
+      await claimAction(p,'center','skip');
+      break; }
+    case 'haru': gainWater(p,pl.cap-pl.water); logMsg(`${pl.name} ricarica l'acqua al massimo.`); break;
+    case 'kabuto':{
+      const cs=[]; for(let i=0;i<4&&G.insDeck.length;i++) cs.push(G.insDeck.pop());
+      if(!cs.length) break;
+      let k=0;
+      if(p===HUM) k=await ask(HUM,'Scegli 1 insetto da tenere (gli altri tornano in fondo al mazzo)',cs.map((c,i)=>({label:`${INS[c.type].n} — ${INS[c.type].d}`,value:i})));
+      else k=Math.max(0,cs.findIndex(c=>INS[c.type].pts>=2));
+      pl.insects.push({type:cs[k].type,used:false});
+      cs.forEach((c,i)=>{ if(i!==k) G.insDeck.unshift(c); });
+      logMsg(`${pl.name} sceglie l'insetto ${INS[cs[k].type].n}.`);
+      break; }
+    case 'kamakiri':{
+      const list=visibleInsects().filter(v=>v.type!=='kamakiri'&&!(INS[v.type].A&&(G.mainDone||G.usedA)));
+      if(!list.length){ logMsg('Nessun insetto visibile utilizzabile.'); break; }
+      let k=0;
+      if(p===HUM) k=await ask(HUM,'Quale abilità copi?',list.map((v,i)=>({label:`${v.owner<0?'Mazzo (scoperto)':P(v.owner).name}: ${INS[v.type].n} — ${INS[v.type].d}`,value:i})));
+      else k=Math.max(0,list.findIndex(v=>['tento','haru','tama'].includes(v.type)));
+      const t=list[k].type;
+      if(INS[t].A){ G.mainDone=true; G.usedA=true; }
+      await runInsect(p,t);
+      break; }
+    case 'konchu':{
+      const ne=G.places.map((c,i)=>i).filter(i=>G.places[i].length);
+      const take=[];
+      for(let k=0;k<2&&ne.length;k++){
+        const rest=ne.filter(i=>!take.includes(i));
+        if(!rest.length) break;
+        let c;
+        if(p===HUM) c=await ask(HUM,`Konchu: scegli il ${k+1}° posto (diverso dal primo)`,rest.map(i=>({label:`${PLACES[i].n} (${G.places[i].length} carte)`,value:i})));
+        else c=rest.map(i=>({i,v:G.places[i].length+Math.random()})).sort((a,b)=>b.v-a.v)[0].i;
+        take.push(c);
+      }
+      take.forEach(c=>{ pl.hand.push(...G.places[c]); G.places[c]=[]; });
+      logMsg(`${pl.name} prende le carte da ${take.map(c=>PLACES[c].n).join(' e ')}.`);
+      if(G.places.every(x=>!x.length)&&G.deck.length){ revealFour(); logMsg('Giardino vuoto: rivelate 4 nuove carte.'); }
+      break; }
+    case 'konoha':{
+      await claimAction(p,'center','skip');
+      await takeAction(p,'skip');
+      break; }
+    case 'kuwaga':
+      await claimAction(p,'box','skip');
+      break;
+    case 'midori':{
+      if(!G.discard.length){ logMsg('Gli scarti sono vuoti.'); break; }
+      let k;
+      if(p===HUM) k=await ask(HUM,'Scegli una carta dagli scarti',G.discard.map((c,i)=>({label:cardLabel(c),value:i})));
+      else{
+        const sc=G.discard.map((c,i)=>({i,v:(pl.stacks.some(s=>s.t===c.t)?3:0)+sunOf(c.n)}));
+        k=sc.sort((a,b)=>b.v-a.v)[0].i;
+      }
+      const c=G.discard.splice(k,1)[0]; pl.hand.push(c);
+      logMsg(`${pl.name} recupera ${cardLabel(c)} dagli scarti.`);
+      break; }
+    case 'tama':{
+      let n=0;
+      G.places.forEach(col=>{ if(col.length){ pl.hand.push(col.pop()); n++; } });
+      logMsg(`${pl.name} prende la carta in cima a ${n} posti.`);
+      if(G.places.every(x=>!x.length)&&G.deck.length){ revealFour(); logMsg('Giardino vuoto: rivelate 4 nuove carte.'); }
+      break; }
+    case 'tento': { const g=gainWater(p,2); logMsg(`${pl.name} ottiene ${g} gocce d'acqua.`); break; }
+    case 'tonbo': pl.cap++; gainWater(p,1); logMsg(`${pl.name} aumenta la riserva d'acqua a ${pl.cap}.`); break;
+  }
+}
+async function useInsect(p,i){
+  const pl=P(p), x=pl.insects[i], d=INS[x.type];
+  if(p===HUM){
+    const ok=await ask(HUM,`Usare ${d.n}? Costo: 1 goccia d'acqua (o 1 carta dalla mano).`,[{label:'Sì, usa',value:true},{label:'↶ Annulla',value:false}]);
+    if(!ok) return false;
+  }
+  await payInsect(p);
+  x.used=true;
+  if(x.type==='kamakiri') x.noPts=true;
+  logMsg(`${pl.name} usa ${d.n}.`);
+  if(d.A){ G.mainDone=true; G.usedA=true; }
+  await runInsect(p,x.type);
+  if(p!==HUM) await sleep(500);
+  return true;
+}
+
+// ═════════════════════════ TURNO ═════════════════════════
+async function discardDown(p){
+  const pl=P(p);
+  const ex=pl.hand.length-MAXHAND;
+  if(ex<=0) return;
+  if(p===HUM){
+    const r=await askHand({min:ex,max:ex,hint:`Hai più di ${MAXHAND} carte: scegline ${ex} da scartare.`});
+    removeCards(p,r.idx,true);
+  }else removeCards(p,aiDiscardIdx(p,ex),true);
+  logMsg(`${pl.name} scarta ${ex} ${ex===1?'carta':'carte'} (massimo ${MAXHAND} in mano).`);
+}
+async function humanTurn(p){
+  const pl=P(p);
+  while(true){
+    const opts=[];
+    if(!G.mainDone){
+      opts.push({label:'Prendi carte fiore',value:{k:'take'},disabled:!canTake()});
+      opts.push({label:'Gioca carte fiore',value:{k:'play'},disabled:!pl.hand.length});
+      opts.push({label:'Prendi una tessera personaggio',value:{k:'claim'},disabled:!canClaim(p,'center')});
+    }
+    pl.insects.forEach((x,i)=>{
+      const d=INS[x.type];
+      if(x.used||(d.A&&(G.mainDone||G.usedA))) return;
+      opts.push({label:`${d.A?'[Azione] ':'[Extra] '}${d.n}: ${d.d}`,value:{k:'ins',i},disabled:totalWater(p)<1});
+    });
+    if(G.mainDone||!opts.some(o=>!o.disabled)) opts.push({label:'Fine turno',value:{k:'end'}});
+    const c=await ask(HUM,G.mainDone?'Azioni extra o fine turno':'Scegli la tua azione principale',opts);
+    if(c.k==='end') break;
+    if(c.k==='take'){ if(await takeAction(p,'back')) G.mainDone=true; }
+    else if(c.k==='play'){ const n=await playAction(p,{mode:'back'}); if(n>=0){ G.mainDone=true; if(n===1) await insectBonus(p); } }
+    else if(c.k==='claim'){ if(await claimAction(p,'center','back')) G.mainDone=true; }
+    else if(c.k==='ins') await useInsect(p,c.i);
+  }
+}
+const hasIns = (p,t) => P(p).insects.findIndex(x=>!x.used&&x.type===t);
+async function aiExtras(p){
+  const pl=P(p);
+  const use=async t=>{ const i=hasIns(p,t); if(i<0||totalWater(p)<1) return false; await useInsect(p,i); return true; };
+  if(pl.water<=1&&await use('tento')) {}
+  if(pl.cap-pl.water>=3&&pl.water<=2&&await use('haru')) {}
+  if(pl.cap<=5&&pl.water>=1&&hasIns(p,'tonbo')>=0&&await use('tonbo')) {}
+  if(pl.insects.length<=3&&pl.water>=2&&await use('kabuto')) {}
+  if(G.discard.some(c=>pl.stacks.some(s=>s.t===c.t&&c.n>=topOf(s)))&&pl.water>=1&&await use('midori')) {}
+  const bi=hasIns(p,'batta');
+  if(bi>=0&&pl.water>=1){ const b=bestMove(pl.stacks,pl.hand,pl.water,true,false); const nb=bestMove(pl.stacks,pl.hand,pl.water,false,false); if(b&&b.t.cost===0&&b.d>=2.5&&(!nb||b.d-nb.d>=1)) await useInsect(p,bi); }
+  const gi=hasIns(p,'ga');
+  if(gi>=0&&pl.water>=1&&pl.hand.some(c=>pl.stacks.some(s=>s.t===c.t&&s.cards.length>=2&&c.n<topOf(s)))) await useInsect(p,gi);
+}
+async function aiTurn(p){
+  const pl=P(p);
+  await sleep(600);
+  await aiExtras(p);
+  const plan=planPlay(pl);
+  const tile=aiTile(p,'center');
+  const costOk=pl.stacks.length&&maxTop(pl)<=pl.water;
+  let did=false;
+  if(tile&&costOk&&Math.random()<0.8) did=await claimAction(p,'center');
+  if(!did&&pl.stacks.length&&costOk&&hasIns(p,'kuwaga')>=0&&aiTile(p,'box')&&pl.water>maxTop(pl)){ await useInsect(p,hasIns(p,'kuwaga')); did=true; }
+  if(!did&&pl.hand.length<=3&&G.places.reduce((a,x)=>a+x.length,0)>=5){
+    for(const t of ['tama','konchu','ari']){ const i=hasIns(p,t); if(i>=0&&totalWater(p)>=1){ await useInsect(p,i); did=true; break; } }
+    if(!did){ const i=hasIns(p,'kicho'); if(i>=0&&totalWater(p)>=1){ await useInsect(p,i); did=true; } }
+  }
+  if(!did&&plan.count>=1&&plan.delta>=1.5){
+    const n=await playAction(p);
+    if(n===1) await insectBonus(p);
+    did=n>0;
+  }
+  if(!did) did=await takeAction(p);
+  if(!did&&pl.hand.length){ const n=await playAction(p); if(n===1) await insectBonus(p); }
+  G.mainDone=true;
+  await aiExtras(p);
+}
+async function playTurn(p){
+  G.cur=p; G.mainDone=false; G.usedA=false;
+  status(`Turno di ${P(p).name}.`);
+  if(p===HUM) await humanTurn(p); else await aiTurn(p);
+  await discardDown(p);
+  render();
+  await sleep(p===HUM?200:500);
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,msg:'',log:[],over:null,cur:0,first:0,mainDone:false,usedA:false,ending:null,endLeft:null,turnNo:1,
+     deck:[],discard:[],places:[[],[],[],[]],insDeck:[],insFace:null,tiles:[],box:[],stock:0,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],stacks:[],insects:[{type:'kicho',used:false}],tiles:[],water:0,cap:CAP0}))};
+  run();
+}
+function setup(){
+  const pls=shuffle(Array.from({length:72},(_,i)=>i%4));
+  let k=0,id=0; const deck=[];
+  TYPES.forEach((_,t)=>VALS.forEach(v=>deck.push({id:id++,t,n:v,pl:pls[k++]})));
+  shuffle(deck);
+  if(G.n<=3) deck.splice(0,12);
+  G.pl.forEach(pl=>{ pl.hand=deck.splice(0,4); });
+  G.deck=deck;
+  const ins=[]; Object.keys(INS).forEach(t=>{ if(t!=='kicho'){ ins.push({type:t},{type:t}); } });
+  G.insDeck=shuffle(ins);
+  G.insFace=G.insDeck.pop();
+  const tl=shuffle(TILE_DEFS.map(t=>({...t})));
+  G.tiles=tl.slice(0,4); G.box=tl.slice(4);
+  G.first=rnd(G.n); G.cur=G.first;
+  G.pl.forEach((pl,i)=>{ pl.water=i===G.first?2:3; });
+  G.stock=32-G.pl.reduce((a,pl)=>a+pl.water,0);
+  revealFour();
+  G.pl.forEach(pl=>pl.hand.sort((a,b)=>a.t-b.t||a.n-b.n));
+}
+async function run(){
+  const g=G;
+  try{
+    setup();
+    logMsg(`— Inizia ${P(G.first).name} (primo giocatore) —`);
+    status(G.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(G.first).name}.`);
+    await ask(HUM,G.first===HUM?'Sei tu il primo giocatore (2 gocce di partenza)':`Primo giocatore: ${P(G.first).name}`,[{label:'Ok, si parte',value:1}]);
+    let p=G.first;
+    while(true){
+      await playTurn(p);
+      P(p).hand.sort((a,b)=>a.t-b.t||a.n-b.n);
+      if(G.ending){
+        if(G.endLeft==null) G.endLeft=G.n-1; else G.endLeft--;
+        if(G.endLeft<=0) break;
+      }
+      p=(p+1)%G.n;
+      if(p===G.first) G.turnNo++;
+    }
+    G.cur=-1;
+    const sc=G.pl.map((_,i)=>scoreOf(i));
+    const best=Math.max(...sc.map(s=>s.total));
+    let win=sc.map((s,i)=>i).filter(i=>sc[i].total===best);
+    if(win.length>1){ const bw=Math.max(...win.map(i=>sc[i].water)); win=win.filter(i=>sc[i].water===bw); }
+    G.over={sc,winners:win};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const sunIcons = n => ico('sun').repeat(n);
+function cardFace(c,cls=''){
+  return `<span class="fc t${c.t} ${cls}" title="${cardLabel(c)}"><b>${c.n}</b>${ico(TYPES[c.t].icon)}<span class="sn">${sunIcons(sunOf(c.n))}</span></span>`;
+}
+function handBtn(c,i,ok,sel){
+  return `<button class="fc t${c.t} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-h="${i}" title="${cardLabel(c)}"><b>${c.n}</b>${ico(TYPES[c.t].icon)}<span class="sn">${sunIcons(sunOf(c.n))}</span></button>`;
+}
+function insHtml(x,extra=''){
+  const d=INS[x.type];
+  return `<div class="ins ${d.A?'A':''} ${x.used?'used':''}">${d.pts?`<span class="pts">+${d.pts}</span>`:''}<b>${d.n}</b>${esc(d.d)}${extra}</div>`;
+}
+function tileHtml(t,mine){
+  return `<div class="tile ${mine?'mine':''}">${ico('user')}<span>${esc(t.label)}<br><span class="v">${mine?'8 punti se soddisfatta da te':'3 punti a chi la soddisfa'}</span></span></div>`;
+}
+function flagHtml(p){
+  if(!G||G.over) return '';
+  let s='';
+  if(G.cur===p) s+='<span class="flag turn">Turno</span>';
+  if(G.first===p&&G.turnNo===1&&G.cur>=0) s+='<span class="flag first">Primo giocatore</span>';
+  return s;
+}
+function playerHtml(p){
+  const pl=P(p);
+  const water=Array.from({length:pl.cap},(_,i)=>`<i class="ph-fill ph-drop ${i<pl.water?'':'e'}"></i>`).join('');
+  const stacks=pl.stacks.length?pl.stacks.map(s=>`<span class="chip t${s.t}" title="${TYPES[s.t].n}: ${s.cards.length} carte, in cima ${topOf(s)}">${ico(TYPES[s.t].icon)} ×${s.cards.length} · ${topOf(s)}${sunOf(topOf(s))?` ${sunIcons(sunOf(topOf(s)))}`:''}</span>`).join(''):'<span class="empty">nessuna pila</span>';
+  const ins=pl.insects.map(x=>`<span class="chip ic ${x.used?'used':''}" title="${esc(INS[x.type].d)}">${ico('bug')} ${INS[x.type].n}${INS[x.type].A?' (A)':''}</span>`).join('');
+  const tiles=pl.tiles.map(t=>`<span class="chip tl" title="${esc(t.label)}">${ico('user')} ${esc(t.label.length>26?t.label.slice(0,25)+'…':t.label)}</span>`).join('');
+  let hand='';
+  if(p===HUM){
+    hand=`<div class="hand">${pl.hand.map((c,i)=>{
+      if(PR&&PR.type==='hand') return handBtn(c,i,true,PR.sel.has(i));
+      return cardFace(c);
+    }).join('')||'<span class="empty">mano vuota</span>'}</div>`;
+  }
+  return `<div class="pp ${G.cur===p?'turn':''}">
+    <div class="pp-name">${esc(pl.name)}${flagHtml(p)}</div>
+    <div class="pp-row water" title="Riserva d'acqua">${water}<span style="margin-left:4px">${pl.water}/${pl.cap} · carte in mano ${pl.hand.length}</span></div>
+    <div class="pp-row">${stacks}</div>
+    <div class="pp-row">${ins}</div>
+    ${tiles?`<div class="pp-row">${tiles}</div>`:''}
+    ${hand}</div>`;
+}
+function boardHtml(){
+  const places=G.places.map((col,i)=>`<div class="place"><div class="ph">${ico(PLACES[i].icon)} ${PLACES[i].n} · ${col.length}</div><div class="pile">${col.map(c=>cardFace(c,'mini')).join('')||'<span class="empty">vuoto</span>'}</div></div>`).join('');
+  return `<div class="board"><div class="panel"><h3>Giardino</h3><div class="places">${places}</div></div>
+    <div class="side">
+      <div class="panel"><h3>Mazzi</h3><div class="cnts"><span>Fiori: <b>${G.deck.length}</b></span><span>Scarti: <b>${G.discard.length}</b></span><span>Insetti: <b>${G.insDeck.length}</b></span><span>Acqua: <b>${G.stock}</b></span></div>
+        ${G.insFace?`<div style="margin-top:8px"><div class="hint" style="margin-bottom:4px">Insetto scoperto</div>${insHtml(G.insFace)}</div>`:''}</div>
+      <div class="panel"><h3>Tessere al centro</h3><div class="tiles">${G.tiles.map(t=>tileHtml(t,false)).join('')||'<span class="empty">nessuna</span>'}</div></div>
+    </div></div>`;
+}
+function scoreTableHtml(){
+  const rows=G.pl.map((p,i)=>{ const s=G.over.sc[i]; return `<tr><td>${esc(p.name)}${G.over.winners.includes(i)?' 🏆':''}</td><td>${s.flowers}</td><td>${s.tiles}</td><td>${s.ins}</td><td><b>${s.total}</b></td><td>${s.water}</td></tr>`; }).join('');
+  return `<table class="score"><tr><th></th><th>Fiori</th><th>Tessere</th><th>Insetti</th><th>Totale</th><th>Acqua (spareggio)</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Haru contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[2,3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTableHtml()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='hand'){
+    html+=`<div class="hint">${esc(PR.hint)}</div><div class="opts">`;
+    if(!(PR.max===1&&PR.min===1)) html+=`<button class="opt" data-hc="1" ${PR.sel.size>=PR.min&&PR.sel.size<=PR.max?'':'disabled'}>Conferma (${PR.sel.size}/${PR.max===PR.min?PR.max:PR.min+'–'+PR.max})</button>`;
+    PR.extra.forEach((x,k)=>{ html+=`<button class="opt" data-hx="${k}">${esc(x.label)}</button>`; });
+    html+='</div>';
+  }
+  return html;
+}
+function recapHtml(){
+  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Fiori</span>${TYPES.map((t,i)=>`<span class="chip t${i}">${ico(t.icon)} ${t.n}</span>`).join('')}<span class="rv">${G.n<=3?'60':'72'} carte (12 per tipo${G.n<=3?', 12 tolte a caso':''})</span></div>
+    <div class="recap-row"><span class="lbl">Numeri</span>${VALS.filter((v,i)=>VALS.indexOf(v)===i).map(v=>`<span class="nchip">${v}${sunOf(v)?' ':''}${sunIcons(sunOf(v))}</span>`).join('')}<span class="rv">numero → soli (moltiplicatore di fine partita)</span></div>
+    <div class="recap-row"><span class="lbl">Giardino</span>${PLACES.map(p=>`<span class="nchip">${ico(p.icon)} ${p.n}</span>`).join('')}<span class="rv">max ${PLACE_MAX} carte per posto</span></div>
+    <div class="recap-row"><span class="lbl">Risorse</span><span class="rv" style="margin-left:0">acqua: capienza ${CAP0}, partenza ${G.n>1?'2 (primo) / 3 (altri)':''} · mano massima ${MAXHAND} carte · 28 insetti + 1 Kicho a testa · 4 tessere in gioco</span></div></div>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>Sei giardiniere di corte nel giardino dell'Imperatore a Nara. Coltiva fiori di tipi diversi tenendo presente che quasi tutte le azioni richiedono acqua, ma la riserva è limitata. Gli insetti ti aiutano a raggiungere gli obiettivi, ma il tempismo è fondamentale. Componenti: tabellone Giardino, 72 carte Fiore, 33 carte Insetto, 5 aiuti di gioco, 32 gocce d'acqua, 15 tessere Personaggio.</p>
+<h4>Preparazione</h4>
+<ul>
+<li>Ogni giocatore riceve 1 carta Insetto iniziale (Kicho). Le altre 28 carte Insetto si mescolano a formare il mazzo; se ne gira una scoperta accanto.</li>
+<li>Si scelgono a caso 4 tessere Personaggio, con il lato da 3 punti visibile, al centro del tavolo.</li>
+<li>In 2 o 3 giocatori si tolgono 12 carte Fiore a caso. Si mescolano le restanti e se ne danno 4 a ciascun giocatore. Si rivelano le prime 4 carte del mazzo, ognuna nel posto indicato dall'icona sul suo dorso (ponte, albero, torii o stagno koi), sovrapponendole leggermente.</li>
+<li>Il primo giocatore riceve 2 gocce d'acqua, gli altri 3. Le altre restano nella riserva generale.</li>
+</ul>
+<h4>Il turno</h4>
+<p>Il giocatore di turno sceglie <b>una sola azione principale</b>: prendere carte fiore, giocare carte fiore oppure prendere una tessera Personaggio. A fine turno si possono tenere al massimo 7 carte fiore in mano: le eccedenti si scartano.</p>
+<h4>Prendere carte fiore</h4>
+<p>Si prendono tutte le carte di un posto (colonna) del giardino. Prima di prenderle si può pagare una volta 1 goccia per rivelare altre 4 carte dal mazzo (se un posto ha già 7 carte, queste vengono scartate prima di aggiungere la nuova). Se dopo aver preso le carte il giardino è vuoto, si rivelano subito 4 carte nuove.</p>
+<p><b>Bonus acqua:</b> se si prendono le carte da un posto con una sola carta, si riporta la riserva d'acqua alla capienza massima (all'inizio 5 gocce). Non si può mai superare la capienza.</p>
+<p><b>Importante:</b> quando si paga in acqua, o per attivare un Insetto, si può usare in alternativa una carta fiore dalla mano come goccia.</p>
+<h4>Giocare carte fiore</h4>
+<p>Si possono giocare quante carte si vuole, finché si può pagarle. Regole delle pile:</p>
+<ul>
+<li>Ogni pila contiene solo carte dello stesso tipo (colore).</li>
+<li>Una nuova pila si inizia gratis con uno 0 o un 1; con un numero più alto si paga tante gocce quanto il numero.</li>
+<li>Ogni carta successiva deve avere numero uguale o maggiore della carta in cima. Se la differenza è 0 o 1 è gratis, altrimenti si paga la differenza.</li>
+<li>Puoi contare le carte delle tue pile, non quelle degli altri.</li>
+</ul>
+<p><b>Bonus insetto:</b> se nel turno hai giocato una sola carta fiore, puoi prendere 1 carta Insetto dalla cima del mazzo o quella scoperta (in tal caso se ne rivela una nuova) e metterla scoperta nella tua area.</p>
+<p>Le carte Insetto sono abilità usabili <b>una sola volta nella partita</b> mettendoci sopra una goccia (o una carta fiore coperta). La goccia resta lì: è una risorsa scartata. Le carte con una "A" sono azioni principali (se ne può usare solo una per turno, al posto dell'azione base); le altre sono azioni extra, utilizzabili in numero qualsiasi prima o dopo l'azione principale.</p>
+<h4>Prendere una tessera Personaggio</h4>
+<p>Serve almeno una carta fiore giocata. Si sceglie una tessera, la si gira sul lato da 8 punti e la si mette nella propria area pagando tante gocce quanto il <b>numero più alto in cima alle proprie pile</b>. Le tessere prese valgono 8 punti se soddisfatte dal proprietario a fine partita; quelle ancora al centro valgono 3 punti a chi le soddisfa. Una tessera è soddisfatta anche in caso di parità.</p>
+<h4>Fine partita e punteggio</h4>
+<p>La partita finisce quando il mazzo dei fiori si esaurisce: gli altri giocatori giocano un ultimo turno ciascuno. Poi si conta:</p>
+<ul>
+<li>Per ogni pila: numero di carte × moltiplicatore (soli) della carta in cima.</li>
+<li>8 punti per ogni tessera presa e soddisfatta, 3 punti per ogni tessera al centro che si soddisfa.</li>
+<li>I punti stampati sulle carte Insetto (Tamamushi +2, Haru Semi +2, Kuwagatamushi +2, Midori Kamemushi +2, Tentomushi +3, Tonbo +1).</li>
+</ul>
+<p>Vince chi ha più punti; a parità, chi ha più acqua (riserva + carte in mano, escluse le gocce sugli Insetti).</p>
+<h4>Tessere Personaggio</h4>
+<ul>
+<li>6 tessere (una per tipo di fiore): più carte di quel tipo giocate.</li>
+<li>3 tessere: somma più alta in cima alle pile di due tipi (Ayame-Shobu + Fuji, Sakura + Botan, Nanohana + Ume).</li>
+<li>Più carte senza sole (numero 0); più acqua rimasta (comprese le carte in mano); più carte in un'unica pila; più carte Insetto; somma più alta di soli in cima alle pile; meno pile.</li>
+</ul>
+<h4>Abilità degli insetti</h4>
+<ul>
+${Object.keys(INS).map(k=>`<li><b>${INS[k].n}${INS[k].A?' (A)':''}${INS[k].pts?` +${INS[k].pts}p`:''}</b>: ${esc(INS[k].d)}</li>`).join('')}
+</ul>
+<p><i>Interpretazioni nell'app:</i> il regolamento non indica la distribuzione dei numeri sulle carte: qui ogni tipo ha i numeri 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, con soli 0 per lo 0, 1 per 1–3, 2 per 4–5, 3 per 6. I punti stampati sugli Insetti valgono anche se l'insetto non è stato attivato (tranne per la copia di Kamakiri). Kuwagatamushi prende una tessera dalla scatola pagando il costo normale; Ga gioca la carta gratis; Batta applica comunque la regola di crescita delle pile. Alla fine della partita, dopo il turno che esaurisce il mazzo, ognuno degli altri giocatori gioca un turno. Pagando, si usano prima le gocce; puoi scegliere di pagare solo con carte.</p>
+</div></details>`;
+
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop"><label class="opt-toggle" title="Aggiunge una filigrana ai tipi di fiore per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label></div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo"><small>Dario Massarenti &amp; Francesco Testini</small>Haru</div>
+    ${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Turno ${G.turnNo}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=boardHtml()+`<div class="players">${G.pl.map((_,i)=>playerHtml(i)).join('')}</div>
+      <details class="log" open><summary>CRONACA</summary>${G.log.slice(0,8).map(l=>`<div>${esc(l)}</div>`).join('')}</details>
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button></div></form>';
+  ov.style.display='flex';
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.h!==undefined) handClick(Number(b.dataset.h));
+  else if(b.dataset.hc!==undefined) handConfirm();
+  else if(b.dataset.hx!==undefined) handExtra(Number(b.dataset.hx));
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('haru-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render();
+  }
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+</script>
+</body>
+</html>
