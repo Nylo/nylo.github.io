@@ -182,12 +182,12 @@ const cname = c => `${COL[c.k].n} ${c.n}`;
 const dotsOf = k => '●'.repeat(COL[k].dots);
 
 // ═════════════════════════ INTERAZIONE ═════════════════════════
-async function ask(p,title,options){
+async function ask(p,title,options,zone){
   const ok=options.filter(x=>!x.disabled);
   if(!ok.length) return null;
   if(p!==HUM) return ok[rnd(ok.length)].value;
   const g=G;
-  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,zone,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
 }
 // scelta di una carta dalla mano (risolve con l'indice) oppure di un'azione extra (risolve con il suo valore)
 function askCard(legal,hint,extra){
@@ -335,9 +335,7 @@ async function humanAct(p,canOpen,canPlay,mustOpen,forcedPlay){
     if(forcedPlay) hint='Tutti gli altri hanno aperto l\'ombrello in questa presa: devi giocare una carta. '+hint;
     if(pl.umb!=null) hint+=` Hai l'ombrello ${COL[pl.umb].n}: sei «Soleggiato» se giochi una carta ${COL[pl.umb].n.toLowerCase()}.`;
     const extra=canOpen?[{label:'☂ Apri l\'ombrello (invece di giocare una carta)',value:'open'}]:[];
-    if(G.phase==='ret'&&pl.umb!=null&&G.t>0) extra.push({label:`☂ Chiudi l'ombrello ${COL[pl.umb].n} (poi gioca una carta)`,value:'close'});
     const r=await askCard(legal,hint,extra);
-    if(r==='close'){ closeUmb(p); continue; }
     if(r==='open'){ const c=await chooseUmb(true); if(c==null) continue; return {open:c}; }
     return {card:r};
   }
@@ -395,8 +393,11 @@ async function closings(last){
     const p=G.pl.findIndex(x=>x.umb===c);
     if(p<0) continue;
     const pl=P(p);
-    if(p===HUM&&!last) continue;                       // il giocatore chiude con l'azione «Chiudi l'ombrello» nel suo turno
-    if(last||pl.pre>=pl.T) closeUmb(p,last);
+    let close;
+    if(last) close=true;
+    else if(p===HUM){ status('Presa conclusa: puoi chiudere il tuo ombrello.'); close=await ask(HUM,`Vuoi chiudere ora il tuo ombrello ${COL[c].n}?`,[{label:"☂ Chiudi l'ombrello",value:true},{label:'Tieni aperto',value:false}],'hand'); }
+    else close=pl.pre>=pl.T;
+    if(close) closeUmb(p,last);
   }
 }
 async function tricks(){
@@ -472,6 +473,7 @@ function seatHtml(p,pos){
       if(PR&&PR.type==='card') return handBtn(c,i,PR.legal.has(i),PR.sel===i);
       return kface(c);
     }).join('')}</div>`;
+    if(PR&&PR.type==='choose'&&PR.zone==='hand') hand+=`<div class="dock-title" style="text-align:center;margin-top:8px">${esc(PR.title).toUpperCase()}</div><div class="opts" style="justify-content:center;margin-top:6px">${PR.options.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
     if(PR&&PR.type==='card'&&PR.sel==null&&PR.extra.length) hand+=`<div class="opts" style="justify-content:center;margin-top:8px">${PR.extra.map((x,k)=>`<button class="opt" data-x="${k}">${esc(x.label)}</button>`).join('')}</div>`;
   }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
   const lab=G.phase==='out'?'prima | dopo l\'ombrello':'con | senza ombrello';
@@ -506,7 +508,7 @@ function dockHtml(){
   if(G.show){
     html+=`<table class="score"><tr><th></th><th>Prese ${G.phase==='out'?'prima':'con'} l'ombrello</th><th>Prese ${G.phase==='out'?'dopo':'senza'}</th><th>Punti</th></tr>${G.show.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td>${r.pre}</td><td>${r.post}</td><td class="${r.s>0?'neg':'pos'}"><b>${r.s}</b></td></tr>`).join('')}</table>`;
   }
-  if(PR&&PR.type==='choose'){
+  if(PR&&PR.type==='choose'&&PR.zone!=='hand'){
     html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
   }else if(PR&&PR.type==='card'){
     html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
