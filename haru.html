@@ -75,7 +75,7 @@ table.score td:first-child,table.score th:first-child{text-align:left}
 .place{background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 4px 8px;min-height:150px;display:flex;flex-direction:column;align-items:center;gap:4px}
 .place .ph{font-size:11px;color:var(--text-soft);display:flex;align-items:center;gap:4px}
 .pile{display:flex;flex-direction:column;align-items:center}
-.pile .fc+.fc{margin-top:-52px}
+.pile .fc+.fc{margin-top:-42px}
 .side{display:flex;flex-direction:column;gap:12px}
 .cnts{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text-soft)}
 .cnts b{color:var(--text)}
@@ -87,7 +87,8 @@ table.score td:first-child,table.score th:first-child{text-align:left}
 .tile{background:#efe7d3;color:#2b2a22;border-radius:8px;padding:6px 8px;font-size:11px;line-height:1.35;display:flex;gap:6px;align-items:flex-start}
 .tile i{font-size:20px;color:#7a5e2a}
 .tile.mine{background:#f6e3a6}
-.tile .v{font-weight:700}
+.tile .v{font-weight:400}
+.tile .rq{font-weight:700}
 .tiles{display:flex;flex-direction:column;gap:6px}
 
 .players{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:12px}
@@ -104,13 +105,16 @@ table.score td:first-child,table.score th:first-child{text-align:left}
 .chip.tl{background:#f6e3a6;color:#2b2a22;border-color:#a8873a}
 .empty{font-size:11px;color:var(--text-soft);font-style:italic}
 
-.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff6dc;display:inline-flex;flex-direction:column;align-items:center;justify-content:space-between;padding:4px 2px;font-family:'Libre Baskerville',serif;font-weight:700;color:#fff;position:relative;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.35);font-size:20px;line-height:1}
-.fc i{font-size:22px}
-.fc .sn{font-size:11px;display:flex;gap:0;min-height:11px}
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff6dc;display:inline-flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:3px 4px;font-family:'Libre Baskerville',serif;font-weight:700;color:#fff;position:relative;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.35);font-size:16px;line-height:1}
+.fc .hd{display:flex;justify-content:space-between;align-items:center;height:18px;font-size:16px;line-height:1}
+.fc .sn{display:inline-flex;align-items:center;gap:1px;font-size:11px;color:#ffe9a0}
 .fc .sn i{font-size:11px;color:#ffe9a0}
+.fc .fi{flex:1;display:flex;align-items:center;justify-content:center}
+.fc .fi i{font-size:24px}
 .fc.t0{background-color:var(--t0)} .fc.t1{background-color:var(--t1)} .fc.t2{background-color:var(--t2)} .fc.t3{background-color:var(--t3)} .fc.t4{background-color:var(--t4)} .fc.t5{background-color:var(--t5)}
-.fc.mini{--cw:42px;--ch:62px;font-size:17px}
-.fc.mini i{font-size:18px}
+.fc.mini{--cw:46px;--ch:64px}
+.fc.mini .hd{font-size:15px}
+.fc.mini .fi i{font-size:20px}
 button.fc{cursor:pointer;transition:transform 0.12s}
 button.fc:hover:not(:disabled){transform:translateY(-6px)}
 button.fc:disabled{cursor:default}
@@ -120,6 +124,8 @@ button.fc:disabled{cursor:default}
 .hand{display:flex;gap:4px;flex-wrap:wrap}
 .log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
 .log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid rgba(255,255,255,0.06);padding:1px 0}
 body.a11y .fc.t0,body.a11y .chip.t0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
 body.a11y .fc.t1,body.a11y .chip.t1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 body.a11y .fc.t2,body.a11y .chip.t2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
@@ -164,8 +170,10 @@ const TYPES = [
   {n:'Ume',         col:'verde',  icon:'tree'}
 ];
 const PLACES = [{n:'Ponte',icon:'bridge'},{n:'Albero',icon:'tree'},{n:'Torii',icon:'columns'},{n:'Stagno koi',icon:'fish'}];
-const VALS = [0,1,1,2,2,3,3,4,4,5,5,6];                     // 12 carte per tipo (distribuzione assunta, non indicata nel regolamento)
-const sunOf = n => n===0?0:n<=3?1:n<=5?2:3;
+// 12 carte per tipo: valori e moltiplicatori (soli) come da lista del mazzo; il retro (posto del giardino) cambia ogni 3 carte
+const VALS = [0,0,0,1,1,2,2,3,3,4,5,6];
+const sunOf = n => [0,1,1,2,2,3,3][n];
+const BACKS = [[0,1,2,3],[1,0,3,2],[0,2,1,3],[1,3,2,0],[3,2,1,0],[2,3,0,1]];   // per tipo (Ayame-Shobu, Sakura, Botan, Fuji, Nanohana, Ume): ponte=0, albero=1, torii=2, stagno=3
 const MAXHAND = 7, CAP0 = 5, PLACE_MAX = 7;
 const INS = {
   kicho:   {n:'Kicho',            A:1, pts:0, d:'Prendi carte, poi gioca carte nello stesso turno (con i bonus).'},
@@ -175,14 +183,14 @@ const INS = {
   hachi:   {n:'Hachi',            A:1, pts:0, d:'Gioca carte fiore (con bonus), poi prendi una tessera personaggio nello stesso turno.'},
   haru:    {n:'Haru Semi',            pts:2, d:'Riempi la riserva d\'acqua al massimo.'},
   kabuto:  {n:'Kabutomushi',          pts:0, d:'Pesca le prime 4 carte insetto e tienine 1 nella tua area.'},
-  kamakiri:{n:'Kamakiri',             pts:0, d:'Usa l\'abilità di una carta insetto visibile (senza punti finali).'},
+  kamakiri:{n:'Kamakiri',             pts:0, d:'Copia l\'abilità di un\'altra carta insetto, anche già usata e anche davanti agli altri giocatori.'},
   konchu:  {n:'Konchu',           A:1, pts:0, d:'Prendi tutte le carte fiore da due posti diversi.'},
   konoha:  {n:'Konoha-Mushi',     A:1, pts:0, d:'Prendi una tessera personaggio, poi prendi carte nello stesso turno (con bonus).'},
   kuwaga:  {n:'Kuwagatamushi',    A:1, pts:2, d:'Prendi una tessera personaggio dalla scatola.'},
   midori:  {n:'Midori Kamemushi',     pts:2, d:'Scegli 1 carta qualsiasi dagli scarti dei fiori.'},
   tama:    {n:'Tamamushi',        A:1, pts:2, d:'Prendi la carta in cima a ciascun posto del giardino.'},
   tento:   {n:'Tentomushi',           pts:3, d:'Ottieni 2 gocce d\'acqua.'},
-  tonbo:   {n:'Tonbo',                pts:1, d:'La tua riserva d\'acqua aumenta di 1.'}
+  tonbo:   {n:'Tonbo',                pts:1, d:'La capienza massima della tua riserva d\'acqua aumenta di 1 (le gocce che hai non cambiano).'}
 };
 const TILE_DEFS = [
   ...TYPES.map((t,i)=>({k:'type',t:i,label:`Più carte ${t.n} (${t.col})`})),
@@ -215,7 +223,8 @@ const topOf = s => s.cards[s.cards.length-1];
 const stackPts = s => s.cards.length*sunOf(topOf(s));
 const maxTop = pl => pl.stacks.reduce((m,s)=>Math.max(m,topOf(s)),-1);
 const totalWater = p => P(p).water+P(p).hand.length;
-function logMsg(t){ G.log.unshift(t); if(G.log.length>80) G.log.pop(); render(); }
+let LOGOPEN=false;
+function logMsg(t){ G.log.unshift(t); if(G.log.length>600) G.log.pop(); render(); }
 function status(t){ G.msg=t; render(); }
 
 // ═════════════════════════ INTERAZIONE ═════════════════════════
@@ -279,15 +288,16 @@ function scoreOf(p){
   const ins=pl.insects.reduce((a,x)=>a+(x.noPts?0:INS[x.type].pts),0);
   return {flowers,tiles,ins,total:flowers+tiles+ins,water:pl.water+pl.hand.length};
 }
+// una sola pila per tipo di fiore (max 6 pile): la carta va sulla pila del suo tipo, oppure ne apre una se non esiste
 function targetsFor(stacks,c,free,under){
-  const out=[];
-  stacks.forEach((s,si)=>{
-    if(s.t!==c.t) return;
-    if(under) out.push({kind:'stack',si,cost:0});
-    else if(c.n>=topOf(s)){ const d=c.n-topOf(s); out.push({kind:'stack',si,cost:free?0:(d<=1?0:d)}); }
-  });
-  if(!under) out.push({kind:'new',cost:free?0:(c.n<=1?0:c.n)});
-  return out;
+  const si=stacks.findIndex(s=>s.t===c.t);
+  if(si>=0){
+    if(under) return [{kind:'stack',si,cost:0}];
+    if(c.n>=topOf(stacks[si])){ const d=c.n-topOf(stacks[si]); return [{kind:'stack',si,cost:free?0:(d<=1?0:d)}]; }
+    return [];
+  }
+  if(under) return [];
+  return [{kind:'new',cost:free?0:(c.n<=1?0:c.n)}];
 }
 function drawFlowers(k){
   const out=[]; for(let i=0;i<k&&G.deck.length;i++) out.push(G.deck.pop());
@@ -641,7 +651,7 @@ async function runInsect(p,type){
       if(G.places.every(x=>!x.length)&&G.deck.length){ revealFour(); logMsg('Giardino vuoto: rivelate 4 nuove carte.'); }
       break; }
     case 'tento': { const g=gainWater(p,2); logMsg(`${pl.name} ottiene ${g} gocce d'acqua.`); break; }
-    case 'tonbo': pl.cap++; gainWater(p,1); logMsg(`${pl.name} aumenta la riserva d'acqua a ${pl.cap}.`); break;
+    case 'tonbo': pl.cap++; logMsg(`${pl.name} porta la capienza della riserva d'acqua a ${pl.cap} (le gocce restano ${pl.water}).`); break;
   }
 }
 async function useInsect(p,i){
@@ -750,12 +760,11 @@ function newMatch(n){
   run();
 }
 function setup(){
-  const pls=shuffle(Array.from({length:72},(_,i)=>i%4));
-  let k=0,id=0; const deck=[];
-  TYPES.forEach((_,t)=>VALS.forEach(v=>deck.push({id:id++,t,n:v,pl:pls[k++]})));
+  let id=0; const deck=[];
+  TYPES.forEach((_,t)=>VALS.forEach((v,i)=>deck.push({id:id++,t,n:v,pl:BACKS[t][Math.floor(i/3)]})));
   shuffle(deck);
   if(G.n<=3) deck.splice(0,12);
-  G.pl.forEach(pl=>{ pl.hand=deck.splice(0,4); });
+  G.pl.forEach(pl=>{ pl.hand=[]; });
   G.deck=deck;
   const ins=[]; Object.keys(INS).forEach(t=>{ if(t!=='kicho'){ ins.push({type:t},{type:t}); } });
   G.insDeck=shuffle(ins);
@@ -801,18 +810,20 @@ async function run(){
 
 // ═════════════════════════ RENDER ═════════════════════════
 const sunIcons = n => ico('sun').repeat(n);
+const sunTag = n => sunOf(n)?`<span class="sn">${ico('sun')}${sunOf(n)}</span>`:'<span class="sn"></span>';
+const cardInner = c => `<span class="hd"><b>${c.n}</b>${sunTag(c.n)}</span><span class="fi">${ico(TYPES[c.t].icon)}</span>`;
 function cardFace(c,cls=''){
-  return `<span class="fc t${c.t} ${cls}" title="${cardLabel(c)}"><b>${c.n}</b>${ico(TYPES[c.t].icon)}<span class="sn">${sunIcons(sunOf(c.n))}</span></span>`;
+  return `<span class="fc t${c.t} ${cls}" title="${cardLabel(c)} · ${sunOf(c.n)} ${sunOf(c.n)===1?'sole':'soli'}">${cardInner(c)}</span>`;
 }
 function handBtn(c,i,ok,sel){
-  return `<button class="fc t${c.t} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-h="${i}" title="${cardLabel(c)}"><b>${c.n}</b>${ico(TYPES[c.t].icon)}<span class="sn">${sunIcons(sunOf(c.n))}</span></button>`;
+  return `<button class="fc t${c.t} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-h="${i}" title="${cardLabel(c)} · ${sunOf(c.n)} ${sunOf(c.n)===1?'sole':'soli'}">${cardInner(c)}</button>`;
 }
 function insHtml(x,extra=''){
   const d=INS[x.type];
   return `<div class="ins ${d.A?'A':''} ${x.used?'used':''}">${d.pts?`<span class="pts">+${d.pts}</span>`:''}<b>${d.n}</b>${esc(d.d)}${extra}</div>`;
 }
 function tileHtml(t,mine){
-  return `<div class="tile ${mine?'mine':''}">${ico('user')}<span>${esc(t.label)}<br><span class="v">${mine?'8 punti se soddisfatta da te':'3 punti a chi la soddisfa'}</span></span></div>`;
+  return `<div class="tile ${mine?'mine':''}">${ico('user')}<span><span class="rq">${esc(t.label)}</span><br><span class="v">${mine?'8 punti se soddisfatta da te':'3 punti a chi la soddisfa'}</span></span></div>`;
 }
 function flagHtml(p){
   if(!G||G.over) return '';
@@ -824,8 +835,9 @@ function flagHtml(p){
 function playerHtml(p){
   const pl=P(p);
   const water=Array.from({length:pl.cap},(_,i)=>`<i class="ph-fill ph-drop ${i<pl.water?'':'e'}"></i>`).join('');
-  const stacks=pl.stacks.length?pl.stacks.map(s=>`<span class="chip t${s.t}" title="${TYPES[s.t].n}: ${s.cards.length} carte, in cima ${topOf(s)}">${ico(TYPES[s.t].icon)} ×${s.cards.length} · ${topOf(s)}${sunOf(topOf(s))?` ${sunIcons(sunOf(topOf(s)))}`:''}</span>`).join(''):'<span class="empty">nessuna pila</span>';
-  const ins=pl.insects.map(x=>`<span class="chip ic ${x.used?'used':''}" title="${esc(INS[x.type].d)}">${ico('bug')} ${INS[x.type].n}${INS[x.type].A?' (A)':''}</span>`).join('');
+  const seeAll=p===HUM||G.over;           // delle pile altrui si vede solo la carta in cima, non quante carte contengono
+  const stacks=pl.stacks.length?pl.stacks.map(s=>`<span class="chip t${s.t}" title="${TYPES[s.t].n}: in cima ${topOf(s)}${seeAll?`, ${s.cards.length} carte`:''}">${ico(TYPES[s.t].icon)} ${seeAll?`×${s.cards.length} · `:''}${topOf(s)}${sunOf(topOf(s))?` ${ico('sun')}${sunOf(topOf(s))}`:''}</span>`).join(''):'<span class="empty">nessuna pila</span>';
+  const ins=pl.insects.map(x=>`<span class="chip ic ${x.used?'used':''}" title="${esc(INS[x.type].d)}${INS[x.type].pts?` · vale ${INS[x.type].pts} punti a fine partita`:''}">${ico('bug')} ${INS[x.type].n}${INS[x.type].A?' (A)':''}${INS[x.type].pts?` <b style="color:#8a5a00">+${INS[x.type].pts} pt</b>`:''}</span>`).join('');
   const tiles=pl.tiles.map(t=>`<span class="chip tl" title="${esc(t.label)}">${ico('user')} ${esc(t.label.length>26?t.label.slice(0,25)+'…':t.label)}</span>`).join('');
   let hand='';
   if(p===HUM){
@@ -877,7 +889,7 @@ function dockHtml(){
 function recapHtml(){
   return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
     <div class="recap-row"><span class="lbl">Fiori</span>${TYPES.map((t,i)=>`<span class="chip t${i}">${ico(t.icon)} ${t.n}</span>`).join('')}<span class="rv">${G.n<=3?'60':'72'} carte (12 per tipo${G.n<=3?', 12 tolte a caso':''})</span></div>
-    <div class="recap-row"><span class="lbl">Numeri</span>${VALS.filter((v,i)=>VALS.indexOf(v)===i).map(v=>`<span class="nchip">${v}${sunOf(v)?' ':''}${sunIcons(sunOf(v))}</span>`).join('')}<span class="rv">numero → soli (moltiplicatore di fine partita)</span></div>
+    <div class="recap-row"><span class="lbl">Numeri</span>${[0,1,2,3,4,5,6].map(v=>`<span class="nchip">${v}${sunOf(v)?` ${ico('sun')}${sunOf(v)}`:''}</span>`).join('')}<span class="rv">numero e soli (moltiplicatore); per tipo: 0,0,0,1,1,2,2,3,3,4,5,6</span></div>
     <div class="recap-row"><span class="lbl">Giardino</span>${PLACES.map(p=>`<span class="nchip">${ico(p.icon)} ${p.n}</span>`).join('')}<span class="rv">max ${PLACE_MAX} carte per posto</span></div>
     <div class="recap-row"><span class="lbl">Risorse</span><span class="rv" style="margin-left:0">acqua: capienza ${CAP0}, partenza ${G.n>1?'2 (primo) / 3 (altri)':''} · mano massima ${MAXHAND} carte · 28 insetti + 1 Kicho a testa · 4 tessere in gioco</span></div></div>`;
 }
@@ -890,7 +902,7 @@ const RULES_HTML = `
 <ul>
 <li>Ogni giocatore riceve 1 carta Insetto iniziale (Kicho). Le altre 28 carte Insetto si mescolano a formare il mazzo; se ne gira una scoperta accanto.</li>
 <li>Si scelgono a caso 4 tessere Personaggio, con il lato da 3 punti visibile, al centro del tavolo.</li>
-<li>In 2 o 3 giocatori si tolgono 12 carte Fiore a caso. Si mescolano le restanti e se ne danno 4 a ciascun giocatore. Si rivelano le prime 4 carte del mazzo, ognuna nel posto indicato dall'icona sul suo dorso (ponte, albero, torii o stagno koi), sovrapponendole leggermente.</li>
+<li>In 2 o 3 giocatori si tolgono 12 carte Fiore a caso. Si mescolano le restanti: i giocatori iniziano senza carte in mano. Si rivelano le prime 4 carte del mazzo, ognuna nel posto indicato dall'icona sul suo dorso (ponte, albero, torii o stagno koi), sovrapponendole leggermente.</li>
 <li>Il primo giocatore riceve 2 gocce d'acqua, gli altri 3. Le altre restano nella riserva generale.</li>
 </ul>
 <h4>Il turno</h4>
@@ -902,7 +914,7 @@ const RULES_HTML = `
 <h4>Giocare carte fiore</h4>
 <p>Si possono giocare quante carte si vuole, finché si può pagarle. Regole delle pile:</p>
 <ul>
-<li>Ogni pila contiene solo carte dello stesso tipo (colore).</li>
+<li>Ogni pila contiene solo carte dello stesso tipo, e ogni tipo può avere una sola pila: ogni giocatore ha al massimo 6 pile, una per tipo di fiore.</li>
 <li>Una nuova pila si inizia gratis con uno 0 o un 1; con un numero più alto si paga tante gocce quanto il numero.</li>
 <li>Ogni carta successiva deve avere numero uguale o maggiore della carta in cima. Se la differenza è 0 o 1 è gratis, altrimenti si paga la differenza.</li>
 <li>Puoi contare le carte delle tue pile, non quelle degli altri.</li>
@@ -948,7 +960,7 @@ function render(){
   let body='';
   if(G){
     body=boardHtml()+`<div class="players">${G.pl.map((_,i)=>playerHtml(i)).join('')}</div>
-      <details class="log" open><summary>CRONACA</summary>${G.log.slice(0,8).map(l=>`<div>${esc(l)}</div>`).join('')}</details>
+      <details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>
       ${recapHtml()}
       ${RULES_HTML}`;
   }
@@ -986,6 +998,7 @@ document.getElementById('app').addEventListener('change',e=>{
     render();
   }
 });
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
