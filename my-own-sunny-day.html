@@ -148,10 +148,10 @@ details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const COL = [
-  {n:'Rosso',  icon:'fire', max:15, dots:5},
-  {n:'Blu',    icon:'drop', max:14, dots:4},
-  {n:'Giallo', icon:'sun',  max:12, dots:2},
-  {n:'Verde',  icon:'leaf', max:11, dots:1}
+  {n:'Rosso',  icon:'triangle', max:15, dots:5},
+  {n:'Blu',    icon:'square', max:14, dots:4},
+  {n:'Giallo', icon:'circle', max:12, dots:2},
+  {n:'Verde',  icon:'star', max:11, dots:1}
 ];
 const CLOSE_ORDER = [3,2,1,0];                          // ordine di decisione per chiudere: meno puntini per primo (verde > giallo > blu > rosso)
 const TOTAL = {out:14, ret:13};
@@ -331,7 +331,9 @@ async function humanAct(p,canOpen,canPlay,mustOpen,forcedPlay){
     if(forcedPlay) hint='Tutti gli altri hanno aperto l\'ombrello in questa presa: devi giocare una carta. '+hint;
     if(pl.umb!=null) hint+=` Hai l'ombrello ${COL[pl.umb].n}: sei «Soleggiato» se giochi una carta ${COL[pl.umb].n.toLowerCase()}.`;
     const extra=canOpen?[{label:'☂ Apri l\'ombrello (invece di giocare una carta)',value:'open'}]:[];
+    if(G.phase==='ret'&&pl.umb!=null&&G.t>0) extra.push({label:`☂ Chiudi l'ombrello ${COL[pl.umb].n} (poi gioca una carta)`,value:'close'});
     const r=await askCard(legal,hint,extra);
+    if(r==='close'){ closeUmb(p); continue; }
     if(r==='open'){ const c=await chooseUmb(true); if(c==null) continue; return {open:c}; }
     return {card:r};
   }
@@ -379,16 +381,18 @@ async function oneTrick(){
   G.leader=w; G.lastWinner=w;
 }
 // Ritorno a casa: dopo ogni presa chi ha ancora l'ombrello può chiuderlo (decidono per primi i colori con meno puntini); dopo l'ultima presa lo chiudono tutti
+function closeUmb(p,last){
+  const pl=P(p), c=pl.umb;
+  pl.umb=null; pl.closed=true; G.avail[c]=true;
+  logMsg(`${pl.name} chiude l'ombrello ${COL[c].n}${last?' (fine delle prese)':''}.`);
+}
 async function closings(last){
   for(const c of CLOSE_ORDER){
     const p=G.pl.findIndex(x=>x.umb===c);
     if(p<0) continue;
     const pl=P(p);
-    let close;
-    if(last) close=true;
-    else if(p===HUM) close=await ask(HUM,`Vuoi chiudere ora il tuo ombrello ${COL[c].n}?`,[{label:'Chiudi ora',value:true},{label:'Tienilo ancora',value:false}]);
-    else close=pl.pre>=pl.T;
-    if(close){ pl.umb=null; pl.closed=true; G.avail[c]=true; logMsg(`${pl.name} chiude l'ombrello ${COL[c].n}${last?' (fine delle prese)':''}.`); }
+    if(p===HUM&&!last) continue;                       // il giocatore chiude con l'azione «Chiudi l'ombrello» nel suo turno
+    if(last||pl.pre>=pl.T) closeUmb(p,last);
   }
 }
 async function tricks(){
@@ -463,6 +467,7 @@ function seatHtml(p,pos){
       if(PR&&PR.type==='card') return handBtn(c,i,PR.legal.has(i),PR.sel===i);
       return kface(c);
     }).join('')}</div>`;
+    if(PR&&PR.type==='card'&&PR.sel==null&&PR.extra.length) hand+=`<div class="opts" style="justify-content:center;margin-top:8px">${PR.extra.map((x,k)=>`<button class="opt" data-x="${k}">${esc(x.label)}</button>`).join('')}</div>`;
   }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
   const lab=G.phase==='out'?'prima | dopo l\'ombrello':'con | senza ombrello';
   const meta=`<div class="seat-meta"><span class="tag">carte <b>${pl.hand.length}</b></span><span class="tag" title="Prese vinte ${lab}">prese <b>${pl.pre} | ${pl.post}</b></span><span class="tag">punti <b>${(pl.sc.out||0)+(pl.sc.ret||0)}</b></span></div>`;
@@ -501,14 +506,12 @@ function dockHtml(){
   }else if(PR&&PR.type==='card'){
     html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
     if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`; }
-    else if(PR.extra.length) html+=`<div class="opts">${PR.extra.map((x,k)=>`<button class="opt" data-x="${k}">${esc(x.label)}</button>`).join('')}</div>`;
   }
   return html;
 }
 function recapHtml(){
   return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
     <div class="recap-row"><span class="lbl">Carte</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n} 1–${c.max}</span>`).join('')}<span class="rv">52 carte pioggia · 13 a testa${G.n===3?' (13 scartate)':''}</span></div>
-    <div class="recap-row"><span class="lbl">Ombrelli</span>${COL.map((c,i)=>`<span class="umb k${i}">${ico('umbrella')} ${c.n} <span class="dots">${dotsOf(i)}</span></span>`).join('')}<span class="rv">i puntini indicano le carte oltre il 10</span></div>
     <div class="recap-row"><span class="lbl">Briscola</span><span class="rv" style="margin-left:0">nessuna: chi ha un ombrello è «Soleggiato» se gioca una carta del colore del suo ombrello (briscola personale)</span></div>
     <div class="recap-row"><span class="lbl">Punti</span><span class="rv" style="margin-left:0">prese vinte prima = dopo l'ombrello (≠ 0): 0 punti · nessuna presa: 1 punto · altrimenti 10 punti per ogni presa di differenza</span></div></div>`;
 }
