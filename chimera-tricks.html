@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chimera Tricks</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Silkscreen:wght@400;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#df6a2a;
+  --surface:#f3ead7;
+  --surface-raised:#e6d8bb;
+  --accent:#c24a14;
+  --accent-soft:rgba(194,74,20,0.14);
+  --text:#1c1612;
+  --text-soft:#5a4a3c;
+  --danger:#b3261e;
+  --success:#1e8f55;
+  --border:rgba(28,22,18,0.35);
+  --radius:10px;
+  --k0:#e8902c; --k1:#1fa3e0; --k2:#2fa36b; --k3:#7b3fa0;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:
+  repeating-linear-gradient(0deg,rgba(255,255,255,0.045) 0 2px,transparent 2px 7px),
+  linear-gradient(180deg,#ea7230 0%,#dc6727 45%,#c75a22 100%) fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Silkscreen',monospace;font-size:30px;font-weight:700;text-transform:uppercase;line-height:1.05;flex:1;color:#151515}
+.logo small{display:block;font-family:'DotGothic16',sans-serif;font-size:13px;font-weight:400;letter-spacing:0.18em;color:#fff;margin-bottom:3px;text-transform:none}
+.badge{background:#151515;color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:#151515;border:1px solid #151515}
+.btn:hover{background:rgba(0,0,0,0.12)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.nylo-home{color:#151515;border-color:#151515}
+.nylo-home:hover{background:rgba(0,0,0,0.12);color:#151515}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:#151515;border:1px solid #151515;cursor:pointer}
+.hamb:hover{background:rgba(0,0,0,0.12)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd54a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.log{background:var(--surface);border:2px solid #151515;border-radius:var(--radius);padding:10px 14px;margin-top:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em;color:#151515}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Silkscreen',monospace;font-size:16px;text-transform:uppercase}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:2px solid #151515;border-top:6px solid #151515;border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.15)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{background:#fff;border:2px solid #151515;color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:#151515;color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score .neg{color:var(--danger)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(circle at center,transparent 0 78px,rgba(0,0,0,0.10) 79px 82px,transparent 83px),radial-gradient(ellipse at center,#8a8f99 0%,#4d525c 95%);border:3px solid #151515;border-radius:14px;padding:12px;margin-bottom:12px;min-height:600px;color:#fff}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
+.seat.top{grid-area:top}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.08)}
+.seat.active{border-color:#ffd54a;background:rgba(255,213,74,0.16)}
+.seat.winner{border-color:#35d08a;background:rgba(53,208,138,0.22)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.38);border-radius:4px;padding:2px 6px;color:#fff;display:inline-flex;align-items:center;gap:3px}
+.tag b{color:#ffd54a}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:12px;height:18px;border-radius:3px;background:#15151a;border:1px solid #cfc7b4}
+.seat.left .backs,.seat.right .backs{max-width:130px}
+.sheet{display:flex;gap:6px;align-items:center;justify-content:center;min-height:84px;padding:6px 8px;border-radius:8px;background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.18)}
+.slot{position:relative;display:inline-flex}
+.slot.empty{width:42px;height:62px;border:1px dashed rgba(255,255,255,0.35);border-radius:6px}
+.under{position:absolute;bottom:-6px;left:-5px;background:#fff;color:#1a1a1a;font:700 9px 'Inter',sans-serif;padding:1px 4px;border-radius:6px}
+.area{font-size:11px;font-weight:600;display:inline-flex;gap:4px;align-items:center;min-height:18px}
+.area b{color:#ffd54a;font-size:13px}
+.gl{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;min-height:6px}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Inter',sans-serif;font-weight:800;font-size:22px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.4)}
+.fc i.s{font-size:18px}
+.fc.k0{background-color:var(--k0)} .fc.k1{background-color:var(--k1)} .fc.k2{background-color:var(--k2)} .fc.k3{background-color:var(--k3)}
+.fc.mini{width:42px;height:62px;font-size:19px}
+.fc.mini i.s{font-size:16px}
+.fc .cx{position:absolute;top:-6px;left:-6px;font-size:15px;color:#ffe45c;text-shadow:0 0 0 #000,0 1px 2px rgba(0,0,0,0.6)}
+.fc .zl{position:absolute;bottom:1px;font-size:8px;font-weight:700;opacity:0.9}
+.fc.fresh{box-shadow:0 0 0 3px #ffd54a}
+.fc.win{box-shadow:0 0 0 3px #35d08a}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.legal{box-shadow:0 0 0 3px #ffd54a}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px #151515}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+body.a11y .fc.k0,body.a11y .rchip.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .fc.k1,body.a11y .rchip.k1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k2,body.a11y .rchip.k2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+
+.gc{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:26px;height:34px;border-radius:4px;border:1px solid #f3ead7;background:#6b3f1d;color:#fff;font-weight:800;font-size:11px;line-height:1;gap:1px}
+.gc i{font-size:11px}
+.gc.neg{background:#5d626b}
+.gc.cv{outline:2px solid #ffe45c}
+.gc.big{width:48px;height:64px;font-size:20px;border-width:2px;border-radius:6px;gap:3px}
+.gc.big i{font-size:18px}
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:rgba(255,255,255,0.9)}
+.center b{color:#ffd54a}
+.center .hint{color:#fff}
+.cmid{display:flex;gap:12px;align-items:flex-end;justify-content:center;flex-wrap:wrap}
+.cmid>div{display:flex;flex-direction:column;align-items:center;gap:3px}
+.deck{width:48px;height:64px;border-radius:6px;border:2px solid #f3ead7;background:#6b3f1d;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:16px;opacity:0.85}
+
+.recap{background:var(--surface);border:2px solid #151515;border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:#151515}
+.recap-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px}
+.recap-row .lbl{min-width:70px;font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:4px}
+.rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,0.35);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
+.rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)}
+details.rules{background:var(--surface);border:2px solid #151515;border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:#151515;letter-spacing:0.05em}
+.rtext h4{font-family:'Silkscreen',monospace;font-size:13px;text-transform:uppercase;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:44px}
+  .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
+  .fc i.s{font-size:12px}
+  .fc.mini{width:32px;height:48px;font-size:14px}
+  .fc.mini i.s{font-size:12px}
+  .slot.empty{width:32px;height:48px}
+  .table{padding:8px;gap:6px;grid-template-columns:1fr 1fr 1fr}
+  .back{width:9px;height:14px}
+  .hand{gap:2px}
+  .logo{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const SUITS = [
+  {n:'Leone',    icon:'paw-print'},
+  {n:'Aquila',   icon:'feather'},
+  {n:'Capra',    icon:'horse'},
+  {n:'Serpente', icon:'lightning'}
+];
+const GRIM = [6,5,4,4,3,3,-2,-3,-4,-5,-6,-6];           // 12 carte Grimorio (valori in punti)
+const NCARDS = {3:12, 4:10};                             // carte in mano = prese per round
+const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
+const NAMES = ['Tu','AI Leo','AI Grifo','AI Sfinge'];
+const HUM = 0;
+const NCRYSTAL = 8;
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('ch-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ch-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>600) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const cname = c => `${SUITS[c.s].n} ${c.z?'0/10':c.r}`;
+const sg = v => (v>0?'+':'')+v;
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askCard(legal,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function playIdx(i){
+  if(!PR||PR.type!=='card'||!PR.legal.has(i)) return;
+  if(OPT.undo){ PR.sel=i; render(); return; }
+  const r=PR.res; PR=null; render(); r(i);
+}
+function confirmCard(ok){
+  if(!PR||PR.type!=='card'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const i=PR.sel, r=PR.res; PR=null; render(); r(i);
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// Familiari: 4 semi × rango 0/10, 1…9 · i ranghi 1 e 2 portano un cristallo
+function fullDeck(){
+  const d=[];
+  for(let s=0;s<4;s++) for(let r=0;r<=9;r++) d.push({s,r,z:r===0,x:r===1||r===2,id:s*10+r});
+  return d;
+}
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.r-b.r);
+// il foglio di sintesi ha 2 spazi; ogni spazio contiene {c,eff,under}
+const cntSlots = sl => (sl[0]?1:0)+(sl[1]?1:0);
+// la carta 0/10 vale 0 se c'è uno spazio libero, 10 se non ce ne sono
+const effRank = (c,sl) => c.z?(cntSlots(sl)<2?0:10):c.r;
+function placeOpts(sl){
+  if(!sl[0]) return [0];
+  if(!sl[1]) return [1];
+  return [0,1];
+}
+function applyMove(sl,c,slot){
+  const eff=effRank(c,sl), n=sl.slice(), old=n[slot];
+  n[slot]={c,eff,under:old?(old.under||0)+1:0};
+  return n;
+}
+// Chimera: stesso seme = somma dei ranghi; semi diversi = entrambi i semi e rango maggiore
+function areaOf(sl){
+  const a=sl.filter(Boolean);
+  if(!a.length) return {rank:-1,suits:[],x:false};
+  if(a.length===1) return {rank:a[0].eff,suits:[a[0].c.s],x:a[0].c.x};
+  const p=a[0], q=a[1], x=p.c.x||q.c.x;
+  if(p.c.s===q.c.s) return {rank:p.eff+q.eff,suits:[p.c.s],x};
+  return {rank:Math.max(p.eff,q.eff),suits:[p.c.s,q.c.s],x};
+}
+// mosse {i,slot}; obbligo di seguire il seme (si segue se l'area di gioco, dopo la giocata, contiene il seme di mano)
+function legalMoves(hand,sl,lead){
+  const all=[], fol=[];
+  for(let i=0;i<hand.length;i++){
+    for(const s of placeOpts(sl)){
+      const m={i,slot:s}; all.push(m);
+      if(lead!=null&&areaOf(applyMove(sl,hand[i],s)).suits.includes(lead)) fol.push(m);
+    }
+  }
+  return (lead!=null&&fol.length)?fol:all;
+}
+// vince il rango più alto tra chi segue il seme di mano; a parità l'ultimo a giocare
+function trickWinner(areas,order,lead){
+  let w=-1,best=-1;
+  for(const p of order){ const a=areas[p]; if(a.suits.includes(lead)&&a.rank>=best){ best=a.rank; w=p; } }
+  return w;
+}
+// i cristalli trasformano i grimori negativi (i più negativi) in punti positivi
+function convOf(grims,cr){
+  const neg=grims.filter(v=>v<0).sort((a,b)=>a-b);
+  return neg.slice(0,cr);
+}
+function roundScore(grims,cr){
+  let s=grims.reduce((a,b)=>a+b,0);
+  for(const v of convOf(grims,cr)) s-=2*v;
+  return s;
+}
+function areaText(a){ return `${a.rank} ${a.suits.map(s=>SUITS[s].n).join('+')}`; }
+
+// ═════════════════════════ AI ═════════════════════════
+// Monte-Carlo con determinizzazione: mani avversarie campionate tra le carte non viste (dal secondo round le mani sono note: sono le carte giocate in pubblico nel round precedente, passate in senso orario), poi si simula il resto del round con giocate casuali
+const AIP = {S:30};
+function unseenF(me){
+  const seen=new Set();
+  P(me).hand.forEach(c=>seen.add(c.id));
+  G.played.forEach(c=>seen.add(c.id));
+  return fullDeck().filter(c=>!seen.has(c.id));
+}
+function sampleHands(me,pool){
+  if(G.round>0) return G.pl.map(p=>p.hand.slice());
+  const pl=shuffle(pool.slice()); let k=0;
+  return G.pl.map((p,i)=>{
+    if(i===me) return p.hand.slice();
+    const h=pl.slice(k,k+p.hand.length); k+=p.hand.length; return h;
+  });
+}
+function mkSim(hands){
+  return {hands:hands.map(h=>h.slice()),sl:G.pl.map(p=>p.slots.slice()),grims:G.pl.map(p=>p.grims.map(g=>g.v)),
+    cr:G.pl.map(p=>p.crystals),pool:G.pool,rew:G.rew?G.rew.v:null,
+    deck:G.gdeck.length?[G.gdeck[0].v,...shuffle(G.gdeck.slice(1).map(g=>g.v))]:[],
+    base:G.pl.map(p=>p.total)};
+}
+// gioca (a caso) i giocatori order[from..] e assegna la presa
+function simTrick(st,order,lead,from){
+  for(let k=from;k<order.length;k++){
+    const p=order[k], h=st.hands[p];
+    const mv=legalMoves(h,st.sl[p],lead), m=mv[rnd(mv.length)];
+    const c=h.splice(m.i,1)[0];
+    st.sl[p]=applyMove(st.sl[p],c,m.slot);
+    if(lead==null) lead=c.s;
+  }
+  const areas=st.sl.map(areaOf), w=trickWinner(areas,order,lead);
+  if(areas[w].x&&st.pool>0){ st.cr[w]++; st.pool--; }
+  st.sl[w]=[null,null];
+  st.grims[w].push(st.rew);
+  st.rew=st.deck.length?st.deck.shift():null;
+  return w;
+}
+function simRest(st,leader){
+  const n=st.hands.length;
+  while(st.hands[leader].length){
+    const order=Array.from({length:n},(_,i)=>(leader+i)%n);
+    leader=simTrick(st,order,null,0);
+  }
+}
+function margin(st,me){
+  const tot=st.hands.map((_,i)=>st.base[i]+roundScore(st.grims[i],st.cr[i]));
+  const oth=tot.filter((_,i)=>i!==me);
+  const mean=oth.reduce((a,b)=>a+b,0)/oth.length, mx=Math.max(...oth);
+  return 0.5*(tot[me]-mean)+0.5*(tot[me]-mx);
+}
+function aiPickMove(p){
+  const pl=P(p), mv=legalMoves(pl.hand,pl.slots,G.lead);
+  if(mv.length===1) return mv[0];
+  const pool=unseenF(p), sc=mv.map(()=>0);
+  const order=G.order, pos=order.indexOf(p);
+  for(let s=0;s<AIP.S;s++){
+    const hands=sampleHands(p,pool);
+    mv.forEach((m,j)=>{
+      const st=mkSim(hands);
+      const c=st.hands[p].splice(m.i,1)[0];
+      st.sl[p]=applyMove(st.sl[p],c,m.slot);
+      const w=simTrick(st,order,G.lead==null?c.s:G.lead,pos+1);
+      simRest(st,w);
+      sc[j]+=margin(st,p);
+    });
+  }
+  let b=0; for(let j=1;j<mv.length;j++) if(sc[j]>sc[b]) b=j;
+  return mv[b];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  const gall=shuffle(GRIM.map((v,i)=>({v,id:i})));
+  const fam=shuffle(fullDeck());
+  if(n===4) gall.splice(0,2);                            // 4 giocatori: 2 grimori tolti coperti
+  if(n===3) fam.splice(0,4);                             // 3 giocatori: 4 familiari tolti coperti
+  G={n,T:NCARDS[n],round:0,start:rnd(n),msg:'',log:[],over:null,gall,fam,pool:NCRYSTAL,rew:null,gdeck:[],
+     order:[],leader:0,turn:-1,win:-1,fresh:-1,trickNo:0,lead:null,played:[],show:null,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],own:[],slots:[null,null],pile:0,crystals:0,grims:[],total:0,rs:[]}))};
+  run();
+}
+function setupRound(k){
+  if(k===0){
+    G.pl.forEach((p,i)=>{ p.hand=sortHand(G.fam.slice(i*G.T,(i+1)*G.T)); });
+  }else{
+    // ogni giocatore passa tutte le sue carte (davanti a sé e sul foglio) a quello alla sua sinistra
+    const own=G.pl.map(p=>p.own);
+    G.pl.forEach((p,i)=>{ p.hand=sortHand(own[(i-1+G.n)%G.n].slice()); });
+    G.start=(G.start+1)%G.n;
+  }
+  G.pl.forEach(p=>{ p.own=p.hand.slice(); p.slots=[null,null]; p.pile=0; p.crystals=0; p.grims=[]; });
+  G.pool=NCRYSTAL;
+  const deck=shuffle(G.gall.slice());
+  G.rew=deck.shift(); G.gdeck=deck;
+  G.played=[]; G.lead=null; G.win=-1; G.show=null; G.turn=-1; G.trickNo=0; G.fresh=-1;
+}
+async function humanMove(){
+  const pl=P(HUM), mv=legalMoves(pl.hand,pl.slots,G.lead);
+  const idxs=[...new Set(mv.map(m=>m.i))];
+  let hint;
+  if(G.lead==null) hint='Sei di mano: gioca la carta che vuoi.';
+  else{
+    const ls=SUITS[G.lead].n, cur=areaOf(pl.slots).suits.includes(G.lead);
+    const can=mv.some(m=>areaOf(applyMove(pl.slots,pl.hand[m.i],m.slot)).suits.includes(G.lead));
+    hint=can?`Devi fare in modo che la tua area contenga il seme ${ls}.`
+      :`Non puoi seguire il seme ${ls}${cur?'':' (né con la mano né con l\'area)'}: puoi giocare ciò che vuoi.`;
+  }
+  const i=await askCard(idxs,hint);
+  const opts=mv.filter(m=>m.i===i);
+  if(opts.length===1) return opts[0];
+  const c=pl.hand[i];
+  const choices=opts.map(m=>{
+    const a=areaOf(applyMove(pl.slots,c,m.slot)), u=pl.slots[m.slot];
+    return {label:`Sopra ${cname(u.c)} (${u.eff}) → ${areaText(a)}`,value:m};
+  });
+  choices.push({label:'↶ Annulla',value:null});
+  const s=await ask(HUM,`Dove giochi ${cname(c)}?`,choices);
+  if(!s) return humanMove();
+  return s;
+}
+async function oneTrick(){
+  G.trickNo++; G.lead=null; G.win=-1; G.fresh=-1;
+  G.order=Array.from({length:G.n},(_,i)=>(G.leader+i)%G.n);
+  for(const p of G.order){
+    G.turn=p;
+    const pl=P(p);
+    status(`Presa ${G.trickNo}/${G.T} · ricompensa ${sg(G.rew.v)}. Di mano: ${P(G.leader).name}. Tocca a ${pl.name}.`);
+    let mv;
+    if(p===HUM) mv=await humanMove(); else{ await sleep(700); mv=aiPickMove(p); }
+    const c=pl.hand.splice(mv.i,1)[0];
+    const eff=effRank(c,pl.slots);
+    pl.slots=applyMove(pl.slots,c,mv.slot);
+    G.played.push(c); G.fresh=p;
+    if(G.lead==null) G.lead=c.s;
+    logMsg(`${pl.name} gioca ${cname(c)}${c.z?` (vale ${eff})`:''} → area ${areaText(areaOf(pl.slots))}.`);
+  }
+  G.turn=-1;
+  const areas=G.pl.map(p=>areaOf(p.slots));
+  const w=trickWinner(areas,G.order,G.lead), pw=P(w);
+  G.win=w;
+  let cx='';
+  if(areas[w].x){ if(G.pool>0){ pw.crystals++; G.pool--; cx=' e prende 1 cristallo'; }else cx=' (cristalli esauriti)'; }
+  const rew=G.rew; pw.grims.push(rew);
+  const m=`${pw.name} vince la presa con ${areaText(areas[w])}${cx} e prende il grimorio ${sg(rew.v)}.`;
+  status(m); logMsg(m);
+  await sleep(1800);
+  pw.pile+=pw.slots.reduce((a,s)=>a+(s?1+(s.under||0):0),0);
+  pw.slots=[null,null];
+  G.rew=G.gdeck.length?G.gdeck.shift():null;
+  G.leader=w;
+}
+async function tricks(){
+  G.leader=G.start;
+  for(let t=0;t<G.T;t++) await oneTrick();
+  G.win=-1; G.turn=-1; G.lead=null;
+}
+async function scoring(){
+  const rows=G.pl.map(pl=>{
+    const conv=convOf(pl.grims.map(g=>g.v),pl.crystals);
+    const score=roundScore(pl.grims.map(g=>g.v),pl.crystals);
+    pl.rs.push(score); pl.total+=score;
+    return {p:pl.id,grims:pl.grims.map(g=>g.v).sort((a,b)=>b-a),cr:pl.crystals,conv,score,total:pl.total};
+  });
+  G.show={rows};
+  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ha ${r.grims.map(sg).join(' ')} · ${r.cr} cristalli${r.conv.length?` (convertiti: ${r.conv.map(v=>sg(v)).join(' ')})`:''} → ${sg(r.score)} punti (totale ${r.total}).`));
+  status(`Round ${G.round+1} concluso.`);
+  await ask(HUM,'Risultato del round',[{label:G.round===G.n-1?'Vedi il risultato finale':'Round successivo',value:1}]);
+  G.show=null;
+}
+function winners(){
+  const mx=Math.max(...G.pl.map(p=>p.total));
+  return G.pl.filter(p=>p.total===mx).map(p=>p.id);
+}
+async function run(){
+  const g=G;
+  try{
+    for(let k=0;k<g.n;k++){
+      g.round=k;
+      setupRound(k);
+      logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.start).name}${k?' (riceve la mano del primo giocatore del round precedente)':''} —`);
+      status(g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`);
+      await ask(HUM,`Round ${k+1}/${g.n}. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}${k?' · le carte sono passate in senso orario':''}`,[{label:'Ok, si parte',value:1}]);
+      await tricks();
+      await scoring();
+    }
+    g.over={winners:winners()};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='',eff)=>`<span class="fc k${c.s} ${cls}" title="${cname(c)}${c.x?' · cristallo':''}">${c.x?'<i class="ph-fill ph-hexagon cx"></i>':''}<span>${eff!=null?eff:(c.z?'0/10':c.r)}</span><i class="ph-fill ph-${SUITS[c.s].icon} s"></i>${c.z&&eff!=null?'<span class="zl">0/10</span>':''}</span>`;
+function handBtn(c,i,ok,sel){
+  return `<button class="fc k${c.s} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}${c.x?' · cristallo':''}">${c.x?'<i class="ph-fill ph-hexagon cx"></i>':''}<span>${c.z?'0/10':c.r}</span><i class="ph-fill ph-${SUITS[c.s].icon} s"></i></button>`;
+}
+function gcard(v,cls=''){ return `<span class="gc ${v<0?'neg':''} ${cls}" title="Grimorio ${sg(v)}"><i class="ph-fill ph-book"></i>${sg(v)}</span>`; }
+function sheetHtml(p){
+  const pl=P(p);
+  const slots=pl.slots.map(s=>s?`<span class="slot">${kface(s.c,`mini ${G.fresh===p?'fresh':''} ${G.win===p?'win':''}`,s.eff)}${s.under?`<span class="under" title="Carte coperte sotto">+${s.under}</span>`:''}</span>`:'<span class="slot empty"></span>').join('');
+  const a=areaOf(pl.slots);
+  const area=a.rank<0?'<span class="area">&nbsp;</span>':`<span class="area" title="Area di gioco (Chimera)"><b>${a.rank}</b>${a.suits.map(s=>ico(SUITS[s].icon)).join(' ')}${a.x?'<i class="ph-fill ph-hexagon" style="color:#ffe45c"></i>':''}</span>`;
+  return `<div class="sheet">${slots}</div>${area}`;
+}
+function flagHtml(p){
+  if(!G||G.over) return '';
+  if(G.turn>=0&&G.leader===p) return '<span class="flag lead">Di mano</span>';
+  if(G.turn<0&&G.win<0&&!G.show&&G.trickNo===0&&G.start===p) return '<span class="flag first">Primo giocatore</span>';
+  return '';
+}
+function seatHtml(p,pos){
+  const pl=P(p);
+  const isLeader=G.turn>=0&&G.leader===p, active=G.turn===p, winner=G.win===p;
+  let hand;
+  if(p===HUM){
+    hand=`<div class="hand">${pl.hand.map((c,i)=>{
+      if(PR&&PR.type==='card') return handBtn(c,i,PR.legal.has(i),PR.sel===i);
+      return kface(c);
+    }).join('')}</div>`;
+  }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag">carte <b>${pl.hand.length}</b></span><span class="tag">${ico('hexagon')} <b>${pl.crystals}</b></span><span class="tag">grimori <b>${pl.grims.reduce((a,g)=>a+g.v,0)}</b></span><span class="tag">totale <b>${pl.total}</b></span></div>`;
+  const gl=`<div class="gl">${pl.grims.map(g=>gcard(g.v)).join('')}</div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${sheetHtml(p)}${name}${meta}${gl}${hand}`
+    :(pos==='top'?`${hand}${name}${meta}${gl}${sheetHtml(p)}`:`${name}${meta}${gl}${sheetHtml(p)}${hand}`);
+  return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  return `<div class="center">
+    <div class="cmid"><div>${G.rew?gcard(G.rew.v,'big'):'<span class="deck">–</span>'}<div>ricompensa</div></div>
+      <div>${G.gdeck.length?gcard(G.gdeck[0].v,'big'):'<span class="deck">–</span>'}<div>prossima</div></div>
+      <div><span class="deck">${Math.max(0,G.gdeck.length-1)}</span><div>coperti</div></div></div>
+    ${G.lead!=null?`<div>Seme di mano: <b>${SUITS[G.lead].n}</b> ${ico(SUITS[G.lead].icon)}</div>`:'<div>&nbsp;</div>'}
+    <div>Presa <b>${Math.min(G.trickNo,G.T)}/${G.T}</b> · Round <b>${Math.min(G.round+1,G.n)}/${G.n}</b></div>
+    <div class="hint">Cristalli disponibili: <b>${G.pool}</b></div></div>`;
+}
+function scoreTable(){
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:G.n},(_,i)=>i<p.rs.length?`<td>${p.rs[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th>Punteggio</th>${Array.from({length:G.n},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Chimera Tricks contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (vince il punteggio totale più alto)</div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    html+=`<table class="score"><tr><th></th><th class="l">Grimori</th><th>Cristalli</th><th>Convertiti</th><th>Round</th><th>Totale</th></tr>${G.show.rows.map(r=>
+      `<tr><td>${esc(P(r.p).name)}</td><td class="l">${r.grims.map(sg).join(' ')||'–'}</td><td>${r.cr}</td><td>${r.conv.length?r.conv.map(sg).join(' '):'–'}</td><td class="${r.score<0?'neg':''}"><b>${sg(r.score)}</b></td><td><b>${r.total}</b></td></tr>`).join('')}</table>`;
+  }
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`; }
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n;
+  return `<div class="recap"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Semi</span>${SUITS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">ranghi 0/10, 1–9 · i ranghi 1 e 2 hanno un cristallo · ${G.T} carte a testa, ${G.T} prese per round</span></div>
+    <div class="recap-row"><span class="lbl">Giocata</span><span class="rv" style="margin-left:0">giochi 1 carta sul tuo foglio (2 spazi): con 2 carte già sul foglio ne copri una · con 2 carte si forma la <b>Chimera</b>: stesso seme = somma dei ranghi, semi diversi = entrambi i semi e rango maggiore · la carta 0/10 vale 0 se hai uno spazio libero, altrimenti 10</span></div>
+    <div class="recap-row"><span class="lbl">Seme</span><span class="rv" style="margin-left:0">devi giocare in modo che la tua area contenga il seme di mano, se possibile (anche se lo hai già, non puoi rovinarlo)</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">vince il rango più alto tra chi ha il seme di mano (a parità l'ultimo a giocare) · il vincitore ritira le sue carte, prende il grimorio e un cristallo se ha giocato una carta con cristallo · gli altri lasciano le carte sul foglio</span></div>
+    <div class="recap-row"><span class="lbl">Fine</span><span class="rv" style="margin-left:0">${n} round · a fine round ogni cristallo trasforma un grimorio negativo in positivo · vince il punteggio totale più alto</span></div></div>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO (traduzione dal PDF inglese)</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>«Chimera Tricks» è un gioco di prese per 3-4 giocatori in cui si usa la proibita magia della sintesi per creare Chimere e contendersi i Grimori. La caratteristica del gioco è il sistema delle Chimere, che permette di sintetizzare le carte: i giocatori che non vincono lasciano le carte nella propria area di gioco e le combinano, nella presa successiva, con la carta giocata dalla mano per creare una potente «Chimera» con rango maggiore e più semi. Perderai di proposito per costruire la tua forza, o vincerai per prendere un «Grimorio» e fare punti?</p>
+<p>Il Grimorio in palio nella presa successiva è rivelato in anticipo, quindi sconfitte pianificate con un passo di anticipo sono la chiave. Anche se prendi un Grimorio maledetto a punteggio negativo non arrenderti: se vinci con una carta di rango basso e ottieni un «Cristallo», puoi convertirlo in punti positivi.</p>
+<p>Gioco di prese · 4 semi · ranghi irregolari · obbligo di seguire il seme · nessuna briscola · a parità vince chi ha giocato per ultimo · il vincitore della presa prende la ricompensa.</p>
+<h4>Componenti</h4>
+<p>40 carte Famiglio (4 semi × 10 carte), 12 carte Grimorio, 4 Fogli di Sintesi, 8 Cristalli, 1 regolamento.</p>
+<h4>Preparazione</h4>
+<ul>
+<li>3 giocatori: 4 carte Famiglio tolte a caso e rimesse coperte nella scatola. 4 giocatori: 2 carte Grimorio tolte a caso.</li>
+<li>Si distribuiscono equamente tutte le carte Famiglio: è la mano di ognuno (nascosta agli altri). Ognuno prende un Foglio di Sintesi.</li>
+<li>Si mescolano i Grimori in un mazzo coperto; si gira l'intero mazzo scoperto in modo che la carta in cima sia visibile, poi si prende la carta in cima e la si mette scoperta accanto al mazzo: è la <b>ricompensa della presa in corso</b>; la carta in cima al mazzo è la ricompensa della presa successiva.</li>
+<li>I Cristalli sono al centro, a portata di tutti. Il primo giocatore della prima presa si sceglie a caso.</li>
+</ul>
+<h4>Svolgimento di una presa</h4>
+<p><b>1. Giocare un Famiglio.</b> A partire dal giocatore di mano, in senso orario, ognuno gioca una carta dalla mano sul proprio Foglio di Sintesi. Il giocatore di mano può giocare un seme qualsiasi; gli altri devono giocare in modo che la propria area di gioco corrisponda al seme del giocatore di mano (vedi «Seguire il seme»).</p>
+<p><b>2. Vincere la presa.</b> Quando tutti hanno giocato si confrontano i ranghi delle aree di gioco: vince il giocatore col rango più alto tra quelli che seguono il seme di mano. A parità di rango più alto vince chi ha giocato per ultimo. Il vincitore prende tutte le carte Famiglio dalla propria area di gioco e le mette coperte davanti a sé (senza mischiarle con quelle degli altri). Gli altri lasciano le carte sul foglio così come sono.</p>
+<p><b>3. Prendere un Grimorio.</b> Il vincitore prende il Grimorio accanto al mazzo e lo mette coperto davanti a sé (anche l'ultimo Grimorio, senza mazzo rimasto, si prende).</p>
+<p><b>4. Rivelare un Grimorio.</b> Si scopre la carta in cima al mazzo mettendola accanto al mazzo (se resta una sola carta, è il Grimorio della presa successiva; se il mazzo è vuoto si salta). Il vincitore diventa il giocatore di mano della presa successiva. Si ripetono i passi 1-4 finché non restano Grimori.</p>
+<h4>Giocare i Famiglio</h4>
+<ul>
+<li><b>0 carte sul foglio:</b> giochi la carta in uno qualsiasi dei due spazi (sono equivalenti).</li>
+<li><b>1 carta sul foglio:</b> giochi nello spazio libero rimasto.</li>
+<li><b>2 carte sul foglio:</b> scegli uno spazio e giochi la nuova carta sopra quella che c'è.</li>
+</ul>
+<h4>Chimere</h4>
+<p>Quando hai 2 carte Famiglio visibili sul foglio, si sintetizzano in una Chimera. <b>Stesso seme:</b> una sola carta con quel seme e rango uguale alla somma dei ranghi (es. 4+7 = 11). <b>Semi diversi:</b> una sola carta con entrambi i semi e rango uguale al maggiore dei due.</p>
+<h4>Carte speciali</h4>
+<ul>
+<li><b>Carta 0/10:</b> quando la giochi vale 0 se hai uno spazio libero sul foglio, vale 10 se non ci sono spazi liberi.</li>
+<li><b>Carte con Cristallo:</b> se vinci una presa con questa carta (o con una Chimera creata con essa) prendi 1 Cristallo (anche se entrambe le carte hanno il Cristallo, ne prendi 1 per presa).</li>
+</ul>
+<h4>Seguire il seme</h4>
+<p>Devi seguire il seme se possibile. Si considera di aver seguito il seme se l'area di gioco del tuo foglio, dopo aver giocato, corrisponde al seme di mano (una Chimera con due semi li contiene entrambi).</p>
+<ul>
+<li><b>Giocatore di mano:</b> può giocare qualsiasi seme.</li>
+<li>Gli altri devono giocare una carta in modo che la loro area contenga il seme di mano, se possibile.</li>
+<li>Se nessuna carta in mano permette di seguire il seme, si può giocare qualsiasi carta.</li>
+<li>Se la tua area già segue il seme di mano, puoi giocare un altro seme purché l'area continui a seguirlo dopo la giocata; non puoi giocare in modo da non seguirlo più.</li>
+</ul>
+<h4>Fine del round</h4>
+<p><b>Punteggio.</b> Ognuno rivela i Grimori presi, applica gli effetti dei Cristalli e somma i punti. <b>Effetto dei Cristalli:</b> in fase di punteggio puoi scegliere un Grimorio a punteggio negativo e convertirne il valore in punti positivi, un Grimorio per Cristallo (i Cristalli in eccesso non hanno effetto).</p>
+<p><b>Round successivo.</b> Si riprendono tutti i Cristalli, si raccolgono e si rimescolano i Grimori in un nuovo mazzo (si scopre in cima come all'inizio). Le carte Famiglio non si rimescolano: ognuno passa in senso orario al giocatore successivo tutte le sue carte (sia quelle coperte davanti a sé sia quelle sul foglio) come nuova mano. Il giocatore che riceve la mano usata dal primo giocatore del round appena concluso diventa il primo giocatore del round successivo. Le carte tolte in preparazione restano fuori.</p>
+<h4>Fine della partita</h4>
+<p>La partita finisce dopo un numero di round pari al numero di giocatori. Si sommano i punteggi di tutti i round: vince il totale più alto; i pari merito condividono la vittoria.</p>
+<p><i>Interpretazioni nell'app:</i> la composizione esatta delle carte non è nel PDF; si usano i ranghi 0/10 e da 1 a 9 per ogni seme, con il Cristallo sui ranghi 1 e 2 (otto carte, come gli otto Cristalli), e i Grimori +6 +5 +4 +4 +3 +3 −2 −3 −4 −5 −6 −6. Il Cristallo conta solo se la carta è visibile nell'area (non coperta). I Cristalli sono 8: se finiscono non se ne prendono altri. I Cristalli vengono assegnati automaticamente ai Grimori più negativi. Dal secondo round l'AI conosce le mani degli avversari (le carte giocate in pubblico nel round precedente, passate in senso orario).</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo"><small>キメラトリックス</small>Chimera Tricks</div>
+    ${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${G.n}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    const pos=POS[G.n];
+    body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${G.pl.some(p=>p.rs.length)?`<div class="dock" style="position:static;border-top-width:2px">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('ch-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('ch-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(PR&&PR.type==='card'&&PR.sel!=null&&!OPT.undo){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
