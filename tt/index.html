@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="it" class="h-full">
+<head>
+<script src="/auth-gate.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trick-taking online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body{font-family:'Inter',sans-serif}
+    p.mt-2.text-sm.text-slate-400{display:none}</style>
+</head>
+<body class="min-h-full m-0 bg-slate-900 text-slate-100">
+    <main class="mx-auto max-w-7xl px-4 py-10">
+        <h1 class="text-2xl font-bold">Trick-taking online</h1>
+        <p class="mt-1 text-sm text-slate-400">Scegli il gioco e come giocarlo: contro l'AI o contro gli amici, in una stanza online.</p>
+        <div id="games" class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
+    </main>
+    <script>
+        // ai = pagina contro l'AI; online = pagina "a stanze" (null finché non esiste/funziona: il pulsante resta disabilitato)
+        var GAMES = [
+        {
+                "name": "Spy Team",
+                "players": "4",
+                "desc": "2 contro 2: tu e un compagno AI contro due avversari.",
+                "ai": "/tt/vs-ai/spy-team/",
+                "online": "/tt/online/spy-team/"
+        },
+        {
+                "name": "6 Forces",
+                "players": "3–4",
+                "desc": "Previsione delle prese e Briscola Personale.",
+                "ai": "/tt/vs-ai/six-forces/",
+                "online": null
+        },
+        {
+                "name": "Charms",
+                "players": "3–4",
+                "desc": "Carte seme e numero, 4 mani, vince chi ha meno punti.",
+                "ai": "/tt/vs-ai/charms/",
+                "online": null
+        },
+        {
+                "name": "Quashars",
+                "players": "3–4",
+                "desc": "Carte Contratto e gettoni di previsione.",
+                "ai": "/tt/vs-ai/quashars/",
+                "online": null
+        },
+        {
+                "name": "American Bookshop",
+                "players": "3–5",
+                "desc": "Somma limite e maggioranze di colore.",
+                "ai": "/tt/vs-ai/american-bookshop/",
+                "online": null
+        },
+        {
+                "name": "Don't Take Me!!!",
+                "players": "3–5",
+                "desc": "Evita le prese con i tuoi numeri Keep Out. Run Away!",
+                "ai": "/tt/vs-ai/dont-take-me/",
+                "online": null,
+                "badge": "Beta"
+        },
+        {
+                "name": "My Own Sunny Day",
+                "players": "3–4",
+                "desc": "Apri e chiudi l'ombrello e pareggia le prese. Uscita e Ritorno a casa.",
+                "ai": "/tt/vs-ai/my-own-sunny-day/",
+                "online": null
+        },
+        {
+                "name": "Hearts and Minds",
+                "players": "3–4",
+                "desc": "Scegli un Obiettivo a ogni round, briscola opposta al seme di mano. 4 round.",
+                "ai": "/tt/vs-ai/hearts-and-minds/",
+                "online": null,
+                "badge": "Beta"
+        },
+        {
+                "name": "David & Goliath",
+                "players": "3–5",
+                "desc": "La carta più bassa prende la più alta, la più alta prende il resto. Pochi colori valgono tanto.",
+                "ai": "/tt/vs-ai/david-and-goliath/",
+                "online": null
+        },
+        {
+                "name": "Apocalypse",
+                "players": "2–6",
+                "desc": "Segnalini Apocalisse, vince la carta più alta… finché tutti i segnalini sono neri. Meno punti vince.",
+                "ai": "/tt/vs-ai/apocalypse/",
+                "online": null
+        },
+        {
+                "name": "Bid COIN",
+                "players": "3–4",
+                "desc": "Punta il numero esatto di prese e scarta i tuoi BiD COIN. Puntata zero, doppia vittoria con 4 e 6.",
+                "ai": "/tt/vs-ai/bid-coin/",
+                "online": null,
+                "badge": "Beta"
+        },
+        {
+                "name": "Bubble Gum",
+                "players": "2",
+                "desc": "Gonfia il pallone con le prese, ma attenzione al POP oltre 15! Al meglio dei 3 round.",
+                "ai": "/tt/vs-ai/bubble-gum/",
+                "online": null
+        },
+        {
+                "name": "Oshaka Trick",
+                "players": "3–4",
+                "desc": "Vince la presa il numero più basso. Punteggio o penalità? Attento alle penalità Oshaka! Due metà da 13 prese.",
+                "ai": "/tt/vs-ai/oshaka-trick/",
+                "online": null,
+                "badge": "Beta"
+        },
+        {
+                "name": "Chimera Tricks",
+                "players": "3–4",
+                "desc": "Sintetizza i Famigli in Chimere: perdi apposta per crescere, vinci per i Grimori. Cristalli e ricompensa rivelata in anticipo.",
+                "ai": "/tt/vs-ai/chimera-tricks/",
+                "online": null,
+                "badge": "Beta"
+        },
+        {
+                "name": "ESP",
+                "players": "3–4",
+                "desc": "Experiment in Supersensory Perspicacity: prevedi la Carta Visione, nascondi le tue carte e punta sul numero di prese.",
+                "ai": "/tt/vs-ai/esp/",
+                "online": null,
+                "badge": "Beta"
+        },
+        {
+                "name": "Daytime Minutes",
+                "players": "3–5",
+                "desc": "Sfrutta al massimo il piano telefonico: raccogli minuti fino al limite, ma non superarlo. Sere gratis, chiamante ignoto in 3.",
+                "ai": "/tt/vs-ai/daytime-minutes/",
+                "online": null,
+                "badge": "Beta"
+        },
+        {
+                "name": "Woodlanders",
+                "players": "3–4",
+                "desc": "Nessun animale vuole fare il Guardiano: scegli il tuo seme dolore, gioca 1 o 2 carte per presa ed evita di raccoglierlo. In 3 c'è il robot D4-ST8.",
+                "ai": "/tt/vs-ai/woodlanders/",
+                "online": null,
+                "badge": "Beta"
+        },
+        {
+                "name": "Plotters, Inc.",
+                "players": "4–6",
+                "desc": "Nessuno vince una presa da solo: la carta più alta e la più bassa si dividono il bottino. Scegli i tuoi due colori, moltiplicali e dividi per il resto.",
+                "ai": "/tt/vs-ai/plotters-inc/",
+                "online": null,
+                "badge": "Beta"
+        },
+        {
+                "name": "TenBalance",
+                "players": "3–5",
+                "desc": "Vinci prese e raccogli carte dal centro per arrivare a 10 senza superarlo: vincere troppo ti costa. Rosso: vince il più alto, blu: il più basso.",
+                "ai": "/tt/vs-ai/tenbalance/",
+                "online": null,
+                "badge": "Beta"
+        },
+        {
+                "name": "MergeTake",
+                "players": "3–4",
+                "desc": "Raccogli più slime possibile, ma numeri uguali o consecutivi si fondono in gruppi: contano i gruppi, e da 5 carte in su si perde punti.",
+                "ai": "/tt/vs-ai/mergetake/",
+                "online": null,
+                "badge": "Beta"
+        },
+        {
+                "name": "Yokai Fuwafuwa",
+                "players": "3–4",
+                "desc": "Non sai quante prese farai: gioca carte coperte e metti cubi sulla scheda puntata per schiarirti le idee.",
+                "ai": "/tt/vs-ai/yokai-fuwafuwa/",
+                "online": null,
+                "badge": "Beta"
+        },
+        {
+                "name": "Pack Tricks",
+                "players": "4",
+                "desc": "Scegli una squadra ogni round e raggiungi insieme il numero di prese promesso. Giallo è briscola, i 4 costano punti.",
+                "ai": "/tt/vs-ai/pack-tricks/",
+                "online": null,
+                "badge": "Beta"
+        }
+];
+        function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+        GAMES.sort(function (a, b) { return a.name.localeCompare(b.name, 'it', { sensitivity: 'base' }); });
+        var BTN = 'inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors';
+        function btn(href, icon, label, title) {
+            if (!href) return '<span class="' + BTN + ' cursor-not-allowed border-slate-700/50 bg-slate-900/40 text-slate-500" aria-disabled="true" title="' + esc(title) + '"><i class="ph-fill ' + icon + '"></i> ' + label + '</span>';
+            return '<a href="' + href + '" class="' + BTN + ' border-teal-600/60 bg-teal-600/10 text-teal-200 hover:bg-teal-600/30"><i class="ph-fill ' + icon + '"></i> ' + label + '</a>';
+        }
+        document.getElementById('games').innerHTML = GAMES.map(function (g) {
+            return '<div class="rounded-xl border border-slate-700/50 bg-slate-900/80 p-5">' +
+                '<div class="flex items-start justify-between gap-2"><div class="flex flex-wrap items-center gap-x-2 gap-y-1"><h2 class="text-base font-semibold">' + esc(g.name) + '</h2>' +
+                (g.badge ? '<span class="rounded border border-amber-500/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">' + esc(g.badge) + '</span>' : '') + '</div>' +
+                '<span class="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-slate-700/60 px-2 py-0.5 text-xs font-medium text-slate-300" title="' + esc(g.players) + ' giocatori"><i class="ph-fill ph-users"></i> ' + esc(g.players) + '</span></div>' +
+                '<p class="mt-2 text-sm text-slate-400">' + esc(g.desc) + '</p>' +
+                '<div class="mt-4 flex gap-2">' + btn(g.ai, 'ph-robot', "Contro l'AI", 'Non ancora disponibile') + btn(g.online, 'ph-users-three', 'Contro gli Amici', 'Versione a stanze in arrivo') + '</div></div>';
+        }).join('');
+    </script>
+</body>
+</html>
