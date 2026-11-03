@@ -119,10 +119,15 @@ button.fc:disabled{cursor:default}
 .fc.legal{box-shadow:0 0 0 3px #e0a800}
 .fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px #3b2a8a}
 .hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
-body.a11y .fc.k0,body.a11y .cc.k0,body.a11y .rchip.k0{background-image:radial-gradient(rgba(0,0,0,0.28) 22%,transparent 24%);background-size:9px 9px}
-body.a11y .fc.k1,body.a11y .cc.k1,body.a11y .rchip.k1{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
-body.a11y .fc.k2,body.a11y .cc.k2,body.a11y .rchip.k2{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
-
+body.a11y .fc.k0,body.a11y .cc.k0{background-image:radial-gradient(rgba(0,0,0,0.28) 22%,transparent 24%),linear-gradient(180deg,#fff2e2,var(--k0));background-size:9px 9px,100% 100%}
+body.a11y .fc.k1,body.a11y .cc.k1{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px),linear-gradient(180deg,#ffeaf2,var(--k1))}
+body.a11y .fc.k2,body.a11y .cc.k2{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px),linear-gradient(180deg,#eaf6ff,var(--k2))}
+body.a11y .cc.k0{background-image:radial-gradient(rgba(0,0,0,0.28) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .cc.k1{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
+body.a11y .cc.k2{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
+body.a11y .rchip.k0{background-image:radial-gradient(rgba(0,0,0,0.28) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .rchip.k1{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
+body.a11y .rchip.k2{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
 .center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:#1c1830}
 .center b{color:#3b2a8a}
 .center .hint{color:#4e3aa0}
@@ -551,7 +556,7 @@ function seatHtml(p,pos){
     }).join('')}</div>`;
   }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
   const over=pl.mins>G.plan;
-  const meta=`<div class="seat-meta"><span class="tag">${ico('sim-card')} <b>${pl.sim}</b></span><span class="tag ${over?'over':''}">${ico('clock')} <b>${pl.mins}</b>/${G.plan}′</span><span class="tag">conv. <b>${pl.talk}</b></span></div>`;
+  const meta=`<div class="seat-meta"><span class="tag">${ico('sim-card')} <b>${pl.sim}</b></span><span class="tag ${over?'over':''}">${ico('clock')} <b>${pl.mins}</b>/${G.plan}′</span><span class="tag" title="Valore di conversazione totale">${ico('user-sound')} <b>${pl.talk}</b></span></div>`;
   const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
   const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${collHtml(p)}${hand}`
     :(pos==='top'||pos==='tl'||pos==='tr'?`${hand}${name}${meta}${collHtml(p)}${tableauHtml(p)}`:`${name}${meta}${collHtml(p)}${tableauHtml(p)}${hand}`);
@@ -592,10 +597,20 @@ function dockHtml(){
   }
   return html;
 }
+function minsTable(){
+  let rows='';
+  SUITS.forEach((su,i)=>{
+    const g=[];
+    MINS[i].forEach((m,k)=>{ const l=g[g.length-1]; if(l&&l.m===m&&l.to===k) l.to=k+1; else g.push({from:k+1,to:k+1,m}); });
+    g.forEach((x,j)=>{ rows+='<tr>'+(j===0?'<td class="l" rowspan="'+g.length+'"><span class="rchip k'+i+'">'+ico(su.icon)+' '+su.n+'</span></td>':'')+'<td class="l">'+(x.from===x.to?x.from:x.from+'–'+x.to)+'</td><td>'+x.m+'′</td></tr>'; });
+  });
+  return '<table class="score"><tr><th class="l">Colore</th><th class="l">Valore numerico</th><th>Minuti</th></tr>'+rows+'</table>';
+}
 function recapHtml(){
   const n=G.n;
   return `<div class="recap paper"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
-    <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">45 carte (1–15 in 3 semi) · il numero decide chi vince, i minuti (5/15/30/45/60) si contano verso il piano · ${HAND} carte a testa</span></div>
+    <div class="recap-row"><span class="rv" style="margin-left:0">45 carte (1–15 in 3 semi) · il numero decide chi vince, i minuti si contano verso il piano · ${HAND} carte a testa</span></div>
+    ${minsTable()}
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">al massimo due semi: dopo il secondo seme devi giocarne uno dei due, se puoi · di giorno (mattina, pomeriggio) per ogni seme chi ha giocato il valore più alto raccoglie tutte le carte di quel seme · di sera le carte si scartano · guida chi ha giocato il valore più alto del seme di mano</span></div>
     <div class="recap-row"><span class="lbl">Fine mano</span><span class="rv" style="margin-left:0">se qualcuno supera i minuti del piano la mano finisce subito e perde un SIM · chi ha meno minuti perde un SIM · chi arriva ESATTAMENTE ai minuti del piano guadagna un SIM</span></div>
     <div class="recap-row"><span class="lbl">Fine</span><span class="rv" style="margin-left:0">la partita finisce quando qualcuno ha 0 SIM · vince chi ne ha di più · parte 3 SIM a testa, piano iniziale 180 minuti${n===3?' · in 3 giocatori una carta in più per presa da un «chiamante ignoto»':''}</span></div></div>`;
