@@ -125,21 +125,23 @@ button.fc:disabled{cursor:default}
 .hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
 .pickrow{display:flex;gap:8px;flex-wrap:wrap}
 .pickrow .pc{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--text-soft)}
-body.a11y .k0.fc,body.a11y .k0.sw{background-image:radial-gradient(rgba(0,0,0,0.3) 22%,transparent 24%);background-size:9px 9px}
-body.a11y .k1.fc,body.a11y .k1.sw{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
-body.a11y .k2.fc,body.a11y .k2.sw{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
-body.a11y .k3.fc,body.a11y .k3.sw{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .k0.fc,body.a11y .k0.sw,body.a11y .k0.trump{background-image:radial-gradient(rgba(0,0,0,0.3) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .k1.fc,body.a11y .k1.sw,body.a11y .k1.trump{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .k2.fc,body.a11y .k2.sw,body.a11y .k2.trump{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .k3.fc,body.a11y .k3.sw,body.a11y .k3.trump{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
 
 .center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:#f2f2f2}
 .center b{color:#f4cd5e}
 .center .hint{color:#d6d8de}
-.trump{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--ink);border-radius:10px;padding:6px 12px;font-weight:800;border:2px solid var(--ink)}
+.trump{display:inline-flex;align-items:center;gap:8px;color:#1c1830;border-radius:10px;padding:6px 12px;font-weight:800;border:2px solid var(--ink)}
 
 .recap{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
 .recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
-.recap-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px}
-.recap-row .lbl{min-width:70px;font-weight:600;color:var(--text-soft)}
-.recap-row .rv{color:var(--text-soft);margin-left:4px}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .rchip,.recap-row .sw{vertical-align:middle}
 details.rules{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
 .rtext h4{font-family:'Anton',sans-serif;font-weight:400;font-size:15px;color:#a85f08;margin:14px 0 4px;letter-spacing:0.02em}
@@ -507,7 +509,7 @@ function seatHtml(p,pos){
 function centerHtml(){
   const led=G.trick.length?G.trick[0].c.s:-1;
   return `<div class="center">
-    ${led>=0?`<div class="trump">${ico(COLS[led].icon)} Seme di mano: ${COLS[led].n}</div>`:'<div class="hint">La prima carta stabilisce il seme di mano</div>'}
+    ${led>=0?`<div class="trump k${led}">${ico(COLS[led].icon)} Seme di mano: ${COLS[led].n}</div>`:'<div class="hint">La prima carta stabilisce il seme di mano</div>'}
     <div>${COLS.map((c,i)=>sw(i,null)).join(' ')}</div>
     <div>Round <b>${G.round+1}/${G.n}</b> · Presa <b>${Math.min(G.trickNo,HAND)}/${HAND}</b></div>
     <div class="hint">Alto = prende ${Math.ceil(G.n/2)} · basso non-di-mano = riceve ${G.n-Math.ceil(G.n/2)}</div></div>`;
