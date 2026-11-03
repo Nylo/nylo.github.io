@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bid COIN</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f1c24;
+  --surface:#1b2f3b;
+  --surface-raised:#264354;
+  --accent:#f2c14e;
+  --accent-soft:rgba(242,193,78,0.16);
+  --text:#f2f1ea;
+  --text-soft:#b9ccd6;
+  --danger:#ff9a8a;
+  --success:#9be3a6;
+  --border:rgba(150,200,220,0.25);
+  --radius:10px;
+  --k0:#3a9a63; --k1:#cf3340; --k2:#2f86c4; --k3:#c9a21a; --k4:#d9772b;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#1e3a46 0%,#070f13 100%) fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Libre Baskerville',serif;font-size:28px;font-weight:700;font-style:italic;line-height:1.1;flex:1;color:var(--accent)}
+.logo small{display:block;font-family:'Inter',sans-serif;font-style:normal;font-size:10px;font-weight:600;letter-spacing:0.12em;color:var(--text-soft);text-transform:uppercase;margin-bottom:3px}
+.badge{background:var(--accent);color:#2a2410;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd54a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Libre Baskerville',serif;font-size:16px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.12);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.45)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#245563 0%,#0e222a 90%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:540px}
+.table.n5{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
+.seat.top{grid-area:top} .seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.07)}
+.seat.active{border-color:#ffe27a;background:rgba(255,226,122,0.14)}
+.seat.winner{border-color:var(--success);background:rgba(155,227,166,0.16)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.3);border-radius:4px;padding:2px 6px}
+.tag b{color:var(--accent)}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:12px;height:18px;border-radius:3px;background:linear-gradient(135deg,#3d7f93,#16323c);border:1px solid #bfe0ea}
+.seat.left .backs,.seat.right .backs{max-width:130px}
+.tableau{display:flex;gap:6px;align-items:center;justify-content:center;min-height:74px;padding:4px 6px;border-radius:8px;background:rgba(0,0,0,0.2);min-width:56px}
+.tableau .empty{width:42px;height:62px;border:1px dashed rgba(255,255,255,0.3);border-radius:6px}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Libre Baskerville',serif;font-weight:700;font-size:22px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
+.fc i{font-size:20px}
+.fc.k0{background-color:var(--k0)} .fc.k1{background-color:var(--k1)} .fc.k2{background-color:var(--k2)} .fc.k3{background-color:var(--k3)} .fc.k4{background-color:var(--k4)}
+.fc.mini{width:42px;height:62px;font-size:19px}
+.fc.mini i{font-size:17px}
+.fc.fresh{box-shadow:0 0 0 3px #ffe27a}
+.fc.win{box-shadow:0 0 0 3px var(--success)}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.legal{box-shadow:0 0 0 3px #ffe27a}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+body.a11y .fc.k0,body.a11y .rchip.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .fc.k1,body.a11y .rchip.k1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k2,body.a11y .rchip.k2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:var(--text-soft)}
+.center b{color:#fff}
+.cmid{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+.deck{position:relative;width:46px;height:68px;border-radius:7px;border:2px solid #dfe9c5;background:linear-gradient(135deg,#8aa062,#3a4a2a);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:16px}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
+.recap-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px}
+.recap-row .lbl{min-width:70px;font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:4px}
+.rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,0.35);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
+.rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)} .rchip.k4{background-color:var(--k4)}
+.nchip{display:inline-flex;min-width:24px;justify-content:center;padding:2px 6px;border-radius:5px;background:rgba(127,127,127,0.25);font-weight:700;font-size:12px}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+.fc.dbl::after{content:'×2';position:absolute;top:-8px;right:-6px;background:#fff;color:#1a1a1a;font:700 9px Inter,sans-serif;padding:1px 4px;border-radius:6px;letter-spacing:0.02em}
+.coins{display:flex;gap:5px;align-items:flex-end;justify-content:center;flex-wrap:wrap;min-height:38px;padding-top:10px}
+.bc{position:relative;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffeaa0,#d9a62a);color:#3b2a00;font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center;border:2px solid #fff3c4;box-shadow:0 2px 3px rgba(0,0,0,0.4);transition:all 0.15s}
+.bc.mv{top:-10px;border-color:#fff;box-shadow:0 0 0 2px var(--accent),0 4px 6px rgba(0,0,0,0.4)}
+.bc.zr{transform:rotate(90deg) scale(0.9);background:radial-gradient(circle at 35% 30%,#e6f1f6,#7fa1b3);color:#103040;border-color:#d6e6ee;margin:0 4px}
+.tag.zt{background:#7a1a2a;color:#fff}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:44px}
+  .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
+  .fc i{font-size:13px}
+  .fc.mini{width:32px;height:48px;font-size:14px}
+  .fc.mini i{font-size:12px}
+  .tableau .empty{width:32px;height:48px}
+  .table{padding:8px;gap:6px;grid-template-columns:1fr 1fr 1fr}
+  .table.n5{grid-template-columns:1fr 1fr 1fr 1fr}
+  .back{width:9px;height:14px}
+  .bc{width:22px;height:22px;font-size:11px}
+  .hand{gap:2px}
+  .deck{width:36px;height:54px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const SUITS = [
+  {n:'Verde',   icon:'leaf'},
+  {n:'Rosso',   icon:'fire'},
+  {n:'Blu',     icon:'drop'},
+  {n:'Giallo',  icon:'coins'},
+  {n:'Arancio', icon:'gas-pump'}
+];
+const CV = [1,2,3,5,7];                                  // BiD COIN iniziali di ogni giocatore
+const MAXR = {3:7, 4:10};                                // rango massimo usato (3 giocatori: 0–7, 4 giocatori: 0–10)
+const TRICKS = 13;
+const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
+const NAMES = ['Tu','AI Satoshi','AI Vitalik','AI Hal'];
+const HUM = 0;
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('bc-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('bc-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>600) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const cname = c => `${SUITS[c.s].n} ${c.r}`;
+const isDbl = c => c.r===4||c.r===6;                     // carte con l'icona «doppia vittoria»
+const bidOf = pl => pl.cards.reduce((a,c)=>a+(c.moved?c.v:0),0);
+const holdOf = pl => pl.cards.reduce((a,c)=>a+c.v,0);
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+// extra = pulsanti alternativi nella zona delle carte (es. dichiarare la puntata zero)
+function askCard(legal,hint,extra){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,extra:extra||[],sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function playIdx(i){
+  if(!PR||PR.type!=='card'||!PR.legal.has(i)) return;
+  if(OPT.undo){ PR.sel=i; render(); return; }
+  const r=PR.res; PR=null; render(); r(i);
+}
+function cardExtra(k){
+  if(!PR||PR.type!=='card'||!PR.extra[k]) return;
+  const v={extra:PR.extra[k].value}, r=PR.res; PR=null; render(); r(v);
+}
+function confirmCard(ok){
+  if(!PR||PR.type!=='card'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const i=PR.sel, r=PR.res; PR=null; render(); r(i);
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+function fullDeck(n){
+  const d=[];
+  for(let s=0;s<5;s++) for(let r=0;r<=MAXR[n];r++) d.push({s,r});
+  return d;
+}
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.r-b.r);
+// obbligo di rispondere al seme di mano; altrimenti si gioca qualunque carta (anche la briscola)
+function legalIdx(hand,lead){
+  const all=hand.map((_,i)=>i);
+  if(lead==null) return all;
+  const same=all.filter(i=>hand[i].s===lead);
+  return same.length?same:all;
+}
+// vince la briscola più alta; senza briscole la carta più alta del seme di mano, ma se è stato giocato il rango massimo del seme insieme allo 0 dello stesso seme, vince lo 0
+function winnerOf(table,lead,trump,maxR){
+  const tr=table.filter(x=>x.c.s===trump);
+  if(tr.length) return tr.reduce((b,x)=>x.c.r>b.c.r?x:b).p;
+  const ls=table.filter(x=>x.c.s===lead);
+  let w=ls.reduce((b,x)=>x.c.r>b.c.r?x:b);
+  if(ls.some(x=>x.c.r===maxR)){ const z=ls.find(x=>x.c.r===0); if(z) w=z; }
+  return w.p;
+}
+// puntata zero: sottoinsiemi di BiD COIN (non ancora mossi) il cui valore totale è uguale alle carte rimaste in mano
+function zeroSubsets(pl){
+  const free=pl.cards.filter(c=>!c.moved&&!c.zero), need=pl.hand.length, out=[], seen=new Set();
+  const go=(i,sum,pick)=>{
+    if(sum===need){ const k=pick.map(c=>c.v).sort((a,b)=>b-a).join('+'); if(!seen.has(k)){ seen.add(k); out.push(pick.slice()); } return; }
+    if(sum>need||i>=free.length) return;
+    pick.push(free[i]); go(i+1,sum+free[i].v,pick); pick.pop();
+    go(i+1,sum,pick);
+  };
+  go(0,0,[]);
+  return out;
+}
+const canZero = pl => !pl.zero&&pl.wins===0&&pl.hand.length>0&&zeroSubsets(pl).length>0;
+
+// ═════════════════════════ AI ═════════════════════════
+// Euristica di gioco usata sia per la scelta reale sia per le simulazioni: 'win' = cerca di vincere con la carta più bassa possibile, 'lose' = scarica la carta più alta che non vince
+const keyOf = (c,trump) => (c.s===trump?100:0)+c.r;
+function heurPlay(hand,table,lead,trump,maxR,want,p){
+  const lg=legalIdx(hand,lead);
+  const lo=a=>a.reduce((b,i)=>keyOf(hand[i],trump)<keyOf(hand[b],trump)?i:b);
+  const hi=a=>a.reduce((b,i)=>keyOf(hand[i],trump)>keyOf(hand[b],trump)?i:b);
+  if(!table.length) return want==='win'?hi(lg):lo(lg);
+  const beats=i=>winnerOf(table.concat({p,c:hand[i]}),lead,trump,maxR)===p;
+  const w=lg.filter(beats), l=lg.filter(i=>!beats(i));
+  if(want==='win') return w.length?lo(w):lo(lg);
+  return l.length?hi(l):lo(w);
+}
+function unseenCards(p){
+  const known=new Set();
+  P(p).hand.forEach(c=>known.add(c.s*11+c.r));
+  G.played.forEach(c=>known.add(c.s*11+c.r));
+  known.add(G.trumpCard.s*11+G.trumpCard.r);
+  return fullDeck(G.n).filter(c=>!known.has(c.s*11+c.r));
+}
+function sampleHands(p,pool0){
+  const pool=shuffle(pool0.slice()), hands={};
+  G.pl.forEach(q=>{ hands[q.id]=q.id===p?P(p).hand.slice():pool.splice(0,q.hand.length); });
+  return hands;
+}
+// come giocherebbe un avversario: se ha una puntata superiore alle prese cerca di vincere, se è a pari o sopra cerca di perdere
+function oppWant(q,wins){
+  const pl=P(q), bid=bidOf(pl);
+  if(pl.zero) return 'lose';
+  if(bid>0) return wins<bid?'win':'lose';
+  return Math.random()<0.5?'win':'lose';
+}
+// simula il resto del round: me gioca con wantMe(prese correnti), gli altri con oppWant. Restituisce le prese aggiunte (le doppie contano 2)
+function rollout(me,hands,table,lead,order,idx,wantMe){
+  const n=G.n, add=Array(n).fill(0), trump=G.trump, maxR=G.maxR;
+  table=table.slice();
+  while(true){
+    for(;idx<order.length;idx++){
+      const q=order[idx], h=hands[q];
+      if(!h.length) continue;
+      const wins=P(q).wins+add[q];
+      const want=q===me?wantMe(wins):oppWant(q,wins);
+      const c=h.splice(heurPlay(h,table,lead,trump,maxR,want,q),1)[0];
+      table.push({p:q,c}); if(lead==null) lead=c.s;
+    }
+    const w=winnerOf(table,lead,trump,maxR);
+    add[w]+=isDbl(table.find(x=>x.p===w).c)?2:1;
+    if(Object.values(hands).some(h=>!h.length)) break;
+    order=Array.from({length:n},(_,i)=>(w+i)%n); table=[]; lead=null; idx=0;
+  }
+  return add;
+}
+// numero di vittorie ancora ottenibili da me (cercando di vincere sempre / di perdere sempre) a partire dalla situazione attuale
+function winRange(p,S,fresh){
+  if(!P(p).hand.length) return {mx:0,mn:0};
+  const pool=unseenCards(p);
+  const mid=!fresh&&G.table.length>0;
+  const order=mid?G.order:Array.from({length:G.n},(_,i)=>((fresh?p:G.leader)+i)%G.n);
+  const idx=mid?G.table.length:0;
+  const table=mid?G.table:[], lead=mid?G.lead:null;
+  let mx=0,mn=0;
+  for(let s=0;s<S;s++){
+    const hs=sampleHands(p,pool);
+    mx+=rollout(p,hs,table,lead,order,idx,()=>'win')[p];
+    const hs2=sampleHands(p,pool);
+    mn+=rollout(p,hs2,table,lead,order,idx,()=>'lose')[p];
+  }
+  return {mx:mx/S,mn:mn/S};
+}
+// obiettivo di prese per il round: mi baso più sul massimo ottenibile (più BiD COIN scartati) ma resto nel realistico
+const AIP = {S:14, zeroU:4, hi:0.7};
+function aiTarget(p){
+  const pl=P(p), bid=bidOf(pl);
+  if(pl.zero) return 0;
+  if(bid>0) return bid;
+  const r=winRange(p,AIP.S);
+  return Math.max(0,Math.round(AIP.hi*r.mx+(1-AIP.hi)*r.mn));
+}
+function aiZero(p){
+  const pl=P(p);
+  if(!canZero(pl)) return null;
+  const hs=pl.hand.length, pool=unseenCards(p), S=AIP.S*2;
+  const order=G.table.length?G.order:Array.from({length:G.n},(_,i)=>(G.leader+i)%G.n);
+  const idx=G.table.length?G.table.length:0;
+  let ok=0, wins=0;
+  for(let s=0;s<S;s++){
+    const add=rollout(p,sampleHands(p,pool),G.table,G.lead,order,idx,()=>'lose')[p];
+    if(add===0) ok++; else wins+=add;
+  }
+  const pr=ok/S, lost=wins/Math.max(1,S-ok);
+  const u=pr*hs-(1-pr)*lost;
+  if(u<AIP.zeroU) return null;
+  const subs=zeroSubsets(pl);
+  return subs.reduce((b,x)=>x.reduce((a,c)=>a+c.v*c.v,0)>b.reduce((a,c)=>a+c.v*c.v,0)?x:b);
+}
+function aiPickCard(p){
+  const pl=P(p), lg=legalIdx(pl.hand,G.lead);
+  if(lg.length===1) return lg[0];
+  const R=pl.hand.length, T=aiTarget(p), need=T-pl.wins;
+  const q=need<=0?0:Math.min(1,need/R);
+  const pool=unseenCards(p), order=G.order, li=order.indexOf(p), S=AIP.S*2;
+  const hits=lg.map(()=>0);
+  for(let s=0;s<S;s++){
+    const hs=sampleHands(p,pool);
+    lg.forEach((i,k)=>{
+      const hands={}; for(const k2 in hs) hands[k2]=hs[k2].slice();
+      const h=hands[p], c=h.splice(i,1)[0];
+      const table=G.table.concat({p,c}), lead=G.lead==null?c.s:G.lead;
+      let t=table;
+      for(let j=li+1;j<order.length;j++){
+        const o=order[j], oh=hands[o];
+        const cc=oh.splice(heurPlay(oh,t,lead,G.trump,G.maxR,oppWant(o,P(o).wins),o),1)[0];
+        t=t.concat({p:o,c:cc});
+      }
+      if(winnerOf(t,lead,G.trump,G.maxR)===p) hits[k]++;
+    });
+  }
+  let best=lg[0], bv=1e9;
+  lg.forEach((i,k)=>{
+    const pw=hits[k]/S, key=keyOf(pl.hand[i],G.trump);
+    const v=Math.abs(pw-q)+(q<0.5?-0.004:0.004)*key+Math.random()*0.02;
+    if(v<bv){ bv=v; best=i; }
+  });
+  return best;
+}
+// quale BiD COIN spostare dopo aver superato la puntata
+function aiBidCard(p){
+  const pl=P(p), free=pl.cards.filter(c=>!c.moved&&!c.zero);
+  const r=winRange(p,AIP.S,true);
+  const T=pl.wins+Math.round(AIP.hi*r.mx+(1-AIP.hi)*r.mn), bid=bidOf(pl);
+  return free.reduce((b,c)=>{
+    const d=Math.abs(bid+c.v-T), db=Math.abs(bid+b.v-T);
+    return d<db||(d===db&&c.v>b.v)?c:b;
+  });
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,round:0,start:rnd(n),msg:'',log:[],over:null,maxR:MAXR[n],trump:-1,trumpCard:null,left:[],res:9-n,
+     table:[],lead:null,order:[],leader:0,turn:-1,win:-1,fresh:-1,trickNo:0,played:[],show:null,cid:0,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],cards:CV.map((v,k)=>({id:i*100+k,v,moved:false,zero:false})),wins:0,zero:false,disc:{2:0,3:0,5:0,7:0},hist:[]}))};
+  G.cid=1000;
+  run();
+}
+function deal(){
+  const deck=shuffle(fullDeck(G.n));
+  G.pl.forEach((p,i)=>{ p.hand=sortHand(deck.slice(i*TRICKS,(i+1)*TRICKS)); p.wins=0; p.zero=false; p.cards.forEach(c=>{ c.moved=false; c.zero=false; }); });
+  G.left=deck.slice(G.n*TRICKS);
+  G.trumpCard=G.left[0]; G.trump=G.trumpCard.s;
+  G.played=[]; G.table=[]; G.lead=null; G.win=-1; G.show=null; G.turn=-1; G.trickNo=0; G.fresh=-1;
+}
+function declareZero(p,subset){
+  const pl=P(p);
+  pl.zero=true; subset.forEach(c=>{ c.zero=true; });
+  logMsg(`${pl.name} dichiara PUNTATA ZERO con BiD COIN ${subset.map(c=>c.v).sort((a,b)=>b-a).join(' + ')} (= ${pl.hand.length} carte in mano).`);
+}
+async function humanTurn(){
+  const pl=P(HUM);
+  while(true){
+    const lg=legalIdx(pl.hand,G.lead);
+    let hint=G.lead==null?'Sei di mano: gioca la carta che vuoi.'
+      :(pl.hand.some(c=>c.s===G.lead)?`Devi rispondere al seme ${SUITS[G.lead].n}.`:`Non hai il seme ${SUITS[G.lead].n}: puoi giocare ciò che vuoi (anche una briscola).`);
+    if(pl.zero) hint+=' Hai dichiarato zero: se vinci anche una sola presa la puntata fallisce.';
+    const extra=canZero(pl)?[{label:`Dichiara puntata zero (= ${pl.hand.length} carte)`,value:'zero'}]:[];
+    const r=await askCard(lg,hint,extra);
+    if(typeof r==='object'){
+      const subs=zeroSubsets(pl).sort((a,b)=>b.length-a.length);
+      const opts=subs.map(s=>({label:`Gira BiD COIN ${s.map(c=>c.v).sort((a,b)=>b-a).join(' + ')}`,value:s}));
+      opts.push({label:'↶ Annulla',value:null});
+      const s=await ask(HUM,`Puntata zero: scegli i BiD COIN per un totale di ${pl.hand.length}`,opts);
+      if(s) declareZero(HUM,s);
+      continue;
+    }
+    return r;
+  }
+}
+async function oneTrick(){
+  G.trickNo++; G.table=[]; G.lead=null; G.win=-1; G.fresh=-1;
+  G.order=Array.from({length:G.n},(_,i)=>(G.leader+i)%G.n);
+  for(const p of G.order){
+    G.turn=p;
+    const pl=P(p);
+    status(`Presa ${G.trickNo}/${TRICKS} · di mano: ${P(G.leader).name}. Tocca a ${pl.name}.`);
+    let idx;
+    if(p===HUM) idx=await humanTurn();
+    else{
+      await sleep(700);
+      const z=aiZero(p);
+      if(z) declareZero(p,z);
+      idx=aiPickCard(p);
+    }
+    const c=pl.hand.splice(idx,1)[0];
+    G.table.push({p,c}); G.played.push(c); G.fresh=p;
+    if(G.lead==null) G.lead=c.s;
+    logMsg(`${pl.name} gioca ${cname(c)}.`);
+  }
+  G.turn=-1;
+  const w=winnerOf(G.table,G.lead,G.trump,G.maxR), wc=G.table.find(x=>x.p===w).c, pw=P(w);
+  const dbl=isDbl(wc);
+  pw.wins+=dbl?2:1;
+  G.win=w;
+  const zeroHit=pw.zero?' (la sua puntata zero è fallita)':'';
+  const m=`${pw.name} vince la presa con ${cname(wc)}${wc.s===G.trump?' (briscola)':''}${dbl?' e ottiene DUE vittorie (carta 4/6)':''}${zeroHit}. Prese: ${pw.wins}.`;
+  status(m); logMsg(m);
+  await sleep(1500);
+  // aggiornamento della puntata: se le prese superano la puntata si sposta un altro BiD COIN
+  if(!pw.zero&&pw.wins>bidOf(pw)){
+    const free=pw.cards.filter(c=>!c.moved&&!c.zero);
+    if(!free.length) logMsg(`${pw.name} non ha più BiD COIN da spostare: con ${pw.wins} prese supera la puntata e la perderà.`);
+    else{
+      let c;
+      if(w===HUM){
+        const bid=bidOf(pw);
+        const opts=free.map(x=>({label:`Sposta BiD COIN ${x.v} (puntata ${bid} → ${bid+x.v})`,value:x}));
+        c=await ask(HUM,`Hai ${pw.wins} prese e una puntata di ${bid}: devi spostare un BiD COIN`,opts);
+      }else c=aiBidCard(w);
+      c.moved=true;
+      logMsg(`${pw.name} sposta il BiD COIN ${c.v}: la sua puntata sale a ${bidOf(pw)} (prese ${pw.wins}).`);
+    }
+  }
+  G.leader=w;
+}
+async function tricks(){
+  G.leader=G.start;
+  for(let t=0;t<TRICKS;t++) await oneTrick();
+  G.win=-1; G.turn=-1; G.table=[]; G.lead=null;
+}
+function discard(pl,c){
+  pl.cards.splice(pl.cards.indexOf(c),1);
+  if(c.v===1) G.res++; else pl.disc[c.v]++;
+}
+async function scoring(){
+  const rows=G.pl.map(pl=>{
+    const wins=pl.wins, bid=pl.zero?0:bidOf(pl);
+    let res, gone=[], taken=0;
+    if(pl.zero){
+      const zc=pl.cards.filter(c=>c.zero);
+      if(wins===0){ res='zero ok'; gone=zc.map(c=>c.v); zc.forEach(c=>discard(pl,c)); }
+      else{
+        res='zero fail'; zc.forEach(c=>{ c.zero=false; });
+        for(let i=0;i<wins&&G.res>0;i++){ G.res--; pl.cards.push({id:G.cid++,v:1,moved:false,zero:false}); taken++; }
+      }
+    }else if(bid>0&&wins===bid){
+      const mc=pl.cards.filter(c=>c.moved);
+      res='ok'; gone=mc.map(c=>c.v); mc.forEach(c=>discard(pl,c));
+    }else{
+      res=bid===0&&wins===0?'nulla':'fail';
+      pl.cards.forEach(c=>{ c.moved=false; });
+    }
+    pl.hist.push(holdOf(pl));
+    return {p:pl.id,wins,bid,res,gone,taken,hold:holdOf(pl)};
+  });
+  G.show={rows};
+  const txt={ok:'puntata riuscita',fail:'puntata fallita',nulla:'nessuna puntata (0 prese)','zero ok':'puntata ZERO riuscita','zero fail':'puntata ZERO fallita'};
+  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ha vinto ${r.wins} prese · ${txt[r.res]}${r.gone.length?` · scarta ${r.gone.sort((a,b)=>b-a).join(' + ')}`:''}${r.taken?` · prende ${r.taken} BiD COIN da 1`:''} · valore rimasto ${r.hold}.`));
+  status(`Round ${G.round+1} concluso.`);
+  const last=G.round===G.n-1||G.pl.some(p=>!p.cards.length);
+  await ask(HUM,'Risultato del round',[{label:last?'Vedi il risultato finale':'Round successivo',value:1}]);
+  G.show=null;
+}
+// vince chi ha il valore residuo più basso; a pari merito chi ha scartato un 7, poi 5, 3, 2; se hanno scartato tutto vincono insieme
+function winners(){
+  const sums=G.pl.map(holdOf), mn=Math.min(...sums);
+  let w=G.pl.filter((p,i)=>sums[i]===mn).map(p=>p.id);
+  if(mn===0) return w;
+  for(const v of [7,5,3,2]){
+    if(w.length<2) break;
+    const has=w.filter(i=>P(i).disc[v]>0);
+    if(has.length&&has.length<w.length) w=has;
+  }
+  return w;
+}
+async function run(){
+  const g=G;
+  try{
+    for(let k=0;k<g.n;k++){
+      g.round=k; g.start=(g.start+(k?1:0))%g.n;
+      deal();
+      logMsg(`— Round ${k+1}/${g.n}: briscola ${SUITS[g.trump].n} (carta scoperta ${cname(g.trumpCard)}), primo giocatore ${P(g.start).name} —`);
+      status(g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`);
+      await ask(HUM,`Briscola: ${SUITS[g.trump].n}. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
+      await tricks();
+      await scoring();
+      if(g.pl.some(p=>!p.cards.length)) break;
+    }
+    g.over={winners:winners()};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='')=>`<span class="fc k${c.s} ${isDbl(c)?'dbl':''} ${cls}" title="${cname(c)}${isDbl(c)?' · doppia vittoria':''}"><span>${c.r}</span>${ico(SUITS[c.s].icon)}</span>`;
+function handBtn(c,i,ok,sel){
+  return `<button class="fc k${c.s} ${isDbl(c)?'dbl':''} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}${isDbl(c)?' · doppia vittoria':''}"><span>${c.r}</span>${ico(SUITS[c.s].icon)}</button>`;
+}
+function coinsHtml(p){
+  const pl=P(p);
+  const cs=pl.cards.slice().sort((a,b)=>a.v-b.v);
+  return `<div class="coins" title="BiD COIN: sollevati = puntata, orizzontali = puntata zero">${cs.map(c=>`<span class="bc ${c.moved?'mv':''} ${c.zero?'zr':''}" title="BiD COIN ${c.v}${c.moved?' (puntata)':''}${c.zero?' (puntata zero)':''}">${c.v}</span>`).join('')}</div>`;
+}
+function tableauHtml(p){
+  const x=G.table.find(t=>t.p===p);
+  return `<div class="tableau">${x?kface(x.c,`mini ${G.fresh===p?'fresh':''} ${G.win===p?'win':''}`):'<span class="empty"></span>'}</div>`;
+}
+function flagHtml(p){
+  if(!G||G.over) return '';
+  if(G.turn>=0&&G.leader===p) return '<span class="flag lead">Di mano</span>';
+  if(G.turn<0&&G.win<0&&!G.show&&G.table.length===0&&G.start===p&&G.trickNo===0) return '<span class="flag first">Primo giocatore</span>';
+  return '';
+}
+function seatHtml(p,pos){
+  const pl=P(p);
+  const isLeader=G.turn>=0&&G.leader===p, active=G.turn===p, winner=G.win===p;
+  let hand;
+  if(p===HUM){
+    hand=`<div class="hand">${pl.hand.map((c,i)=>{
+      if(PR&&PR.type==='card') return handBtn(c,i,PR.legal.has(i),PR.sel===i);
+      return kface(c);
+    }).join('')}</div>`;
+    if(PR&&PR.type==='card'&&PR.extra.length) hand+=`<div class="opts">${PR.extra.map((x,k)=>`<button class="opt" data-x="${k}">${esc(x.label)}</button>`).join('')}</div>`;
+  }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  const bid=pl.zero?'ZERO':bidOf(pl);
+  const meta=`<div class="seat-meta"><span class="tag">carte <b>${pl.hand.length}</b></span><span class="tag">prese <b>${pl.wins}</b></span><span class="tag ${pl.zero?'zt':''}">puntata <b>${bid}</b></span><span class="tag">valore <b>${holdOf(pl)}</b></span></div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const coins=coinsHtml(p);
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${coins}${hand}`
+    :(pos==='top'?`${hand}${name}${meta}${coins}${tableauHtml(p)}`:`${name}${meta}${coins}${tableauHtml(p)}${hand}`);
+  return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  return `<div class="center">
+    <div class="cmid"><div>${kface(G.trumpCard)}<div>briscola</div></div><div><div class="deck">${Math.max(0,G.left.length-1)}</div><div>coperte</div></div></div>
+    <div>Briscola: <b>${SUITS[G.trump].n}</b> ${ico(SUITS[G.trump].icon)}</div>
+    ${G.lead!=null?`<div>Seme di mano: <b>${SUITS[G.lead].n}</b> ${ico(SUITS[G.lead].icon)}</div>`:'<div>&nbsp;</div>'}
+    <div>Presa <b>${Math.min(G.trickNo,TRICKS)}/${TRICKS}</b> · Round <b>${Math.min(G.round+1,G.n)}/${G.n}</b></div>
+    <div class="hint">BiD COIN da 1 nella riserva: <b>${G.res}</b></div></div>`;
+}
+function scoreTable(){
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:G.n},(_,i)=>i<p.hist.length?`<td>${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${holdOf(p)}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th>Valore dei BiD COIN rimasti</th>${Array.from({length:G.n},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Ora</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Bid COIN contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (vince chi ha il valore di BiD COIN più basso)</div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    const txt={ok:'Riuscita','zero ok':'Zero riuscita',fail:'Fallita','zero fail':'Zero fallita',nulla:'–'};
+    html+=`<table class="score"><tr><th></th><th>Prese</th><th>Puntata</th><th>Esito</th><th>Scartati</th><th>Valore rimasto</th></tr>${G.show.rows.map(r=>
+      `<tr><td>${esc(P(r.p).name)}</td><td>${r.wins}</td><td>${r.res.startsWith('zero')?'ZERO':r.bid}</td><td class="${r.res.includes('fail')?'neg':''}">${txt[r.res]}${r.taken?` (+${r.taken}×1)`:''}</td><td>${r.gone.length?r.gone.join(' + '):'–'}</td><td><b>${r.hold}</b></td></tr>`).join('')}</table>`;
+  }
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`; }
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n;
+  return `<div class="recap"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Semi</span>${SUITS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">ranghi 0–${G.maxR} · le carte 4 e 6 valgono «doppia vittoria»</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">vince la briscola più alta, altrimenti la carta più alta del seme di mano · il rango ${G.maxR} insieme allo 0 dello stesso seme: vince lo 0 (senza briscole)</span></div>
+    <div class="recap-row"><span class="lbl">Puntata</span><span class="rv" style="margin-left:0">se le tue prese superano la puntata sposti un BiD COIN (puntata = somma dei BiD COIN spostati) · a fine round le prese devono essere ESATTAMENTE uguali alla puntata: scarti quei BiD COIN</span></div>
+    <div class="recap-row"><span class="lbl">Zero</span><span class="rv" style="margin-left:0">prima di giocare, se non hai ancora vinto prese, puoi dichiarare zero girando BiD COIN pari alle carte rimaste in mano · se vinci una presa perdi e prendi un BiD COIN da 1 per ogni presa</span></div>
+    <div class="recap-row"><span class="lbl">Fine</span><span class="rv" style="margin-left:0">${n} round (o prima, se qualcuno scarta tutti i BiD COIN) · vince chi ha il valore residuo più basso</span></div></div>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO (traduzione di Danilo, allineata al PDF inglese)</summary>
+<div class="rtext">
+<h4>Introduzione</h4>
+<p>«BiD COIN» è un gioco di prese per 3-4 giocatori. Siete investitori che possiedono la criptovaluta «BiD COIN»: dopo aver sentito la voce di un imminente crollo del suo valore, dovete scambiarla in fretta con altri beni per ridurre i vostri averi. Il numero di prese vinte rappresenta il valore dei beni finanziari; le carte BiD COIN davanti a ognuno rappresentano la quantità di BiD COIN posseduta. Per completare una transazione le prese vinte e la puntata dichiarata devono coincidere ESATTAMENTE.</p>
+<h4>Componenti</h4>
+<p>55 carte da gioco in 5 semi, con ranghi da 0 a 10 (una carta per rango); i ranghi 4 e 6 di ogni seme hanno l'icona «doppia vittoria». 25 carte BiD COIN: valore 1 (9 carte), valori 2, 3, 5, 7 (4 carte ciascuno).</p>
+<h4>Preparazione della partita</h4>
+<ul>
+<li>4 giocatori: tutte le carte (55). 3 giocatori: solo i ranghi da 0 a 7 (40 carte); i ranghi 8-10 sono messi da parte.</li>
+<li>Ogni giocatore riceve un BiD COIN per ogni valore (1, 2, 3, 5, 7) e li mette scoperti davanti a sé. Gli altri BiD COIN da 1 formano la riserva comune; in 3 giocatori tutti gli altri BiD COIN (escluso il valore 1) sono messi da parte.</li>
+</ul>
+<h4>Preparazione di ogni round</h4>
+<ul>
+<li>Si mescolano le carte e se ne distribuiscono 13 a testa (4 giocatori: ne avanzano 3; 3 giocatori: ne avanza 1). Le carte avanzate si mettono coperte in vista; si scopre quella in cima: il suo seme è la <b>briscola</b> del round.</li>
+<li>Primo round: il primo giocatore è scelto a caso. Nei round successivi è il giocatore alla sinistra del primo giocatore del round precedente.</li>
+</ul>
+<h4>Svolgimento di un round (13 prese)</h4>
+<p><b>Giocare le carte.</b> Il giocatore di mano gioca una carta scoperta: il suo seme è il <b>seme di mano</b>. Gli altri, in senso orario, giocano una carta ciascuno: chi ha una carta del seme di mano DEVE giocarla; chi non ce l'ha può giocare qualsiasi carta (anche la briscola).</p>
+<p><b>Vincitore della presa.</b> Se non sono state giocate briscole vince la carta più alta del seme di mano; se ne sono state giocate vince la briscola più alta. Il vincitore apre la presa successiva e mette le carte della presa a faccia in giù davanti a sé, impilandole accanto alle precedenti per contare le prese vinte (è vietato guardare le carte già vinte).</p>
+<p><b>Carta «0».</b> Se la carta più alta possibile del seme di mano (rango 10 con 4 giocatori, rango 7 con 3 giocatori) viene giocata insieme allo 0 dello stesso seme, vince chi ha giocato lo 0. Se però è stata giocata una briscola, vince sempre la briscola.</p>
+<p><b>Doppia vittoria (ranghi 4 e 6).</b> Se il vincitore ha vinto giocando un 4 o un 6, divide la presa in due pile: due vittorie per una presa. Se un 4 o un 6 è giocato da un altro giocatore, la presa non si divide.</p>
+<h4>Aggiornamento della puntata</h4>
+<p>Dopo ogni presa, il vincitore confronta le prese vinte con la sua «puntata attuale» (la somma dei suoi BiD COIN spostati indietro, all'inizio 0). Se le prese superano la puntata, deve spostare subito un ALTRO BiD COIN indietro. I BiD COIN spostati non possono tornare in posizione durante il round. Se ha già spostato tutti i BiD COIN non può aumentare la puntata e perde automaticamente se le prese la superano. Se le prese sono minori o uguali alla puntata non si cambia nulla.</p>
+<h4>Dichiarazione speciale: puntata zero</h4>
+<p>Un giocatore che pensa di non vincere alcuna presa può dichiarare «puntata zero» al proprio turno, PRIMA di giocare la carta: sceglie uno o più BiD COIN il cui valore totale è uguale al numero di carte rimaste in mano e li mette in orizzontale davanti a sé. Se dopo la dichiarazione vince almeno una presa, la puntata fallisce con una penalità. Chi ha già vinto almeno una presa non può dichiarare zero.</p>
+<h4>Fine del round</h4>
+<p>Il round finisce dopo le 13 prese. <b>Puntata riuscita:</b> le prese vinte coincidono esattamente con la puntata, oppure la puntata zero riesce. I BiD COIN usati (compresi quelli della puntata zero riuscita) vengono scartati: i valori 1 tornano nella riserva, i valori 2 o più sono scartati. <b>Puntata fallita:</b> le prese non coincidono o la puntata zero fallisce: i BiD COIN spostati o dichiarati tornano nella posizione originale. In caso di puntata zero fallita il giocatore prende inoltre dalla riserva tanti BiD COIN da 1 quante sono le prese vinte.</p>
+<h4>Fine della partita</h4>
+<p>La partita finisce quando un giocatore non ha più BiD COIN davanti a sé, oppure quando il numero di round giocati è uguale al numero di giocatori. Vince chi ha la somma più bassa dei valori dei BiD COIN rimasti. A parità vince chi ha scartato un BiD COIN da 7; se non basta si confrontano, in ordine decrescente, i valori scartati (5, 3, 2). Chi ha scartato tutti i suoi BiD COIN vince; se più giocatori li hanno scartati tutti, la vittoria è condivisa.</p>
+<p><i>Interpretazioni nell'app:</i> la regola dello 0 vale solo quando non è stata giocata nessuna briscola (anche se il seme di mano è quello di briscola vince la briscola più alta). Con una doppia vittoria si sposta comunque un solo BiD COIN per presa vinta. Per la puntata zero fallita le prese contano ciascuna come una vittoria (una doppia vale 2). Se la riserva dei BiD COIN da 1 si esaurisce se ne prendono quanti ne restano. Una puntata di 0 prese senza dichiarazione non cambia nulla. Il round finisce comunque dopo 13 prese; la partita finisce anche prima se qualcuno scarta tutti i BiD COIN.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo"><small>Gioco di prese</small>Bid COIN</div>
+    ${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${G.n}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    const pos=POS[G.n];
+    body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static;border-top-width:1px">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.x!==undefined) cardExtra(Number(b.dataset.x));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('bc-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('bc-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(PR&&PR.type==='card'&&PR.sel!=null&&!OPT.undo){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
