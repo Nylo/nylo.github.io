@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Woodlanders</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#70847a;
+  --deep:#45665a;
+  --ink:#2c4a3e;
+  --surface:#e9f0ea;
+  --surface-raised:#d6e3d9;
+  --accent:#2f5a49;
+  --accent-soft:rgba(47,90,73,0.14);
+  --text:#1d3329;
+  --text-soft:#47645a;
+  --danger:#a8301f;
+  --success:#1e7a4a;
+  --border:rgba(29,51,41,0.32);
+  --radius:10px;
+  --k0:#dcb78d; --k1:#cdd2d5; --k2:#f2a56c; --k3:#f3d5de; --k4:#b9a9e2;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:linear-gradient(180deg,#7b8f85 0%,#70847a 40%,#5f786b 100%) fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Anton',sans-serif;font-size:30px;font-weight:400;text-transform:uppercase;line-height:0.95;flex:1;color:var(--ink);letter-spacing:0.02em}
+.logo small{display:block;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.04em;color:var(--ink);margin-top:4px;text-transform:none}
+.badge{background:var(--deep);color:#e9f0ea;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:rgba(233,240,234,0.55);color:var(--ink);border:1px solid var(--ink)}
+.btn:hover{background:#e9f0ea}
+.btn-sm{padding:5px 10px;font-size:12px}
+.nylo-home{color:var(--ink);border-color:var(--ink);background:rgba(233,240,234,0.55)}
+.nylo-home:hover{background:#e9f0ea;color:var(--ink)}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:rgba(233,240,234,0.55);color:var(--ink);border:1px solid var(--ink);cursor:pointer}
+.hamb:hover{background:#e9f0ea}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#f0d36a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.paper{background:linear-gradient(160deg,#f3f7f4 0%,#e9f0ea 60%,#dbe7de 100%)}
+.log{border:2px solid var(--ink);border-radius:var(--radius);padding:10px 14px;margin-top:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Anton',sans-serif;font-weight:400;font-size:18px;text-transform:uppercase}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;border:2px solid var(--ink);border-top:6px solid var(--deep);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(30,50,40,0.22)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{background:#fff;border:2px solid var(--ink);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--ink);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#5d8272 0%,#35564a 70%,#2b463c 100%);border:3px solid #b6cabd;border-radius:14px;padding:12px;margin-bottom:12px;min-height:600px;color:#f1f6f2}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.08)}
+.seat.active{border-color:#f0d36a;background:rgba(240,211,106,0.18)}
+.seat.winner{border-color:#6fe0a4;background:rgba(111,224,164,0.22)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.38);border-radius:4px;padding:2px 6px;color:#fff;display:inline-flex;align-items:center;gap:4px}
+.tag b{color:#f0d36a}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:12px;height:18px;border-radius:3px;background:linear-gradient(135deg,#6f9684,#26423a);border:1px solid #b6cabd}
+.seat.left .backs,.seat.right .backs{max-width:130px}
+.tableau{display:flex;gap:4px;align-items:center;justify-content:center;min-height:74px;padding:4px 6px;border-radius:8px;background:rgba(0,0,0,0.25);min-width:56px}
+.tableau .empty{width:42px;height:62px;border:1px dashed rgba(255,255,255,0.3);border-radius:6px}
+.sw{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:5px;color:#1c1830;font-weight:700;font-size:11px;border:1px solid rgba(0,0,0,0.35);background-color:#ccc}
+.sw.pn{outline:2px solid #e8604a;outline-offset:0}
+.pile{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;min-height:6px}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #25392f;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Anton',sans-serif;font-weight:400;font-size:26px;line-height:1;color:#1c1830;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4)}
+.fc i{font-size:17px;opacity:0.85}
+svg.gi{width:1.1em;height:1.1em;flex-shrink:0;vertical-align:-0.15em}
+.fc svg.gi{width:20px;height:20px;opacity:0.85}
+.fc.tiny svg.gi{width:13px;height:13px}
+.fc.mini{width:40px;height:58px;font-size:22px}
+.fc.tiny{width:28px;height:40px;font-size:15px;gap:0;border-width:1px;border-radius:5px}
+.fc.tiny i{font-size:11px}
+.fc.fresh{box-shadow:0 0 0 3px #f0d36a}
+.fc.win{box-shadow:0 0 0 3px #6fe0a4}
+.k0{background-color:var(--k0)} .k1{background-color:var(--k1)} .k2{background-color:var(--k2)} .k3{background-color:var(--k3)} .k4{background-color:var(--k4)}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.legal{box-shadow:0 0 0 3px #f0d36a}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px #2f5a49}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.rhand{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:240px}
+body.a11y .k0.fc,body.a11y .k0.sw{background-image:radial-gradient(rgba(0,0,0,0.3) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .k1.fc,body.a11y .k1.sw{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .k2.fc,body.a11y .k2.sw{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .k3.fc,body.a11y .k3.sw{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .k4.fc,body.a11y .k4.sw{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.2) 0 2px,transparent 2px 7px),repeating-linear-gradient(90deg,rgba(0,0,0,0.2) 0 2px,transparent 2px 7px)}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:#f1f6f2}
+.center b{color:#f0d36a}
+.center .hint{color:#dbe9df}
+.trump{display:inline-flex;align-items:center;gap:8px;background:#e9f0ea;color:var(--ink);border-radius:10px;padding:6px 12px;font-weight:800;border:2px solid #fff}
+.wards{display:flex;flex-direction:column;gap:3px;align-items:stretch;font-size:11px}
+.wards div{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(0,0,0,0.25);border-radius:6px;padding:2px 6px}
+
+.recap{border:2px solid var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.recap-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px}
+.recap-row .lbl{min-width:70px;font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:4px}
+details.rules{border:2px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
+.rtext h4{font-family:'Anton',sans-serif;font-weight:400;font-size:14px;text-transform:uppercase;color:var(--accent);margin:14px 0 4px;letter-spacing:0.03em}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:46px}
+  .fc{font-size:15px;border-width:1px;border-radius:5px;gap:0}
+  .fc i{font-size:11px}
+  .fc svg.gi{width:13px;height:13px}
+  .fc.mini{width:32px;height:48px;font-size:15px}
+  .fc.tiny{width:22px;height:32px;font-size:12px}
+  .tableau .empty{width:32px;height:48px}
+  .table{padding:8px;gap:6px}
+  .back{width:9px;height:14px}
+  .hand{gap:3px}
+  .logo{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+// ordine = dimensione degli animali (dal retro del regolamento, dall'alto in basso): serve alle priorità del robot
+const SUITS = [
+  {n:'Cervi',   icon:'gi:deer'},
+  {n:'Tassi',   icon:'gi:badger'},
+  {n:'Volpi',   icon:'gi:fox'},
+  {n:'Conigli', icon:'gi:rabbit'},
+  {n:'Gufi',    icon:'gi:barn-owl'}
+];
+const VALS = [1,1,1,1,2,2,2,3,3,4];                    // quattro 1, tre 2, due 3, un 4 per seme
+const PTS = [3,2,1,0];
+const HUM = 0;
+const POS = ['bottom','left','top','right'];
+const ROBOT_NAME = 'D4-ST8';
+const ROBOT_SEAT = 2;
+const NAMES = ['Tu','AI Quercia','AI Faggio','AI Betulla'];
+// icone animali da game-icons.net (CC BY 3.0: Caro Asercion, Delapouite), inline e colorate col testo
+const GI = {
+ "deer": "<path d=\"m139.3 20.25-16.1 4.5c9.4 33.5 22.3 51.1 37 60.3 14.9 9.4 32.1 10.2 50.9 8.5 25-2.3 53.2-9.6 82 1.1 7.8 3.5 16 7.95 24.7 13.85 4.6-1.4 8.6-3.2 12.6-4.5 0 0 3.2-10.25-2-23.35-4.5-11.5-15.7-26-44-36.2l-5.6 15.6c17.4 6.4 26.8 14.3 31.6 21.8.7 1.1 1.2 2.1 1.7 3.1-3.8-2-7.7-3.8-11.5-5.2-28.1-13-50.6-13.8-68.6-15.8-9.6-1-17.7-2.2-24.4-7-6.7-4.9-11.7-13.4-16-28.2l-16 4.7c5.7 19.6 13.3 30.4 22.2 36.9 4 2.9 8.3 5 12.9 6.5-15.8.85-30.7.67-41.7-5.9-12.2-7.7-21.9-22.9-29.7-50.7zm89.5 3.6c-.9 11.2 1.1 20.3 4.4 27.7 7.7.96 14.4 1.1 21.4 2.3-5.4-6-10.2-15.2-9.2-28.8zm120.3 13.5-10.9 12.5c8.2 7.2 10.5 15.8 10.5 23.1-4.4-3.92-8.4-6.53-13.1-8.9 7.2 8.42 8.2 23.36 8.7 31.4l15.5 1.7s17.6-35.2-10.7-59.8zm-80.7 69.35c-17.5 2-26.8-2.6-32.4 13.8 0 0 18.8 27.9 68.9 27.2-2.8 11.4-1.5 19.8-1.5 29.9 0 33.6-27 62.9-86.5 62.9-30.2 0-66.9 5.4-94.9 20.5-19.9 10.7-35.47 26.2-42.36 47.7l7.81 10.9 14.95.2v61.7l-18.24 28.3 5.24 82h17.3l1.5-66c8.6-5 28.3-18 45.1-38 22.8-26.9 40.3-66 19.7-114.4l15.4-6.5c16.9 39.7 11 74.1-3.8 101.8 28.3-.9 52.6-2.7 73.2-6.1l-4.7-56.3 16.6-1.4 15.8 186.9h17.2l2.9-121.7c13.7-5.8 44.9-27.1 59.5-101.1 1.8-9 2.8-16.6 3.3-23.1 2.3-16.5 3.6-35.1 4-56.3l-24.5-7.7h75.3l7.3-16.5c-7.1.3-15.6-3.4-15.6-3.4l1.7-8h15.8l-85.5-44.3c-9.5 3.6-19.5 8.3-26.5 14-5.6-4-25-16.5-52-17zm95.5 226.6c-9.7 18.1-20.1 31.6-29.1 41.2l47.1 20.8-20.9 47.5 15 7 33.4-64.8-44.3-37.4c-.4-2.3-.9-6.8-1.2-14.3zm-153.8 50.8c-11.3.7-23.3 1.2-36.1 1.4-8.7 11.5-18.7 22.6-29.1 31.2l8.7 75h17.1v-65c7.3-6 24.9-21.3 39.4-42.6z\"/>",
+ "badger": "<path d=\"M104 66.5c-19.49-.86-36.65 3.7-49.18 11.8-14.94 9.7-24.41 24.2-26.23 41.5-1.66 15.8 3.26 34.5 18.44 53.9l22.98-17.9c-9.37-12-13.44-23.2-12.41-33 .88-8.4 5.79-15.3 13.07-20 10.69-6.9 25.97-9.3 43.03-6.2 20.3 3.6 42.6 15 63.8 36.1 59.8 80.6 56.4 198.2 56.4 198.2-49.4 21.9-62.4 85.1-48.2 116.1l70.3 20 70.3-20c14.2-31 1.2-94.2-48.2-116.1 0 0-3.4-117.6 56.4-198.2 21.2-21.1 43.5-32.5 63.8-36.1 17.1-3.1 32.3-.7 43 6.2 7.3 4.7 12.2 11.6 13.1 20 1 9.8-3 21-12.4 33l23 17.9c15.1-19.4 20.1-38.1 18.4-53.9-1.8-17.3-11.3-31.8-26.2-41.5-33.4-21.6-99.8-18-154.9 46.2h-92.6c-34.4-40.12-73.3-56.58-105.7-58zm-10 109L20.05 299.6l15.8 11.7-13.48 31c47.66 9.8 93.13 25.5 129.23 68 9.7-68.9-79.86-105.6-79.86-105.6L94 175.5zm323.6 0 22.3 129.2s-89.6 36.7-79.9 105.6c36.1-42.5 81.6-58.2 129.2-68l-13.5-31 15.9-11.7-74-124.1zm-262 68.5c-14.1.3-27.4 8.6-32.9 26.2.3 28.7 40.6 48.9 66.5 41.2-6-7.5-19.4-19-48.7-25.6l5.5-24.4c26.3 6 43 15.5 53.7 24.8-3.2-21-15.8-34.6-30.1-39.8-4.6-1.7-9.4-2.5-14-2.4zm200.8 0c-4.6-.1-9.4.7-14 2.4-14.3 5.2-26.9 18.8-30.1 39.8 10.7-9.3 27.4-18.8 53.7-24.8l5.5 24.4c-29.3 6.6-42.7 18.1-48.7 25.6 25.9 7.7 66.2-12.5 66.5-41.2-5.5-17.6-18.8-25.9-32.9-26.2zM256 384.6c72.6 0 32.9 51.4 0 51.4-16.5 0-34.6-13-39.6-26-4.9-12.6 3.3-25.4 39.6-25.4z\"/>",
+ "fox": "<path d=\"m214.5 23.24-1 8.1c-14 61.5 21 88.66 21 88.66l11-13s-24-19.76-18-63.56c41 11.6 58 36.6 64 48.8-44 15.76-56 57.26-80 87.96l21-3.9-2 31.3s44-8.7 69 17.7c5-8.6 8-18.9 6-29.2l-3-28.2c-3-1.1-7-3-11-5.4-12-7.3-25-19.1-25-19.1-2-1.9-2-5.2-1-7.8 2-2.5 5-3.7 7-2.7 0 0 11 3.5 21 6.7 11 3.9 20 14.3 21 26.6 1 8.4 3 18.9 4 28.3 2 15.4-3 30.8-12 42.7l7 18.3h38l7-18.3c-9-11.9-14-27.3-12-42.7 1-9.4 3-19.9 4-28.3 1-12.3 10-22.7 21-26.6 10-3.2 21-6.7 21-6.7 2-1 5 .2 7 2.7 1 2.6 1 5.9-1 7.8 0 0-13 11.8-25 19.1-4 2.4-8 4.3-11 5.4l-3 28.2c-2 10.3 1 20.6 6 29.2 25-26.4 69-17.7 69-17.7l-2-31.3 21 3.9c-24-30.7-36-72.2-80-87.96 6-12.2 23-37.2 64-48.8 6 43.8-18 63.56-18 63.56l11 13s35-27.16 21-88.66l-1-8.1c-43.3 7.32-85.9 35.37-110 62.9-5.5-.13-10.5-.52-16 0-42.8-34.75-61.3-56.12-110-62.9zm24.7 205.26c38.2 53.2-87.7 46.6-153.61 119.5-26.11 28-32.53 56.3-25.95 80.3 12.23 44 71.86 73 144.06 55 49.8-13 96-32 134.8-40 35.1-8 63.8-5 82.3 24l15.3-5c-2.9-38-14.4-68.8-36.5-87.5-16.8-14.2-39.9-22-70.9-21.1-29.3.8-65.9 9.3-111.2 27.3-27 9.5-76.5 27.7-102.4 12.6-9.1-5.6-11.9-15-11.2-24.3 34.4 52 124.1-27 198.5-35.7 0 0 6.6-88.3-63.2-105.1zm188.6 0c-53.1 12.4-64.1 54.1-65.2 105.1 26.5-.2 49.9 23.7 49.9 23.7s-27-98.6 15.3-128.8zm-100.3 1.3h10c3 0 6 2.8 6 6.3 0 3.4-3 6.2-6 6.2h-10c-3 0-6-2.8-6-6.2 0-3.5 3-6.3 6-6.3zm61.4 157.7c13.7 11.6 22.2 28.8 26.8 49.8-15.8-12-35-16-57.1-14-24.1 2-51.9 10-82.3 20l26.1-25c-28.3 14-53.1 17-75.4 12l80.9-40.2-61.2 11.2c23.8-20.2 95.2-52.2 142.2-13.8z\"/>",
+ "rabbit": "<path d=\"M242.29 27.29c-4.165 0-4.79.695-5.593 3.058-.803 2.362-.714 8.368 4.065 17.097 8.758 16 32.356 39.726 78.675 64.582 7.15-7.48 15.604-12.92 24.57-16.713-25.48-14.076-44.05-29.58-58.892-42.158-18.93-16.04-31.326-25.867-42.826-25.867zm-66.274 54.66c-3.815.007-4.68.864-5.07 1.355-.39.49-1 1.882-.485 5.125 1.03 6.484 7.16 18.015 18 28.943 21.683 21.855 60.793 42.287 109.542 34.72 2.13-.33 4.725-.616 7.846 1.194 3.12 1.81 4.73 5.96 4.77 8.36.076 4.807-1.495 6.874-2.722 9.546-2.452 5.345-4.35 11.657-4.375 11.47v.003c1.98 15 14.374 26.28 32.396 34.63 18.023 8.353 40.75 13.004 58.875 14.737 12.552 1.2 27.23.995 40.9-1.388-1.555-2.715-2.676-5.576-3.31-8.516-1.763-8.156.105-16.39 4.093-23.327 6.392-11.12 18.112-19.685 32.36-22.83-4.64-7.837-10.434-16.323-17.024-24.592-19.92-24.992-47.433-46.955-67.978-47.384-20.465-.427-44.107 6.055-57.367 24.242-2.24 3.07-5.56 4.144-8.018 4.46-2.457.318-4.623.1-6.92-.284-4.592-.766-9.7-2.373-15.613-4.527-11.825-4.308-26.625-10.89-42.127-17.774-15.502-6.883-31.668-14.06-45.744-19.44-14.076-5.38-26.546-8.735-32.027-8.724zm224.422 61.915a16 16 0 0 1 15.533 15.994 16 16 0 0 1-32 0 16 16 0 0 1 16.467-15.995zM39.79 190.777c-.804.006-2.017.25-4.017 1.24a9 9 0 0 0-.002 0c-4.252 2.103-7.437 7.213-8.883 16.325-1.447 9.11-.696 21.27 1.888 33.53 2.585 12.263 6.954 24.683 12.116 34.634 3.023 5.827 6.386 10.568 9.53 14.133 4.966-17.297 13.943-33.833 27.697-48.44-3.153-2.038-5.968-4.422-8.365-7.046-7.05-7.717-11.604-16.873-15.648-24.877-4.045-8.003-7.82-14.854-10.64-17.605-1.408-1.376-2.22-1.714-2.99-1.84-.192-.032-.414-.057-.683-.055zm437.63 2.06c-11.655 1.13-21.29 7.89-25.342 14.936-2.183 3.797-2.794 7.368-2.105 10.555.51 2.36 1.71 4.797 4.408 7.29 11.853-4.564 21.157-11.42 26.145-20.938-.286.42.182-1.32-.504-4.184-.494-2.07-1.397-4.71-2.6-7.66zm-198.496 7.724c-2.463-.004-4.896.007-7.3.034-71.537.806-120.588 13.47-152.624 32.187-36.613 21.393-51.716 50.092-54.844 81.44-3.128 31.346 6.6 65.513 22 94.56 14.84 27.988 35.094 51.027 51.97 62.22H312.19c-.134-1.91-.67-3.555-1.502-5.188-1.637-3.21-4.918-6.56-10.032-9.687-10.228-6.256-27.12-11.045-44.812-14.438-17.693-3.392-36.175-5.596-50.625-8-7.227-1.2-13.393-2.377-18.532-4.125-2.57-.873-4.92-1.813-7.313-3.593-2.392-1.782-5.313-5.385-5.313-9.97 0-2.61 1.27-4.982 2.375-6.22 1.107-1.236 2.03-1.74 2.75-2.124 1.442-.765 2.283-.952 3.125-1.156 1.686-.408 3.238-.605 5.125-.813 3.776-.414 8.714-.75 14.72-1.187 12.01-.875 28.107-2.106 44.968-4.688 33.722-5.162 69.382-16.778 81.156-36.437 6.403-10.69 5.69-20.67-.56-31.156-6.253-10.487-18.818-20.728-35.72-27.376-33.803-13.297-84.07-12.464-132.72 22.47l-10.5-14.627c33.327-23.93 67.99-33.66 99-33.78 18.608-.072 35.892 3.33 50.782 9.187 19.854 7.81 35.666 19.93 44.594 34.906 8.93 14.976 10.196 33.537.563 49.625-17.64 29.45-58.476 39.55-93.876 44.97-5.897.902-11.315 1.47-16.844 2.092 8.423 1.25 17.318 2.606 26.22 4.313 18.544 3.556 36.893 8.25 50.842 16.78 6.975 4.267 12.99 9.656 16.657 16.845 2.058 4.04 3.204 8.593 3.37 13.375h130.66c2.072-1.76 3.435-3.254 3.844-4.063.538-1.064.46-1.178.25-2.062-.423-1.77-3.667-6.165-7.78-11.125-2.527-3.044-11.017-7.917-21.658-10.594-10.64-2.677-23.344-3.65-34.25-2.22l-2.344.283-2.218-.876c-6.667-2.715-11.864-9.652-12.25-16.313-.386-6.66 1.89-12.352 4.72-18.467 5.655-12.23 14.802-26.366 22.186-42.72 7.384-16.352 12.907-34.52 11.72-53.843-1.153-18.73-8.467-38.93-27.84-60.88-.622-.052-1.248-.1-1.86-.16h-.002c-19.505-1.864-43.524-6.62-64.08-16.146-15.233-7.06-29.065-17.167-36.415-31.074-4.692-.1-9.332-.172-13.85-.18z\"/>",
+ "barn-owl": "<path d=\"M297.8 422h-3.6l-28.9 58h25.5v17H185.9v-17h44.2l19.8-62c-41.2-7-73.9-25.5-96.9-58.7l-4 28.5c-23.5-19.2-38-49.3-33.9-101.7l-11.5 51.8s-32.45-25.7-12.7-99.1C44.59 145 56.22 23.5 160.8 23.5c137.9 0 86.6 152.8 109.2 190.3l28.4 29.2c-14.1-10.3-27.7-17-40.2-20.7-36.2-10.8-65.6 1.6-81.1 24.7-15.2 22.5-17.3 56.1 2.2 90 18 31.1 55.1 63 118.5 85zm97.3 1c-113.9-15-174.2-55.6-197.7-96.4-14.8-25.6-14.5-50.9-3-67.9 11-16.4 32.2-24.1 57.9-16.5 42.8 12.7 95.7 64.5 142.8 180.8zm-44.3-125.9 96.2 99.2c-12.4 3.5-24.6 6.7-36.4 9.7-19.2-45.8-39.5-81.5-59.8-108.9zM163.1 74.9c-15.3-15.4-29.2-20.1-40.4-18.6-13.5 1.8-24.49 12.7-30.77 28.8-16.69 42.9.21 122.8 71.17 122.8 71 0 87.9-79.9 71.2-122.8-6.3-16.1-17.3-27-30.8-28.8-11.2-1.5-25.1 3.2-40.4 18.6zm-6.4 17.8 6.4 7.5 6.4-7.5c12.5-14.8 22.8-21.1 31.8-19.9 8.1 1.1 13.7 8.6 17.5 18.4 13.4 34.6 1.6 100-55.7 100-57.3 0-69.1-65.4-55.6-100 3.7-9.8 9.3-17.3 17.4-18.4 9-1.2 19.4 5.1 31.8 19.9zm-41.4 24.8 15.4 4.3 22.8 56 19.4-.5 19.6-55.3 16.8-6.7-7.8-19.4-25.5 10.3-13.6 38.3-16.2-40-25.3-7.1z\"/>"
+};
+const ico = n => n.startsWith('gi:')?`<svg class="gi" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true">${GI[n.slice(3)]}</svg>`:`<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('wl-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('wl-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>600) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const sg = v => (v>0?'+':'')+v;
+const cardsTxt = cs => `${SUITS[cs[0].s].n} ${cs.map(c=>c.v).join('+')}${cs.length>1?' = '+cs.reduce((a,c)=>a+c.v,0):''}`;
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askCards(plays,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'cards',plays,hint,sel:[],res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+const sameSet = (a,b) => a.length===b.length&&a.every(x=>b.includes(x));
+const selExact = () => PR.plays.find(p=>sameSet(p.idx,PR.sel));
+const canExtend = () => PR.plays.some(p=>p.idx.length>PR.sel.length&&PR.sel.every(x=>p.idx.includes(x)));
+function canAdd(i){
+  if(PR.sel.includes(i)) return true;
+  const ns=PR.sel.concat([i]);
+  return PR.plays.some(p=>ns.every(x=>p.idx.includes(x)));
+}
+function submit(pl){ const r=PR.res; PR=null; render(); r(pl); }
+function playIdx(i){
+  if(!PR||PR.type!=='cards') return;
+  if(PR.sel.includes(i)){ PR.sel=PR.sel.filter(x=>x!==i); render(); return; }
+  if(!canAdd(i)){
+    if(!PR.plays.some(p=>p.idx.includes(i))) return;
+    PR.sel=[i]; render(); return;
+  }
+  PR.sel=PR.sel.concat([i]);
+  const ex=selExact();
+  if(ex&&!OPT.undo&&!canExtend()){ submit(ex); return; }
+  render();
+}
+function confirmPlay(ok){
+  if(!PR||PR.type!=='cards') return;
+  if(!ok){ PR.sel=[]; render(); return; }
+  const ex=selExact(); if(ex) submit(ex);
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+function fullDeck(){
+  const d=[];
+  for(let s=0;s<5;s++) VALS.forEach((v,k)=>d.push({s,v,id:s*10+k}));
+  return d;
+}
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
+// tutte le giocate possibili: 1 carta, oppure 2 carte dello stesso seme (il 4 solo)
+function combos(h,dedupe){
+  const out=[], seen=new Set();
+  const add=idx=>{
+    const cs=idx.map(i=>h[i]);
+    if(dedupe){ const key=cs[0].s+':'+cs.map(c=>c.v).sort().join(''); if(seen.has(key)) return; seen.add(key); }
+    out.push({idx,s:cs[0].s,total:cs.reduce((a,c)=>a+c.v,0)});
+  };
+  for(let i=0;i<h.length;i++) add([i]);
+  for(let i=0;i<h.length;i++) for(let j=i+1;j<h.length;j++) if(h[i].s===h[j].s&&h[i].v<4&&h[j].v<4) add([i,j]);
+  return out;
+}
+// led = seme di mano (null se si guida); pain = seme dolore (-1 se non ne ha)
+function legalPlays(h,led,pain,dedupe){
+  let c=combos(h,dedupe);
+  if(led===null){ if(pain>=0&&h.some(x=>x.s!==pain)) c=c.filter(x=>x.s!==pain); }
+  else if(h.some(x=>x.s===led)) c=c.filter(x=>x.s===led);
+  return c;
+}
+// vince il totale più alto del seme di briscola, altrimenti del seme di mano; a parità chi ha giocato dopo
+function trickWin(plays,trump){
+  const led=plays[0].s;
+  let c=plays.filter(x=>x.s===trump);
+  if(!c.length) c=plays.filter(x=>x.s===led);
+  let b=c[0];
+  for(const x of c) if(x.total>=b.total) b=x;
+  return b;
+}
+function collectCards(plays,w,pain){
+  const all=[].concat(...plays.map(x=>x.cards));
+  return pain[w]>=0?all.filter(c=>c.s===pain[w]):all;
+}
+const painVal = (c,ps) => c.s===ps?-1:1;
+function roundPts(sc,cnt){
+  const ord=[0,1,2,3].sort((a,b)=>sc[b]-sc[a]||cnt[b]-cnt[a]);
+  const pts=[0,0,0,0];
+  let i=0;
+  while(i<4){
+    let j=i;
+    while(j+1<4&&sc[ord[j+1]]===sc[ord[i]]&&cnt[ord[j+1]]===cnt[ord[i]]) j++;
+    for(let k=i;k<=j;k++) pts[ord[k]]=PTS[j];             // a pari merito tutti prendono il punteggio più basso
+    i=j+1;
+  }
+  return {pts,ord};
+}
+
+// ═════════════════════════ ROBOT D4-ST8 ═════════════════════════
+function shortestSuit(h){
+  const cnt=[0,0,0,0,0]; h.forEach(c=>cnt[c.s]++);
+  let b=-1;
+  for(let s=0;s<5;s++) if(cnt[s]&&(b<0||cnt[s]<cnt[b])) b=s;
+  return b;
+}
+function lowestSingle(h,s){
+  let b=-1;
+  h.forEach((c,i)=>{ if(c.s===s&&(b<0||c.v<h[b].v)) b=i; });
+  return {idx:[b],s,total:h[b].v};
+}
+function robotPlay(h,plays,trump,self,pain){
+  if(!plays.length) return lowestSingle(h,shortestSuit(h));
+  const led=plays[0].s;
+  const opts=legalPlays(h,led,-1,true);
+  const wins=o=>trickWin(plays.concat([{p:self,s:o.s,total:o.total}]),trump).p===self;
+  const best=a=>a.reduce((b,x)=>x.total>b.total?x:b);
+  if(h.some(c=>c.s===led)){
+    const b=best(opts);
+    if(wins(b)) return b;
+    return lowestSingle(h,led);
+  }
+  const tr=opts.filter(o=>o.s===trump);
+  if(tr.length){ const b=best(tr); if(wins(b)) return b; }
+  const w=trickWin(plays,trump), ps=pain[w.p];
+  if(ps>=0){
+    const cs=h.map((c,i)=>({c,i})).filter(x=>x.c.s===ps).sort((a,b)=>a.c.v-b.c.v);
+    if(cs.length>=2&&cs[1].c.v<4) return {idx:[cs[0].i,cs[1].i],s:ps,total:cs[0].c.v+cs[1].c.v};
+  }
+  return lowestSingle(h,shortestSuit(h));
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Monte-Carlo con determinizzazione: le mani avversarie si campionano tra le carte non viste (la mano del robot è nota); il resto del round si simula con giocate casuali
+const AIP = {S:18,P:12};
+function unseen(me){
+  const seen=new Set();
+  P(me).hand.forEach(c=>seen.add(c.id));
+  G.played.forEach(c=>seen.add(c.id));
+  if(G.robot>=0) P(G.robot).hand.forEach(c=>seen.add(c.id));
+  return fullDeck().filter(c=>!seen.has(c.id));
+}
+function sampleHands(me,pool){
+  const pl=shuffle(pool.slice());
+  return G.pl.map((p,i)=>i===me||i===G.robot?p.hand.slice():pl.splice(0,p.hand.length));
+}
+function simPlay(st,p,plays,pl){
+  const h=st.hands[p], cards=pl.idx.map(i=>h[i]);
+  pl.idx.slice().sort((a,b)=>b-a).forEach(i=>h.splice(i,1));
+  plays.push({p,s:pl.s,total:pl.total,cards});
+}
+function simPolicy(st,p,plays){
+  const h=st.hands[p];
+  if(p===st.robot) return robotPlay(h,plays,st.trump,p,st.pain);
+  const lg=legalPlays(h,plays.length?plays[0].s:null,st.pain[p],true);
+  return lg[rnd(lg.length)];
+}
+function simResolve(st,plays){
+  const w=trickWin(plays,st.trump);
+  const col=collectCards(plays,w.p,st.pain);
+  col.forEach(c=>{ st.sc[w.p]+=painVal(c,st.pain[w.p]); });
+  st.cnt[w.p]+=col.length;
+  return w.p;
+}
+function simFinishTrick(st,order,plays){
+  for(const p of order){
+    if(!st.hands[p].length) continue;
+    simPlay(st,p,plays,simPolicy(st,p,plays));
+  }
+  return simResolve(st,plays);
+}
+const emptyCount = hands => hands.filter(h=>!h.length).length;
+function nextWithCards(hands,from){
+  let p=from;
+  for(let k=0;k<4;k++){ if(hands[p].length) return p; p=(p+1)%4; }
+  return from;
+}
+function simRound(st,leader){
+  while(emptyCount(st.hands)<2){
+    const order=[];
+    for(let k=0;k<4;k++){ const p=(leader+k)%4; if(st.hands[p].length) order.push(p); }
+    const w=simFinishTrick(st,order,[]);
+    leader=nextWithCards(st.hands,w);
+  }
+}
+function objective(st,me){
+  const pts=roundPts(st.sc,st.cnt).pts;
+  const oth=st.sc.filter((_,i)=>i!==me), mean=oth.reduce((a,b)=>a+b,0)/oth.length;
+  return pts[me]+0.1*(st.sc[me]-mean);
+}
+const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
+function aiPickPlay(p){
+  const h=P(p).hand, led=G.trick.length?G.trick[0].s:null;
+  const lg=legalPlays(h,led,G.pain[p],true);
+  if(lg.length===1) return lg[0];
+  const pool=unseen(p), sc=lg.map(()=>0);
+  const rest=G.order.slice(G.order.indexOf(p)+1);
+  for(let s=0;s<AIP.S;s++){
+    const hands=sampleHands(p,pool);
+    lg.forEach((pl,j)=>{
+      const st={hands:hands.map(x=>x.slice()),pain:G.pain,trump:G.trump,sc:G.pl.map(q=>q.score),cnt:G.pl.map(q=>q.pile.length),robot:G.robot};
+      const plays=G.trick.map(x=>({p:x.p,s:x.s,total:x.total,cards:x.cards}));
+      simPlay(st,p,plays,pl);
+      const w=simFinishTrick(st,rest,plays);
+      simRound(st,nextWithCards(st.hands,w));
+      sc[j]+=objective(st,p);
+    });
+  }
+  return lg[argmax(sc)];
+}
+// scelta del seme dolore: simulo il round con ciascuna opzione (gli altri seme dolore non ancora scelti e la briscola sono casuali)
+function aiPickPain(p,remaining,pend){
+  const pool=unseen(p), sc=remaining.map(()=>0);
+  for(let s=0;s<AIP.P;s++){
+    const hands=sampleHands(p,pool);
+    remaining.forEach((o,j)=>{
+      const rest=shuffle(remaining.filter(x=>x!==o));
+      const pain=G.pain.slice(); pain[p]=o;
+      pend.forEach(q=>{ pain[q]=rest.splice(0,1)[0]; });
+      const st={hands:hands.map(x=>x.slice()),pain,trump:rest[0],sc:[0,0,0,0],cnt:[0,0,0,0],robot:G.robot};
+      simRound(st,G.dealer);
+      sc[j]+=objective(st,p);
+    });
+  }
+  return remaining[argmax(sc)];
+}
+function aiPickTrump(p,options){
+  const pool=unseen(p), sc=options.map(()=>0);
+  for(let s=0;s<AIP.P;s++){
+    const hands=sampleHands(p,pool);
+    options.forEach((o,j)=>{
+      const st={hands:hands.map(x=>x.slice()),pain:G.pain,trump:o,sc:[0,0,0,0],cnt:[0,0,0,0],robot:G.robot};
+      simRound(st,G.dealer);
+      sc[j]+=objective(st,p);
+    });
+  }
+  return options[argmax(sc)];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  const robot=n===3?ROBOT_SEAT:-1;
+  const names=[NAMES[0],NAMES[1],NAMES[2],NAMES[3]];
+  if(robot>=0){ names[1]=NAMES[1]; names[ROBOT_SEAT]=ROBOT_NAME; names[3]=NAMES[2]; }
+  const seats=[0,1,2,3].filter(i=>i!==robot);
+  G={n,robot,round:0,dealer:seats[rnd(seats.length)],msg:'',log:[],over:null,show:null,last:null,
+     pain:[-1,-1,-1,-1],trump:-1,ward:[{},{},{},{},{}],aside:[],order:[],leader:0,turn:-1,win:-1,trickNo:0,trick:[],played:[],
+     pl:names.map((name,i)=>({id:i,name,hand:[],pile:[],score:0,tot:0,hist:[]}))};
+  run();
+}
+function startRound(){
+  const deck=shuffle(fullDeck());
+  G.pl.forEach((p,i)=>{ p.hand=sortHand(deck.slice(i*12,(i+1)*12)); p.pile=[]; p.score=0; });
+  G.aside=deck.slice(48);
+  G.pain=[-1,-1,-1,-1]; G.trump=-1; G.ward=[{},{},{},{},{}];
+  G.trick=[]; G.played=[]; G.win=-1; G.turn=-1; G.trickNo=0; G.leader=G.dealer; G.show=null; G.order=[];
+}
+async function pickWardens(){
+  const order=[];
+  for(let k=1;k<=4;k++){ const p=((G.dealer-k)%4+4)%4; if(p!==G.robot) order.push(p); }   // da destra del mazziere in senso antiorario; il mazziere è l'ultimo
+  let rem=[0,1,2,3,4];
+  logMsg(`— Round ${G.round+1}/3: mazziere ${P(G.dealer).name}${G.robot>=0?` (con ${ROBOT_NAME})`:''} —`);
+  for(let i=0;i<order.length;i++){
+    const p=order[i], pend=order.slice(i+1);
+    let o;
+    status(p===HUM?'Scegli il tuo seme dolore tra le carte Guardiano rimaste.':`${P(p).name} sceglie il seme dolore.`);
+    if(p===HUM){
+      const cnt=s=>P(HUM).hand.filter(c=>c.s===s).length;
+      o=await ask(HUM,'Scegli il tuo seme dolore (le carte di questo seme valgono −1 e non puoi guidarlo)',rem.map(s=>({label:`${SUITS[s].n} (${cnt(s)} in mano)`,value:s})));
+    }else{ await sleep(700); o=aiPickPain(p,rem,pend); }
+    G.pain[p]=o; G.ward[o]={role:'pain',by:p};
+    rem=rem.filter(x=>x!==o);
+    logMsg(`${P(p).name} sceglie ${SUITS[o].n} come seme dolore.`);
+  }
+  let t;
+  if(rem.length===1) t=rem[0];
+  else if(G.dealer===HUM){
+    status('Scegli il seme di briscola; l\'altro carta Guardiano viene messa da parte.');
+    t=await ask(HUM,'Scegli il seme di briscola',rem.map(s=>({label:SUITS[s].n,value:s})));
+  }else{ await sleep(700); t=aiPickTrump(G.dealer,rem); }
+  G.trump=t; G.ward[t]={role:'trump'};
+  rem.filter(x=>x!==t).forEach(s=>{ G.ward[s]={role:'aside'}; });
+  logMsg(`Briscola: ${SUITS[t].n}.`);
+}
+function humanHint(){
+  const led=G.trick.length?G.trick[0].s:null, h=P(HUM).hand;
+  if(led===null){
+    return h.some(c=>c.s!==G.pain[HUM])?`Sei di mano: gioca 1 o 2 carte dello stesso seme (il 4 solo), non il tuo seme dolore (${SUITS[G.pain[HUM]].n}).`:'Hai solo carte del tuo seme dolore: puoi guidarlo.';
+  }
+  return h.some(c=>c.s===led)?`Devi seguire il seme di mano (${SUITS[led].n}) con 1 o 2 carte (il 4 solo).`:`Non hai ${SUITS[led].n}: puoi giocare 1 o 2 carte dello stesso seme, anche briscola (${SUITS[G.trump].n}).`;
+}
+async function playRound(){
+  G.leader=G.dealer;
+  while(G.pl.filter(p=>!p.hand.length).length<2){
+    G.trickNo++; G.trick=[]; G.win=-1;
+    G.order=[];
+    for(let k=0;k<4;k++){ const p=(G.leader+k)%4; if(P(p).hand.length) G.order.push(p); }
+    for(const p of G.order){
+      G.turn=p;
+      const pl0=P(p), led=G.trick.length?G.trick[0].s:null;
+      status(`Presa ${G.trickNo} · di mano: ${P(G.leader).name}. Tocca a ${pl0.name}.`);
+      let pl;
+      if(p===HUM) pl=await askCards(legalPlays(pl0.hand,led,G.pain[p],false),humanHint());
+      else if(p===G.robot){ await sleep(800); pl=robotPlay(pl0.hand,G.trick,G.trump,p,G.pain); }
+      else{ await sleep(700); pl=aiPickPlay(p); }
+      const cards=pl.idx.map(i=>pl0.hand[i]);
+      pl.idx.slice().sort((a,b)=>b-a).forEach(i=>pl0.hand.splice(i,1));
+      G.trick.push({p,s:pl.s,total:pl.total,cards});
+      cards.forEach(c=>G.played.push(c));
+      logMsg(`${pl0.name} gioca ${cardsTxt(cards)}.`);
+    }
+    G.turn=-1;
+    const w=trickWin(G.trick,G.trump);
+    G.win=w.p;
+    const col=collectCards(G.trick,w.p,G.pain), wp=P(w.p);
+    col.forEach(c=>{ wp.pile.push(c); wp.score+=painVal(c,G.pain[w.p]); });
+    const all=[].concat(...G.trick.map(x=>x.cards)).length;
+    const m=G.pain[w.p]>=0&&col.length<all
+      ?`${wp.name} vince con ${w.total}: nella presa c'era il suo seme dolore, raccoglie solo ${col.length} carte (−${col.length}) e scarta le altre.`
+      :`${wp.name} vince con ${w.total} e raccoglie ${col.length} carte${G.pain[w.p]>=0&&col.some(c=>c.s===G.pain[w.p])?'':' (+'+col.length+')'}.`;
+    status(m); logMsg(m);
+    await sleep(1900);
+    G.leader=nextWithCards(G.pl.map(p=>p.hand),w.p);
+  }
+  G.turn=-1; G.win=-1;
+  const left=G.pl.filter(p=>p.hand.length);
+  if(left.length){ logMsg(`Fine round: ${left.map(p=>p.name).join(', ')} scartano le carte rimaste.`); }
+}
+async function scoreRound(){
+  const sc=G.pl.map(p=>p.score), cnt=G.pl.map(p=>p.pile.length);
+  const rp=roundPts(sc,cnt);
+  const pts=rp.pts.map((x,i)=>i===G.robot?0:x);
+  G.pl.forEach((p,i)=>{ p.tot+=pts[i]; p.hist.push(pts[i]); });
+  G.last={pts:rp.pts.slice(),sc,cnt};
+  const rows=G.pl.map((p,i)=>({p:i,pain:G.pain[i],cnt:cnt[i],sc:sc[i],pts:pts[i],rank:rp.pts[i],tot:p.tot}));
+  G.show={rows};
+  logMsg(`Round ${G.round+1} concluso.`);
+  rows.forEach(x=>logMsg(`${P(x.p).name}: ${x.cnt} carte, punteggio ${sg(x.sc)} → ${x.p===G.robot?'(nessun punto)':'+'+x.pts+' punti'}${x.p===G.robot?'':' (totale '+x.tot+')'}.`));
+  status('Round concluso.');
+  await ask(HUM,'Risultato del round',[{label:G.round>=2?'Vedi il risultato finale':'Round successivo',value:1}]);
+  G.show=null;
+}
+function matchWinners(){
+  const ids=G.pl.map((_,i)=>i).filter(i=>i!==G.robot);
+  const mx=Math.max(...ids.map(i=>G.pl[i].tot));
+  let top=ids.filter(i=>G.pl[i].tot===mx);
+  if(top.length>1){                                       // spareggio: chi ha chiuso meglio l'ultimo round
+    const m2=Math.max(...top.map(i=>G.last.pts[i]));
+    top=top.filter(i=>G.last.pts[i]===m2);
+    if(top.length>1){
+      const key=i=>G.last.sc[i]*100+G.last.cnt[i];
+      const m3=Math.max(...top.map(key));
+      top=top.filter(i=>key(i)===m3);
+    }
+  }
+  return top;
+}
+function nextDealer(){
+  const ids=G.pl.map((_,i)=>i).filter(i=>i!==G.robot);
+  const tots=ids.map(i=>G.pl[i].tot);
+  const t=G.robot>=0?Math.min(...tots):Math.max(...tots);          // in 3 giocatori mazziere chi ha meno punti
+  const c=ids.filter(i=>G.pl[i].tot===t);
+  return c[rnd(c.length)];
+}
+async function run(){
+  const g=G;
+  try{
+    for(let r=0;r<3;r++){
+      g.round=r;
+      startRound();
+      await pickWardens();
+      await playRound();
+      await scoreRound();
+      if(r<2) g.dealer=nextDealer();
+    }
+    g.over={winners:matchWinners()};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='')=>`<span class="fc k${c.s} ${cls}" title="${SUITS[c.s].n} ${c.v}"><span>${c.v}</span>${ico(SUITS[c.s].icon)}</span>`;
+function handBtn(c,i,ok,sel){
+  return `<button class="fc k${c.s} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${SUITS[c.s].n} ${c.v}"><span>${c.v}</span>${ico(SUITS[c.s].icon)}</button>`;
+}
+function sw(s,extra=''){ return `<span class="sw k${s} ${extra}">${ico(SUITS[s].icon)} ${SUITS[s].n}</span>`; }
+function tableauHtml(p){
+  const x=G.trick.find(t=>t.p===p);
+  return `<div class="tableau">${x?x.cards.map(c=>kface(c,`mini ${G.win===p?'win':''}`)).join(''):'<span class="empty"></span>'}</div>`;
+}
+function pileHtml(p){
+  const cnt=[0,0,0,0,0]; P(p).pile.forEach(c=>cnt[c.s]++);
+  return `<div class="pile">${cnt.map((n,s)=>n?`<span class="sw k${s} ${G.pain[p]===s?'pn':''}" title="${SUITS[s].n}: ${n}">${ico(SUITS[s].icon)} ${n}</span>`:'').join('')}</div>`;
+}
+function flagHtml(p){
+  if(!G||G.over) return '';
+  if(G.turn>=0&&G.leader===p) return '<span class="flag lead">Di mano</span>';
+  if(G.trickNo===0&&G.dealer===p) return '<span class="flag first">Mazziere</span>';
+  return '';
+}
+function seatHtml(p,pos){
+  const pl=P(p);
+  const isLeader=G.turn>=0&&G.leader===p, active=G.turn===p, winner=G.win===p&&G.turn<0;
+  let hand;
+  if(p===HUM){
+    hand=`<div class="hand">${pl.hand.map((c,i)=>{
+      if(PR&&PR.type==='cards') return handBtn(c,i,canAdd(i),PR.sel.includes(i));
+      return kface(c);
+    }).join('')}</div>`;
+  }else if(p===G.robot){
+    hand=`<div class="rhand">${pl.hand.map(c=>kface(c,'tiny')).join('')}</div>`;
+  }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  const pain=G.pain[p]>=0?`<span class="tag" title="Seme dolore">dolore ${sw(G.pain[p])}</span>`:'';
+  const meta=`<div class="seat-meta">${pain}<span class="tag" title="Punteggio del round (carte raccolte: +1, seme dolore: −1)">${ico('tree')} <b>${sg(pl.score)}</b></span>${p===G.robot?'':`<span class="tag" title="Punti partita">${ico('crown')} <b>${pl.tot}</b></span>`}</div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${pileHtml(p)}${hand}`
+    :(pos==='top'?`${hand}${name}${meta}${pileHtml(p)}${tableauHtml(p)}`:`${name}${meta}${pileHtml(p)}${tableauHtml(p)}${hand}`);
+  return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+function wardsHtml(){
+  return `<div class="wards">${SUITS.map((s,i)=>{
+    const w=G.ward[i]||{};
+    const t=w.role==='pain'?`dolore di ${esc(P(w.by).name)}`:w.role==='trump'?'briscola':w.role==='aside'?'da parte':'libero';
+    return `<div>${sw(i)}<span>${t}</span></div>`;
+  }).join('')}</div>`;
+}
+function centerHtml(){
+  return `<div class="center">
+    ${G.trump>=0?`<div class="trump">${ico(SUITS[G.trump].icon)} Briscola: ${SUITS[G.trump].n}</div>`:'<div class="hint">Si scelgono i semi dolore…</div>'}
+    ${wardsHtml()}
+    <div>Round <b>${G.round+1}/3</b>${G.trickNo?` · Presa <b>${G.trickNo}</b>`:''}</div></div>`;
+}
+function scoreTable(){
+  const rows=G.pl.map((p,i)=>`<tr><td>${esc(p.name)}</td><td>${i===G.robot?'–':p.hist.map(sg).join(' ')||'–'}</td><td><b>${i===G.robot?'–':p.tot}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th>Punti partita</th><th class="l">Punti per round</th><th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Woodlanders contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts"><button class="opt" data-n="4">4 giocatori (tu + 3 AI)</button><button class="opt" data-n="3">3 giocatori (tu + 2 AI + robot ${ROBOT_NAME})</button></div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    html+=`<table class="score"><tr><th></th><th class="l">Seme dolore</th><th>Carte</th><th>Punteggio</th><th>Punti</th><th>Totale</th></tr>${G.show.rows.map(r=>
+      `<tr><td>${esc(P(r.p).name)}</td><td class="l">${r.pain>=0?sw(r.pain):'–'}</td><td>${r.cnt}</td><td class="${r.sc<0?'neg':r.sc>0?'pos':''}">${sg(r.sc)}</td><td><b>${r.p===G.robot?'–':'+'+r.pts}</b></td><td><b>${r.p===G.robot?'–':r.tot}</b></td></tr>`).join('')}</table>`;
+  }
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='cards'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    const ex=PR.sel.length?selExact():null;
+    if(PR.sel.length){
+      const cs=PR.sel.map(i=>P(HUM).hand[i]);
+      html+=`<div class="opts">${ex?`<button class="opt" data-cf="1">Gioca ${esc(cardsTxt(cs))}</button>`:'<span class="hint">Questa combinazione non è valida.</span>'}<button class="opt" data-cf="0">↶ Annulla selezione</button></div>`;
+    }else html+='<div class="hint">Tocca una carta (o due dello stesso seme) e poi «Gioca».</div>';
+  }
+  return html;
+}
+function recapHtml(){
+  return `<div class="recap paper"><h3>RIEPILOGO · ${G.n} GIOCATORI${G.n===3?` + ROBOT ${ROBOT_NAME}`:''}</h3>
+    <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>sw(i)).join('')}<span class="rv">50 carte: 5 semi da 10 (quattro 1, tre 2, due 3, un 4) · 12 carte a testa</span></div>
+    <div class="recap-row"><span class="lbl">Seme dolore</span><span class="rv" style="margin-left:0">ognuno sceglie un seme Guardiano: le sue carte che raccogli valgono −1 e non puoi guidarlo (se hai altro) · l'ultima carta Guardiano rimasta è la briscola</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">ognuno gioca 1 o 2 carte dello stesso seme (il 4 solo) sommando i valori · si segue il seme di mano se si può · vince il totale più alto della briscola o del seme di mano, a parità chi ha giocato dopo</span></div>
+    <div class="recap-row"><span class="lbl">Raccolta</span><span class="rv" style="margin-left:0">se nella presa non c'è carta del tuo seme dolore raccogli tutto (+1 a carta); altrimenti raccogli solo le carte del tuo seme dolore (−1 a carta) e le altre si scartano</span></div>
+    <div class="recap-row"><span class="lbl">Round</span><span class="rv" style="margin-left:0">finisce quando almeno 2 giocatori hanno finito le carte · punteggio più alto 3 punti, secondo 2, terzo 1 · si giocano 3 round, vince chi ha più punti</span></div></div>`;
+}
+const RULES_HTML = `
+<details class="rules paper"><summary>REGOLAMENTO (traduzione dal PDF inglese)</summary>
+<div class="rtext">
+<h4>Introduzione</h4>
+<p>C'è del lavoro da fare nella foresta e, come al solito, nessuno vuole fare il Guardiano. Tutti gli animali sperano che qualcun altro si faccia avanti. È stata convocata una riunione con i rappresentanti delle cinque specie più influenti: Tassi, Cervi, Volpi, Gufi e Conigli. Ognuna, a turno, rifiuta di fare il Guardiano finché ne resta una sola. Ma se un animale che ha rifiutato il comando viene sorpreso a dare ordini? Beh, non andrà bene per lui.</p>
+<h4>Componenti</h4>
+<p>50 carte Woodlander (5 semi da 10 carte: quattro 1, tre 2, due 3, un 4) e 5 carte Guardiano (bordo bianco, una X su un lato). Per i punti servono gettoni o carta e penna.</p>
+<h4>Preparazione (4 giocatori)</h4>
+<ul>
+<li>Le 5 carte Guardiano stanno al centro in fila, con il lato X coperto.</li>
+<li>Si mescola e si danno <b>12 carte</b> a testa; le 2 rimaste si mettono da parte coperte.</li>
+<li>Partendo dal giocatore a destra del mazziere e proseguendo in senso antiorario, ognuno sceglie una carta Guardiano come proprio <b>seme dolore</b> e la mette davanti a sé con la X in vista. Il mazziere sceglie per ultimo: la carta rimasta è il seme di <b>briscola</b> della mano.</li>
+<li>Il mazziere guida la prima presa.</li>
+</ul>
+<h4>Gioco</h4>
+<p>Partendo dal mazziere, in senso orario, ognuno gioca <b>1 o 2 carte dello stesso seme</b> dalla mano; con 2 carte i valori si sommano.</p>
+<ul>
+<li>Un 4 si gioca sempre da solo.</li>
+<li>Non si può guidare il proprio seme dolore, a meno che sia l'unico seme rimasto in mano.</li>
+<li>Se non si guida, bisogna seguire il seme di mano se possibile.</li>
+</ul>
+<p>La briscola si può guidare in qualsiasi momento, non serve che sia «rotta». Vince la presa il totale più alto del seme di mano (o della briscola); a parità vince chi ha giocato dopo.</p>
+<h4>Vincere la presa</h4>
+<ul>
+<li>Se nella presa <b>non</b> ci sono carte del tuo seme dolore, raccogli tutte le carte giocate nella tua pila punti.</li>
+<li>Se nella presa c'è <b>almeno una</b> carta del tuo seme dolore, raccogli <b>solo</b> le carte del tuo seme dolore e scarti tutte le altre.</li>
+</ul>
+<p>Si va avanti finché 2 o più giocatori restano senza carte; chi ha ancora carte le scarta. Si passa al punteggio.</p>
+<h4>Punteggio del round</h4>
+<ul>
+<li>+1 per ogni carta raccolta che NON è del tuo seme dolore.</li>
+<li>−1 per ogni carta raccolta che È del tuo seme dolore.</li>
+</ul>
+<p>Chi ha il totale più alto prende 3 punti, il secondo 2, il terzo 1. In caso di parità prende i punti più alti chi ha raccolto più carte; se c'è ancora parità, tutti i pari merito prendono i punti più bassi (se c'è parità per il terzo posto, nessuno prende punti). Il giocatore che ha più punti diventa il mazziere del round successivo.</p>
+<h4>Fine della partita</h4>
+<p>Si giocano tre round. Vince chi ha più punti; a parità vince chi ha chiuso meglio l'ultimo round.</p>
+<h4>Variante a 3 giocatori: D4-ST8</h4>
+<p>Il robot D4-ST8 siede al tavolo e gioca nel suo turno come un altro giocatore. Riceve 12 carte come gli altri, tenute scoperte e ordinate per seme. Cerca di vincere ogni presa giocando il massimo possibile; se non può vincere, gioca la sua singola carta più bassa del seme di mano. Se non può seguire e non può vincere con la briscola, gioca le sue due carte più basse del seme dolore del vincitore attuale della presa; se non le ha, gioca la sua carta più bassa del suo seme più corto. A parità di scelta, priorità ai semi per dimensione dell'animale (dal Cervo al Gufo). Quando vince una presa guida con la sua carta singola più bassa del suo seme più corto.</p>
+<p>D4-ST8 non guadagna punti ma conta nella classifica del round. Nei round 2 e 3 il mazziere è chi ha <b>meno</b> punti. Non scegliendo un seme dolore, il mazziere ha 3 carte Guardiano: una come seme dolore, una come briscola e l'ultima da parte.</p>
+<p><i>Icone:</i> animali da game-icons.net (licenza CC BY 3.0; autori Caro Asercion e Delapouite).</p>
+<p><i>Nell'app:</i> se chi ha vinto la presa è rimasto senza carte, guida il primo giocatore successivo in senso orario con carte in mano. Il robot siede di fronte a te. «Cervi, Tassi, Volpi, Conigli, Gufi» corrispondono a Deer, Badger, Fox, Rabbit, Owl. Il mazziere iniziale è casuale. L'AI stima le mani avversarie con simulazioni; la mano del robot è visibile a tutti.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log paper" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede sempre conferma con «Gioca» prima di giocare le carte"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">woodlanders<small>daniel newman's · illustrations by imogen oh</small></div>
+    ${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/3</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,POS[i])).join('')}${centerHtml()}</div>
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static;border-top-width:2px">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock paper">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmPlay(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('wl-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('wl-undo',OPT.undo?'1':'0'); }catch(err){}
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
