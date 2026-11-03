@@ -110,8 +110,8 @@ table.score .pos{color:var(--success)}
 .c2{background-color:var(--v);color:#fff}
 .cx{background-color:#cfc6c8;color:#26262a;border-color:#8c8588}
 .pt{background-color:var(--paint);color:#fff}
-.pt .ch{font-family:'Noto Serif JP',serif;font-weight:900;font-size:24px;line-height:1}
-.oc.mini.pt .ch{font-size:20px}
+.pt .ch{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:2px solid #fff;font-size:20px;line-height:1}
+.oc.mini.pt .ch{width:28px;height:28px;font-size:16px}
 .oc.ghost{border-style:dashed;border-color:#d92b2b;opacity:0.85}
 .oc.fresh{box-shadow:0 0 0 3px #d92b2b}
 .oc.win{box-shadow:0 0 0 3px #1e8f55}
@@ -151,9 +151,9 @@ details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--
   :root{--cw:31px;--ch:48px}
   .oc{font-size:15px;border-width:1px;border-radius:5px;gap:0}
   .oc small{font-size:7px}
-  .pt .ch{font-size:15px}
+  .pt .ch{width:24px;height:24px;border-width:1.5px;font-size:14px}
   .oc.mini{width:32px;height:48px;font-size:15px}
-  .oc.mini.pt .ch{font-size:15px}
+  .oc.mini.pt .ch{width:24px;height:24px;font-size:14px}
   .tableau .empty{width:32px;height:48px}
   .table{padding:8px;gap:6px}
   .back{width:8px;height:13px}
@@ -470,7 +470,7 @@ async function doExchange(){
 }
 function handStr(h){
   const cols=colorsOf(handFlags(h));
-  return h.map((c,i)=>c.paint?'彩':`${c.v}${cols[i]>=0?LET[cols[i]]:''}`).join(' ');
+  return h.map((c,i)=>c.paint?'P':`${c.v}${cols[i]>=0?LET[cols[i]]:''}`).join(' ');
 }
 async function doBids(){
   G.phase='bid'; G.showBids=false;
@@ -572,7 +572,7 @@ async function run(){
 
 // ═════════════════════════ RENDER ═════════════════════════
 function cardHtml(c,col,extra='',tag='span',attrs=''){
-  if(c.paint) return `<${tag} class="oc pt ${extra}" ${attrs} title="Pennello"><span class="ch">彩</span><small>Pennello</small></${tag}>`;
+  if(c.paint) return `<${tag} class="oc pt ${extra}" ${attrs} title="Pennello"><span class="ch">${ico('paint-brush')}</span></${tag}>`;
   const k=col>=0?'c'+col:'cx';
   return `<${tag} class="oc ${k} ${extra}" ${attrs} title="${c.v}${col>=0?' '+COLN[col]:''}"><span>${c.v}</span><small class="lt">${col>=0?LET[col]:''}</small></${tag}>`;
 }
