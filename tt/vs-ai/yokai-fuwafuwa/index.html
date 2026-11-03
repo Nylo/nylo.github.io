@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yokai Fuwafuwa</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#e7dff0;
+  --purple:#a98fbe;
+  --deep:#6d5388;
+  --ink:#2f2540;
+  --surface:#f6f2fa;
+  --accent:#8a63b0;
+  --accent-soft:rgba(138,99,176,0.16);
+  --text:#2a2236;
+  --text-soft:#5d5370;
+  --danger:#b3261e;
+  --success:#1e8f55;
+  --border:rgba(47,37,64,0.3);
+  --radius:10px;
+  --k0:#4b4752; --k1:#f4b6c8; --k2:#9cc5ea; --k3:#f7e08a; --k4:#b4dca0; --k5:#f5b987;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:
+  repeating-linear-gradient(100deg,rgba(255,255,255,0.35) 0 2px,transparent 2px 38px),
+  linear-gradient(180deg,#efe9f6 0%,#e7dff0 50%,#ddd1ea 100%) fixed}
+.app{max-width:980px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 16px;margin:0 -12px 14px;flex-wrap:wrap;background:var(--purple);border-bottom:5px solid #fff;box-shadow:0 4px 0 var(--deep)}
+.logo{font-family:'Shippori Mincho B1',serif;font-size:28px;font-weight:800;line-height:1.05;flex:1;color:#fff;text-shadow:0 2px 0 var(--deep)}
+.logo small{display:block;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.04em;color:#f3ecfb;margin-top:5px;text-shadow:none}
+.badge{background:#fff;color:var(--deep);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:rgba(255,255,255,0.18);color:#fff;border:1px solid #fff}
+.btn:hover{background:rgba(255,255,255,0.36)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.nylo-home{color:#fff;border-color:#fff;background:rgba(255,255,255,0.18)}
+.nylo-home:hover{background:rgba(255,255,255,0.36);color:#fff}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:rgba(255,255,255,0.18);color:#fff;border:1px solid #fff;cursor:pointer}
+.hamb:hover{background:rgba(255,255,255,0.36)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#f7e08a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.flag.clear{background:#cfeee0;color:#0f4d33;border:1px solid rgba(0,0,0,0.25)}
+.paper{background:linear-gradient(160deg,#fbf9fd 0%,#f1ebf7 100%)}
+.log{border:3px solid var(--deep);border-radius:var(--radius);padding:10px 14px;margin-top:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em;color:var(--deep)}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:17px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;border:3px solid var(--deep);border-top:8px solid var(--purple);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(60,40,90,0.18)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fff;border:2px solid var(--deep);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--deep);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#4a3f5c 0%,#2a2335 100%);border:4px solid #fff;outline:3px solid var(--deep);border-radius:14px;padding:12px;margin-bottom:14px;min-height:600px;color:#f4effa}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.08)}
+.seat.active{border-color:#f7e08a;background:rgba(247,224,138,0.18)}
+.seat.winner{border-color:#6fe0a4;background:rgba(111,224,164,0.2)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.42);border-radius:4px;padding:2px 6px;color:#fff;display:inline-flex;align-items:center;gap:4px}
+.tag b{color:#f7e08a}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:11px;height:17px;border-radius:3px;background:linear-gradient(135deg,#d9cfe8,#8d77ad);border:1px solid #fff}
+.seat.left .backs,.seat.right .backs{max-width:120px}
+.tableau{display:flex;gap:4px;align-items:center;justify-content:center;min-height:74px;padding:4px 6px;border-radius:8px;background:rgba(0,0,0,0.3);min-width:56px}
+.tableau .empty{width:42px;height:62px;border:1px dashed rgba(255,255,255,0.3);border-radius:6px}
+.bid{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;padding:3px 4px;border-radius:7px;background:rgba(255,255,255,0.1)}
+.bc{position:relative;width:20px;height:20px;border-radius:50%;background:#d9cfe8;color:#4a3a63;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.bc.cov{background:#8b2f45;color:#fff}
+.bc.cov i{font-size:12px;color:#ffd0d8}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:24px;line-height:1;color:#1c1830;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.5)}
+.fc i{font-size:17px;opacity:0.85}
+.fc.mini{width:40px;height:58px;font-size:21px}
+.fc.fresh{box-shadow:0 0 0 3px #f7e08a}
+.fc.win{box-shadow:0 0 0 3px #6fe0a4}
+.k0{background-color:var(--k0)} .k1{background-color:var(--k1)} .k2{background-color:var(--k2)} .k3{background-color:var(--k3)} .k4{background-color:var(--k4)} .k5{background-color:var(--k5)}
+.fc.k0{color:#f2eef8}
+.fc.bk{background:linear-gradient(135deg,#efe9f7,#a58bc7);color:#fff;border-color:#fff}
+.fc.bk i{font-size:22px;opacity:1}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.legal{box-shadow:0 0 0 3px #f7e08a}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.sw{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:5px;color:#1c1830;font-weight:700;font-size:11px;border:1px solid rgba(0,0,0,0.4);background-color:#ccc}
+.sw.k0{color:#f2eef8}
+body.a11y .k0.fc,body.a11y .k0.sw{background-image:linear-gradient(135deg,rgba(255,255,255,0.18) 25%,transparent 25% 50%,rgba(255,255,255,0.18) 50% 75%,transparent 75%);background-size:10px 10px}
+body.a11y .k1.fc,body.a11y .k1.sw{background-image:radial-gradient(rgba(0,0,0,0.3) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .k2.fc,body.a11y .k2.sw{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .k3.fc,body.a11y .k3.sw{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .k4.fc,body.a11y .k4.sw{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .k5.fc,body.a11y .k5.sw{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.2) 0 2px,transparent 2px 7px),repeating-linear-gradient(90deg,rgba(0,0,0,0.2) 0 2px,transparent 2px 7px)}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:#f4effa}
+.center b{color:#f7e08a}
+.center .hint{color:#d9cfe8}
+.lead-chip{display:inline-flex;align-items:center;gap:8px;color:#1c1830;border-radius:10px;padding:6px 12px;font-weight:800;border:2px solid var(--ink)}
+.lead-chip.k0{color:#f2eef8}
+
+.recap{border:3px solid var(--deep);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--deep)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .rchip,.recap-row .sw{vertical-align:middle}
+details.rules{border:3px solid var(--deep);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--deep);letter-spacing:0.05em}
+.rtext h4{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:14px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul,.rtext ol{padding-left:18px}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:46px}
+  .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
+  .fc i{font-size:11px}
+  .fc.mini{width:32px;height:48px;font-size:15px}
+  .tableau .empty{width:32px;height:48px}
+  .table{padding:8px;gap:6px}
+  .back{width:8px;height:13px}
+  .hand{gap:3px}
+  .bc{width:17px;height:17px;font-size:9px}
+  .logo{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const CL = [
+  {n:'Batteria scarica', icon:'battery-empty'},
+  {n:'Rosa',   icon:'device-mobile'},
+  {n:'Blu',    icon:'device-mobile'},
+  {n:'Giallo', icon:'device-mobile'},
+  {n:'Verde',  icon:'device-mobile'},
+  {n:'Arancio',icon:'device-mobile'}
+];
+const DB_VALS = [1,1,1,1,2,2,2,3,3,4];                 // Batterie scariche: quattro 1, tre 2, due 3, un 4
+const ROUNDS = 3;
+const HUM = 0;
+const POS = {3:['bottom','left','right'],4:['bottom','left','top','right']};
+const NAMES = ['Tu','AI Fufu','AI Waku','AI Yokai'];
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('yf-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('yf-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const cname = c => c.c===0?`Batteria ${c.v}`:`${CL[c.c].n} ${c.v}`;
+const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askMove(moves,hint){
+  const g=G;
+  const norm=new Set(moves.filter(m=>!m.fw).map(m=>m.i)), fwOk=moves.some(m=>m.fw);
+  return new Promise((res,rej)=>{ PR={type:'move',norm,fwOk,hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function submitMove(fw){
+  const m={i:PR.sel,fw}, r=PR.res; PR=null; render(); r(m);
+}
+function playIdx(i){
+  if(!PR||PR.type!=='move') return;
+  if(!(PR.norm.has(i)||PR.fwOk)) return;
+  if(PR.sel===i){ PR.sel=null; render(); return; }
+  PR.sel=i;
+  if(!OPT.undo){
+    const n=PR.norm.has(i);
+    if(n&&!PR.fwOk){ submitMove(false); return; }
+    if(!n&&PR.fwOk){ submitMove(true); return; }
+  }
+  render();
+}
+function confirmMove(v){
+  if(!PR||PR.type!=='move'||PR.sel==null) return;
+  if(v==='x'){ PR.sel=null; render(); return; }
+  if(v==='n'&&!PR.norm.has(PR.sel)) return;
+  if(v==='f'&&!PR.fwOk) return;
+  submitMove(v==='f');
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// Dead Battery 1–4 (10) + 5 colori Charged 1–6 (30); con 3 giocatori un colore Charged casuale esce dal gioco
+function fullDeck(removed){
+  const d=[];
+  DB_VALS.forEach((v,k)=>d.push({c:0,v,id:k}));
+  for(let c=1;c<=5;c++){ if(c===removed) continue; for(let v=1;v<=6;v++) d.push({c,v,id:c*10+v}); }
+  return d;
+}
+const sortHand = h => h.sort((a,b)=>a.c-b.c||a.v-b.v);
+const bidVals = cov => { const r=[]; for(let v=0;v<8;v++) if(!cov[v]) r.push(v); return r; };
+const isClear = cov => bidVals(cov).length===1;
+// colore di mano = colore della prima carta scoperta (se il primo giocatore gioca Fuwafuwa conta la seconda carta)
+function leadColor(plays){ for(const x of plays) if(!x.fd) return x.c.c; return null; }
+function legalMoves(hand,plays,sup,cov,dedupe){
+  const lc=leadColor(plays), out=[], seen=new Set();
+  const add=(i,fw)=>{
+    if(dedupe){ const c=hand[i], k=c.c+':'+c.v+':'+fw; if(seen.has(k)) return; seen.add(k); }
+    out.push({i,fw});
+  };
+  const must=lc!==null&&hand.some(c=>c.c===lc);
+  hand.forEach((c,i)=>{ if(!must||c.c===lc) add(i,false); });
+  if(!plays.some(x=>x.fd)&&sup>0&&!isClear(cov)) hand.forEach((c,i)=>add(i,true));
+  return out;
+}
+// forza: Batteria scarica > colore di mano > altri; stesso colore: numero più alto; a parità chi ha giocato dopo
+function strongest(plays){
+  const lc=leadColor(plays); let best=null, bs=-1;
+  for(const x of plays){
+    if(x.fd) continue;
+    const s=(x.c.c===0?200:x.c.c===lc?100:0)+x.c.v;
+    if(s>=bs){ best=x; bs=s; }
+  }
+  return best;
+}
+function declInfo(plays,cov){
+  const f=plays.find(x=>x.fd); if(!f) return null;
+  const n=strongest(plays).c.v, bv=bidVals(cov);
+  return {f:f.p,n,win:bv.some(v=>v>n),lose:bv.some(v=>v<n)};
+}
+function applyDecl(cov,n,win){
+  const keep=bidVals(cov).filter(v=>win?v>n:v<n);
+  for(let v=0;v<8;v++) if(!cov[v]&&!keep.includes(v)) cov[v]=true;
+}
+// punti del round: cubi rimasti + (se le prese coincidono con un valore di puntata) cubi sulla carta + 3 se Mente Chiara
+function roundPts(cov,sup,tricks){
+  const bv=bidVals(cov); let p=sup;
+  if(bv.includes(tricks)){ p+=8-bv.length; if(bv.length===1) p+=3; }
+  return p;
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Monte-Carlo con determinizzazione: le mani avversarie si campionano tra le carte non viste (le carte coperte altrui restano ignote); il resto del round si gioca a caso
+const AIP = {S:14};
+function unseen(me){
+  const seen=new Set();
+  P(me).hand.forEach(c=>seen.add(c.id));
+  G.seen.forEach(c=>seen.add(c.id));
+  P(me).fdOwn.forEach(c=>seen.add(c.id));
+  return G.deck.filter(c=>!seen.has(c.id));
+}
+function sampleHands(me,pool){
+  const pl=shuffle(pool.slice());
+  return G.pl.map((p,i)=>i===me?p.hand.slice():pl.splice(0,p.hand.length));
+}
+function mkState(hands){
+  return {hands:hands.map(x=>x.slice()),cov:G.pl.map(q=>q.cov.slice()),sup:G.pl.map(q=>q.sup),tricks:G.pl.map(q=>q.tricks)};
+}
+function simMove(S,p,plays,m){
+  const c=S.hands[p].splice(m.i,1)[0];
+  if(m.fw) S.sup[p]--;
+  plays.push({p,c,fd:m.fw});
+}
+function simPolicy(S,p,plays){
+  const mv=legalMoves(S.hands[p],plays,S.sup[p],S.cov[p],true);
+  const fw=mv.filter(m=>m.fw), nr=mv.filter(m=>!m.fw);
+  if(fw.length&&(!nr.length||Math.random()<0.1)) return fw[rnd(fw.length)];
+  return nr[rnd(nr.length)];
+}
+function simFinish(S,order,plays){
+  for(const p of order) simMove(S,p,plays,simPolicy(S,p,plays));
+}
+// dichiarazione euristica: preferisce l'opzione che lascia tra i valori di puntata il numero di prese raggiunto
+function pickDecl(d,tricksF,cov){
+  if(d.win&&!d.lose) return true;
+  if(d.lose&&!d.win) return false;
+  const bv=bidVals(cov);
+  const goodW=bv.filter(v=>v>d.n).includes(tricksF+1), goodL=bv.filter(v=>v<d.n).includes(tricksF);
+  if(goodW!==goodL) return goodW;
+  return Math.random()<0.5;
+}
+function simResolve(S,plays){
+  const d=declInfo(plays,S.cov[plays.find(x=>x.fd)?plays.find(x=>x.fd).p:0]);
+  let w;
+  if(!d) w=strongest(plays).p;
+  else{
+    const win=pickDecl(d,S.tricks[d.f],S.cov[d.f]);
+    applyDecl(S.cov[d.f],d.n,win);
+    w=win?d.f:strongest(plays).p;
+  }
+  S.tricks[w]++;
+  return w;
+}
+function simRound(S,leader){
+  const n=S.hands.length;
+  while(S.hands[leader].length){
+    const order=[]; for(let k=0;k<n;k++) order.push((leader+k)%n);
+    const plays=[];
+    simFinish(S,order,plays);
+    leader=simResolve(S,plays);
+  }
+}
+function objective(S,me){
+  const pts=S.hands.map((_,i)=>roundPts(S.cov[i],S.sup[i],S.tricks[i]));
+  const oth=pts.filter((_,i)=>i!==me);
+  return pts[me]-oth.reduce((a,b)=>a+b,0)/oth.length;
+}
+function aiPickMove(p){
+  const pl=P(p), mv=legalMoves(pl.hand,G.trick,pl.sup,pl.cov,true);
+  if(mv.length===1) return mv[0];
+  const pool=unseen(p), sc=mv.map(()=>0);
+  const rest=G.order.slice(G.order.indexOf(p)+1);
+  for(let s=0;s<AIP.S;s++){
+    const hands=sampleHands(p,pool);
+    mv.forEach((m,j)=>{
+      const S=mkState(hands);
+      const plays=G.trick.map(x=>({p:x.p,c:x.c,fd:x.fd}));
+      simMove(S,p,plays,m);
+      simFinish(S,rest,plays);
+      simRound(S,simResolve(S,plays));
+      sc[j]+=objective(S,p);
+    });
+  }
+  return mv[argmax(sc)];
+}
+// dichiarazione Vinco/Perdo dell'AI: simulo il resto del round con ciascuna opzione valida
+function aiDeclare(d){
+  if(d.win&&!d.lose) return true;
+  if(d.lose&&!d.win) return false;
+  const pool=unseen(d.f), sc=[0,0];
+  for(let s=0;s<AIP.S;s++){
+    const hands=sampleHands(d.f,pool);
+    [true,false].forEach((win,j)=>{
+      const S=mkState(hands);
+      applyDecl(S.cov[d.f],d.n,win);
+      const w=win?d.f:strongest(G.trick).p;
+      S.tricks[w]++;
+      simRound(S,w);
+      sc[j]+=objective(S,d.f);
+    });
+  }
+  return sc[0]>=sc[1];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,round:0,start:rnd(n),msg:'',log:[],over:null,show:null,deck:[],seen:[],aside:null,removed:0,
+     leader:0,turn:-1,win:-1,trickNo:0,trick:[],order:[],hl:null,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],cov:Array(8).fill(false),sup:3,tricks:0,fdOwn:[],tot:0,hist:[]}))};
+  run();
+}
+function deal(){
+  G.removed=G.n===3?1+rnd(5):0;
+  G.deck=fullDeck(G.removed);
+  const d=shuffle(G.deck.slice()), size=G.n===3?11:10;
+  G.pl.forEach((p,i)=>{ p.hand=sortHand(d.slice(i*size,(i+1)*size)); p.cov=Array(8).fill(false); p.sup=3; p.tricks=0; p.fdOwn=[]; });
+  G.aside=G.n===3?d[G.n*size]:null;
+  G.seen=[]; G.trick=[]; G.win=-1; G.turn=-1; G.trickNo=0; G.order=[]; G.show=null; G.hl=null;
+}
+function humanHint(moves){
+  const lc=leadColor(G.trick), h=P(HUM).hand;
+  let t;
+  if(!G.trick.length) t='Sei di mano: puoi giocare qualsiasi carta.';
+  else if(lc===null) t='Il primo ha giocato coperto: la tua carta stabilisce il colore di mano.';
+  else if(h.some(c=>c.c===lc)) t=`Devi seguire ${lc===0?'con una Batteria scarica':CL[lc].n} (gioco normale).`;
+  else t='Non puoi seguire: puoi giocare qualsiasi carta.';
+  if(moves.some(m=>m.fw)) t+=' Con il gioco Fuwafuwa la giochi coperta, senza obbligo di seguire, restituendo 1 cubo.';
+  return t;
+}
+async function playTrick(){
+  G.trickNo++; G.trick=[]; G.win=-1; G.hl=null;
+  const n=G.n; G.order=[]; for(let k=0;k<n;k++) G.order.push((G.leader+k)%n);
+  for(const p of G.order){
+    G.turn=p;
+    const pl=P(p);
+    status(`Presa ${G.trickNo} · di mano: ${P(G.leader).name}. Tocca a ${pl.name}.`);
+    const moves=legalMoves(pl.hand,G.trick,pl.sup,pl.cov,false);
+    let m;
+    if(p===HUM) m=await askMove(moves,humanHint(moves)); else{ await sleep(650); m=aiPickMove(p); }
+    const c=pl.hand.splice(m.i,1)[0];
+    if(m.fw){ pl.sup--; pl.fdOwn.push(c); }
+    else G.seen.push(c);
+    G.trick.push({p,c,fd:m.fw});
+    logMsg(m.fw?`${pl.name} gioca Fuwafuwa: carta coperta${p===HUM?' ('+cname(c)+')':''}, restituisce 1 cubo.`:`${pl.name} gioca ${cname(c)}.`);
+  }
+  G.turn=-1;
+  const d=declInfo(G.trick,P(G.trick.find(x=>x.fd)?G.trick.find(x=>x.fd).p:0).cov);
+  let w;
+  if(!d) w=strongest(G.trick).p;
+  else{
+    const fp=P(d.f), st=strongest(G.trick);
+    status(`${fp.name} ha giocato Fuwafuwa: la carta più forte è ${cname(st.c)} (${d.n}). Dichiara Vinco o Perdo.`);
+    let win;
+    if(d.win&&d.lose){
+      if(d.f===HUM) win=await ask(HUM,`Dichiara: la carta più forte è ${d.n}`,[{label:`Vinco (forza > ${d.n})`,value:true},{label:`Perdo (forza < ${d.n})`,value:false}]);
+      else{ await sleep(900); win=aiDeclare(d); }
+    }else win=d.win;
+    const before=bidVals(fp.cov);
+    applyDecl(fp.cov,d.n,win);
+    const after=bidVals(fp.cov);
+    logMsg(`${fp.name} dichiara «${win?'Vinco':'Perdo'}»: forza ${after.join(', ')} (${before.length-after.length} cubi sulla carta puntata).`);
+    w=win?d.f:st.p;
+  }
+  G.win=w; P(w).tricks++;
+  const m=`${P(w).name} vince la presa${d?` (dopo la dichiarazione di ${P(d.f).name})`:''}. Prese: ${P(w).tricks}.`;
+  status(m); logMsg(m);
+  await sleep(1900);
+  G.leader=w;
+}
+async function scoreRound(){
+  const rows=G.pl.map((p,i)=>{
+    const bv=bidVals(p.cov), hit=bv.includes(p.tricks), onCard=8-bv.length;
+    const pts=roundPts(p.cov,p.sup,p.tricks);
+    p.tot+=pts; p.hist.push(pts);
+    return {p:i,sup:p.sup,tricks:p.tricks,bv,hit,onCard,clear:bv.length===1,pts,tot:p.tot};
+  });
+  G.show={rows};
+  logMsg(`Round ${G.round+1} concluso.`);
+  rows.forEach(x=>logMsg(`${P(x.p).name}: ${x.tricks} prese, valori ${x.bv.join(',')} ${x.hit?'(puntata riuscita'+(x.clear?', Mente Chiara +3':'')+')':'(puntata mancata)'}, ${x.pts} punti (totale ${x.tot}).`));
+  status('Round concluso.');
+  await ask(HUM,'Risultato del round',[{label:G.round>=ROUNDS-1?'Vedi il risultato finale':'Round successivo',value:1}]);
+  G.show=null;
+}
+async function run(){
+  const g=G;
+  try{
+    for(let r=0;r<ROUNDS;r++){
+      g.round=r;
+      if(r>0) g.start=(g.start+1)%g.n;
+      deal();
+      logMsg(`— Round ${r+1}/${ROUNDS}: inizia ${P(g.start).name}${g.n===3?`; fuori gioco: ${CL[g.removed].n}`:''} —`);
+      status(g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`);
+      await ask(HUM,`Round ${r+1}/${ROUNDS}: ${g.start===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
+      g.leader=g.start;
+      while(P(g.leader).hand.length) await playTrick();
+      await scoreRound();
+    }
+    const mx=Math.max(...g.pl.map(p=>p.tot));
+    g.over={winners:g.pl.filter(p=>p.tot===mx).map(p=>p.id)};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='')=>`<span class="fc k${c.c} ${cls}" title="${cname(c)}"><span>${c.v}</span>${ico(CL[c.c].icon)}</span>`;
+function handBtn(c,i,ok,sel){
+  return `<button class="fc k${c.c} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}"><span>${c.v}</span>${ico(CL[c.c].icon)}</button>`;
+}
+function sw(c){ return `<span class="sw k${c}">${ico(CL[c].icon)} ${CL[c].n}</span>`; }
+function tableauHtml(p){
+  const x=G.trick.find(t=>t.p===p);
+  let h;
+  if(!x) h='<span class="empty"></span>';
+  else if(x.fd) h=`<span class="fc bk mini" title="${p===HUM?'Carta coperta: '+cname(x.c):'Carta coperta (Fuwafuwa)'}">${ico('ghost')}</span>`;
+  else h=kface(x.c,`mini ${G.win===p?'win':''}`);
+  return `<div class="tableau">${h}</div>`;
+}
+function bidHtml(p){
+  const cov=P(p).cov;
+  return `<div class="bid" title="Carta puntata: i numeri senza cubo sono i valori di puntata">${cov.map((c,v)=>`<span class="bc ${c?'cov':''}">${c?ico('cube'):v}</span>`).join('')}</div>`;
+}
+function flagHtml(p){
+  if(!G||G.over) return '';
+  const cl=isClear(P(p).cov)?'<span class="flag clear">Mente Chiara</span>':'';
+  if(G.turn>=0&&G.leader===p) return '<span class="flag lead">Di mano</span>'+cl;
+  if(G.trickNo===0&&G.start===p) return '<span class="flag first">Primo giocatore</span>'+cl;
+  return cl;
+}
+function seatHtml(p,pos){
+  const pl=P(p);
+  const isLeader=G.turn>=0&&G.leader===p, active=G.turn===p, winner=G.win===p&&G.turn<0;
+  let hand;
+  if(p===HUM){
+    hand=`<div class="hand">${pl.hand.map((c,i)=>{
+      if(PR&&PR.type==='move') return handBtn(c,i,PR.norm.has(i)||PR.fwOk,PR.sel===i);
+      return kface(c);
+    }).join('')}</div>`;
+  }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag" title="Punti partita">${ico('crown')} <b>${pl.tot}</b></span><span class="tag" title="Cubi nella riserva personale (non sulla carta puntata)">${ico('cube')} <b>${pl.sup}</b></span><span class="tag" title="Prese vinte in questo round">${ico('trophy')} <b>${pl.tricks}</b></span></div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${bidHtml(p)}${hand}`
+    :(pos==='top'?`${hand}${name}${meta}${bidHtml(p)}${tableauHtml(p)}`:`${name}${meta}${bidHtml(p)}${tableauHtml(p)}${hand}`);
+  return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const lc=leadColor(G.trick);
+  return `<div class="center">
+    ${lc!==null?`<div class="lead-chip k${lc}">${ico(CL[lc].icon)} Colore di mano: ${CL[lc].n}</div>`:'<div class="hint">Il colore di mano è quello della prima carta scoperta</div>'}
+    <div class="hint">Forza: Batteria scarica &gt; colore di mano &gt; altri colori</div>
+    <div>Round <b>${G.round+1}/${ROUNDS}</b> · Presa <b>${G.trickNo}</b>${G.n===3&&G.removed?` · fuori gioco: ${sw(G.removed)}`:''}</div></div>`;
+}
+function scoreTable(){
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.hist.join(' + ')||'–'}</td><td><b>${p.tot}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th>Punti partita</th><th class="l">Punti per round</th><th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Yokai Fuwafuwa contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    html+=`<table class="score"><tr><th></th><th>Prese</th><th class="l">Valori di puntata</th><th>Cubi riserva</th><th>Sulla carta</th><th>Punti</th><th>Totale</th></tr>${G.show.rows.map(r=>
+      `<tr><td>${esc(P(r.p).name)}</td><td>${r.tricks}</td><td class="l ${r.hit?'pos':'neg'}">${r.bv.join(', ')} ${r.hit?'✓'+(r.clear?' Mente Chiara +3':''):'✗'}</td><td>${r.sup}</td><td>${r.hit?r.onCard:0}</td><td><b>${r.pts}</b></td><td><b>${r.tot}</b></td></tr>`).join('')}</table>`;
+  }
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='move'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){
+      const c=P(HUM).hand[PR.sel], nOk=PR.norm.has(PR.sel);
+      html+=`<div class="opts">${nOk?`<button class="opt" data-mv="n">Gioca ${cname(c)} scoperta</button>`:''}${PR.fwOk?`<button class="opt" data-mv="f">${ico('ghost')} Gioca coperta (Fuwafuwa, −1 cubo)</button>`:''}<button class="opt" data-mv="x">↶ Annulla</button></div>`;
+    }
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n;
+  return `<div class="recap paper"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Carte</span>${sw(0)}${[1,2,3,4,5].map(sw).join('')}<span class="rv">40 carte: 10 Batterie scariche (1–4) e 30 Charged (1–6 in 5 colori)${n===3?' · con 3 giocatori un colore Charged esce dal gioco e 1 carta resta coperta':''} · ${n===3?11:10} carte a testa, ${n===3?11:10} prese</span></div>
+    <div class="recap-row"><span class="lbl">Puntata</span><span class="rv">carta puntata 0–7: il tuo valore di puntata sono i numeri SENZA cubo (all'inizio tutti: 0–7) · se le prese vinte coincidono con uno di essi la puntata riesce</span></div>
+    <div class="recap-row"><span class="lbl">Gioco normale</span><span class="rv">carta scoperta, obbligo di seguire il colore di mano (le Batterie scariche sono un colore a sé)</span></div>
+    <div class="recap-row"><span class="lbl">Fuwafuwa</span><span class="rv">carta coperta, nessun obbligo di seguire, restituisci 1 cubo della tua riserva · uno solo per presa · poi dichiari «Vinco» (forza maggiore della carta più forte) o «Perdo» (minore): i valori di puntata incompatibili si coprono con cubi</span></div>
+    <div class="recap-row"><span class="lbl">Mente Chiara</span><span class="rv">un solo numero senza cubo: non puoi più giocare Fuwafuwa nel round</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">1 per ogni cubo rimasto nella riserva · se la puntata riesce 1 per ogni cubo sulla carta (+3 se in Mente Chiara) · ${ROUNDS} round, vince chi ha più punti</span></div></div>`;
+}
+const RULES_HTML = `
+<details class="rules paper"><summary>REGOLAMENTO (traduzione dal PDF inglese)</summary>
+<div class="rtext">
+<h4>Prologo</h4>
+<p>Scusa se ti interrompo, ma ti è mai successo di pensare: «Il mio cervello non funziona», «Non riesco a concentrarmi su quello che devo fare», «Mi ritrovo a scorrere il telefono senza fine»? È tutto effetto dello «Yokai Fuwafuwa»! Il nuovo terribile yokai dei giorni nostri possiede chi è incollato al telefono, guardando video brevi o scorrendo i social, e trasforma il cervello in «fuwafuwa»: annebbiato e confuso. Non credi che esista? Fufu… la prova è… guarda, persino tu non ricordi più come giocavi ai giochi di prese, vero?</p>
+<h4>Panoramica</h4>
+<p>«Yokai Fuwafuwa» è un gioco di prese con obbligo di seguire e un sistema di puntate particolare. Tutti i giocatori sono posseduti dallo Yokai Fuwafuwa e non riconoscono con precisione il proprio valore di puntata. Mettendo cubi sulla carta puntata la mente si schiarisce a poco a poco e il valore esatto diventa evidente. Riuscirai a riprenderti la mente rubata dallo Yokai?</p>
+<h4>Componenti</h4>
+<p>40 carte Fuwafuwa: 10 Batterie scariche (1 ×4, 2 ×3, 3 ×2, 4 ×1) e 30 carte Charged (1–6 in 5 colori); 4 carte puntata, 36 cubi.</p>
+<h4>Preparazione</h4>
+<ul>
+<li>In 3 giocatori si toglie dal gioco un colore Charged a scelta (non si usa). In 4 giocatori si usano tutte le carte.</li>
+<li>Si mescolano le carte e si danno in parti uguali coperte (3 giocatori: 11 a testa, 1 carta avanzata messa da parte coperta; 4 giocatori: 10 a testa).</li>
+<li>Ognuno prende 1 carta puntata e 3 cubi; gli altri cubi sono la riserva generale.</li>
+</ul>
+<h4>Come leggere la carta puntata</h4>
+<p>La carta puntata ha i numeri da 0 a 7. Il tuo «valore di puntata» attuale è dato dai <b>numeri della carta che NON hanno un cubo sopra</b>. Con più valori di puntata, la puntata riesce se le prese vinte coincidono con uno qualsiasi di essi. A inizio round, senza cubi, il valore di puntata è «da 0 a 7».</p>
+<h4>Come si gioca</h4>
+<p>Guida la prima presa chi si è disintossicato digitalmente più di recente; dalla seconda guida chi ha vinto la presa precedente. Ognuno, in senso orario, gioca una carta in uno dei due modi:</p>
+<ol>
+<li><b>Gioco normale:</b> carta scoperta. Devi seguire il colore di mano se puoi; se non puoi, o sei di mano, puoi giocare qualsiasi colore.</li>
+<li><b>Gioco Fuwafuwa:</b> carta coperta, giocata <b>senza obbligo di seguire</b>, restituendo 1 cubo (dalla tua riserva personale, non da quelli sulla carta puntata) alla riserva generale. Una carta coperta vale come «Fuwafuwa» e il suo colore e numero vengono ignorati.</li>
+</ol>
+<p>In una presa solo un giocatore può fare un gioco Fuwafuwa. Se lo fa chi è di mano, la carta del secondo giocatore è trattata come carta di mano. Non puoi fare Fuwafuwa se non hai cubi nella riserva personale o se sei in «Mente Chiara».</p>
+<h4>Forza delle carte</h4>
+<p>Le «Batterie scariche» sono le più forti, poi il «colore di mano», poi gli altri colori. Nello stesso colore vince il numero più alto; con colore e numero uguali è più forte la carta giocata dopo.</p>
+<h4>Risoluzione del Fuwafuwa</h4>
+<p>La carta coperta ha una forza variabile pari ai tuoi valori di puntata attuali. Dopo che tutti hanno giocato, chi ha giocato Fuwafuwa dichiara «Vinco» o «Perdo»:</p>
+<ul>
+<li><b>Vinco:</b> si guarda la carta più forte (esclusa la coperta); la forza del Fuwafuwa diventa strettamente maggiore del suo numero e chi ha dichiarato vince la presa.</li>
+<li><b>Perdo:</b> la forza diventa strettamente minore del numero della carta più forte, e ne vince la presa chi l'ha giocata.</li>
+</ul>
+<p>Non puoi fare una dichiarazione incompatibile con i tuoi valori di puntata. Quando la forza cambia, prendi subito dalla riserva generale i cubi necessari e mettili sui numeri della carta puntata che <b>non</b> fanno parte della nuova forza (es. da «0–5» a «3–5»: 3 cubi su 0, 1 e 2).</p>
+<h4>Mente Chiara</h4>
+<p>Quando sulla carta puntata resta un solo numero senza cubo sei in «Mente Chiara»: per il resto del round non puoi più fare Fuwafuwa.</p>
+<h4>Punteggio</h4>
+<p>Quando tutte le carte sono state giocate il round finisce:</p>
+<ol>
+<li>Ogni giocatore guadagna 1 punto per ogni cubo rimasto nella riserva personale (esclusi quelli sulla carta puntata).</li>
+<li>Chi ha vinto esattamente un numero di prese pari a uno dei suoi valori di puntata finali guadagna 1 punto per ogni cubo posato SULLA carta puntata.</li>
+<li>Chi ha centrato la puntata essendo in «Mente Chiara» guadagna altri 3 punti.</li>
+</ol>
+<p>Si giocano 3 round in totale; vince chi ha il punteggio totale più alto.</p>
+<p><i>Nell'app:</i> in 3 giocatori il colore Charged escluso è casuale. Il primo giocatore del primo round è casuale e nei round successivi passa a sinistra. A ogni round le mani si rimescolano, le carte puntata si svuotano e ognuno riparte con 3 cubi. La carta coperta resta coperta fino a fine presa. La riserva generale non ha limite di cubi. L'AI stima le mani avversarie con simulazioni.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log paper" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">Yokai Fuwafuwa<small>game design: sencha (sentya) · artwork: natsumi kotani</small></div>
+    ${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${ROUNDS}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static;border-top-width:3px">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock paper">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.mv!==undefined) confirmMove(b.dataset.mv);
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('yf-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('yf-undo',OPT.undo?'1':'0'); }catch(err){}
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>

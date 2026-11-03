@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MergeTake</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --coral:#f26b66;
+  --sun:#ffd23a;
+  --sky:#6ec6f0;
+  --mint:#8fe0c0;
+  --ink:#2b2a3a;
+  --surface:#fffdf2;
+  --accent:#f26b66;
+  --accent-soft:rgba(242,107,102,0.16);
+  --text:#2b2a3a;
+  --text-soft:#5c5a70;
+  --danger:#c0392b;
+  --success:#1e8f55;
+  --border:rgba(43,42,58,0.3);
+  --radius:12px;
+  --k0:#f8a8c4; --k1:#ffe066; --k2:#9bd96a; --k3:#6fb4ee; --k4:#b99be0; --k5:#f27a6c; --k6:#5b6168;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:linear-gradient(180deg,#ffd23a 0%,#ffe37e 38%,#bfe8f8 78%,#6ec6f0 100%) fixed}
+.app{max-width:980px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Fredoka',sans-serif;font-size:34px;font-weight:700;line-height:1;flex:1;color:#fff;letter-spacing:0.01em;text-shadow:0 3px 0 var(--coral),0 5px 0 rgba(43,42,58,0.35);-webkit-text-stroke:1px rgba(43,42,58,0.25)}
+.logo small{display:block;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.04em;color:var(--ink);margin-top:8px;text-shadow:none;-webkit-text-stroke:0}
+.badge{background:var(--coral);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:8px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:rgba(255,255,255,0.7);color:var(--ink);border:2px solid var(--ink)}
+.btn:hover{background:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}
+.nylo-home{color:var(--ink);border:2px solid var(--ink);background:rgba(255,255,255,0.7);font-weight:600}
+.nylo-home:hover{background:#fff;color:var(--ink)}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--coral);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:8px;background:rgba(255,255,255,0.7);color:var(--ink);border:2px solid var(--ink);cursor:pointer}
+.hamb:hover{background:#fff}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:230px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.3)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd23a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.paper{background:var(--surface)}
+.log{border:3px solid var(--ink);border-radius:var(--radius);padding:10px 14px;margin-top:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:700;letter-spacing:0.05em;color:var(--ink)}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:2px solid var(--ink);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Fredoka',sans-serif;font-size:19px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--coral)}
+
+.dock{position:sticky;top:0;z-index:10;border:3px solid var(--ink);border-top:8px solid var(--coral);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(43,42,58,0.2)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:700;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fff;border:2px solid var(--ink);color:var(--text);border-radius:8px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--ink);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#2f9aae 0%,#1d6580 75%,#184d66 100%);border:4px solid var(--ink);outline:4px solid var(--coral);border-radius:16px;padding:12px;margin:6px 4px 18px;min-height:620px;color:#f4fbff}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:12px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.1)}
+.seat.active{border-color:#ffd23a;background:rgba(255,210,58,0.2)}
+.seat.winner{border-color:#8fe0c0;background:rgba(143,224,192,0.24)}
+.seat-name{font-weight:700;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.38);border-radius:5px;padding:2px 6px;color:#fff;display:inline-flex;align-items:center;gap:4px}
+.tag b{color:#ffd23a}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:11px;height:17px;border-radius:3px;background:linear-gradient(135deg,#ffd23a,#f26b66);border:1px solid #fff}
+.seat.left .backs,.seat.right .backs{max-width:120px}
+.tableau{display:flex;gap:4px;align-items:center;justify-content:center;min-height:74px;padding:4px 6px;border-radius:10px;background:rgba(0,0,0,0.25);min-width:56px}
+.tableau .empty{width:42px;height:62px;border:2px dashed rgba(255,255,255,0.35);border-radius:8px}
+
+.grps{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;min-height:6px}
+.grp{display:inline-flex;gap:2px;padding:2px 3px;border:2px solid rgba(255,255,255,0.55);border-radius:8px;background:rgba(255,255,255,0.1)}
+.grp.warn{border-color:#ffd23a;background:rgba(255,210,58,0.18)}
+.grp.big{border-color:#ff8f86;background:rgba(242,107,102,0.3)}
+.cc{display:inline-flex;align-items:center;justify-content:center;gap:1px;min-width:22px;height:26px;padding:0 3px;border-radius:6px;border:1px solid rgba(43,42,58,0.7);color:#2b2a3a;font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;line-height:1}
+.cc i{font-size:9px;opacity:0.8}
+.cc.k6{color:#fff}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:10px;border:2px solid var(--ink);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Fredoka',sans-serif;font-weight:700;font-size:23px;line-height:1;color:#2b2a3a;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4)}
+.fc i{font-size:16px;opacity:0.85}
+.fc.mini{width:40px;height:58px;font-size:20px}
+.fc.ind{box-shadow:0 0 0 3px #ffd23a}
+.fc.fresh{box-shadow:0 0 0 3px #ffd23a}
+.fc.win{box-shadow:0 0 0 3px #8fe0c0}
+.fc.nuova{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--sky)}
+.k0{background-color:var(--k0)} .k1{background-color:var(--k1)} .k2{background-color:var(--k2)} .k3{background-color:var(--k3)} .k4{background-color:var(--k4)} .k5{background-color:var(--k5)} .k6{background-color:var(--k6)}
+.fc.k6{color:#fff}
+.fc.back{background:linear-gradient(135deg,#ffd23a,#f26b66);width:var(--cw);height:var(--ch);color:#fff;font-size:20px}
+.fc.back.mini{width:40px;height:58px}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.legal{box-shadow:0 0 0 3px #ffd23a}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--coral)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+body.a11y .k0.fc,body.a11y .k0.cc{background-image:radial-gradient(rgba(0,0,0,0.3) 22%,transparent 24%);background-size:8px 8px}
+body.a11y .k1.fc,body.a11y .k1.cc{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.22) 0 2px,transparent 2px 7px)}
+body.a11y .k2.fc,body.a11y .k2.cc{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .k3.fc,body.a11y .k3.cc{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .k4.fc,body.a11y .k4.cc{background-image:repeating-linear-gradient(-45deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .k5.fc,body.a11y .k5.cc{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.2) 0 2px,transparent 2px 7px),repeating-linear-gradient(90deg,rgba(0,0,0,0.2) 0 2px,transparent 2px 7px)}
+body.a11y .k6.fc,body.a11y .k6.cc{background-image:radial-gradient(rgba(255,255,255,0.35) 20%,transparent 22%);background-size:6px 6px}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:#f4fbff}
+.center b{color:#ffd23a}
+.center .hint{color:#d6eefa}
+.cpair{display:flex;gap:14px;align-items:flex-start;justify-content:center}
+.cpair .pc{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px}
+
+.recap{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:700;letter-spacing:0.05em;color:var(--ink)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:700;color:var(--coral)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .cc{vertical-align:middle}
+details.rules{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--ink);letter-spacing:0.05em}
+.rtext h4{font-family:'Fredoka',sans-serif;font-size:15px;color:var(--coral);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+.rtext table{border-collapse:collapse;font-size:12px;margin:6px 0}
+.rtext td,.rtext th{border:1px solid var(--border);padding:4px 8px;text-align:center}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:46px}
+  .fc{font-size:14px;border-width:1px;border-radius:6px;gap:0}
+  .fc i{font-size:10px}
+  .fc.mini,.fc.back.mini{width:32px;height:48px;font-size:15px}
+  .tableau .empty{width:32px;height:48px}
+  .table{padding:8px;gap:6px}
+  .back{width:8px;height:13px}
+  .hand{gap:3px}
+  .logo{font-size:26px}
+  .cc{min-width:19px;height:23px;font-size:11px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const COLS = [
+  {n:'Rosa',   icon:'heart', lo:1,  hi:5},
+  {n:'Giallo', icon:'sun',   lo:4,  hi:10},
+  {n:'Verde',  icon:'leaf',  lo:10, hi:16},
+  {n:'Blu',    icon:'drop',  lo:16, hi:22},
+  {n:'Viola',  icon:'moon',  lo:22, hi:28},
+  {n:'Rosso',  icon:'fire',  lo:28, hi:34},
+  {n:'Nero',   icon:'skull', lo:33, hi:37}
+];
+const HAND = 11;                                       // carte a testa = 11 prese
+const HUM = 0;
+const POS = {3:['bottom','left','right'],4:['bottom','left','top','right']};
+const NAMES = ['Tu','AI Gelly','AI Blob','AI Goccia'];
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false,clair:false};
+try{ const s=localStorage.getItem('mt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('mt-a11y')==='1'; OPT.clair=localStorage.getItem('mt-clair')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>600) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const cname = c => `${COLS[c.c].n} ${c.n}`;
+const sg = v => (v>0?'+':'')+v;
+const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askCard(legal,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askPass(hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'pass',hint,sel:[],res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function playIdx(i){
+  if(!PR) return;
+  if(PR.type==='pass'){
+    const k=PR.sel.indexOf(i);
+    if(k>=0) PR.sel.splice(k,1); else if(PR.sel.length<3) PR.sel.push(i);
+    render(); return;
+  }
+  if(PR.type!=='card'||!PR.legal.has(i)) return;
+  if(OPT.undo){ PR.sel=i; render(); return; }
+  const r=PR.res; PR=null; render(); r(i);
+}
+function confirmCard(ok){
+  if(!PR||PR.type!=='card'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const i=PR.sel, r=PR.res; PR=null; render(); r(i);
+}
+function confirmPass(){
+  if(!PR||PR.type!=='pass'||PR.sel.length!==3) return;
+  const s=PR.sel.slice(), r=PR.res; PR=null; render(); r(s);
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// 4 giocatori: tutte le 46 carte (due Blu 19); 3 giocatori: via tutti i Rosa e i Neri e un Blu 19 (35 carte)
+function fullDeck(n){
+  const d=[];
+  COLS.forEach((c,ci)=>{
+    if(n===3&&(ci===0||ci===6)) return;
+    for(let v=c.lo;v<=c.hi;v++) d.push({c:ci,n:v,id:ci*100+v});
+  });
+  if(n===4) d.push({c:3,n:19,id:399});
+  return d;
+}
+const sortHand = h => h.sort((a,b)=>a.c-b.c||a.n-b.n);
+// obbligo di seguire il colore di mano
+function legalIdx(h,led){
+  const all=h.map((_,i)=>i);
+  if(led<0) return all;
+  const f=all.filter(i=>h[i].c===led);
+  return f.length?f:all;
+}
+// briscola più alta, altrimenti colore di mano più alto; a parità vince chi ha giocato prima
+function trickWinner(plays,trump){
+  const led=plays[0].c.c;
+  let cand=plays.filter(x=>x.c.c===trump);
+  if(!cand.length) cand=plays.filter(x=>x.c.c===led);
+  let b=cand[0];
+  for(const x of cand) if(x.c.n>b.c.n) b=x;
+  return b;
+}
+// gruppi: stesso numero o numeri consecutivi (a catena)
+function groupsOf(items){
+  const s=items.slice().sort((a,b)=>a.n-b.n), g=[];
+  for(const x of s){ const l=g[g.length-1]; if(l&&x.n-l[l.length-1].n<=1) l.push(x); else g.push([x]); }
+  return g;
+}
+const scoreGroups = gs => gs.reduce((a,g)=>a+(g.length>=5?-g.length:1),0);
+// dopo la presa: se una carta appena raccolta fa parte di un gruppo da 4+ guida chi sta a sinistra del vincitore
+function formsBig(prev,cards){
+  const gs=groupsOf(prev.concat(cards)), nw=new Set(cards);
+  return gs.some(g=>g.length>=4&&g.some(x=>nw.has(x)));
+}
+// punteggio finale di un giocatore (raccolte + carta traccia copia della carta coperta)
+function finalItems(coll,hidden){ return coll.concat([{c:hidden.c,n:hidden.n,id:-1}]); }
+function finalScore(coll,hidden){ return scoreGroups(groupsOf(finalItems(coll,hidden))); }
+
+// ═════════════════════════ AI ═════════════════════════
+// Monte-Carlo con determinizzazione: mani avversarie e carta coperta si campionano tra le carte non viste (le 3 carte passate a sinistra si sanno finché non vengono giocate); il resto si gioca a caso
+const AIP = {S:20,PS:6};
+function unseen(me){
+  const seen=new Set();
+  P(me).hand.forEach(c=>seen.add(c.id));
+  G.played.forEach(c=>seen.add(c.id));
+  seen.add(G.ind.id);
+  return fullDeck(G.n).filter(c=>!seen.has(c.id));
+}
+function knownLeft(me){
+  const pl=new Set(G.played.map(c=>c.id));
+  return (G.pass[me]||[]).filter(c=>!pl.has(c.id));
+}
+function sampleState(me){
+  const known=knownLeft(me), kid=new Set(known.map(c=>c.id));
+  const pool=shuffle(unseen(me).filter(c=>!kid.has(c.id)));
+  const left=(me+1)%G.n;
+  const hands=G.pl.map((p,i)=>{
+    if(i===me) return p.hand.slice();
+    if(i===left) return known.concat(pool.splice(0,p.hand.length-known.length));
+    return pool.splice(0,p.hand.length);
+  });
+  return {n:G.n,hands,coll:G.pl.map(p=>p.coll.slice()),ind:G.ind,trump:G.trump,hidden:pool[0]};
+}
+function simResolve(S,plays,t){
+  const w=trickWinner(plays,S.trump), cards=plays.map(x=>x.c);
+  const ex=formsBig(S.coll[w.p],cards);
+  S.coll[w.p]=S.coll[w.p].concat(cards);
+  if(t===HAND-1) S.coll[w.p].push(S.ind);
+  S.lastW=w.p;
+  return ex?(w.p+1)%S.n:w.p;
+}
+function simTrickFrom(S,order,plays){
+  for(const p of order){
+    const h=S.hands[p], lg=legalIdx(h,plays.length?plays[0].c.c:-1);
+    plays.push({p,c:h.splice(lg[rnd(lg.length)],1)[0]});
+  }
+}
+function simGame(S,leader,t){
+  for(;t<HAND;t++){
+    const order=[]; for(let k=0;k<S.n;k++) order.push((leader+k)%S.n);
+    const plays=[]; simTrickFrom(S,order,plays);
+    leader=simResolve(S,plays,t);
+  }
+}
+function objective(S,me){
+  const sc=S.coll.map(c=>finalScore(c,S.hidden)), oth=sc.filter((_,i)=>i!==me);
+  return sc[me]-oth.reduce((a,b)=>a+b,0)/oth.length;
+}
+function aiPickCard(p){
+  const h=P(p).hand, led=G.trick.length?G.trick[0].c.c:-1, lg=legalIdx(h,led);
+  if(lg.length===1) return lg[0];
+  const sc=lg.map(()=>0);
+  const rest=G.order.slice(G.order.indexOf(p)+1);
+  for(let s=0;s<AIP.S;s++){
+    const base=sampleState(p);
+    lg.forEach((idx,j)=>{
+      const S={n:base.n,hands:base.hands.map(x=>x.slice()),coll:base.coll.slice(),ind:base.ind,trump:base.trump,hidden:base.hidden};
+      const plays=G.trick.map(x=>({p:x.p,c:x.c}));
+      plays.push({p,c:S.hands[p].splice(idx,1)[0]});
+      simTrickFrom(S,rest,plays);
+      simGame(S,simResolve(S,plays,G.tIdx),G.tIdx+1);
+      sc[j]+=objective(S,p);
+    });
+  }
+  return lg[argmax(sc)];
+}
+// scelta delle 3 carte da passare: si simula la partita per ogni terna (gli altri passano 3 carte a caso)
+function aiPickPass(p){
+  const n=G.n, h=P(p).hand, triples=[];
+  for(let a=0;a<h.length;a++) for(let b=a+1;b<h.length;b++) for(let c=b+1;c<h.length;c++) triples.push([a,b,c]);
+  const sc=triples.map(()=>0);
+  const seen=new Set(h.map(c=>c.id)); seen.add(G.ind.id);
+  const poolAll=fullDeck(n).filter(c=>!seen.has(c.id));
+  for(let s=0;s<AIP.PS;s++){
+    const pool=shuffle(poolAll.slice());
+    const base=G.pl.map((q,i)=>i===p?h.slice():pool.splice(0,HAND));
+    const hidden=pool[0];
+    const rp=base.map((hh,i)=>i===p?null:shuffle(hh.map((_,k)=>k)).slice(0,3));
+    triples.forEach((t,j)=>{
+      const pass=base.map((hh,i)=>(i===p?t:rp[i]).map(k=>hh[k]));
+      const hands=base.map((hh,i)=>{
+        const mine=new Set((i===p?t:rp[i]));
+        const prev=(i-1+n)%n;
+        return hh.filter((_,k)=>!mine.has(k)).concat(pass[prev]);
+      });
+      const S={n,hands,coll:G.pl.map(()=>[]),ind:G.ind,trump:G.trump,hidden};
+      simGame(S,G.start,0);
+      sc[j]+=objective(S,p);
+    });
+  }
+  return triples[argmax(sc)];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,start:rnd(n),msg:'',log:[],over:null,show:null,
+     leader:0,turn:-1,win:-1,tIdx:0,trickNo:0,trick:[],order:[],played:[],pass:[],newIds:new Set(),
+     ind:null,hidden:null,trump:-1,revealed:false,peek:false,phase:'setup',
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],coll:[],trace:null}))};
+  run();
+}
+function deal(){
+  const deck=shuffle(fullDeck(G.n));
+  G.pl.forEach((p,i)=>{ p.hand=sortHand(deck.slice(i*HAND,(i+1)*HAND)); p.coll=[]; p.trace=null; });
+  G.ind=deck[G.n*HAND]; G.hidden=deck[G.n*HAND+1]; G.trump=G.ind.c;
+  G.pass=G.pl.map(()=>[]); G.newIds=new Set(); G.played=[]; G.trick=[]; G.revealed=false;
+  G.peek=OPT.clair&&G.start===HUM;
+}
+async function exchange(){
+  G.phase='pass';
+  const n=G.n, sel=[];
+  const left=(HUM+1)%n;
+  for(let p=0;p<n;p++){
+    let idx;
+    if(p===HUM){
+      status(`Scegli 3 carte da passare, coperte, a ${P(left).name} (alla tua sinistra).`);
+      idx=await askPass(`Seleziona 3 carte da passare a ${P(left).name}`);
+    }else{ await sleep(250); idx=aiPickPass(p); }
+    sel.push(idx);
+  }
+  const passed=sel.map((idx,p)=>idx.map(i=>P(p).hand[i]));
+  G.pl.forEach((pl,p)=>{
+    const drop=new Set(sel[p]);
+    const prev=(p-1+n)%n;
+    pl.hand=sortHand(pl.hand.filter((_,i)=>!drop.has(i)).concat(passed[prev]));
+  });
+  G.pass=passed;
+  G.newIds=new Set(passed[(HUM-1+n)%n].map(c=>c.id));
+  logMsg(`Scambio: ognuno ha passato 3 carte a sinistra. Hai ricevuto ${passed[(HUM-1+n)%n].map(cname).join(', ')} da ${P((HUM-1+n)%n).name}.`);
+  G.phase='play';
+}
+function humanHint(led){
+  if(led<0) return 'Sei di mano: gioca la carta che vuoi.';
+  return P(HUM).hand.some(c=>c.c===led)?`Devi giocare ${COLS[led].n} (colore di mano).`:`Non hai ${COLS[led].n}: puoi giocare qualsiasi carta (briscola: ${COLS[G.trump].n}).`;
+}
+async function playGame(){
+  G.leader=G.start;
+  for(let t=0;t<HAND;t++){
+    G.tIdx=t; G.trickNo=t+1; G.trick=[]; G.win=-1;
+    G.order=[]; for(let k=0;k<G.n;k++) G.order.push((G.leader+k)%G.n);
+    for(const p of G.order){
+      G.turn=p;
+      const pl=P(p), led=G.trick.length?G.trick[0].c.c:-1, lg=legalIdx(pl.hand,led);
+      status(`Presa ${G.trickNo}/${HAND} · di mano: ${P(G.leader).name}. Tocca a ${pl.name}.`);
+      let idx;
+      if(p===HUM) idx=await askCard(lg,humanHint(led)); else{ await sleep(650); idx=aiPickCard(p); }
+      const c=pl.hand.splice(idx,1)[0];
+      G.trick.push({p,c}); G.played.push(c);
+      logMsg(`${pl.name} gioca ${cname(c)}.`);
+    }
+    G.turn=-1;
+    const w=trickWinner(G.trick,G.trump), cards=G.trick.map(x=>x.c);
+    const ex=formsBig(P(w.p).coll,cards);
+    P(w.p).coll=P(w.p).coll.concat(cards);
+    G.win=w.p;
+    const nextL=ex?(w.p+1)%G.n:w.p;
+    const m=`${P(w.p).name} vince la presa (${cname(w.c)}) e raccoglie ${cards.length} carte.${ex?` Ha un gruppo da 4+: guida ${P(nextL).name}, alla sua sinistra.`:` Guida ${P(nextL).name}.`}`;
+    status(m); logMsg(m);
+    await sleep(1900);
+    G.leader=nextL;
+    if(t===HAND-1) G.lastW=w.p;
+  }
+  G.win=-1;
+}
+async function scoreGame(){
+  const w=G.lastW;
+  P(w).coll=P(w).coll.concat([G.ind]);
+  logMsg(`${P(w).name} (vincitore dell'ultima presa) raccoglie anche la carta briscola ${cname(G.ind)}.`);
+  G.revealed=true; G.peek=false;
+  logMsg(`La carta coperta al centro era ${cname(G.hidden)}: ogni giocatore la aggiunge come carta traccia.`);
+  const rows=G.pl.map((p,i)=>{
+    p.trace={c:G.hidden.c,n:G.hidden.n,id:-1};
+    const items=p.coll.concat([p.trace]);
+    const gs=groupsOf(items);
+    const sc=scoreGroups(gs);
+    return {p:i,gs,sc,max:Math.max(...items.map(x=>x.n)),plus:gs.filter(g=>g.length<5).length,minus:gs.filter(g=>g.length>=5).reduce((a,g)=>a+g.length,0)};
+  });
+  G.show={rows};
+  rows.forEach(r=>logMsg(`${P(r.p).name}: ${r.gs.length} gruppi → +${r.plus} −${r.minus} = ${r.sc}.`));
+  const mx=Math.max(...rows.map(r=>r.sc));
+  let top=rows.filter(r=>r.sc===mx);
+  if(top.length>1){ const m2=Math.max(...top.map(r=>r.max)); top=top.filter(r=>r.max===m2); }
+  G.over={winners:top.map(r=>r.p),rows};
+  status('Partita conclusa.');
+  render();
+}
+async function run(){
+  const g=G;
+  try{
+    deal();
+    logMsg(`— Briscola: ${cname(g.ind)} (${COLS[g.trump].n}). Primo giocatore: ${P(g.start).name}. —`);
+    status(`Colore briscola: ${COLS[g.trump].n}. Primo giocatore: ${P(g.start).name}.${g.peek?' Chiaroveggenza: vedi la carta coperta al centro.':''}`);
+    await ask(HUM,`Briscola ${COLS[g.trump].n} · primo giocatore: ${P(g.start).name}${g.peek?' · puoi sbirciare la carta coperta':''}`,[{label:'Passa 3 carte a sinistra',value:1}]);
+    await exchange();
+    await playGame();
+    await scoreGame();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='')=>`<span class="fc k${c.c} ${cls}" title="${cname(c)}"><span>${c.n}</span>${ico(COLS[c.c].icon)}</span>`;
+function handBtn(c,i,ok,sel,nuova){
+  return `<button class="fc k${c.c} ${ok?'legal':'dim'} ${sel?'sel':''} ${nuova?'nuova':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}"><span>${c.n}</span>${ico(COLS[c.c].icon)}</button>`;
+}
+function chip(c){ return `<span class="cc k${c.c}" title="${cname(c)}">${c.n}${ico(COLS[c.c].icon)}</span>`; }
+function tableauHtml(p){
+  const x=G.trick.find(t=>t.p===p);
+  return `<div class="tableau">${x?kface(x.c,`mini ${G.win===p?'win':''}`):'<span class="empty"></span>'}</div>`;
+}
+function grpsHtml(gs){
+  return `<div class="grps">${gs.map(g=>`<span class="grp ${g.length>=5?'big':g.length>=4?'warn':''}" title="Gruppo da ${g.length}">${g.map(chip).join('')}</span>`).join('')}</div>`;
+}
+function liveScore(p){ return scoreGroups(groupsOf(P(p).coll)); }
+function flagHtml(p){
+  if(!G||G.over) return '';
+  if(G.turn>=0&&G.leader===p) return '<span class="flag lead">Di mano</span>';
+  if(G.trickNo===0&&G.start===p) return '<span class="flag first">Primo giocatore</span>';
+  return '';
+}
+function seatHtml(p,pos){
+  const pl=P(p);
+  const isLeader=G.turn>=0&&G.leader===p, active=G.turn===p, winner=G.win===p&&G.turn<0;
+  let hand;
+  if(p===HUM){
+    hand=`<div class="hand">${pl.hand.map((c,i)=>{
+      if(PR&&PR.type==='card') return handBtn(c,i,PR.legal.has(i),PR.sel===i,G.newIds.has(c.id));
+      if(PR&&PR.type==='pass') return handBtn(c,i,true,PR.sel.includes(i),false);
+      return kface(c,G.newIds.has(c.id)?'nuova':'');
+    }).join('')}</div>`;
+  }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag" title="Punteggio delle carte raccolte finora (+1 per gruppo da 4 o meno, −1 per carta nei gruppi da 5+)">${ico('stack')} <b>${sg(liveScore(p))}</b></span><span class="tag" title="Carte raccolte">${ico('cards')} <b>${pl.coll.length}</b></span></div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const grp=grpsHtml(groupsOf(pl.coll));
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${grp}${hand}`
+    :(pos==='top'?`${hand}${name}${meta}${grp}${tableauHtml(p)}`:`${name}${meta}${grp}${tableauHtml(p)}${hand}`);
+  return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const hid=G.revealed?kface(G.hidden,'mini'):G.peek?kface(G.hidden,'mini'):`<span class="fc back mini">?</span>`;
+  return `<div class="center">
+    <div class="cpair">
+      <div class="pc">${kface(G.ind,'mini ind')}<span>Briscola: ${COLS[G.trump].n}</span></div>
+      <div class="pc">${hid}<span>${G.revealed?'Carta coperta':G.peek?'Coperta (solo tu)':'Coperta'}</span></div>
+    </div>
+    <div>Presa <b>${Math.min(G.trickNo,HAND)}/${HAND}</b> · ${G.n} giocatori</div>
+    <div class="hint">Gruppi: stesso numero o consecutivi · 4 o meno +1 · 5+ −1 a carta</div></div>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">MergeTake contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`; }
+  }else if(PR&&PR.type==='pass'){
+    html+=`<div class="hint">${esc(PR.hint)} (selezionate ${PR.sel.length}/3)</div>
+      <div class="opts"><button class="opt" data-pc="1" ${PR.sel.length===3?'':'disabled'}>Passa queste 3 carte</button></div>`;
+  }
+  return html;
+}
+function scoreTable(){
+  const rows=G.over.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td class="l">${grpsHtml(r.gs).replace('class="grps"','class="grps" style="justify-content:flex-start"')}</td><td class="l">+${r.plus} −${r.minus}</td><td><b>${r.sc}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th></th><th class="l">Gruppi (con carta briscola e traccia)</th><th class="l">Calcolo</th><th>Punti</th></tr>${rows}</table>`;
+}
+function recapHtml(){
+  const n=G.n;
+  const deck=n===4?'tutte le 46 carte (due Blu 19)':'35 carte (senza Rosa, Neri e un Blu 19)';
+  return `<div class="recap paper"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Carte</span>${COLS.map(c=>`<span class="cc k${COLS.indexOf(c)}">${c.lo}–${c.hi}${ico(c.icon)}</span>`).join('')}<span class="rv">${deck} · 11 carte a testa</span></div>
+    <div class="recap-row"><span class="lbl">Scambio</span><span class="rv">prima di giocare ognuno passa 3 carte coperte al giocatore a sinistra</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">si segue il colore di mano se si può · vince la briscola più alta (colore della carta scoperta al centro), altrimenti il numero più alto del colore di mano · a parità vince chi ha giocato prima · il vincitore raccoglie tutte le carte</span></div>
+    <div class="recap-row"><span class="lbl">Gruppi</span><span class="rv">carte con lo stesso numero o numeri consecutivi (anche di colori diversi) si uniscono in un gruppo · se raccogli carte che entrano in un gruppo da 4+ guida chi ti sta a sinistra</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">+1 per ogni gruppo da 4 carte o meno, −1 per ogni carta nei gruppi da 5+ · chi vince l'ultima presa prende anche la carta briscola · ognuno aggiunge la carta traccia, copia della carta coperta al centro</span></div></div>`;
+}
+const RULES_HTML = `
+<details class="rules paper"><summary>REGOLAMENTO (traduzione dal PDF inglese)</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>Merge Take è un gioco di prese. L'obiettivo è raccogliere più Slime possibile; ma gli Slime con numeri uguali o consecutivi si fondono in gruppi più grandi. Poiché il vincitore si decide in base al numero di gruppi, raccogliere troppe carte uguali o consecutive può essere uno svantaggio. I gruppi di 5 o più carte contano come punti di penalità.</p>
+<h4>Componenti</h4>
+<p>46 carte Slime in 7 colori (Rosa 1–5, Giallo 4–10, Verde 10–16, Blu 16–22, Viola 22–28, Rosso 28–34, Nero 33–37). Di norma esiste una sola carta per ogni combinazione di colore e numero; le due copie del Blu 19 si distinguono dall'illustrazione. Ogni giocatore ha una carta Slime Traccia (con il promemoria dei punti).</p>
+<h4>Preparazione</h4>
+<ul>
+<li>4 giocatori: si usano tutte le carte Slime. 3 giocatori: si tolgono tutte le carte Rosa e Nere e un Blu 19.</li>
+<li>Si mescolano le carte e se ne danno 11 a testa (la mano). Le 2 carte rimaste: 1 scoperta e 1 coperta al centro del tavolo. La carta scoperta è l'Indicatore di Briscola: tutte le carte di quel colore sono briscole.</li>
+<li>Il giocatore con più celle sulla carta Traccia è il primo giocatore (nell'app: scelto a caso).</li>
+<li>Completata la preparazione, ognuno sceglie 3 carte dalla mano e le passa coperte al giocatore alla sua sinistra, contemporaneamente. Poi aggiunge alla mano le 3 ricevute.</li>
+</ul>
+<h4>Giocare una presa</h4>
+<p>Si giocano 11 prese. Ogni presa inizia dal primo giocatore e prosegue in senso orario.</p>
+<ul>
+<li>Il primo giocatore gioca una carta qualsiasi.</li>
+<li>Gli altri giocano una carta: se hanno una carta dello stesso colore di quella di mano, devono giocarla; altrimenti possono giocare qualsiasi carta.</li>
+<li>Se è stata giocata una o più briscole, vince la briscola con il numero più alto; altrimenti vince la carta più alta del colore di mano.</li>
+<li>Il vincitore raccoglie tutte le carte giocate e le mette scoperte davanti a sé, ordinate in gruppi: carte con lo stesso numero o con numeri consecutivi si dispongono sovrapposte. Se una carta appena raccolta ha lo stesso numero, o uno consecutivo, di una carta di un gruppo, si aggiunge a quel gruppo; se collega due o più gruppi, questi si uniscono.</li>
+<li>Il vincitore guida la presa successiva. <b>Eccezione:</b> se una carta raccolta in questa presa entra a far parte di un gruppo da 4 o più carte, guida invece il giocatore alla sinistra del vincitore (anche se il gruppo è formato dalle sole carte della presa).</li>
+</ul>
+<h4>Punteggio</h4>
+<ul>
+<li>Dopo l'11ª presa il vincitore raccoglie anche l'Indicatore di Briscola. Poi si scopre la carta coperta al centro: ogni giocatore aggiunge la propria carta Traccia alle carte raccolte, come copia di quella carta (una carta Traccia da sola conta come un gruppo).</li>
+<li>Ogni gruppo di 4 carte o meno: +1 punto. Ogni gruppo di 5 o più carte: −1 punto per ogni carta del gruppo.</li>
+<li>Vince il punteggio più alto. In caso di parità vince chi ha raccolto la carta con il numero più alto; se c'è ancora parità, la vittoria è condivisa.</li>
+</ul>
+<h4>FAQ</h4>
+<p>Con 4 giocatori, se due Blu 19 vengono giocati nella stessa presa, vince chi ha giocato per primo il Blu 19. La regola dell'eccezione sulla guida si applica anche se le carte raccolte nella sola presa formano un gruppo da 4+, anche senza carte raccolte in precedenza.</p>
+<h4>Varianti</h4>
+<p>Una volta presa confidenza si consiglia la partita lunga (tante partite quanti sono i giocatori, passando ogni volta la carta Traccia di primo giocatore a sinistra); nell'app si gioca una singola partita. <b>Chiaroveggenza</b> (opzionale): il primo giocatore può guardare di nascosto la carta coperta al centro prima della prima presa; si attiva dal menu e vale solo se sei tu il primo giocatore.</p>
+<p><i>Nell'app:</i> le tue carte ricevute con lo scambio sono evidenziate in azzurro. Il punteggio accanto a ogni giocatore è quello delle sole carte raccolte finora. L'AI stima le mani avversarie con simulazioni e sa quali 3 carte ha passato a sinistra finché non vengono giocate.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log paper" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Variante: il primo giocatore guarda la carta coperta al centro (vale dalla prossima partita)"><input type="checkbox" id="optClair" ${OPT.clair?'checked':''}> Chiaroveggenza</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">MergeTake<small>yokouchi muneyuki · inoue osamu</small></div>
+    ${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Presa ${Math.min(G.trickNo,HAND)}/${HAND}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock paper">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+  else if(b.dataset.pc!==undefined) confirmPass();
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('mt-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optClair'){
+    OPT.clair=e.target.checked;
+    try{ localStorage.setItem('mt-clair',OPT.clair?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('mt-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(PR&&PR.type==='card'&&PR.sel!=null&&!OPT.undo){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>

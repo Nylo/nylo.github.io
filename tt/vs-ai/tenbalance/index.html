@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TenBalance</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#b4a3a8;
+  --ink:#2b2431;
+  --surface:#ecebee;
+  --accent:#b8902f;
+  --accent-soft:rgba(184,144,47,0.2);
+  --text:#221d28;
+  --text-soft:#554c5c;
+  --danger:#b3261e;
+  --success:#1e8f55;
+  --border:rgba(34,29,40,0.3);
+  --radius:10px;
+  --k0:#c9442f; --k1:#2f7bc4; --gold:#f1e1a6;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:linear-gradient(180deg,#bfaeb3 0%,#b4a3a8 50%,#a39297 100%) fixed}
+.app{max-width:980px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 16px;margin:0 -12px 14px;flex-wrap:wrap;background:#15121b;border-bottom:4px solid #d4a93e;box-shadow:0 4px 0 #3c2f1a}
+.logo{font-family:'Cinzel',serif;font-size:30px;font-weight:900;line-height:1;flex:1;color:#f0c75a;letter-spacing:0.04em;text-shadow:0 2px 0 #5b3d0f,0 0 14px rgba(240,199,90,0.35)}
+.logo small{display:block;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.05em;color:#8fb7e8;margin-top:6px;text-shadow:none}
+.logo small b{color:#e8604a;font-weight:600}
+.badge{background:#f0c75a;color:#2b2012;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:rgba(255,255,255,0.1);color:#f0c75a;border:1px solid #d4a93e}
+.btn:hover{background:rgba(240,199,90,0.25)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.nylo-home{color:#f0c75a;border-color:#d4a93e;background:rgba(255,255,255,0.1)}
+.nylo-home:hover{background:rgba(240,199,90,0.25);color:#f0c75a}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:rgba(255,255,255,0.1);color:#f0c75a;border:1px solid #d4a93e;cursor:pointer}
+.hamb:hover{background:rgba(240,199,90,0.25)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#f0c75a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.paper{background:var(--surface)}
+.log{border:3px solid var(--ink);border-radius:var(--radius);padding:10px 14px;margin-top:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Cinzel',serif;font-weight:700;font-size:17px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;border:3px solid var(--ink);border-top:8px solid #d4a93e;border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.18)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fff;border:2px solid var(--ink);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--ink);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+
+.table{display:grid;grid-template-columns:1fr 1.2fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#3d3446 0%,#231d2a 100%);border:4px solid #d4a93e;outline:3px solid #15121b;border-radius:14px;padding:12px;margin-bottom:14px;min-height:600px;color:#f2eef5}
+.table.n3{grid-template-areas:". . ." "left center right" "bottom bottom bottom"}
+.table.n5{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top} .seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.08)}
+.seat.active{border-color:#f0c75a;background:rgba(240,199,90,0.18)}
+.seat.winner{border-color:#6fe0a4;background:rgba(111,224,164,0.2)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.45);border-radius:4px;padding:2px 6px;color:#fff;display:inline-flex;align-items:center;gap:4px}
+.tag b{color:#f0c75a}
+.tag.near b{color:#6fe0a4}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:11px;height:17px;border-radius:3px;background:linear-gradient(135deg,#6b5a80,#241c30);border:1px solid #d4a93e}
+.back.dn{width:16px;height:23px}
+.seat.left .backs,.seat.right .backs{max-width:120px}
+.tableau{display:flex;gap:4px;align-items:center;justify-content:center;min-height:74px;padding:4px 6px;border-radius:8px;background:rgba(0,0,0,0.3);min-width:56px}
+.tableau .empty{width:42px;height:62px;border:1px dashed rgba(255,255,255,0.3);border-radius:6px}
+.area{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;align-items:center;max-width:240px;min-height:6px}
+.ang{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:5px;font-size:11px;font-weight:700;background:var(--gold);color:#4a3a0c;border:1px solid #b8902f}
+.ang.dn{background:#2c2434;color:#f1e1a6;border-color:#d4a93e}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #f2eef5;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Cinzel',serif;font-weight:900;font-size:26px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.5)}
+.fc i{font-size:15px;opacity:0.9}
+.fc.mini{width:40px;height:58px;font-size:22px}
+.fc.tiny{width:26px;height:38px;font-size:15px;gap:0;border-width:1px;border-radius:5px}
+.fc.tiny i{font-size:10px}
+.fc.fresh{box-shadow:0 0 0 3px #f0c75a}
+.fc.win{box-shadow:0 0 0 3px #6fe0a4}
+.k0{background-color:var(--k0)} .k1{background-color:var(--k1)}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.legal{box-shadow:0 0 0 3px #f0c75a}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px #d4a93e}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.sw{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:5px;color:#fff;font-weight:700;font-size:11px;border:1px solid rgba(0,0,0,0.4);background-color:#888}
+body.a11y .k0.fc,body.a11y .k0.sw{background-image:radial-gradient(rgba(0,0,0,0.3) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .k1.fc,body.a11y .k1.sw{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.28) 0 3px,transparent 3px 8px)}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:#f2eef5}
+.center b{color:#f0c75a}
+.center .hint{color:#d9d2e0}
+.ref{display:inline-flex;align-items:center;gap:8px;color:#fff;border-radius:10px;padding:6px 12px;font-weight:800;border:2px solid #fff}
+.cc{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:260px;padding:6px;border-radius:50%/40%;background:rgba(255,255,255,0.08);min-width:110px;min-height:70px;align-items:center}
+
+.recap{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .rchip,.recap-row .sw{vertical-align:middle}
+details.rules{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
+.rtext h4{font-family:'Cinzel',serif;font-weight:700;font-size:14px;color:#8a6a1c;margin:14px 0 4px;letter-spacing:0.03em}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+.rtext table{border-collapse:collapse;font-size:12px;margin:6px 0}
+.rtext td,.rtext th{border:1px solid var(--border);padding:4px 8px;text-align:center}
+
+@media(max-width:600px){
+  :root{--cw:32px;--ch:48px}
+  .fc{font-size:15px;border-width:1px;border-radius:5px;gap:0}
+  .fc i{font-size:10px}
+  .fc.mini{width:32px;height:48px;font-size:15px}
+  .fc.tiny{width:22px;height:32px;font-size:12px}
+  .tableau .empty{width:32px;height:48px}
+  .table{padding:8px;gap:6px}
+  .back{width:8px;height:13px}
+  .back.dn{width:12px;height:18px}
+  .hand{gap:3px}
+  .logo{font-size:23px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const COLS = [
+  {n:'Rosso', icon:'arrow-fat-up',   rule:'vince il numero più alto'},
+  {n:'Blu',   icon:'arrow-fat-down', rule:'vince il numero più basso'}
+];
+const CFG = {3:{hand:9,drop:[3,5]}, 4:{hand:8,drop:[4]}, 5:{hand:8,drop:[]}};
+const HUM = 0;
+const POS = {3:['bottom','left','right'],4:['bottom','left','top','right'],5:['bottom','left','tl','tr','right']};
+const NAMES = ['Tu','AI Serafino','AI Cherubino','AI Arcangelo','AI Potestà'];
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('tb-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tb-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const cname = c => `${COLS[c.c].n} ${c.v}`;
+const sum = a => a.reduce((x,y)=>x+y,0);
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askCard(legal,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function playIdx(i){
+  if(!PR||PR.type!=='card'||!PR.legal.has(i)) return;
+  if(OPT.undo){ PR.sel=i; render(); return; }
+  const r=PR.res; PR=null; render(); r(i);
+}
+function confirmCard(ok){
+  if(!PR||PR.type!=='card'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const i=PR.sel, r=PR.res; PR=null; render(); r(i);
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+function deckFor(n){
+  const d=[];
+  for(let c=0;c<2;c++) for(let v=1;v<=7;v++) if(!CFG[n].drop.includes(v)) for(let k=0;k<3;k++) d.push({c,v,id:c*100+v*10+k});
+  return d;
+}
+const sortHand = h => h.sort((a,b)=>a.c-b.c||a.v-b.v);
+// rosso: vince il numero più alto, blu: il più basso; a parità vince chi ha giocato dopo
+function winnerOf(plays,ref){
+  let b=plays[0];
+  for(const x of plays) if(ref===0?x.c.v>=b.c.v:x.c.v<=b.c.v) b=x;
+  return b;
+}
+// opzioni di piazzamento di un gruppo di carte guadagnate (valori) su area personale {up:[valori], dn:numero}
+// una carta scoperta (a scelta), le altre coperte; oltre 10 si scarta un lato intero (e se ancora oltre 10 tutto)
+function planGain(up,dn,gv){
+  const opts=[], fus=gv.length===1?[gv[0]]:[...new Set(gv)];
+  for(const fu of fus){
+    const nu=up.concat([fu]), nd=dn+gv.length-1, s=sum(nu), tot=s+nd;
+    if(tot<=10) opts.push({fu,disc:null,up:nu,dn:nd,total:tot});
+    else{
+      opts.push(nd<=10?{fu,disc:'u',up:[],dn:nd,total:nd}:{fu,disc:'u',up:[],dn:0,total:0,all:true});
+      opts.push(s<=10?{fu,disc:'d',up:nu,dn:0,total:s}:{fu,disc:'d',up:[],dn:0,total:0,all:true});
+    }
+  }
+  return opts;
+}
+const evalOpt = o => o.total*100-(o.up.length+o.dn);
+function bestOpt(opts){ return opts.reduce((b,x)=>evalOpt(x)>evalOpt(b)?x:b); }
+const totalOf = p => sum(p.up.map(c=>c.v))+p.dn.length;
+const cardsOf = p => p.up.length+p.dn.length;
+function roundWinners(pl){
+  const t=pl.map(totalOf), mx=Math.max(...t);
+  let w=pl.map((_,i)=>i).filter(i=>t[i]===mx);
+  const mn=Math.min(...w.map(i=>cardsOf(pl[i])));
+  return w.filter(i=>cardsOf(pl[i])===mn);
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Monte-Carlo con determinizzazione: le mani avversarie si campionano tra le carte non viste, il resto del round si gioca a caso (scelta colore/piazzamento/scarto con euristica)
+const AIP = {S:14};
+function unseen(me){
+  const known=new Set();
+  const add=c=>known.add(c.id);
+  P(me).hand.forEach(add); P(me).dn.forEach(add);
+  G.pl.forEach(p=>p.up.forEach(add));
+  G.center.forEach(add); G.trick.forEach(x=>add(x.c)); G.gone.forEach(add);
+  return deckFor(G.n).filter(c=>!known.has(c.id));
+}
+function simFrom(me,pool){
+  const pl=shuffle(pool.slice());
+  return {
+    hands:G.pl.map((p,i)=>i===me?p.hand.slice():pl.splice(0,p.hand.length)),
+    up:G.pl.map(p=>p.up.map(c=>c.v)), dn:G.pl.map(p=>p.dn.length),
+    center:G.center.slice(), ref:G.ref
+  };
+}
+function simResolve(S,plays){
+  const w=winnerOf(plays,S.ref).p;
+  let best=null;
+  for(const c of [0,1]){
+    const gv=S.center.filter(x=>x.c===c).map(x=>x.v);
+    if(!gv.length) continue;
+    const o=bestOpt(planGain(S.up[w],S.dn[w],gv));
+    if(!best||evalOpt(o)>evalOpt(best.o)||(evalOpt(o)===evalOpt(best.o)&&rnd(2))) best={c,o};
+  }
+  S.up[w]=best.o.up; S.dn[w]=best.o.dn; S.ref=best.c;
+  S.center=S.center.filter(x=>x.c!==best.c).concat(plays.map(x=>x.c));
+  return w;
+}
+function simRound(S,leader){
+  const n=S.hands.length;
+  while(S.hands[leader].length){
+    const plays=[];
+    for(let k=0;k<n;k++){ const p=(leader+k)%n, h=S.hands[p]; plays.push({p,c:h.splice(rnd(h.length),1)[0]}); }
+    leader=simResolve(S,plays);
+  }
+}
+function simValue(S,me){
+  const t=S.up.map((u,i)=>sum(u)+S.dn[i]), cnt=S.up.map((u,i)=>u.length+S.dn[i]);
+  const mx=Math.max(...t);
+  let w=t.map((_,i)=>i).filter(i=>t[i]===mx);
+  const mn=Math.min(...w.map(i=>cnt[i]));
+  w=w.filter(i=>cnt[i]===mn);
+  const oth=Math.max(...t.filter((_,i)=>i!==me));
+  return (w.includes(me)?1/w.length:0)+0.04*(t[me]-oth);
+}
+function aiPickCard(p){
+  const h=P(p).hand;
+  const cand=[], seen=new Set();
+  h.forEach((c,i)=>{ const k=c.c+':'+c.v; if(!seen.has(k)){ seen.add(k); cand.push(i); } });
+  if(cand.length===1) return cand[0];
+  const pool=unseen(p), sc=cand.map(()=>0);
+  const rest=G.order.slice(G.order.indexOf(p)+1);
+  for(let s=0;s<AIP.S;s++){
+    const base=simFrom(p,pool);
+    cand.forEach((idx,j)=>{
+      const S={hands:base.hands.map(x=>x.slice()),up:base.up.map(x=>x.slice()),dn:base.dn.slice(),center:base.center.slice(),ref:base.ref};
+      const plays=G.trick.map(x=>({p:x.p,c:x.c}));
+      plays.push({p,c:S.hands[p].splice(idx,1)[0]});
+      for(const q of rest){ const hh=S.hands[q]; plays.push({p:q,c:hh.splice(rnd(hh.length),1)[0]}); }
+      simRound(S,simResolve(S,plays));
+      sc[j]+=simValue(S,p);
+    });
+  }
+  let b=0; for(let j=1;j<cand.length;j++) if(sc[j]>sc[b]) b=j;
+  return cand[b];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,round:0,start:rnd(n),msg:'',log:[],over:null,show:null,
+     ref:0,center:[],leader:0,turn:-1,win:-1,trickNo:0,trick:[],order:[],gone:[],
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],up:[],dn:[],ang:[],rw:0}))};
+  run();
+}
+function deal(){
+  const deck=shuffle(deckFor(G.n)), hs=CFG[G.n].hand;
+  G.pl.forEach((p,i)=>{ p.hand=sortHand(deck.slice(i*hs,(i+1)*hs)); p.up=[]; p.dn=[]; });
+  G.center=deck.slice(G.n*hs);
+  G.ref=G.center[rnd(G.center.length)].c;
+  G.trick=[]; G.gone=[]; G.win=-1; G.turn=-1; G.trickNo=0; G.order=[]; G.show=null;
+}
+function discardSide(p,side){
+  const pl=P(p), n=side==='u'?pl.up.length:pl.dn.length;
+  const gone=side==='u'?pl.up.splice(0):pl.dn.splice(0);
+  gone.forEach(c=>G.gone.push(c));
+  const angs=pl.ang.filter(a=>a.up===(side==='u')).length;
+  pl.ang=pl.ang.filter(a=>a.up!==(side==='u'));
+  logMsg(`${pl.name} scarta tutte le carte ${side==='u'?'scoperte':'coperte'} (${n})${angs?` e ${angs} Angelo/i dello stesso lato`:''}.`);
+}
+function discardAll(p){
+  const pl=P(p);
+  pl.up.concat(pl.dn).forEach(c=>G.gone.push(c));
+  pl.up=[]; pl.dn=[]; pl.ang=[];
+  logMsg(`${pl.name} è ancora sopra 10: scarta anche tutte le carte rimaste.`);
+}
+async function gainFlow(w){
+  const pl=P(w), isH=w===HUM;
+  const present=[0,1].filter(c=>G.center.some(x=>x.c===c));
+  const upv=pl.up.map(c=>c.v), dn=pl.dn.length;
+  const optsOf=c=>planGain(upv,dn,G.center.filter(x=>x.c===c).map(x=>x.v));
+  let color;
+  if(present.length===1) color=present[0];
+  else if(isH){
+    color=await ask(HUM,'Quale colore delle carte al centro vuoi prendere?',present.map(c=>{
+      const cs=G.center.filter(x=>x.c===c);
+      return {label:`${COLS[c].n}: ${cs.length} carte (${cs.map(x=>x.v).sort((a,b)=>b-a).join(', ')})`,value:c};
+    }));
+  }else{
+    let bc=present[0], bv=-1e9;
+    for(const c of present){ const v=evalOpt(bestOpt(optsOf(c)))+Math.random()*0.01; if(v>bv){ bv=v; bc=c; } }
+    color=bc;
+  }
+  const gc=G.center.filter(x=>x.c===color);
+  G.center=G.center.filter(x=>x.c!==color);
+  G.ref=color;
+  logMsg(`${pl.name} prende le ${gc.length} carte ${COLS[color].n} dal centro; il riferimento passa a ${COLS[color].n} (${COLS[color].rule}).`);
+  // carta scoperta
+  let fuIdx=0;
+  if(gc.length>1){
+    if(isH){
+      const seen=new Set(), opts=[];
+      gc.forEach((c,i)=>{ if(!seen.has(c.v)){ seen.add(c.v); opts.push({label:`${c.v} scoperta (le altre ${gc.length-1} coperte, 1 punto l'una)`,value:i}); } });
+      fuIdx=await ask(HUM,'Quale carta metti scoperta nella tua area?',opts);
+    }else{
+      const o=bestOpt(planGain(upv,dn,gc.map(c=>c.v)));
+      fuIdx=gc.findIndex(c=>c.v===o.fu);
+    }
+  }
+  gc.forEach((c,i)=>(i===fuIdx?pl.up:pl.dn).push(c));
+  logMsg(`${pl.name} mette scoperta ${cname(gc[fuIdx])}${gc.length>1?` e ${gc.length-1} coperte`:''} (totale ${totalOf(pl)}).`);
+  // oltre 10
+  if(totalOf(pl)>10){
+    const t=pl.up.map(c=>c.v), nd=pl.dn.length, su=sum(t);
+    const resU=nd<=10?nd:0, resD=su<=10?su:0;
+    let side;
+    if(isH){
+      side=await ask(HUM,`Sei a ${totalOf(pl)}: devi scartare un lato (gli Angeli dello stesso lato vanno con le carte)`,[
+        {label:`Scarta le scoperte → ${resU} punti${pl.ang.some(a=>a.up)?' (e gli Angeli scoperti)':''}`,value:'u'},
+        {label:`Scarta le coperte → ${resD} punti${pl.ang.some(a=>!a.up)?' (e gli Angeli coperti)':''}`,value:'d'}]);
+    }else{
+      side=resU>resD||(resU===resD&&pl.dn.length<=pl.up.length)?'u':'d';
+    }
+    discardSide(w,side);
+    if(totalOf(pl)>10) discardAll(w);
+  }
+}
+async function playRound(){
+  G.leader=G.start;
+  while(P(G.leader).hand.length){
+    G.trickNo++; G.trick=[]; G.win=-1;
+    G.order=[]; for(let k=0;k<G.n;k++) G.order.push((G.leader+k)%G.n);
+    for(const p of G.order){
+      G.turn=p;
+      const pl=P(p);
+      status(`Presa ${G.trickNo} · di mano: ${P(G.leader).name}. Tocca a ${pl.name}.`);
+      let idx;
+      if(p===HUM) idx=await askCard(pl.hand.map((_,i)=>i),`gioca una carta. Riferimento: ${COLS[G.ref].n} (${COLS[G.ref].rule}).`);
+      else{ await sleep(650); idx=aiPickCard(p); }
+      const c=pl.hand.splice(idx,1)[0];
+      G.trick.push({p,c});
+      logMsg(`${pl.name} gioca ${cname(c)}.`);
+    }
+    G.turn=-1;
+    const w=winnerOf(G.trick,G.ref);
+    G.win=w.p;
+    const m=`${P(w.p).name} vince la presa con ${cname(w.c)} (${COLS[G.ref].rule}).`;
+    status(m); logMsg(m);
+    await sleep(1400);
+    const played=G.trick.map(x=>x.c);
+    await gainFlow(w.p);
+    G.center=G.center.concat(played);
+    G.trick=[];
+    await sleep(900);
+    G.leader=w.p;
+  }
+  G.turn=-1; G.win=-1;
+}
+async function placeAngel(w){
+  const pl=P(w);
+  let up;
+  if(w===HUM) up=await ask(HUM,'Dove metti l\'Angelo? (se scarti un lato, gli Angeli di quel lato vanno con le carte)',[
+    {label:`Scoperto (lato colore) · ora scoperte: ${sum(pl.up.map(c=>c.v))} punti`,value:true},
+    {label:`Coperto · ora coperte: ${pl.dn.length} punti`,value:false}]);
+  else up=sum(pl.up.map(c=>c.v))>=pl.dn.length;
+  pl.ang.push({up});
+  logMsg(`${pl.name} prende un Angelo e lo mette ${up?'scoperto':'coperto'}.`);
+}
+async function endRound(){
+  const ws=roundWinners(G.pl);
+  const rows=G.pl.map((p,i)=>({p:i,up:p.up.map(c=>c.v).sort((a,b)=>b-a),dn:p.dn.length,total:totalOf(p),cards:cardsOf(p),ang:p.ang.length,win:ws.includes(i)}));
+  G.show={rows};
+  logMsg(`Round ${G.round+1} concluso: vince ${ws.map(i=>P(i).name).join(' e ')}.`);
+  rows.forEach(x=>logMsg(`${P(x.p).name}: ${x.total} punti con ${x.cards} carte${x.win?' (vincitore)':''}.`));
+  const hadAngel=ws.filter(i=>P(i).ang.length>0);
+  if(hadAngel.length){
+    status(`${hadAngel.map(i=>P(i).name).join(' e ')} ${hadAngel.length>1?'vincono':'vince'} il round avendo già un Angelo: partita vinta!`);
+    await sleep(600);
+    G.over={winners:hadAngel,why:'Ha vinto un round con un Angelo già in area.'};
+    return true;
+  }
+  for(const w of ws){ P(w).rw++; await placeAngel(w); }
+  status('Round concluso.');
+  if(G.round>=G.n-1){
+    await ask(HUM,'Risultato del round',[{label:'Vedi il risultato finale',value:1}]);
+    G.show=null;
+    return false;
+  }
+  await ask(HUM,'Risultato del round',[{label:'Round successivo',value:1}]);
+  G.show=null;
+  // il vincitore del round sceglie chi inizia (se pari merito, il primo in senso orario dal precedente primo)
+  const w0=[...ws].sort((a,b)=>((a-G.start+G.n)%G.n)-((b-G.start+G.n)%G.n))[0];
+  let st;
+  if(w0===HUM) st=await ask(HUM,'Sei il vincitore del round: scegli chi inizia il prossimo',G.pl.map((p,i)=>({label:i===HUM?'Io':p.name,value:i})));
+  else st=rnd(G.n);
+  G.start=st;
+  logMsg(`${P(w0).name} sceglie ${P(st).name} come primo giocatore.`);
+  return false;
+}
+function finalWinners(){
+  let c=G.pl.map((_,i)=>i).filter(i=>P(i).ang.length>0);
+  if(!c.length) c=G.pl.map((_,i)=>i);
+  const mn=Math.min(...c.map(i=>cardsOf(P(i))));
+  return c.filter(i=>cardsOf(P(i))===mn);
+}
+async function run(){
+  const g=G;
+  try{
+    for(let r=0;r<g.n;r++){
+      g.round=r;
+      deal();
+      logMsg(`— Round ${r+1}/${g.n}: inizia ${P(g.start).name}; riferimento ${COLS[g.ref].n} —`);
+      status(g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`);
+      await ask(HUM,`Round ${r+1}/${g.n}: ${g.start===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.start).name}. Riferimento ${COLS[g.ref].n}`,[{label:'Ok, si parte',value:1}]);
+      await playRound();
+      if(await endRound()) break;
+    }
+    if(!g.over) g.over={winners:finalWinners(),why:'Nessuno ha vinto durante la partita: vince chi ha un Angelo (poi meno carte in area).'};
+    g.show=null;
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='')=>`<span class="fc k${c.c} ${cls}" title="${cname(c)}"><span>${c.v}</span>${ico(COLS[c.c].icon)}</span>`;
+function handBtn(c,i,ok,sel){
+  return `<button class="fc k${c.c} ${ok?'legal':''} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}"><span>${c.v}</span>${ico(COLS[c.c].icon)}</button>`;
+}
+function tableauHtml(p){
+  const x=G.trick.find(t=>t.p===p);
+  return `<div class="tableau">${x?kface(x.c,`mini ${G.win===p?'win':''}`):'<span class="empty"></span>'}</div>`;
+}
+function areaHtml(p){
+  const pl=P(p);
+  const ups=pl.up.slice().sort((a,b)=>a.c-b.c||b.v-a.v).map(c=>kface(c,'tiny')).join('');
+  const dns=pl.dn.map(()=>'<span class="back dn" title="Coperta: 1 punto"></span>').join('');
+  const angs=pl.ang.map(a=>`<span class="ang ${a.up?'':'dn'}" title="Angelo ${a.up?'scoperto':'coperto'}">${ico('star')} ${a.up?'scop.':'cop.'}</span>`).join('');
+  return `<div class="area">${ups}${dns}${angs}</div>`;
+}
+function flagHtml(p){
+  if(!G||G.over) return '';
+  if(G.turn>=0&&G.leader===p) return '<span class="flag lead">Di mano</span>';
+  if(G.trickNo===0&&G.start===p) return '<span class="flag first">Primo giocatore</span>';
+  return '';
+}
+function seatHtml(p,pos){
+  const pl=P(p);
+  const isLeader=G.turn>=0&&G.leader===p, active=G.turn===p, winner=G.win===p&&G.turn<0;
+  let hand;
+  if(p===HUM){
+    hand=`<div class="hand">${pl.hand.map((c,i)=>{
+      if(PR&&PR.type==='card') return handBtn(c,i,PR.legal.has(i),PR.sel===i);
+      return kface(c);
+    }).join('')}</div>`;
+  }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  const t=totalOf(pl);
+  const meta=`<div class="seat-meta"><span class="tag ${t===10?'near':''}" title="Totale in area (obiettivo: avvicinarsi a 10)">${ico('scales')} <b>${t}</b>/10</span><span class="tag" title="Round vinti">${ico('crown')} <b>${pl.rw}</b></span></div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${areaHtml(p)}${hand}`
+    :(pos==='top'||pos==='tl'||pos==='tr'?`${hand}${name}${meta}${areaHtml(p)}${tableauHtml(p)}`:`${name}${meta}${areaHtml(p)}${tableauHtml(p)}${hand}`);
+  return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const cs=G.center.slice().sort((a,b)=>a.c-b.c||a.v-b.v);
+  return `<div class="center">
+    <div class="ref k${G.ref}">${ico(COLS[G.ref].icon)} Riferimento: ${COLS[G.ref].n} · ${COLS[G.ref].rule}</div>
+    <div class="hint">Carte al centro (${cs.length})</div>
+    <div class="cc">${cs.map(c=>kface(c,'mini')).join('')}</div>
+    <div>Round <b>${G.round+1}/${G.n}</b> · Presa <b>${G.trickNo}</b></div></div>`;
+}
+function scoreTable(){
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.rw}</td><td>${p.ang.length}</td></tr>`).join('');
+  return `<table class="score"><tr><th>Giocatore</th><th>Round vinti</th><th>Angeli</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">TenBalance contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> ${esc(G.over.why)}</div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    html+=`<table class="score"><tr><th></th><th class="l">Scoperte</th><th>Coperte</th><th>Totale</th><th>Carte</th><th class="l">Esito</th></tr>${G.show.rows.map(r=>
+      `<tr><td>${esc(P(r.p).name)}</td><td class="l">${r.up.join(', ')||'–'}</td><td>${r.dn}</td><td><b>${r.total}</b></td><td>${r.cards}</td><td class="l ${r.win?'pos':''}">${r.win?'vince il round':'–'}</td></tr>`).join('')}</table>`;
+  }
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`; }
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n, drop=CFG[n].drop;
+  return `<div class="recap paper"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Carte</span><span class="sw k0">${ico(COLS[0].icon)} Rosso</span><span class="sw k1">${ico(COLS[1].icon)} Blu</span><span class="rv">1–7, tre copie per colore${drop.length?` (tolti i ${drop.join(' e i ')})`:''} · ${CFG[n].hand} carte a testa, il resto al centro</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">ognuno gioca 1 carta · carta di riferimento rossa: vince il numero più alto, blu: il più basso (a parità l'ultimo) · il colore delle carte giocate non conta</span></div>
+    <div class="recap-row"><span class="lbl">Bottino</span><span class="rv">il vincitore prende tutte le carte al centro di un colore a scelta e il riferimento passa a quel colore · 1 carta scoperta (vale il numero), le altre coperte (1 punto l'una) · le carte giocate formano il nuovo centro</span></div>
+    <div class="recap-row"><span class="lbl">Limite 10</span><span class="rv">se il totale arriva a 11 o più scarti tutte le scoperte o tutte le coperte (con i loro Angeli), e se resti sopra 10 scarti tutto</span></div>
+    <div class="recap-row"><span class="lbl">Round</span><span class="rv">vince chi è più vicino a 10 (poi meno carte) e prende un Angelo (0 punti) · vincere un round avendo già un Angelo vince la partita · ${n} round in tutto</span></div></div>`;
+}
+const RULES_HTML = `
+<details class="rules paper"><summary>REGOLAMENTO (traduzione dal PDF inglese)</summary>
+<div class="rtext">
+<h4>Temper your victory</h4>
+<p>Un gioco di prese con numeri ed equilibrio in cui devi contenere le tue vittorie per arrivare a un totale di 10. Vinci le prese e raccogli carte numero dal centro puntando a un totale il più vicino possibile a 10. Ma se il totale delle carte raccolte arriva a 11 o più, devi perderne finché non scendi a 10 o meno. Vinci, ma non troppo: tieni il punteggio sotto controllo e regolalo con attenzione. Il vincitore di ogni round prende 1 carta Angelo; se vinci un round avendo già un Angelo, vinci la partita.</p>
+<h4>Componenti</h4>
+<ul>
+<li><b>Carte numero:</b> 3 carte per ciascun numero 1–7 di Rosso e di Blu, in tutto 42.</li>
+<li><b>Carte Angelo:</b> 7 carte. Vanno al vincitore del round e valgono 0 punti.</li>
+<li><b>Carta di riferimento colore:</b> 1 carta. Rosso: vince il numero più alto. Blu: vince il numero più basso. Riguarda solo la forza dei numeri: rosso e blu non hanno forza in sé.</li>
+</ul>
+<h4>Termini</h4>
+<p><b>Mano:</b> le carte che ricevi, nascoste. <b>Area di gioco:</b> dove si giocano le carte. <b>Centro:</b> la zona al centro dell'area di gioco; <b>carte al centro:</b> il gruppo formato dalle carte giocate e da quelle rimaste. <b>Area personale:</b> dove il vincitore mette le carte guadagnate; il valore totale delle carte numero nella tua area personale è il tuo punteggio. <b>Scarti:</b> carte tolte dal gioco durante il round.</p>
+<h4>Preparazione</h4>
+<table><tr><th>Giocatori</th><th>3</th><th>4</th><th>5</th></tr>
+<tr><td>Carte numero non usate</td><td>3 e 5</td><td>4</td><td>–</td></tr>
+<tr><td>Carte in mano</td><td>9</td><td>8</td><td>8</td></tr>
+<tr><td>Carte extra (al centro)</td><td>3</td><td>4</td><td>2</td></tr></table>
+<ul>
+<li>Si preparano le carte numero in base al numero di giocatori e si decide il primo giocatore (sasso-carta-forbici).</li>
+<li>Il primo giocatore mescola, distribuisce le carte e mette quelle rimaste al centro, scoperte.</li>
+<li>Si scoprono le carte del centro una alla volta: la carta di riferimento si mette dal lato del colore della prima carta scoperta.</li>
+</ul>
+<h4>Prese e round</h4>
+<p>In una presa ognuno gioca 1 carta dalla mano. Un round è una serie di prese finché tutti hanno giocato tutte le carte. I round sono tanti quanti i giocatori (3 giocatori → 3 round), ma se qualcuno vince la partita prima, il gioco finisce subito.</p>
+<h4>Svolgimento di una presa</h4>
+<ol>
+<li><b>Gioca una carta:</b> dal primo giocatore in senso orario ognuno gioca 1 carta numero dalla mano.</li>
+<li><b>Chi vince:</b> si guarda la carta di riferimento. Lato rosso: vince il numero più alto; lato blu: il più basso. A parità vince la carta giocata dopo.</li>
+<li><b>Guadagna le carte:</b> il vincitore prende tutte le carte al centro di un colore a scelta, rosso o blu (se al centro c'è un solo colore, prende tutte quelle). Poi la carta di riferimento si gira dal lato del colore preso.</li>
+<li><b>Scoperte e coperte:</b> 1 delle carte guadagnate va scoperta nella tua area personale, le altre coperte. Una carta scoperta vale il suo numero, una coperta vale 1 punto. Se guadagni una sola carta numero deve andare scoperta.</li>
+<li><b>Regola il totale:</b> se il totale della tua area è 11 o più devi scartare tutte le carte scoperte o tutte le coperte, in modo da arrivare a 10 o meno. Dopo lo scarto, se sei ancora sopra 10, scarta anche tutte le carte rimaste. Se scarti tutte le scoperte o tutte le coperte, anche gli Angeli dello stesso lato vanno scartati. Il lato di un Angelo si può cambiare solo quando lo si guadagna.</li>
+<li><b>Nuovo centro:</b> si riuniscono le carte giocate e quelle rimaste al centro, e si mettono al centro divise per colore.</li>
+<li><b>Prossimo primo giocatore:</b> il vincitore della presa.</li>
+</ol>
+<h4>Fine del round e della partita</h4>
+<p>Quando una presa finisce e nessuno ha più carte in mano il round termina. Vince il round chi ha il totale più vicino a 10. In caso di parità: 1) vince chi ha meno carte nella sua area personale; 2) se c'è ancora parità vincono tutti i pari merito. Il vincitore del round prende 1 Angelo e lo mette nella sua area personale, scoperto (lato colore) o coperto; vale 0 punti e resta per i round successivi. Poi raccoglie tutte le carte del round, le mescola e le distribuisce per il successivo; <b>sceglie lui il primo giocatore</b> del round dopo.</p>
+<p><b>Vincitore della partita:</b> se un giocatore vince un round avendo già un Angelo nella sua area personale, vince la partita. Se alla fine dell'ultimo round nessuno ha vinto: 1) vince chi ha un Angelo; 2) a parità chi ha meno carte nell'area personale alla fine dell'ultimo round; 3) se c'è ancora parità vincono tutti i pari merito.</p>
+<p><i>Nell'app:</i> il primo giocatore del primo round e il colore iniziale di riferimento sono casuali. Le carte scartate sono considerate note all'AI. Se scarti «tutte le carte rimaste» vanno via anche gli Angeli. Nella classifica finale le «carte in area» sono le sole carte numero. Con più vincitori a pari merito, la scelta del primo giocatore spetta al primo di loro in senso orario dal precedente primo giocatore; l'AI sceglie a caso. L'AI stima le mani avversarie con simulazioni.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log paper" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">TenBalance<small>Temper your <b>victory.</b> · LudiWorks · art by B_Saigennaku</small></div>
+    ${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${G.n}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${G.pl.some(p=>p.rw)?`<div class="dock paper" style="position:static;border-top-width:3px">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock paper">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('tb-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('tb-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(PR&&PR.type==='card'&&PR.sel!=null&&!OPT.undo){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
