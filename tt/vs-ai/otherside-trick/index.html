@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Otherside Trick</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#150f10;
+  --ink:#1a1415;
+  --surface:#f2efe6;
+  --accent:#8be04a;
+  --accent-soft:rgba(139,224,74,0.22);
+  --text:#1f1a1b;
+  --text-soft:#554d4e;
+  --danger:#b3261e;
+  --success:#1e7a3a;
+  --border:rgba(31,26,27,0.3);
+  --radius:10px;
+  --k0:#2b3a9e; --k1:#c2342f; --k2:#d6a823; --k3:#8d9096;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:
+  linear-gradient(rgba(255,255,255,0.035) 1px,transparent 1px) 0 0/32px 32px,
+  linear-gradient(90deg,rgba(255,255,255,0.035) 1px,transparent 1px) 0 0/32px 32px,
+  radial-gradient(ellipse at 50% 0%,#2a1d1f 0%,#150f10 60%) fixed;background-color:#150f10}
+.app{max-width:980px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 4px;margin:0 0 16px;flex-wrap:wrap;border-bottom:2px solid var(--accent)}
+.logo{font-family:'Anton',sans-serif;font-size:32px;font-weight:400;line-height:1;flex:1;color:#fff;letter-spacing:0.03em;text-transform:uppercase;position:relative;padding:8px 14px;display:inline-block}
+.logo::before,.logo::after{content:'';position:absolute;width:14px;height:14px;border:2px solid #fff}
+.logo::before{top:0;left:0;border-right:0;border-bottom:0}
+.logo::after{bottom:0;right:0;border-left:0;border-top:0}
+.logo small{display:block;font-family:'Noto Sans JP','Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.12em;color:var(--accent);margin-top:4px;text-transform:none}
+.logoWrap{flex:1}
+.badge{background:var(--accent);color:#16200c;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.7)}
+.btn:hover{background:rgba(255,255,255,0.22)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.nylo-home{color:#fff;border-color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.08)}
+.nylo-home:hover{background:rgba(255,255,255,0.22);color:#fff}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:#3c7a14;cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.7);cursor:pointer}
+.hamb:hover{background:rgba(255,255,255,0.22)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.5)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:var(--accent);color:#16200c}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.flag.dead{background:#b3261e;color:#fff}
+.paper{background:var(--surface)}
+.hud{position:relative}
+.hud::before,.hud::after{content:'';position:absolute;width:18px;height:18px;border:3px solid #fff;pointer-events:none}
+.hud::before{top:-7px;left:-7px;border-right:0;border-bottom:0}
+.hud::after{bottom:-7px;right:-7px;border-left:0;border-top:0}
+.log{border:2px solid #cfc9b8;border-radius:var(--radius);padding:10px 14px;margin-top:16px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.65);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.6)}
+.name-box h3{font-family:'Anton',sans-serif;font-weight:400;font-size:18px;letter-spacing:0.03em}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:#3c7a14}
+
+.dock{position:sticky;top:0;z-index:10;border:2px solid #fff;border-top:6px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.4)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fff;border:2px solid var(--ink);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--ink);color:var(--accent)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:linear-gradient(160deg,#2a2022 0%,#1b1415 100%);border:2px solid rgba(255,255,255,0.85);border-radius:14px;padding:12px;margin-bottom:18px;min-height:600px;color:#f4f1ea;position:relative}
+.table.n5{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top} .seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.07)}
+.seat.active{border-color:var(--accent);background:rgba(139,224,74,0.14)}
+.seat.winner{border-color:#6fe0a4;background:rgba(111,224,164,0.18)}
+.seat.other{border-color:#ff8f86;background:rgba(255,143,134,0.14)}
+.seat.elim{opacity:0.55}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.18);border-radius:4px;padding:2px 6px;color:#fff;display:inline-flex;align-items:center;gap:4px}
+.tag b{color:var(--accent)}
+.tag.risk{background:#8f1d17;border-color:#ff8f86}
+.tag.risk b{color:#fff}
+.tag.safe i{color:var(--accent)}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:11px;height:17px;border-radius:3px;background:linear-gradient(135deg,#3c3032,#0e0a0b);border:1px solid #8be04a}
+.seat.left .backs,.seat.right .backs{max-width:120px}
+.tableau{display:flex;gap:4px;align-items:center;justify-content:center;min-height:74px;padding:4px 6px;border-radius:8px;background:rgba(0,0,0,0.4);min-width:56px}
+.tableau .empty{width:42px;height:62px;border:1px dashed rgba(255,255,255,0.3);border-radius:6px}
+.sw{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:5px;color:#fff;font-weight:700;font-size:11px;border:1px solid rgba(255,255,255,0.5);background-color:#555}
+.sw.k2,.sw.k3{color:#1c1830}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Anton',sans-serif;font-weight:400;font-size:24px;line-height:1;color:#1c1830;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.6)}
+.fc i{font-size:17px;opacity:0.9}
+.fc.mini{width:40px;height:58px;font-size:21px}
+.fc.fresh{box-shadow:0 0 0 3px var(--accent)}
+.fc.win{box-shadow:0 0 0 3px #6fe0a4}
+.fc.oth{box-shadow:0 0 0 3px #ff8f86}
+.k0{background-color:var(--k0);color:#fff} .k1{background-color:var(--k1);color:#fff} .k2{background-color:var(--k2)} .k3{background-color:var(--k3)}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.legal{box-shadow:0 0 0 3px var(--accent)}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+body.a11y .k0.fc,body.a11y .k0.sw,body.a11y .k0.ch{background-image:radial-gradient(rgba(255,255,255,0.32) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .k1.fc,body.a11y .k1.sw,body.a11y .k1.ch{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.3) 0 3px,transparent 3px 8px)}
+body.a11y .k2.fc,body.a11y .k2.sw,body.a11y .k2.ch{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.25) 0 3px,transparent 3px 8px)}
+body.a11y .k3.fc,body.a11y .k3.sw,body.a11y .k3.ch{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.25) 0 3px,transparent 3px 8px)}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:#f4f1ea}
+.center b{color:var(--accent)}
+.center .hint{color:#d9d3c4}
+.ch{display:inline-flex;align-items:center;gap:8px;border-radius:8px;padding:6px 12px;font-weight:800;border:2px solid #fff;background-color:#555}
+.ch small{font-weight:600;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;opacity:0.85}
+.ch.empty{background:transparent;border-style:dashed;border-color:rgba(255,255,255,0.4);color:#d9d3c4;font-weight:600}
+
+.recap{border:2px solid #cfc9b8;border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .sw{vertical-align:middle}
+details.rules{border:2px solid #cfc9b8;border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
+.rtext h4{font-family:'Anton',sans-serif;font-weight:400;font-size:15px;color:#3c7a14;margin:14px 0 4px;letter-spacing:0.03em}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+.rtext table{border-collapse:collapse;font-size:12px;margin:6px 0}
+.rtext td,.rtext th{border:1px solid var(--border);padding:4px 8px;text-align:center}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:46px}
+  .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
+  .fc i{font-size:11px}
+  .fc.mini{width:32px;height:48px;font-size:15px}
+  .tableau .empty{width:32px;height:48px}
+  .table{padding:8px;gap:6px}
+  .back{width:8px;height:13px}
+  .hand{gap:3px}
+  .logo{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const SUITS = [
+  {n:'Blu',    icon:'moon'},
+  {n:'Rosso',  icon:'star-of-david'},
+  {n:'Giallo', icon:'person-simple-run'},
+  {n:'Grigio', icon:'diamond'}
+];
+const HUM = 0;
+const BONUS = [1,2,3];                                  // bonus sopravvivenza dei 3 round
+const POS = {4:['bottom','left','top','right'],5:['bottom','left','tl','tr','right']};
+const NAMES = ['Tu','AI Ricercatore','AI Dott.','AI Agente','AI Professore'];
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('os-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('os-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const cname = c => `${SUITS[c.s].n} ${c.v}`;
+const sg = v => (v>0?'+':'')+v;
+const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askCard(legal,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function playIdx(i){
+  if(!PR||PR.type!=='card'||!PR.legal.has(i)) return;
+  if(OPT.undo){ PR.sel=i; render(); return; }
+  const r=PR.res; PR=null; render(); r(i);
+}
+function confirmCard(ok){
+  if(!PR||PR.type!=='card'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const i=PR.sel, r=PR.res; PR=null; render(); r(i);
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+function fullDeck(){
+  const d=[];
+  for(let s=0;s<4;s++) for(let v=1;v<=13;v++) d.push({s,v,id:s*13+v-1});
+  return d;
+}
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
+// lato vicino = seme della prima carta; lato opposto = primo seme diverso giocato (se c'è)
+function suitsOf(plays){
+  if(!plays.length) return {near:-1,other:-1};
+  const near=plays[0].c.s;
+  const o=plays.find(x=>x.c.s!==near);
+  return {near,other:o?o.c.s:-1};
+}
+// finché non esiste il lato opposto si può giocare qualsiasi carta; poi, chi ha un seme tra vicino e opposto deve giocarne uno, altrimenti gioca ciò che vuole (non può vincere)
+function legalIdx(h,plays){
+  const all=h.map((_,i)=>i);
+  const {near,other}=suitsOf(plays);
+  if(near<0||other<0) return all;
+  const ok=all.filter(i=>h[i].s===near||h[i].s===other);
+  return ok.length?ok:all;
+}
+function resolve(plays){
+  const {near,other}=suitsOf(plays);
+  const best=s=>plays.filter(x=>x.c.s===s).reduce((b,x)=>x.c.v>b.c.v?x:b);
+  return {nw:best(near),ow:other>=0?best(other):null};
+}
+// kaii > strutture = muore (−2); altrimenti +1 per kaii contenuto, −1 per struttura inutilizzata, più il bonus sopravvivenza
+function roundScore(fac,kaii,rd){
+  if(kaii>fac) return {dead:true,pts:-2};
+  return {dead:false,pts:kaii-(fac-kaii)+BONUS[rd]};
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Monte-Carlo con determinizzazione: le mani avversarie si campionano tra le carte non viste (comprese le carte tolte dal gioco), il resto del round si gioca a caso
+const AIP = {S:16};
+function unseen(me){
+  const seen=new Set();
+  P(me).hand.forEach(c=>seen.add(c.id));
+  G.played.forEach(c=>seen.add(c.id));
+  return fullDeck().filter(c=>!seen.has(c.id));
+}
+function sampleHands(me,pool){
+  const pl=shuffle(pool.slice());
+  return G.pl.map((p,i)=>i===me?p.hand.slice():pl.splice(0,p.hand.length));
+}
+function simPlayTrick(S,order,plays){
+  for(const p of order){
+    const h=S.hands[p], lg=legalIdx(h,plays);
+    plays.push({p,c:h.splice(lg[rnd(lg.length)],1)[0]});
+  }
+}
+function simResolve(S,plays){
+  const r=resolve(plays);
+  S.fac[r.nw.p]++;
+  if(r.ow) S.kaii[r.ow.p]++;
+  return r.nw.p;
+}
+function simRound(S,leader){
+  const n=S.hands.length;
+  while(S.hands[leader].length){
+    const order=[]; for(let k=0;k<n;k++) order.push((leader+k)%n);
+    const plays=[];
+    simPlayTrick(S,order,plays);
+    leader=simResolve(S,plays);
+  }
+}
+function objective(S,me){
+  const sc=S.fac.map((f,i)=>roundScore(f,S.kaii[i],G.round));
+  let mine=sc[me].pts;
+  if(sc[me].dead&&P(me).deaths>=1) mine-=8;               // seconda morte = eliminazione
+  const oth=sc.filter((_,i)=>i!==me).map(x=>x.pts);
+  return mine-oth.reduce((a,b)=>a+b,0)/oth.length;
+}
+function aiPickCard(p){
+  const h=P(p).hand, lg=legalIdx(h,G.trick);
+  if(lg.length===1) return lg[0];
+  const pool=unseen(p), sc=lg.map(()=>0);
+  const rest=G.order.slice(G.order.indexOf(p)+1);
+  for(let s=0;s<AIP.S;s++){
+    const hands=sampleHands(p,pool);
+    lg.forEach((idx,j)=>{
+      const S={hands:hands.map(x=>x.slice()),fac:G.pl.map(q=>q.fac),kaii:G.pl.map(q=>q.kaii)};
+      const plays=G.trick.map(x=>({p:x.p,c:x.c}));
+      plays.push({p,c:S.hands[p].splice(idx,1)[0]});
+      simPlayTrick(S,rest,plays);
+      simRound(S,simResolve(S,plays));
+      sc[j]+=objective(S,p);
+    });
+  }
+  return lg[argmax(sc)];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,round:0,leader:rnd(n),lastNear:0,msg:'',log:[],over:null,show:null,
+     turn:-1,win:-1,oth:-1,trickNo:0,trick:[],order:[],played:[],
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],fac:0,kaii:0,tot:0,deaths:0,elim:false,hist:[]}))};
+  run();
+}
+function deal(){
+  const deck=shuffle(fullDeck()), per=G.n===4?12:10;
+  G.pl.forEach((p,i)=>{ p.hand=sortHand(deck.slice(i*per,(i+1)*per)); p.fac=0; p.kaii=0; });
+  G.trick=[]; G.played=[]; G.win=-1; G.oth=-1; G.turn=-1; G.trickNo=0; G.order=[]; G.show=null;
+}
+function humanHint(){
+  const {near,other}=suitsOf(G.trick), h=P(HUM).hand;
+  if(near<0) return 'Sei di mano: la tua carta stabilisce il lato vicino (Nearside).';
+  if(other<0) return `Lato vicino: ${SUITS[near].n}. Puoi giocare qualsiasi carta; un seme diverso diventerà il lato opposto (Otherside).`;
+  if(h.some(c=>c.s===near||c.s===other)) return `Lato vicino ${SUITS[near].n}, lato opposto ${SUITS[other].n}: devi giocare uno di questi due semi (non c'è preferenza).`;
+  return `Non hai né ${SUITS[near].n} né ${SUITS[other].n}: puoi giocare qualsiasi carta, ma non può vincere.`;
+}
+async function playRound(){
+  const total=G.n===4?12:10;
+  while(P(G.leader).hand.length){
+    G.trickNo++; G.trick=[]; G.win=-1; G.oth=-1;
+    G.order=[];
+    for(let k=0;k<G.n;k++) G.order.push((G.leader+k)%G.n);
+    for(const p of G.order){
+      G.turn=p;
+      const pl=P(p), lg=legalIdx(pl.hand,G.trick);
+      status(`Presa ${G.trickNo}/${total} · di mano: ${P(G.leader).name}. Tocca a ${pl.name}.`);
+      let idx;
+      if(p===HUM) idx=await askCard(lg,humanHint()); else{ await sleep(650); idx=aiPickCard(p); }
+      const c=pl.hand.splice(idx,1)[0];
+      G.trick.push({p,c}); G.played.push(c);
+      const s=suitsOf(G.trick);
+      logMsg(`${pl.name} gioca ${cname(c)}${G.trick.length===1?' (lato vicino)':(c.s!==s.near&&c.s===s.other&&G.trick.filter(x=>x.c.s===s.other).length===1?' (lato opposto)':'')}.`);
+    }
+    G.turn=-1;
+    const r=resolve(G.trick);
+    G.win=r.nw.p; G.oth=r.ow?r.ow.p:-1;
+    const nw=P(r.nw.p); nw.fac++;
+    let m=`${nw.name} vince il lato vicino (${cname(r.nw.c)}) e prende una struttura.`;
+    if(r.ow){
+      const ow=P(r.ow.p); ow.kaii++;
+      m+=` ${ow.name} vince il lato opposto (${cname(r.ow.c)}) e prende un Kaii${ow.kaii>ow.fac?' non contenuto!':' (contenuto).'}`;
+    }else m+=' Nessun lato opposto: nessun Kaii.';
+    status(m); logMsg(m);
+    await sleep(1900);
+    G.leader=r.nw.p; G.lastNear=r.nw.p;
+  }
+  G.turn=-1; G.win=-1; G.oth=-1;
+}
+async function scoreRound(){
+  const rd=G.round;
+  const rows=G.pl.map((p,i)=>{
+    const r=roundScore(p.fac,p.kaii,rd);
+    p.tot+=r.pts; p.hist.push(r.pts);
+    if(r.dead){ p.deaths++; if(p.deaths>=2) p.elim=true; }
+    const calc=r.dead?`${p.kaii} Kaii > ${p.fac} strutture`:`${p.kaii} − ${p.fac-p.kaii} + ${BONUS[rd]}`;
+    return {p:i,fac:p.fac,kaii:p.kaii,dead:r.dead,elim:p.elim,pts:r.pts,calc,tot:p.tot,deaths:p.deaths};
+  });
+  G.show={rows};
+  logMsg(`Round ${rd+1} concluso.`);
+  rows.forEach(x=>logMsg(`${P(x.p).name}: ${x.fac} strutture, ${x.kaii} Kaii → ${x.dead?'MUORE':'sopravvive'} ${sg(x.pts)} (totale ${x.tot})${x.elim?' · eliminato (2ª morte)':''}.`));
+  status(`Round ${rd+1} concluso.`);
+  const end=rd>=2||G.pl.some(p=>p.elim);
+  await ask(HUM,'Risultato del round',[{label:end?'Vedi il risultato finale':'Round successivo',value:1}]);
+  G.show=null;
+  return end;
+}
+function winners(){
+  let c=G.pl.filter(p=>!p.elim);
+  if(!c.length) c=G.pl;
+  const mx=Math.max(...c.map(p=>p.tot));
+  return c.filter(p=>p.tot===mx).map(p=>p.id);
+}
+async function run(){
+  const g=G;
+  try{
+    for(let r=0;r<3;r++){
+      g.round=r;
+      if(r>0) g.leader=g.lastNear;
+      deal();
+      logMsg(`— Round ${r+1}/3 (bonus sopravvivenza +${BONUS[r]}): inizia ${P(g.leader).name} —`);
+      status(g.leader===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.leader).name}.`);
+      await ask(HUM,`Round ${r+1}/3: ${g.leader===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.leader).name}`,[{label:'Ok, si parte',value:1}]);
+      await playRound();
+      if(await scoreRound()) break;
+    }
+    g.over={winners:winners()};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='')=>`<span class="fc k${c.s} ${cls}" title="${cname(c)}"><span>${c.v}</span>${ico(SUITS[c.s].icon)}</span>`;
+function handBtn(c,i,ok,sel){
+  return `<button class="fc k${c.s} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}"><span>${c.v}</span>${ico(SUITS[c.s].icon)}</button>`;
+}
+function suitChip(s,label){
+  return s>=0?`<span class="ch k${s}"><small>${label}</small>${ico(SUITS[s].icon)} ${SUITS[s].n}</span>`:`<span class="ch empty">${label}: –</span>`;
+}
+function tableauHtml(p){
+  const x=G.trick.find(t=>t.p===p);
+  return `<div class="tableau">${x?kface(x.c,`mini ${G.win===p?'win':''} ${G.oth===p?'oth':''}`):'<span class="empty"></span>'}</div>`;
+}
+function flagHtml(p){
+  if(!G||G.over) return '';
+  const pl=P(p);
+  let f='';
+  if(pl.elim) f+='<span class="flag dead">Eliminato</span>';
+  if(G.turn>=0&&G.leader===p) f+='<span class="flag lead">Di mano</span>';
+  else if(G.trickNo===0&&G.leader===p) f+='<span class="flag first">Primo giocatore</span>';
+  return f;
+}
+function seatHtml(p,pos){
+  const pl=P(p);
+  const isLeader=G.turn>=0&&G.leader===p, active=G.turn===p, winner=G.win===p&&G.turn<0, other=G.oth===p&&G.turn<0;
+  let hand;
+  if(p===HUM){
+    hand=`<div class="hand">${pl.hand.map((c,i)=>{
+      if(PR&&PR.type==='card') return handBtn(c,i,PR.legal.has(i),PR.sel===i);
+      return kface(c);
+    }).join('')}</div>`;
+  }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  const risk=pl.kaii>pl.fac;
+  const cont=Math.min(pl.kaii,pl.fac);
+  const meta=`<div class="seat-meta">
+    <span class="tag" title="Strutture (prese del lato vicino)">${ico('lock')} <b>${pl.fac}</b></span>
+    <span class="tag" title="Kaii (prese del lato opposto)">${ico('ghost')} <b>${pl.kaii}</b></span>
+    ${risk?`<span class="tag risk" title="Più Kaii che strutture: morirebbe a fine round">${ico('warning')} <b>a rischio</b></span>`:`<span class="tag safe" title="Kaii contenuti">${ico('shield-check')} <b>${cont}</b></span>`}
+    ${pl.deaths?`<span class="tag" title="Morti">${ico('skull')} <b>${pl.deaths}</b></span>`:''}
+    <span class="tag" title="Punti partita">${ico('crown')} <b>${pl.tot}</b></span></div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${hand}`
+    :(pos==='top'||pos==='tl'||pos==='tr'?`${hand}${name}${meta}${tableauHtml(p)}`:`${name}${meta}${tableauHtml(p)}${hand}`);
+  return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''} ${other?'other':''} ${pl.elim?'elim':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const {near,other}=suitsOf(G.trick);
+  const total=G.n===4?12:10;
+  return `<div class="center">
+    ${suitChip(near,'Lato vicino')}
+    ${suitChip(other,'Lato opposto')}
+    <div>Round <b>${G.round+1}/3</b> · Presa <b>${Math.min(G.trickNo,total)}/${total}</b></div>
+    <div class="hint">Bonus sopravvivenza round: <b>+${BONUS[G.round]}</b></div></div>`;
+}
+function scoreTable(){
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}${p.elim?' (eliminato)':''}</td><td>${p.hist.map(sg).join(' ')||'–'}</td><td>${p.deaths?ico('skull')+' '+p.deaths:'–'}</td><td><b>${p.tot}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th>Punti partita</th><th class="l">Punti per round</th><th>Morti</th><th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Otherside Trick contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b>${G.pl.some(p=>p.elim)?' (i giocatori eliminati non possono vincere)':''}</div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    html+=`<table class="score"><tr><th></th><th>Strutture</th><th>Kaii</th><th class="l">Calcolo (contenuti − inutilizzate + bonus)</th><th>Punti</th><th>Totale</th></tr>${G.show.rows.map(r=>
+      `<tr><td>${esc(P(r.p).name)}</td><td>${r.fac}</td><td>${r.kaii}</td><td class="l ${r.dead?'neg':''}">${r.dead?ico('skull')+' MUORE · ':''}${r.calc}${r.elim?' · eliminato':''}</td><td class="${r.pts<0?'neg':'pos'}"><b>${sg(r.pts)}</b></td><td><b>${r.tot}</b></td></tr>`).join('')}</table>`;
+  }
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`; }
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n;
+  return `<div class="recap paper hud"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>`<span class="sw k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">52 carte (4 semi, 1–13) · ${n===4?'12 carte a testa, 4 carte tolte':'10 carte a testa, 2 carte tolte'} · 12 carte Kaii</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">il seme della prima carta è il lato vicino, il primo seme diverso è il lato opposto · al massimo due semi: dopo il lato opposto devi giocare uno dei due semi, se ne hai (non c'è preferenza per il lato vicino) · con nessuno dei due giochi altro, ma non puoi vincere</span></div>
+    <div class="recap-row"><span class="lbl">Vincitori</span><span class="rv">carta più alta del lato vicino: prende la presa come struttura e guida · carta più alta del lato opposto: prende un Kaii · un Kaii e una struttura si contengono subito a coppie</span></div>
+    <div class="recap-row"><span class="lbl">Round</span><span class="rv">più Kaii che strutture = muori (−2) · altrimenti +1 per Kaii contenuto, −1 per struttura inutilizzata, più bonus sopravvivenza (+1, +2, +3 nei tre round)</span></div>
+    <div class="recap-row"><span class="lbl">Fine</span><span class="rv">dopo il 3° round, o appena qualcuno muore la seconda volta (eliminato) · vince chi ha più punti tra i non eliminati</span></div></div>`;
+}
+const RULES_HTML = `
+<details class="rules paper hud"><summary>REGOLAMENTO (traduzione dal PDF inglese)</summary>
+<div class="rtext">
+<h4>Descrizione</h4>
+<p>Otherside Trick è un gioco con 52 carte da gioco e 12 carte Kaii. In 4 giocatori ogni giocatore riceve 12 carte, in 5 giocatori 10 carte. Le carte non usate sono tolte dal gioco. Le carte Kaii si mettono in un mazzo al centro del tavolo con l'illustrazione del Kaii a faccia in su. Si sceglie il primo giocatore con un metodo qualsiasi.</p>
+<h4>La presa</h4>
+<p>Ogni giocatore gioca una carta dalla mano, a partire da chi guida e in senso orario. Ogni presa ha due vincitori: il vincitore del lato vicino (Nearside) e il vincitore del lato opposto (Otherside).</p>
+<h4>Gioco delle carte</h4>
+<p>Il seme della prima carta giocata diventa il <b>lato vicino (Nearside)</b>. I giocatori successivi possono giocare una carta del lato vicino o di un seme diverso. Quando viene giocato un seme diverso, quel seme diventa il <b>lato opposto (Otherside)</b>. <b>Nessuna presa può avere più di due semi.</b> Una volta stabilito il lato opposto, si può giocare il lato vicino oppure il lato opposto.</p>
+<p><i>Avviso dell'amministratore:</i> possedere il seme del lato vicino non crea l'obbligo di giocarlo.</p>
+<p>Se un giocatore non ha né il seme del lato vicino né quello del lato opposto, gioca una carta di un altro seme; quella carta non può vincere. Quando tutti hanno giocato una carta la presa finisce: si determinano i vincitori dei due lati.</p>
+<h4>Vincitore del lato vicino</h4>
+<p>Chi ha giocato la carta di grado più alto del lato vicino è il vincitore del lato vicino. Prende la presa e la mette davanti a sé con l'illustrazione del lucchetto a faccia in su: questo mazzetto si chiama <b>Struttura (Facility)</b>. Le strutture si tengono separate in modo da contarle facilmente. Il vincitore del lato vicino guida la presa successiva.</p>
+<h4>Vincitore del lato opposto</h4>
+<p>Chi ha giocato la carta di grado più alto del lato opposto è il vincitore del lato opposto. Prende una carta <b>Kaii</b> e la mette davanti a sé con l'illustrazione del Kaii a faccia in su. I Kaii si tengono separati in modo da contarli facilmente.</p>
+<h4>Contenimento</h4>
+<p>Ogni volta che un Kaii è abbinato a una struttura viene immediatamente <b>contenuto</b>: si mette la carta Kaii sopra una struttura con il lato «Contained» a faccia in su.</p>
+<h4>Fine del round</h4>
+<p>Il round finisce dopo che tutti hanno giocato la loro ultima carta. Se un giocatore possiede Kaii non contenuti, cioè più Kaii che strutture, <b>muore</b> e riceve −2 punti, qualunque sia il risultato. I giocatori che sopravvivono segnano:</p>
+<table><tr><td>Kaii contenuto</td><td>+1 punto ciascuno</td></tr>
+<tr><td>Struttura inutilizzata</td><td>−1 punto ciascuna</td></tr>
+<tr><td>Bonus sopravvivenza</td><td>Round 1: +1 · Round 2: +2 · Round 3: +3</td></tr></table>
+<p>Esempio 1 (round 1): 2 Kaii contenuti (+2), 1 struttura inutilizzata (−1), bonus sopravvivenza (+1): totale +2. Esempio 2: 3 Kaii contenuti e 1 struttura più 1 Kaii non contenuto (4 Kaii contro 3 strutture): il giocatore muore, −2 punti.</p>
+<h4>Preparare il round successivo</h4>
+<p>Dopo il punteggio si raccolgono tutte le strutture, i Kaii e le carte tolte dal gioco, e si prepara il round come a inizio partita. Il giocatore che è stato l'ultimo vincitore del lato vicino del round precedente guida il round successivo.</p>
+<h4>Fine della partita</h4>
+<p>La partita finisce quando è terminato il 3° round oppure quando lo stesso giocatore è morto due volte. Un giocatore che muore due volte è eliminato a prescindere dal punteggio. Tra tutti i giocatori non eliminati vince quello con il punteggio più alto. In caso di ulteriore parità i giocatori pari merito condividono la vittoria.</p>
+<h4>Note aggiuntive</h4>
+<ul>
+<li>Se solo una carta è stata giocata nel lato vicino o nel lato opposto, chi l'ha giocata vince quel lato.</li>
+<li>Un giocatore sopravvissuto può comunque avere un punteggio negativo se possiede molte strutture inutilizzate.</li>
+<li>Una presa può avere un vincitore del lato vicino senza che sia stato stabilito un lato opposto (in quel caso nessuno prende un Kaii).</li>
+<li>Indipendentemente dal numero di Kaii non contenuti, la morte comporta sempre una penalità di −2 punti.</li>
+<li>Un giocatore che muore per la prima volta può partecipare al round successivo.</li>
+<li>Le illustrazioni sulle carte Kaii sono solo di contorno e non influiscono sul gioco.</li>
+</ul>
+<p><i>Nell'app:</i> i quattro semi sono Blu, Rosso, Giallo e Grigio (i nomi dei semi non sono nel regolamento). Le carte tolte dal gioco sono scelte a caso e nascoste. Il primo giocatore del primo round è casuale. Strutture e Kaii si contano come numeri e il contenimento è automatico (un Kaii per ogni struttura). L'AI stima le mani avversarie con simulazioni.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log paper hud" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logoWrap"><div class="logo">Otherside Trick<small>裏世界トリック</small></div></div>
+    ${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/3</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=`<div class="table hud n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock paper hud" style="position:relative;border-top-width:2px">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock paper hud">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('os-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('os-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(PR&&PR.type==='card'&&PR.sel!=null&&!OPT.undo){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
