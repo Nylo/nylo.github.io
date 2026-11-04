@@ -281,7 +281,7 @@ function trumpLegal(p,id){
 // Conferma finale di una scelta: l'umano può annullare e riscegliere (le AI confermano sempre)
 async function confirmChoice(p,text){
   if(p!==HUM||!OPT.undo) return true;
-  return ask(p,text,[{label:'Conferma',value:true},{label:'↶ Annulla e riscegli',value:false}]);
+  return ask(p,text,[{label:'Conferma',value:true},{label:'Annulla e riscegli',value:false}]);
 }
 const BACK={label:'← Indietro (cambia azione)',value:'back'};
 
@@ -305,7 +305,7 @@ async function doPredict(p,canBack){
       const fo=[
         {label:`No: esattamente ${n}`,value:false,w:1.5},
         {label:`Sì: ${n-1} oppure ${n} (vale 2 punti invece di 4)`,value:true,w:1}];
-      if(p===HUM&&OPT.undo) fo.push({label:'↶ Annulla',value:'undo'});
+      if(p===HUM&&OPT.undo) fo.push({label:'Annulla',value:'undo'});
       flex=await ask(p,`Vuoi usare un segnalino con il pallino? Prevedi ${n-1} oppure ${n} prese`,fo,{pause:200});
       if(flex==='undo') continue;
     }
@@ -635,7 +635,7 @@ function dockHtml(){
     html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${o.html||esc(o.label)}</button>`).join('')}</div>`;
   }else if(PR&&PR.type==='card'){
     html+=`<div class="hint">Tocca a te: gioca una carta evidenziata${G.trick.length?` (devi rispondere al colore ${COLORS[G.trick[0].card.c].n.toLowerCase()} se puoi)`:' (sei il giocatore di mano: puoi giocare qualsiasi carta)'}.</div>`;
-    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${c.n} ${COLORS[c.c].n.toLowerCase()}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`; }
+    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${c.n} ${COLORS[c.c].n.toLowerCase()}</button><button class="opt" data-cf="0">Annulla</button></div>`; }
   }
   return html;
 }

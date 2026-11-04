@@ -303,12 +303,12 @@ async function predictions(){
       const fo=[
         {label:`No: esattamente ${n}`,value:false,w:1.5},
         {label:`Sì: ${n} oppure ${n+1} (vale 1× invece di 2×)`,value:true,w:1}];
-      if(p===HUM&&OPT.undo) fo.push({label:'↶ Annulla',value:'undo'});
+      if(p===HUM&&OPT.undo) fo.push({label:'Annulla',value:'undo'});
       const flex=await ask(p,`Vuoi aggiungere un gettone di riserva (faccia verde)? Prevedi ${n} oppure ${n+1}`,fo,{pause:200});
       if(flex==='undo') continue;
       const txt=flex?`${n}–${n+1} volte (con gettone di riserva)`:`${n} ${n===1?'volta':'volte'}`;
       if(p===HUM&&OPT.undo){
-        const okc=await ask(p,`Confermi la previsione: ${txt}?`,[{label:'Conferma',value:true},{label:'↶ Annulla e riscegli',value:false}]);
+        const okc=await ask(p,`Confermi la previsione: ${txt}?`,[{label:'Conferma',value:true},{label:'Annulla e riscegli',value:false}]);
         if(!okc) continue;
       }
       pl.pred={n,flex}; pl.white=n; pl.flex=flex;
@@ -458,7 +458,7 @@ function dockHtml(){
     html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
   }else if(PR&&PR.type==='card'){
     html+=`<div class="hint">Tocca a te: gioca una carta evidenziata${G.trick.length?` (devi rispondere al seme ${COLORS[G.trick[0].card.c].n.toLowerCase()} se puoi)`:' (sei il giocatore di mano: puoi giocare qualsiasi carta)'}.</div>`;
-    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${c.n} ${COLORS[c.c].n.toLowerCase()}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`; }
+    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${c.n} ${COLORS[c.c].n.toLowerCase()}</button><button class="opt" data-cf="0">Annulla</button></div>`; }
   }
   return html;
 }

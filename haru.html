@@ -467,7 +467,7 @@ async function playAction(p,o={}){
       const tg=targetsFor(pl.stacks,c,o.free,o.under).filter(t=>t.cost<=pl.water+pl.hand.length-1);
       if(!tg.length){ logMsg(`${cardLabel(c)}: nessuna destinazione possibile o acqua insufficiente.`); continue; }
       const opts=tg.map(t=>({label:t.kind==='stack'?`Sulla pila ${TYPES[c.t].n} (in cima ${topOf(pl.stacks[t.si])}, ${pl.stacks[t.si].cards.length} carte) · costo ${t.cost}`:`Nuova pila ${TYPES[c.t].n} · costo ${t.cost}`,value:t}));
-      opts.push({label:'↶ Annulla',value:null});
+      opts.push({label:'Annulla',value:null});
       const t=await ask(HUM,`Dove giochi ${cardLabel(c)}?`,opts);
       if(!t) continue;
       pl.hand.splice(i,1);
@@ -657,7 +657,7 @@ async function runInsect(p,type){
 async function useInsect(p,i){
   const pl=P(p), x=pl.insects[i], d=INS[x.type];
   if(p===HUM){
-    const ok=await ask(HUM,`Usare ${d.n}? Costo: 1 goccia d'acqua (o 1 carta dalla mano).`,[{label:'Sì, usa',value:true},{label:'↶ Annulla',value:false}]);
+    const ok=await ask(HUM,`Usare ${d.n}? Costo: 1 goccia d'acqua (o 1 carta dalla mano).`,[{label:'Sì, usa',value:true},{label:'Annulla',value:false}]);
     if(!ok) return false;
   }
   await payInsect(p);
