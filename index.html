@@ -140,7 +140,8 @@
             // ----- viste -----
             function renderHome() {
                 app.innerHTML =
-                    '<h1 class="mb-6 text-2xl font-bold tracking-tight sm:mb-8 sm:text-3xl">Nylo HomePage</h1>' +
+                    '<div class="mb-6 flex items-center gap-3 sm:mb-8"><h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Nylo HomePage</h1>' +
+                    (isOpen(GATE) ? '<button type="button" data-logout title="Esci e richiedi di nuovo il codice" aria-label="Esci e richiedi di nuovo il codice" class="flex h-8 w-8 items-center justify-center rounded-full text-lg text-slate-600 transition-colors hover:text-slate-400"><i class="ph-fill ph-arrow-clockwise"></i></button>' : '') + '</div>' +
                     '<div class="grid gap-3 sm:grid-cols-2 sm:gap-4 [&>*]:min-h-[96px]">' + HOME.map(card).join('') + '</div>';
             }
             function renderSection(sec) {
@@ -162,10 +163,26 @@
                 if (location.hash !== (id === 'home' ? '' : '#' + id)) history.pushState(null, '', id === 'home' ? location.pathname : '#' + id);
             }
             app.addEventListener('click', function (e) {
+                if (e.target.closest('[data-logout]')) { logout(); return; }
                 var b = e.target.closest('[data-view]');
                 if (b) go(b.getAttribute('data-view'));
             });
             window.addEventListener('popstate', function () { show(location.hash.slice(1) || 'home'); });
+
+            // esce: cancella tutti gli accessi (home, Lab, admin collection, nome automatico) e richiede di nuovo il codice
+            function logout() {
+                try {
+                    ['nylo-unlocked', 'nylo-tambu-unlocked', 'nylo-admin', 'nylo-skip-name'].forEach(function (k) { localStorage.removeItem(k); });
+                    sessionStorage.removeItem('trick-auth-session');
+                } catch (e) {}
+                if (location.hash) history.replaceState(null, '', location.pathname);
+                renderHome();
+                document.body.classList.add('locked');
+                app.setAttribute('aria-hidden', 'true');
+                gate.hidden = false;
+                gateErr.hidden = true; gateInput.value = '';
+                gateInput.focus();
+            }
 
             // ----- accesso principale -----
             var gate = document.getElementById('gate');
