@@ -176,16 +176,15 @@ details.rules ul{margin:10px 0 0 18px;font-size:12px;line-height:1.6;color:var(-
 
   <!-- LOBBY: crea / unisciti -->
   <section id="lobby">
+    <p class="muted" id="playerIdentity"></p>
     <div class="panel">
       <h2>Crea una stanza</h2>
       <p class="muted">Servono 4 giocatori. Quando la stanza è piena, posti e squadre (C.A.T. e B.I.R.D.) vengono assegnati a caso: i compagni siedono uno di fronte all'altro.</p>
-      <input type="text" id="createName" maxlength="18" placeholder="Il tuo nome" autocomplete="name">
       <button class="btn btn-primary" id="createRoom" type="button">Crea stanza</button>
     </div>
     <div class="panel">
       <h2>Unisciti a una stanza</h2>
       <p class="muted">Se hai perso la connessione, inserisci di nuovo lo stesso codice dallo stesso browser per rientrare nella partita.</p>
-      <input type="text" id="joinName" maxlength="18" placeholder="Il tuo nome" autocomplete="name">
       <input type="text" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off">
       <button class="btn btn-primary" id="joinRoom" type="button">Unisciti</button>
     </div>
@@ -228,6 +227,15 @@ var FIREBASE_CONFIG={
 var GAME_ID='spy-team';
 var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 var SAVE_KEY='spy-team-online-last';
+function getPlayerName(){
+  var name='';
+  try{
+    name=localStorage.getItem('nylo-player-name')||'';
+    if(!name){var last=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');name=last&&last.name||''}
+  }catch(e){}
+  return String(name||'Giocatore').trim().slice(0,18)||'Giocatore';
+}
+var playerName=getPlayerName();
 
 // ─────────────── REGOLE (funzioni pure, usate dentro le transazioni) ───────────────
 var TEAMS=[{name:'C.A.T.',cls:'cat'},{name:'B.I.R.D.',cls:'bird'}];
@@ -438,8 +446,7 @@ function saveLast(name){try{localStorage.setItem(SAVE_KEY,JSON.stringify({code:r
 // ─────────────── LOBBY ───────────────
 async function createRoom(){
   try{
-    var name=$('createName').value.trim();
-    if(!name)throw new Error('Inserisci il tuo nome.');
+    var name=playerName;
     setStatus('Connessione a Firebase...');await connect();
     var created=false,lastErr=null;
     for(var i=0;i<5&&!created;i++){
@@ -457,8 +464,7 @@ async function createRoom(){
 }
 async function joinRoom(){
   try{
-    var name=$('joinName').value.trim();
-    if(!name)throw new Error('Inserisci il tuo nome.');
+    var name=playerName;
     roomCode=$('joinCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
     if(roomCode.length!==12)throw new Error('Il codice stanza è di 12 caratteri.');
     setStatus('Connessione...');await connect();
@@ -728,11 +734,12 @@ $('joinRoom').onclick=joinRoom;
 $('leave').onclick=leave;
 $('joinCode').addEventListener('input',function(){this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')});
 $('joinCode').addEventListener('keydown',function(e){if(e.key==='Enter')joinRoom()});
+$('playerIdentity').textContent='Sei connesso come '+playerName+'.';
 $('copyCode').onclick=function(){
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(roomCode).then(function(){$('conn').textContent='Codice copiato'});
   else window.prompt('Copia il codice stanza:',roomCode);
 };
-try{var last=JSON.parse(localStorage.getItem(SAVE_KEY));if(last){$('joinCode').value=last.code||'';$('joinName').value=last.name||'';$('createName').value=last.name||''}}catch(e){}
+try{var last=JSON.parse(localStorage.getItem(SAVE_KEY));if(last)$('joinCode').value=last.code||''}catch(e){}
 })();
 </script>
 </body>
