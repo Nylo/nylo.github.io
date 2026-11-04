@@ -55,9 +55,9 @@
   <div class="lobby-inner">
     <h1 class="brand">GACHAPON TRICK</h1>
     <p class="subtitle">Crea una stanza o unisciti a una partita condivisa.</p>
+    <p class="status" id="playerIdentity"></p>
     <div class="panel">
       <h2>Crea una stanza</h2>
-      <input class="field" id="createName" maxlength="18" placeholder="Il tuo nome" autocomplete="name" aria-label="Il tuo nome">
       <div class="player-count" role="radiogroup" aria-label="Numero di giocatori">
         <label><input type="radio" name="playerCount" value="3" checked> 3 giocatori</label>
         <label><input type="radio" name="playerCount" value="4"> 4 giocatori</label>
@@ -66,7 +66,6 @@
     </div>
     <div class="panel">
       <h2>Unisciti a una stanza</h2>
-      <input class="field" id="joinName" maxlength="18" placeholder="Il tuo nome" autocomplete="name" aria-label="Il tuo nome">
       <input class="field" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" aria-label="Codice stanza">
       <button class="action join" id="joinRoom" type="button">Unisciti</button>
     </div>
@@ -134,6 +133,10 @@
   appId: "1:869677835302:web:85768d5a6ac0d94f8372e7"
   };
   var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  function getPlayerName(){
+    try{return String(localStorage.getItem('nylo-player-name')||'Giocatore').trim().slice(0,18)||'Giocatore'}catch(error){return 'Giocatore'}
+  }
+  var playerName=getPlayerName();
   var lobby=document.getElementById('lobby');
   var room=document.getElementById('room');
   var status=document.getElementById('status');
@@ -144,6 +147,7 @@
   var gameHtmlPromise=null,gameHtml=null;
 
   function setStatus(text){status.textContent=text}
+  document.getElementById('playerIdentity').textContent='Sei connesso come '+playerName+'.';
   function showRoomError(text){roomError.textContent=text;roomError.hidden=false;document.getElementById('connectionStatus').textContent='Errore'}
   function stableStringify(value){
     if(Array.isArray(value))return '['+value.map(stableStringify).join(',')+']';
@@ -186,8 +190,7 @@
   }
   async function createRoom(){
     try{
-      var hostName=document.getElementById('createName').value.trim();
-      if(!hostName)throw new Error('Inserisci il tuo nome per creare la stanza.');
+      var hostName=playerName;
       var playerCount=Number(document.querySelector('input[name="playerCount"]:checked').value);
       setStatus('Connessione a Firebase...');
       await connect();
@@ -208,8 +211,7 @@
   }
   async function joinRoom(){
     try{
-      var playerName=document.getElementById('joinName').value.trim();
-      if(!playerName)throw new Error('Inserisci il tuo nome per entrare nella stanza.');
+      var joiningName=playerName;
       roomCode=document.getElementById('joinCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
       if(roomCode.length!==12)throw new Error('Inserisci un codice stanza di 12 caratteri.');
       setStatus('Connessione alla stanza...');
@@ -217,7 +219,7 @@
       setStatus('Accesso alla stanza nel database...');
       roomRef=db.ref('rooms/'+roomCode);
       await roomRef.child('members/'+user.uid).set(true);
-      await reserveSeat(playerName);
+      await reserveSeat(joiningName);
     }catch(error){setStatus(error.code==='PERMISSION_DENIED'?'Stanza non trovata, piena o non accessibile.':(error.message||'Errore durante l’accesso alla stanza.'))}
   }
   function reserveSeat(playerName){
