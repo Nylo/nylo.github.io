@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phantom Trick</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;800&family=Noto+Serif+JP:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#1b1030;
+  --ink:#1d1230;
+  --surface:#ffffff;
+  --paper:#e6dcf1;
+  --accent:#c9962b;
+  --accent-soft:rgba(201,150,43,0.2);
+  --gold:#f1d27a;
+  --text:#221733;
+  --text-soft:#5d4f72;
+  --danger:#b3261e;
+  --success:#1e8f55;
+  --border:rgba(34,23,51,0.3);
+  --radius:10px;
+  --s0:#d23a30; --s1:#2f6bd6; --s2:#f1c232; --s3:#2d9a55; --s4:#f3f0f7;
+  --cw:46px; --ch:66px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#3a2166 0%,#1b1030 60%,#120a22 100%) fixed;background-color:var(--bg)}
+.app{max-width:1000px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 16px;margin:0 -12px 14px;flex-wrap:wrap;background:#0d0618;border-bottom:6px solid var(--accent)}
+.logo{font-family:'Anton',sans-serif;font-size:28px;font-weight:400;line-height:1;flex:1;letter-spacing:0.06em;background:linear-gradient(180deg,#fbe9a8,#c9962b);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo .tr{font-family:'Noto Serif JP',serif;font-weight:900;font-style:italic;font-size:24px;letter-spacing:0;margin-left:6px}
+.logo small{display:block;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.04em;color:#cdb8f0;-webkit-text-fill-color:#cdb8f0;margin-top:6px}
+.badge{background:#fff;color:var(--ink);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:rgba(255,255,255,0.12);color:#fff;border:1px solid #fff}
+.btn:hover{background:rgba(255,255,255,0.3)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.nylo-home{color:#fff;border-color:#fff;background:rgba(255,255,255,0.12)}
+.nylo-home:hover{background:rgba(255,255,255,0.3);color:#fff}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid #fff;cursor:pointer}
+.hamb:hover{background:rgba(255,255,255,0.3)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:240px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.45)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.lead{background:var(--gold);color:#2a1747}
+.paper{background:var(--paper)}
+.log{border:3px solid var(--ink);border-radius:var(--radius);padding:10px 14px;margin-top:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Anton',sans-serif;font-weight:400;font-size:18px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;border:3px solid var(--ink);border-top:8px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.25)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fff;border:2px solid var(--ink);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--ink);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+.xrow{display:flex;gap:3px;flex-wrap:wrap;align-items:center;justify-content:center}
+.xlbl{font-size:10px;font-weight:600;color:inherit;opacity:0.8;letter-spacing:0.04em;margin:2px 0}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:linear-gradient(160deg,#3b2260 0%,#1e1038 100%);border:4px solid var(--accent);outline:3px solid #0d0618;border-radius:14px;padding:12px;margin-bottom:14px;min-height:620px;color:#f1e9fb}
+.table.n3{grid-template-areas:"left center right" "bottom bottom bottom"}
+.table.n5{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top} .seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(241,210,122,0.55);background:rgba(255,255,255,0.07)}
+.seat.active{border-color:var(--gold);background:rgba(241,210,122,0.16)}
+.seat.winner{border-color:#5ee08a;background:rgba(94,224,138,0.16)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.5);border-radius:4px;padding:2px 6px;color:#fff;display:inline-flex;align-items:center;gap:4px}
+.tag b{color:var(--gold)}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:10px;height:16px;border-radius:3px;background:linear-gradient(135deg,#5b3a96,#1a0d33);border:1px solid var(--gold)}
+.seat.left .backs,.seat.right .backs,.seat.tl .backs,.seat.tr .backs{max-width:130px}
+.tableau{display:flex;gap:4px;align-items:center;justify-content:center;min-height:68px;padding:4px 6px;border-radius:8px;background:rgba(255,255,255,0.08);min-width:50px}
+.tableau .empty{width:34px;height:50px;border:1px dashed rgba(255,255,255,0.4);border-radius:6px}
+.rpile{display:flex;flex-direction:column;align-items:center;max-width:100%}
+
+.pc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:'Anton',sans-serif;font-weight:400;line-height:1;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.5);font-size:12px}
+.pc b{font-family:'Anton',sans-serif;font-weight:400;font-size:24px;line-height:1}
+.pc i{font-size:18px;opacity:0.85}
+.pc small.lt{display:none;font-family:'Inter',sans-serif;font-size:9px;font-weight:700;opacity:0.95}
+.pc.mini{width:32px;height:46px;gap:1px}
+.pc.mini b{font-size:17px}
+.pc.mini i{font-size:12px}
+.s0{background-color:var(--s0);color:#fff}
+.s1{background-color:var(--s1);color:#fff}
+.s2{background-color:var(--s2);color:#2a1e00;border-color:#fff4c4}
+.s3{background-color:var(--s3);color:#fff}
+.s4{background-color:var(--s4);color:#2a1747;border-color:#8c7fa3}
+.pc.bk{background:linear-gradient(135deg,#5b3a96,#1a0d33);border-color:var(--gold);color:var(--gold)}
+.pc.cancel{opacity:0.85;border-style:dashed}
+.pc.cancel::after{content:'×';position:absolute;right:3px;top:0;font-family:'Inter',sans-serif;font-size:14px;font-weight:800;color:#fff}
+.pc.win{box-shadow:0 0 0 3px #5ee08a}
+.pc.taken{box-shadow:0 0 0 3px var(--gold),0 0 12px var(--gold)}
+button.pc{cursor:pointer;transition:transform 0.12s}
+button.pc:hover:not(:disabled){transform:translateY(-6px)}
+button.pc:disabled{cursor:default}
+.pc.dim{opacity:0.4;filter:saturate(0.5)}
+.pc.legal{box-shadow:0 0 0 3px var(--gold)}
+.pc.good{outline:3px dashed #5ee08a;outline-offset:2px}
+.pc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--gold)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.sw{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:5px;font-weight:700;font-size:11px;border:1px solid rgba(0,0,0,0.4)}
+body.a11y .s0.pc,body.a11y .s0.sw{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.3) 0 3px,transparent 3px 8px)}
+body.a11y .s1.pc,body.a11y .s1.sw{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.28) 0 3px,transparent 3px 8px)}
+body.a11y .s2.pc,body.a11y .s2.sw{background-image:radial-gradient(rgba(0,0,0,0.3) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .s3.pc,body.a11y .s3.sw{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.28) 0 2px,transparent 2px 7px),repeating-linear-gradient(-45deg,rgba(255,255,255,0.28) 0 2px,transparent 2px 7px)}
+body.a11y .s4.pc,body.a11y .s4.sw{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.2) 0 2px,transparent 2px 7px)}
+body.a11y .pc small.lt{display:block}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5}
+.center b{color:var(--gold)}
+.trump{display:inline-flex;align-items:center;gap:8px;border-radius:10px;padding:6px 12px;font-weight:800;border:2px solid #fff}
+.legend{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+
+.recap{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .sw{vertical-align:middle}
+details.rules{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
+.rtext h4{font-family:'Anton',sans-serif;font-weight:400;font-size:16px;margin:14px 0 4px;letter-spacing:0.02em;background:linear-gradient(90deg,#7a3fc4,#c9962b);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+.rtext table{border-collapse:collapse;font-size:12px;margin:6px 0}
+.rtext td,.rtext th{border:1px solid var(--border);padding:4px 8px;text-align:center}
+
+@media(max-width:600px){
+  :root{--cw:31px;--ch:46px}
+  .pc b{font-size:16px}
+  .pc i{font-size:12px}
+  .pc{border-width:1px;border-radius:5px;gap:1px}
+  .pc.mini{width:25px;height:37px}
+  .pc.mini b{font-size:13px}
+  .pc.mini i{font-size:9px}
+  .tableau .empty{width:26px;height:38px}
+  .table{padding:8px;gap:6px}
+  .back{width:7px;height:11px}
+  .hand{gap:3px}
+  .logo{font-size:22px}
+  .logo .tr{font-size:19px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const SUITS = ['Rosso','Blu','Giallo','Verde','Bianco'];
+const SL    = ['Ro','Bl','Gi','Ve','Bi'];
+const ROUNDS = 3, HAND = 12, TRICKS = 11, START = 10;
+const HUM = 0;
+const POS = {3:['bottom','left','right'],4:['bottom','left','top','right'],5:['bottom','left','tl','tr','right']};
+const NAMES = ['Tu','AI Zaki','AI Shota','AI Tomoki','AI Tom'];
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('phx-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('phx-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
+const cardName = c => `${c.v} ${SUITS[c.s]}`;
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askCard(legal,hint,mode){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',mode:mode||'play',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askClaim(legal,good,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'claim',legal:new Set(legal),good:new Set(good),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function playIdx(i){
+  if(!PR||PR.type!=='card'||!PR.legal.has(i)) return;
+  if(OPT.undo){ PR.sel=i; render(); return; }
+  const r=PR.res; PR=null; render(); r(i);
+}
+function confirmCard(ok){
+  if(!PR||PR.type!=='card'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const i=PR.sel, r=PR.res; PR=null; render(); r(i);
+}
+function claimQ(p){
+  if(!PR||PR.type!=='claim'||!PR.legal.has(p)) return;
+  if(OPT.undo){ PR.sel=p; render(); return; }
+  const r=PR.res; PR=null; render(); r(p);
+}
+function confirmClaim(ok){
+  if(!PR||PR.type!=='claim'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const p=PR.sel, r=PR.res; PR=null; render(); r(p);
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// Penalità in punti per carta a destra del riassunto (tabella «anime»): valori 4–7 = 2, tutti gli altri = 4.
+function pen(v){ return (v>=4&&v<=7)?2:4; }
+// 3 giocatori: 1–10 in 4 colori (senza Bianco); 4: 1–10 in 5 colori; 5: 0–11 in 5 colori.
+function makeDeck(n){
+  const suits=n===3?4:5, lo=n===5?0:1, hi=n===5?11:10, d=[];
+  for(let s=0;s<suits;s++) for(let v=lo;v<=hi;v++) d.push({id:s*12+v,s,v});
+  return d;
+}
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
+// plays = carte giocate nella presa corrente, in ordine: {p,c,down}. «down» = carta annullata (girata a faccia in giù).
+function firstUp(plays){ return plays.find(x=>!x.down)||null; }
+// il seme di mano è quello della prima carta ancora scoperta; chi ha carte di quel seme deve giocarne una
+function legalIdx(h,plays){
+  const all=h.map((_,i)=>i), f=firstUp(plays);
+  if(!f) return all;
+  const m=all.filter(i=>h[i].s===f.c.s);
+  return m.length?m:all;
+}
+// se la carta ha lo stesso valore di una carta ancora scoperta nella presa, entrambe vengono girate a faccia in giù
+function addPlay(plays,p,c){
+  const m=plays.find(x=>!x.down&&x.c.v===c.v)||null;
+  const x={p,c,down:false};
+  plays.push(x);
+  if(m){ m.down=true; x.down=true; }
+  return m;
+}
+// vince la carta scoperta di valore più alto del seme di mano; -1 se tutte annullate
+function trickWinner(plays){
+  const f=firstUp(plays); if(!f) return -1;
+  let b=f;
+  for(const x of plays) if(!x.down&&x.c.s===f.c.s&&x.c.v>b.c.v) b=x;
+  return b.p;
+}
+// primo giocatore: il valore più basso tra quelli non ripetuti; -1 se non determinabile
+function firstLeader(vals){
+  const cnt={}; vals.forEach(v=>{ cnt[v]=(cnt[v]||0)+1; });
+  let best=-1;
+  vals.forEach((v,i)=>{ if(cnt[v]===1&&(best<0||v<vals[best])) best=i; });
+  return best;
+}
+// guadagno immediato nel prendere la carta c: se ha il valore di una carta a destra le due vanno a sinistra (si toglie la penalità e +1 punto)
+function claimGain(right,c){ return right.some(x=>x.v===c.v)?pen(c.v)+1:-pen(c.v); }
+function bestClaim(right,cards){
+  let bi=0,bg=-1e9;
+  cards.forEach((c,i)=>{ const g=claimGain(right,c)+Math.random()*0.01; if(g>bg){ bg=g; bi=i; } });
+  return bi;
+}
+const roundPts = (leftN,right) => (leftN>>1)-right.reduce((s,c)=>s+pen(c.v),0);
+// vince il punteggio più alto; a pari merito chi ha guadagnato di più nell'ultimo round; altrimenti vittoria condivisa
+function gameWinners(scores,delta){
+  const mx=Math.max(...scores);
+  let grp=scores.map((s,i)=>s===mx?i:-1).filter(i=>i>=0);
+  if(grp.length>1){ const md=Math.max(...grp.map(i=>delta[i])); grp=grp.filter(i=>delta[i]===md); }
+  return grp;
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Monte-Carlo con determinizzazione: le mani avversarie si campionano tra le carte non ancora viste (rispettando i semi mancanti noti);
+// il resto del round si simula con una politica leggera e si valuta il punteggio del round (mio meno la media degli altri).
+const AIP = {play:80,right:36};
+function sampleHands(me,sizes){
+  const mine=new Set(P(me).hand.map(c=>c.id));
+  const pool=shuffle(G.deck.filter(c=>!mine.has(c.id)&&!G.seen.has(c.id)));
+  const hands=G.pl.map(()=>[]);
+  hands[me]=P(me).hand.slice();
+  const room=i=>i!==me&&hands[i].length<sizes[i];
+  for(const c of pool){
+    let cands=[]; for(let i=0;i<G.n;i++) if(room(i)&&!G.void[i][c.s]) cands.push(i);
+    if(!cands.length) for(let i=0;i<G.n;i++) if(room(i)) cands.push(i);
+    if(!cands.length) break;
+    hands[cands[rnd(cands.length)]].push(c);
+  }
+  return hands;
+}
+function polPick(S,q,h,lg,plays,rem){
+  if(lg.length===1) return lg[0];
+  if(Math.random()<0.2) return lg[rnd(lg.length)];
+  const right=S.right[q];
+  let bi=lg[0], bs=-1e9;
+  for(const i of lg){
+    const c=h[i];
+    const t=plays.map(x=>({p:x.p,c:x.c,down:x.down}));
+    const m=addPlay(t,q,c);
+    let sc=m?0.5:0;
+    if(trickWinner(t)===q){
+      let g=-1e9;
+      for(const x of t) if(!x.down) g=Math.max(g,claimGain(right,x.c));
+      const beat=Math.max(0,11-c.v)/12*0.6;
+      sc+=Math.pow(1-beat,rem)*g;
+    }
+    sc+=Math.random()*0.35;
+    if(sc>bs){ bs=sc; bi=i; }
+  }
+  return bi;
+}
+function simPlay(S,q,plays,rem){
+  const h=S.hands[q], lg=legalIdx(h,plays);
+  const i=polPick(S,q,h,lg,plays,rem);
+  addPlay(plays,q,h.splice(i,1)[0]);
+}
+function simRest(S,order,k0,plays){ for(let k=k0;k<order.length;k++) simPlay(S,order[k],plays,order.length-1-k); }
+// chiude la presa: carte annullate a sinistra del proprietario, il vincitore prende la carta migliore; ritorna chi apre dopo
+function finishTrick(S,plays,firstP){
+  plays.forEach(x=>{ if(x.down) S.left[x.p]++; });
+  const w=trickWinner(plays);
+  if(w<0) return firstP;
+  const ups=plays.filter(x=>!x.down).map(x=>x.c), c=ups[bestClaim(S.right[w],ups)];
+  const k=S.right[w].findIndex(r=>r.v===c.v);
+  if(k>=0){ S.right[w].splice(k,1); S.left[w]+=2; } else S.right[w].push(c);
+  return w;
+}
+function simRound(S,leader,tl){
+  const n=S.hands.length;
+  for(let t=0;t<tl;t++){
+    const order=[]; for(let k=0;k<n;k++) order.push((leader+k)%n);
+    const plays=[]; simRest(S,order,0,plays);
+    leader=finishTrick(S,plays,order[0]);
+  }
+}
+function obj(S,me){
+  const n=S.hands.length;
+  let o=0, d=0;
+  for(let i=0;i<n;i++){ const x=roundPts(S.left[i],S.right[i]); if(i===me) d=x; else o+=x; }
+  return d-o/(n-1);
+}
+function aiPlay(p){
+  const h=P(p).hand, lg=legalIdx(h,G.trick);
+  if(lg.length===1) return lg[0];
+  const k0=G.order.indexOf(p), sizes=G.pl.map(x=>x.hand.length);
+  const sc=lg.map(()=>0);
+  for(let s=0;s<AIP.play;s++){
+    const hands=sampleHands(p,sizes);
+    lg.forEach((idx,j)=>{
+      const S={hands:hands.map(x=>x.slice()),right:G.pl.map(x=>x.right.slice()),left:G.pl.map(x=>x.left.length)};
+      const plays=G.trick.map(x=>({p:x.p,c:x.c,down:x.down}));
+      addPlay(plays,p,S.hands[p].splice(idx,1)[0]);
+      simRest(S,G.order,k0+1,plays);
+      const L=finishTrick(S,plays,G.order[0]);
+      simRound(S,L,S.hands[p].length);
+      sc[j]+=obj(S,p);
+    });
+  }
+  return lg[argmax(sc)];
+}
+function heurRight(h){
+  const mid=h.map((c,i)=>pen(c.v)===2?i:-1).filter(i=>i>=0);
+  return mid.length&&Math.random()<0.7?mid[rnd(mid.length)]:rnd(h.length);
+}
+// carta da mettere a destra all'inizio del round (indice nella mano): penalità, ruolo di primo giocatore e possibilità di abbinamenti
+function aiRight(p){
+  const h=P(p).hand, n=G.n, sizes=G.pl.map(()=>HAND);
+  const sc=h.map(()=>0);
+  for(let s=0;s<AIP.right;s++){
+    const hands=sampleHands(p,sizes);
+    const ch=hands.map((x,i)=>i===p?-1:heurRight(x));
+    h.forEach((c,j)=>{
+      const hs=hands.map((x,i)=>{ const y=x.slice(); y.splice(i===p?j:ch[i],1); return y; });
+      const right=hands.map((x,i)=>[i===p?c:x[ch[i]]]);
+      let L=firstLeader(right.map(r=>r[0].v)); if(L<0) L=rnd(n);
+      const S={hands:hs,right,left:Array(n).fill(0)};
+      simRound(S,L,HAND-1);
+      sc[j]+=obj(S,p);
+    });
+  }
+  return argmax(sc);
+}
+function aiClaim(p,ups){ return bestClaim(P(p).right,ups.map(x=>x.c)); }
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,round:0,msg:'',log:[],over:null,show:null,phase:'idle',leader:-1,turn:-1,win:-1,claimed:-1,trickNo:0,trick:[],order:[],pend:{},
+     deck:[],seen:new Set(),void:[],unused:0,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],right:[],left:[],score:START,hist:[]}))};
+  run();
+}
+function deal(){
+  const n=G.n, deck=shuffle(makeDeck(n));
+  G.deck=deck.slice();
+  G.pl.forEach((p,i)=>{ p.hand=sortHand(deck.slice(i*HAND,(i+1)*HAND)); p.right=[]; p.left=[]; });
+  G.unused=deck.length-n*HAND;
+  G.seen=new Set(); G.void=G.pl.map(()=>[false,false,false,false,false]);
+  G.trick=[]; G.order=[]; G.win=-1; G.turn=-1; G.claimed=-1; G.trickNo=0; G.leader=-1; G.pend={}; G.show=null;
+}
+const penSum = right => right.reduce((s,c)=>s+pen(c.v),0);
+async function pickPhase(){
+  G.phase='pick';
+  status('Scegli una carta dalla tua mano e mettila a faccia in giù a destra: costerà punti, a meno che tu non ne ottenga poi un\'altra con lo stesso valore.');
+  await sleep(300);
+  const ch=[];
+  for(const pl of G.pl) if(pl.id!==HUM){ ch[pl.id]=aiRight(pl.id); G.pend[pl.id]=true; }
+  render();
+  ch[HUM]=await askCard(P(HUM).hand.map((_,i)=>i),'scegli la carta da mettere a destra del riassunto (a faccia in giù, poi rivelata insieme a quelle degli altri).','pick');
+  G.pl.forEach(pl=>{ const c=pl.hand.splice(ch[pl.id],1)[0]; pl.right=[c]; G.seen.add(c.id); });
+  G.pend={};
+  logMsg('Carte a destra rivelate: '+G.pl.map(pl=>`${pl.name} ${cardName(pl.right[0])}`).join(' · ')+'.');
+  const vals=G.pl.map(pl=>pl.right[0].v);
+  let L=firstLeader(vals);
+  if(L<0){ L=rnd(G.n); logMsg(`Nessun valore minimo non ripetuto: si sorteggia il primo giocatore (${P(L).name}).`); }
+  else logMsg(`Valore più basso non ripetuto: ${vals[L]}. Inizia ${P(L).name}.`);
+  G.leader=L;
+  status(`Inizia ${P(L).name} (valore più basso non ripetuto).`);
+  await sleep(1500);
+}
+function humanHint(h){
+  const f=firstUp(G.trick);
+  const others=G.trick.filter(x=>!x.down).map(x=>`${x.c.v} (${P(x.p).name})`);
+  const tail=others.length?` Valori scoperti sul tavolo: ${others.join(', ')}: giocando lo stesso valore annulli entrambe le carte (vanno a sinistra, mezzo punto ciascuna).`:'';
+  if(!G.trick.length) return 'sei di mano: giochi quello che vuoi; il seme della tua carta diventa il seme di mano.';
+  if(!f) return 'le carte giocate finora sono tutte annullate: sei libero e la tua carta stabilisce il seme di mano.';
+  const has=h.some(c=>c.s===f.c.s);
+  return (has?`seme di mano ${SUITS[f.c.s]}: devi giocarne una.`:`non hai carte ${SUITS[f.c.s]}: puoi giocare qualsiasi carta.`)+tail;
+}
+async function playRound(){
+  G.phase='play';
+  while(G.trickNo<TRICKS){
+    G.trickNo++; G.trick=[]; G.win=-1; G.claimed=-1;
+    const first=G.leader;
+    G.order=[]; for(let k=0;k<G.n;k++) G.order.push((first+k)%G.n);
+    const order=G.order;
+    for(let k=0;k<order.length;k++){
+      const p=order[k], pl=P(p);
+      G.turn=p;
+      const lg=legalIdx(pl.hand,G.trick);
+      status(`Presa ${G.trickNo}/${TRICKS} · tocca a ${pl.name}.`);
+      let idx;
+      if(p===HUM) idx=await askCard(lg,humanHint(pl.hand),'play'); else{ await sleep(650); idx=aiPlay(p); }
+      const c=pl.hand.splice(idx,1)[0];
+      const f0=firstUp(G.trick);
+      if(f0&&c.s!==f0.c.s) G.void[p][f0.c.s]=true;
+      G.seen.add(c.id);
+      const m=addPlay(G.trick,p,c);
+      logMsg(`${pl.name} gioca ${cardName(c)}.`);
+      const lf=firstUp(G.trick), oldL=G.leader;
+      G.leader=lf?lf.p:(order[k+1]!==undefined?order[k+1]:first);
+      if(m){
+        logMsg(`Stesso valore: ${cardName(c)} di ${pl.name} e ${cardName(m.c)} di ${P(m.p).name} si annullano (girate a faccia in giù).`);
+        if(G.leader!==oldL&&lf) logMsg(`Cambia chi è di mano: ora ${P(lf.p).name}, seme di mano ${SUITS[lf.c.s]}.`);
+        status(`Carte annullate: ${cardName(c)} e ${cardName(m.c)}.`);
+        await sleep(1100);
+      }
+    }
+    G.turn=-1;
+    G.trick.filter(x=>x.down).forEach(x=>P(x.p).left.push(x.c));
+    const w=trickWinner(G.trick);
+    if(w<0){
+      const m='Tutte le carte sono state annullate: nessun vincitore, aprirà di nuovo '+P(first).name+'.';
+      status(m); logMsg(m);
+      G.leader=first;
+      await sleep(1800);
+      continue;
+    }
+    G.win=w;
+    const ups=G.trick.filter(x=>!x.down);
+    let q;
+    if(ups.length===1) q=ups[0].p;
+    else if(w===HUM){
+      status('Hai vinto la presa: scegli una carta scoperta da mettere a destra del tuo riassunto.');
+      const right=P(HUM).right;
+      q=await askClaim(ups.map(x=>x.p),ups.filter(x=>right.some(r=>r.v===x.c.v)).map(x=>x.p),'hai vinto la presa: tocca una carta scoperta (anche la tua) da prendere a destra. Le carte col contorno verde hanno lo stesso valore di una tua carta a destra: le due vanno a sinistra e togli la penalità.');
+    }else{ await sleep(500); q=ups[aiClaim(w,ups)].p; }
+    const c=G.trick.find(x=>x.p===q).c, pw=P(w);
+    G.claimed=q;
+    const k=pw.right.findIndex(r=>r.v===c.v);
+    if(k>=0){
+      const r=pw.right.splice(k,1)[0];
+      pw.left.push(r,c);
+      logMsg(`${pw.name} vince la presa ${G.trickNo}, prende ${cardName(c)} e la abbina a ${cardName(r)}: le due carte vanno nella sua pila sinistra.`);
+    }else{
+      pw.right.push(c);
+      logMsg(`${pw.name} vince la presa ${G.trickNo} e mette ${cardName(c)} a destra (penalità ${pen(c.v)}).`);
+    }
+    status(`${pw.name} vince la presa e prende ${cardName(c)}.`);
+    await sleep(1700);
+    G.leader=w;
+  }
+}
+async function scoreRound(){
+  G.phase='score';
+  const rows=G.pl.map((p,i)=>{
+    const L=p.left.length, d=roundPts(L,p.right), pn=penSum(p.right);
+    p.score+=d; p.hist.push(d);
+    return {p:i,L,lp:L>>1,pn,d,score:p.score,vals:p.right.map(c=>c.v).sort((a,b)=>a-b)};
+  });
+  G.show={rows};
+  logMsg(`Round ${G.round+1} concluso: `+rows.map(r=>`${P(r.p).name} ${r.d>=0?'+':''}${r.d} (${r.score})`).join(' · ')+'.');
+  const last=G.round>=ROUNDS-1||G.pl.some(p=>p.score<=0);
+  status(last?'Ultimo round concluso.':'Round concluso: ecco i punteggi.');
+  await ask(HUM,'Risultato del round',[{label:last?'Vedi il risultato finale':'Round successivo',value:1}]);
+  if(!last) G.show=null;
+  return last;
+}
+async function run(){
+  const g=G;
+  try{
+    for(let r=0;r<ROUNDS;r++){
+      g.round=r;
+      deal();
+      logMsg(`— Round ${r+1}/${ROUNDS}: ${g.n*HAND} carte distribuite, ${g.unused} non usate —`);
+      await pickPhase();
+      await playRound();
+      if(await scoreRound()) break;
+    }
+    const delta=g.pl.map(p=>p.hist[p.hist.length-1]);
+    g.over={winners:gameWinners(g.pl.map(p=>p.score),delta),zero:g.pl.some(p=>p.score<=0)};
+    g.phase='over';
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+function cardHtml(c,extra='',tag='span',attrs=''){
+  return `<${tag} class="pc s${c.s} ${extra}" ${attrs} title="${cardName(c)}"><b>${c.v}</b>${ico('ghost')}<small class="lt">${SL[c.s]}</small></${tag}>`;
+}
+function backHtml(extra='',title='Carta a faccia in giù'){ return `<span class="pc bk ${extra}" title="${title}">${ico('ghost')}</span>`; }
+function handHtml(pl){
+  return `<div class="hand">${pl.hand.map((c,i)=>{
+    if(PR&&PR.type==='card') return cardHtml(c,`${PR.legal.has(i)?'legal':'dim'} ${PR.sel===i?'sel':''}`,'button',`${PR.legal.has(i)?'':'disabled'} data-p="${i}"`);
+    return cardHtml(c);
+  }).join('')}</div>`;
+}
+function rightHtml(pl,p){
+  let cards=pl.right.map(c=>cardHtml(c,'mini')).join('');
+  if(G.phase==='pick'&&G.pend[p]) cards+=backHtml('mini','Carta scelta, sarà rivelata insieme alle altre');
+  if(!cards) return '';
+  return `<div class="rpile" title="Carte a destra: ognuna toglie punti"><span class="xlbl">${ico('flame')} CARTE A DESTRA</span><div class="xrow">${cards}</div></div>`;
+}
+function tableauHtml(p){
+  const x=G.trick.find(t=>t.p===p);
+  if(!x) return `<div class="tableau"><span class="empty"></span></div>`;
+  if(x.down) return `<div class="tableau">${backHtml('mini cancel',"Carta annullata: stesso valore di un'altra carta")}</div>`;
+  const claimable=PR&&PR.type==='claim'&&PR.legal.has(p);
+  const cls=`mini ${G.win===p&&G.turn<0?'win':''} ${G.claimed===p?'taken':''} ${claimable?(PR.sel===p?'legal sel':'legal'):''} ${claimable&&PR.good.has(p)?'good':''}`;
+  return `<div class="tableau">${claimable?cardHtml(x.c,cls,'button',`data-q="${p}"`):cardHtml(x.c,cls)}</div>`;
+}
+function flagHtml(p){
+  if(!G||G.over) return '';
+  if(G.phase==='play'&&G.leader===p) return '<span class="flag lead">Di mano</span>';
+  return '';
+}
+function seatHtml(p,pos){
+  const pl=P(p);
+  const isLeader=G.phase==='play'&&G.leader===p, active=G.turn===p, winner=G.win===p&&G.turn<0&&G.phase==='play';
+  let hand;
+  if(p===HUM) hand=handHtml(pl);
+  else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  let meta=`<div class="seat-meta"><span class="tag" title="Punteggio">${ico('star')} <b>${pl.score}</b></span>`;
+  if(G.phase!=='idle'){
+    meta+=`<span class="tag" title="Pila sinistra: 1 punto ogni 2 carte">${ico('stack')} <b>${pl.left.length}</b> = +${pl.left.length>>1}</span>`;
+    meta+=`<span class="tag" title="Penalità delle carte a destra">${ico('flame')} <b>−${penSum(pl.right)}</b></span>`;
+  }
+  meta+='</div>';
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const rp=rightHtml(pl,p);
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${rp}${hand}`
+    :(pos==='left'||pos==='right'?`${name}${meta}${rp}${tableauHtml(p)}${hand}`:`${hand}${name}${meta}${rp}${tableauHtml(p)}`);
+  return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+function swHtml(s){ return `<span class="sw s${s}">${SUITS[s]}</span>`; }
+function centerHtml(){
+  const f=firstUp(G.trick), ns=G.n===3?4:5;
+  let top;
+  if(G.phase==='play'){
+    top=f?`<div class="trump s${f.c.s}">Seme di mano: ${SUITS[f.c.s]}</div><div>Di mano: <b>${esc(P(G.leader).name)}</b></div>`
+      :`<div class="hint" style="color:inherit">Nessun seme di mano: la prossima carta lo stabilisce</div><div>Di mano: <b>${esc(P(G.leader).name)}</b></div>`;
+  }else top=`<div class="hint" style="color:inherit">Fase: ${({idle:'',pick:'carta a destra',score:'risultato del round',over:'fine partita'}[G.phase]||'')}</div>`;
+  return `<div class="center">${top}
+    <div class="legend">${Array.from({length:ns},(_,s)=>swHtml(s)).join('')}</div>
+    <div>Round <b>${G.round+1}/${ROUNDS}</b> · Presa <b>${Math.min(G.trickNo,TRICKS)}/${TRICKS}</b></div>
+    <div class="hint" style="color:inherit">Vince il valore più alto del seme di mano · stesso valore = carte annullate</div></div>`;
+}
+function scoreTable(){
+  const cols=Array.from({length:ROUNDS},(_,i)=>i);
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${START}</td>${cols.map(i=>{ const d=p.hist[i]; return `<td class="${d===undefined?'':(d<0?'neg':'pos')}">${d===undefined?'–':(d>0?'+':'')+d}</td>`; }).join('')}<td><b>${p.score}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th>Punteggi</th><th>Inizio</th>${cols.map(i=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
+}
+function roundTable(){
+  const rows=G.show.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td>${r.L} carte → +${r.lp}</td><td class="l">${r.vals.length?r.vals.join(', '):'–'} → −${r.pn}</td><td class="${r.d<0?'neg':'pos'}"><b>${r.d>0?'+':''}${r.d}</b></td><td><b>${r.score}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th></th><th>Pila sinistra</th><th class="l">Carte a destra</th><th>Round</th><th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Phantom Trick contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b>${G.over.zero?' (la partita è finita perché un giocatore è arrivato a 0 o meno)':''}</div>${G.show?roundTable():''}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show) html+=roundTable();
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">${PR.mode==='pick'?'Tocca a te':'Tocca a te'}: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){
+      const c=P(HUM).hand[PR.sel];
+      let lab;
+      if(PR.mode==='pick') lab=`Conferma: metti a destra ${cardName(c)} (penalità ${pen(c.v)})`;
+      else{ const m=G.trick.find(x=>!x.down&&x.c.v===c.v); lab=`Conferma: gioca ${cardName(c)}${m?` (annulla la carta di ${P(m.p).name})`:''}`; }
+      html+=`<div class="opts"><button class="opt" data-cf="1">${esc(lab)}</button><button class="opt" data-cf="0">↶ Annulla</button></div>`;
+    }
+  }else if(PR&&PR.type==='claim'){
+    html+=`<div class="hint">${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){
+      const c=G.trick.find(x=>x.p===PR.sel).c, m=P(HUM).right.some(r=>r.v===c.v);
+      html+=`<div class="opts"><button class="opt" data-qf="1">Conferma: prendi ${esc(cardName(c))}${m?' (si abbina a una tua carta a destra)':` (penalità ${pen(c.v)})`}</button><button class="opt" data-qf="0">↶ Annulla</button></div>`;
+    }
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n;
+  const deck=n===3?'1–10 in 4 colori (senza Bianco)':(n===4?'1–10 in 5 colori':'0–11 in 5 colori');
+  return `<div class="recap paper"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Mazzo</span>${deck} (${makeDeck(n).length} carte) · 12 carte a testa, 11 prese · ${Array.from({length:n===3?4:5},(_,s)=>swHtml(s)).join('')}</div>
+    <div class="recap-row"><span class="lbl">Carta a destra</span>Ognuno mette a faccia in giù una carta a destra del riassunto, poi si rivelano; inizia chi ha il valore più basso non ripetuto.</div>
+    <div class="recap-row"><span class="lbl">Presa</span>Si segue il seme di mano se si può; due carte con lo stesso valore si annullano (a faccia in giù). Vince il valore più alto del seme di mano tra le carte ancora scoperte.</div>
+    <div class="recap-row"><span class="lbl">Acquisizione</span>Il vincitore prende una carta scoperta a destra; se ha il valore di una carta già a destra, le due vanno nella pila sinistra.</div>
+    <div class="recap-row"><span class="lbl">Punteggio</span>Pila sinistra: 1 punto ogni 2 carte. Carte a destra: ${ico('flame')} −2 per i valori 4–7, −4 per tutti gli altri.</div>
+    <div class="recap-row"><span class="lbl">Fine</span>Si parte da ${START} punti; la partita termina dopo 3 round o appena qualcuno arriva a 0 o meno. Vince il punteggio più alto.</div></div>`;
+}
+const RULES_HTML = `
+<details class="rules paper"><summary>REGOLAMENTO (dal regolamento originale)</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>Phantom Trick (ファントムトリック, MouB) è un gioco di prese per 3–5 giocatori in cui i fantasmi svaniscono sotto gli occhi di tutti. Vincere una presa ti «infesta» e ti fa perdere punti, ma se abbini due fantasmi con lo stesso valore trasformi la penalità in un premio.</p>
+<h4>Preparazione</h4>
+<p>Il mazzo dipende dal numero di giocatori: in <b>3</b> si usano i valori 1–10 in 4 colori (senza Bianco, 40 carte); in <b>4</b> i valori 1–10 in 5 colori (50 carte); in <b>5</b> i valori 0–11 in 5 colori (60 carte). Ogni giocatore parte con <b>10 punti</b>.</p>
+<h4>Struttura di un round</h4>
+<p>Si mescolano le carte e se ne danno 12 a testa (le altre non si usano). Ogni giocatore sceglie una carta dalla mano e la mette a faccia in giù a <b>destra</b> del proprio riassunto; poi tutte si rivelano insieme. Inizia chi ha messo il valore <b>più basso</b>; i valori ripetuti vengono ignorati e decide il successivo più basso. Se non si riesce a decidere, si sorteggia. Si giocano quindi 11 prese.</p>
+<h4>La presa</h4>
+<p>Chi è di mano gioca una carta qualsiasi, il suo colore è il <b>seme di mano</b>. Gli altri, in senso orario, devono giocare una carta del seme di mano se ce l'hanno, altrimenti una qualsiasi.</p>
+<p><b>Annullamento:</b> se viene giocata una carta con lo stesso valore di una già giocata nella presa (e ancora scoperta), le due carte vengono subito girate a faccia in giù.</p>
+<p><b>Cambio di chi è di mano:</b> se la carta di chi è di mano viene girata, passa a chi gli sta a sinistra; se anche la sua è girata, al successivo, e così via. Il seme di mano diventa il seme della carta di questo nuovo giocatore e chi deve ancora giocare segue quello.</p>
+<h4>Fine della presa</h4>
+<p>Vince chi ha giocato la carta di valore più alto del seme di mano tra quelle ancora scoperte. Se tutte le carte sono girate, non vince nessuno e apre di nuovo chi aveva giocato per primo.</p>
+<p>Il vincitore sceglie <b>una</b> carta tra tutte quelle ancora scoperte (anche la sua) e la mette scoperta a destra del proprio riassunto. Se ha lo stesso valore di una carta già a destra, le due carte vengono girate e messe nella <b>pila sinistra</b>. Chi aveva una carta girata nella presa la mette nella propria pila sinistra. Le carte non scelte si scartano.</p>
+<h4>Punteggio del round</h4>
+<p>Dopo l'11ª presa: <b>pila sinistra</b> = 1 punto ogni 2 carte (il resto si ignora); <b>carte a destra</b> = si perdono i punti indicati dalle anime del valore:</p>
+<table><tr><th>Valore</th><th>0–3</th><th>4–7</th><th>8–11</th></tr><tr><td>Penalità</td><td>−4</td><td>−2</td><td>−4</td></tr></table>
+<h4>Fine della partita</h4>
+<p>La partita finisce quando un giocatore arriva a 0 punti o meno, oppure dopo 3 round. Vince il punteggio più alto; a pari merito chi ha guadagnato di più nell'ultimo round; se ancora pari, vittoria condivisa.</p>
+<p><i>Nell'app:</i> il sorteggio quando non c'è un valore minimo non ripetuto è tra tutti i giocatori; la carta annullata del primo di mano finisce nella pila sinistra come quella di tutti gli altri; il punteggio non è limitato a 16 come sul tabellone; con tre carte dello stesso valore in una presa si annullano le prime due e la terza resta scoperta. Le carte annullate sono considerate viste da tutti (sono state mostrate); l'AI stima le mani avversarie con simulazioni.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log paper" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">PHANTOM<span class="tr">Trick</span><small>ファントムトリック · le carte svaniscono, le penalità restano</small></div>
+    ${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${ROUNDS}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      <div class="dock paper" style="position:static;border-top-width:3px">${scoreTable()}</div>
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock paper">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+  else if(b.dataset.q!==undefined) claimQ(Number(b.dataset.q));
+  else if(b.dataset.qf!==undefined) confirmClaim(b.dataset.qf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('phx-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('phx-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(!OPT.undo&&PR&&PR.type==='card'&&PR.sel!=null){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+  if(!OPT.undo&&PR&&PR.type==='claim'&&PR.sel!=null){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
