@@ -110,6 +110,7 @@ table.score tr.me td{background:rgba(228,180,74,0.1)}
 /* carte Trick */
 .tc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:space-between;padding:2px 0 3px;color:#1b2430;position:relative;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,0.45);font-family:'Anton',sans-serif;line-height:1}
 .tc .rk{font-weight:400;font-size:22px}
+.rc-i{display:inline-block;line-height:1;font-style:normal}.rc-i svg{vertical-align:-0.125em}
 .tc .sg{font-size:20px;color:#1b2430;opacity:0.85}
 .tc .vl{font-family:'Inter',sans-serif;font-size:10px;font-weight:800;background:rgba(255,255,255,0.75);border-radius:9px;padding:1px 6px}
 .tc .lt{display:none;position:absolute;top:2px;left:3px;font-family:'Inter',sans-serif;font-style:normal;font-size:9px;font-weight:800}
@@ -202,7 +203,8 @@ details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--
 
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
-const SU = [{n:'Picche',l:'P',ic:'spade'},{n:'Cuori',l:'C',ic:'heart'},{n:'Quadri',l:'Q',ic:'diamond'},{n:'Fiori',l:'F',ic:'club'}];
+const SU = [{n:'Oct',l:'O',ic:'drop'},{n:'Nev',l:'N',ic:'spiral'},{n:'Zeus',l:'Z',ic:'lightning'},{n:'Ratcoin',l:'R',svg:true}];   // criptovalute del gioco (colori: azzurro, rosa, giallo, arancione)
+const RC_SVG = '<svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><path d="M12 2.4l8.3 4.8v9.6L12 21.6l-8.3-4.8V7.2z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><text x="12" y="16.4" text-anchor="middle" font-family="Inter,sans-serif" font-weight="900" font-size="11.5" fill="currentColor">R</text></svg>';
 const HANDN = {3:13,4:10,5:8};                         // carte Trick a testa = numero di prese
 const REMOVE = {3:3,4:2,5:2};                          // carte Trade tolte dal mazzo
 const MULT = [3,2,1,-1];
@@ -210,7 +212,7 @@ const HUM = 0;
 const POS = {3:['bottom','left','right'],4:['bottom','left','top','right'],5:['bottom','left','tl','tr','right']};
 const NAMES = ['Tu','AI Neva','AI Zeno','AI Octavia','AI Rata'];
 const ico = n => `<i class="ph-fill ph-${n}"></i>`;
-const sico = (s,cls='') => `<i class="ph-fill ph-${SU[s].ic} ${cls}"></i>`;
+const sico = (s,cls='') => SU[s].svg ? `<i class="rc-i ${cls}">${RC_SVG}</i>` : `<i class="ph-fill ph-${SU[s].ic} ${cls}"></i>`;
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
 const rnd = n => Math.floor(Math.random()*n);
@@ -409,9 +411,9 @@ function newMatch(n){
   run();
 }
 function humanHint(){
-  if(!G.trick.length) return 'Sei di mano: gioca la carta che vuoi; il suo seme sarà il seme di mano e batterà tutti gli altri semi.';
+  if(!G.trick.length) return 'Sei di mano: gioca la carta che vuoi; la sua valuta sarà la valuta di mano e batterà tutte le altre.';
   const ls=G.trick[0].c.s, has=P(HUM).hand.some(c=>c.s===ls);
-  return `Seme di mano: ${SU[ls].n}. Non c'è obbligo di rispondere al seme (may-follow)${has?`: hai carte ${SU[ls].n}, ma puoi giocare ciò che vuoi`:''}. Il seme di mano batte gli altri.`;
+  return `Valuta di mano: ${SU[ls].n}. Non c'è obbligo di rispondere alla valuta (may-follow)${has?`: hai carte ${SU[ls].n}, ma puoi giocare ciò che vuoi`:''}. La valuta di mano batte le altre.`;
 }
 const ord = k => (k+1)+'°';
 async function playTrick(){
@@ -546,9 +548,9 @@ function seatHtml(p,pos){
 function centerHtml(){
   const ls=G.trick.length&&G.phase==='play'?G.trick[0].c.s:(G.trick.length?G.trick[0].c.s:-1);
   return `<div class="center">
-    ${ls>=0?`<div class="lsuit k${ls}">${sico(ls)} Seme di mano: ${SU[ls].n}</div>`:`<div class="hint">${G.phase==='over'?'Partita finita':'Il seme della prima carta è il seme di mano'}</div>`}
+    ${ls>=0?`<div class="lsuit k${ls}">${sico(ls)} Valuta di mano: ${SU[ls].n}</div>`:`<div class="hint">${G.phase==='over'?'Partita finita':'La valuta della prima carta è la valuta di mano'}</div>`}
     <div>Presa <b>${Math.min(G.trickNo,G.H)}/${G.H}</b> · Mazzo Trade: <b>${G.deck.length}</b></div>
-    <div class="hint">May-follow: nessun obbligo di rispondere al seme · vince il seme di mano più alto</div></div>`;
+    <div class="hint">May-follow: nessun obbligo di rispondere alla valuta · vince la valuta di mano più alta</div></div>`;
 }
 function marketHtml(){
   const tr=PR&&PR.type==='trade';
@@ -564,10 +566,10 @@ function marketHtml(){
 }
 function areaHtml(){
   const m=multipliers(G.win);
-  return `<h3>ZONA CARTE VINCENTI · semi e moltiplicatori provvisori</h3><div class="zone">${[0,1,2,3].map(s=>`<div class="wz k${s}" title="${SU[s].n}: somma dei valori delle carte vincenti">
+  return `<h3>ZONA CARTE VINCENTI · valute e moltiplicatori provvisori</h3><div class="zone">${[0,1,2,3].map(s=>`<div class="wz k${s}" title="${SU[s].n}: somma dei valori delle carte vincenti">
     <div class="wzh">${sico(s)} ${SU[s].n}</div><div class="wzt">${G.win[s]}</div><div class="wzm ${m[s]<0?'neg':''}">${fmtM(m[s])}</div>
     <div class="wzc">${G.wcards[s].map(c=>`${c.r}<small>(${c.v})</small>`).join(' ')||'—'}</div></div>`).join('')}</div>
-    <div class="hint" style="margin-top:6px">Sotto ogni seme: forza (valore) delle carte vincenti. I valori si sommano.</div>`;
+    <div class="hint" style="margin-top:6px">Sotto ogni valuta: forza (valore) delle carte vincenti. I valori si sommano.</div>`;
 }
 function portHtml(final){
   const m=final?final.mult:multipliers(G.win), sc=final?final.scores:curScores();
@@ -596,30 +598,30 @@ function dockHtml(){
 }
 function recapHtml(){
   return `<div class="recap paper"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
-    <div class="recap-row"><span class="lbl">Carte Trick</span>40 carte: 4 semi × forza 1–10 (numero grande); il <b>valore</b> è il numero piccolo (10 − forza). Si distribuiscono ${G.H} carte a testa.</div>
-    <div class="recap-row"><span class="lbl">Presa</span>Si può giocare qualsiasi carta (may-follow). Il seme di chi apre batte tutti gli altri semi; vince la forza più alta (a pari forza fuori seme, la carta giocata dopo).</div>
-    <div class="recap-row"><span class="lbl">Dopo la presa</span>La carta vincente va nella Zona vincente (il suo valore si somma al seme). Poi, in ordine di classifica, si prende una carta Trade dalla riga 1, oppure la carta Lead (si riceve l'ultima carta rimasta e si apre la presa dopo).</div>
-    <div class="recap-row"><span class="lbl">Moltiplicatori</span>Semi in ordine di valore totale: ×3, ×2, ×1, ×−1 (pari merito: stesso moltiplicatore, il successivo si salta).</div>
-    <div class="recap-row"><span class="lbl">Punti</span>Per ogni seme: icone delle tue carte Trade × moltiplicatore. Vince il punteggio più alto; pari: più icone del seme migliore; poi vittoria condivisa.</div></div>`;
+    <div class="recap-row"><span class="lbl">Carte Trick</span>40 carte: 4 valute × forza 1–10 (numero grande); il <b>valore</b> è il numero piccolo (10 − forza). Si distribuiscono ${G.H} carte a testa.</div>
+    <div class="recap-row"><span class="lbl">Presa</span>Si può giocare qualsiasi carta (may-follow). La valuta di chi apre batte tutte le altre; vince la forza più alta (a pari forza fuori valuta, la carta giocata dopo).</div>
+    <div class="recap-row"><span class="lbl">Dopo la presa</span>La carta vincente va nella Zona vincente (il suo valore si somma alla valuta). Poi, in ordine di classifica, si prende una carta Trade dalla riga 1, oppure la carta Lead (si riceve l'ultima carta rimasta e si apre la presa dopo).</div>
+    <div class="recap-row"><span class="lbl">Moltiplicatori</span>Valute in ordine di valore totale: ×3, ×2, ×1, ×−1 (pari merito: stesso moltiplicatore, il successivo si salta).</div>
+    <div class="recap-row"><span class="lbl">Punti</span>Per ogni valuta: icone delle tue carte Trade × moltiplicatore. Vince il punteggio più alto; pari: più icone della valuta migliore; poi vittoria condivisa.</div></div>`;
 }
 const RULES_HTML = `
 <details class="rules paper"><summary>REGOLAMENTO (da tt.pdf / tte.pdf)</summary>
 <div class="rtext">
 <h4>Panoramica</h4>
-<p>In Trick and Trade i giocatori sono trader. Con prese a «may-follow» (non c'è obbligo di rispondere al seme) si decide quanto vale ciascun seme e si raccolgono carte Trade con le icone dei semi: a fine partita le icone valgono in base al valore dei semi. Nell'originale i semi sono criptovalute; qui sono i semi classici ♠ ♥ ♦ ♣.</p>
+<p>In Trick and Trade i giocatori sono trader. Con prese a «may-follow» (non c'è obbligo di rispondere alla valuta) si decide quanto vale ciascuna valuta e si raccolgono carte Trade con le icone delle valute: a fine partita le icone valgono in base al valore delle valute. Le quattro valute sono criptovalute: Nev (rosa), Zeus (giallo), Oct (azzurro) e Ratcoin (arancione).</p>
 <h4>Componenti e preparazione</h4>
-<p>40 carte Trick (4 semi × forza 1–10; ognuna ha anche un <b>valore</b> da 9 a 0, cioè 10 − forza), 42 carte Trade e la carta Lead Player. Carte Trick: 13/10/8 a testa con 3/4/5 giocatori (le altre non si usano). Carte Trade: per ogni seme 3 carte con 1 icona, 3 con 2 icone uguali, e per ogni coppia di semi 3 carte con 1 icona per seme (4×3 + 4×3 + 6×3 = 42). Si tolgono 3/2/2 carte (3/4/5 giocatori) e con il resto si forma il mazzo Trade; il Mercato è fatto di due righe di N carte (N = giocatori). Il primo giocatore è casuale e prende la carta Lead.</p>
+<p>40 carte Trick (4 valute × forza 1–10; ognuna ha anche un <b>valore</b> da 9 a 0, cioè 10 − forza), 42 carte Trade e la carta Lead Player. Carte Trick: 13/10/8 a testa con 3/4/5 giocatori (le altre non si usano). Carte Trade: per ogni valuta 3 carte con 1 icona, 3 con 2 icone uguali, e per ogni coppia dle valute 3 carte con 1 icona per valuta (4×3 + 4×3 + 6×3 = 42). Si tolgono 3/2/2 carte (3/4/5 giocatori) e con il resto si forma il mazzo Trade; il Mercato è fatto di due righe di N carte (N = giocatori). Il primo giocatore è casuale e prende la carta Lead.</p>
 <h4>La presa</h4>
-<p>Chi ha la carta Lead apre la presa con una carta qualsiasi, poi gli altri una a testa in senso orario: <b>non c'è obbligo di rispondere al seme</b>. Le carte del seme di apertura battono tutte le altre; tra queste vince la forza più alta. Le carte fuori seme si classificano per forza, e a pari forza vince quella giocata dopo. Si ottiene una classifica dal 1° all'ultimo.</p>
+<p>Chi ha la carta Lead apre la presa con una carta qualsiasi, poi gli altri una a testa in senso orario: <b>non c'è obbligo di rispondere alla valuta</b>. Le carte della valuta di apertura battono tutte le altre; tra queste vince la forza più alta. Le carte fuori valuta si classificano per forza, e a pari forza vince quella giocata dopo. Si ottiene una classifica dal 1° all'ultimo.</p>
 <h4>Fase 1 · carta vincente</h4>
-<p>La carta del 1° classificato va scoperta nella Zona vincente, accanto alle altre dello stesso seme; le altre carte della presa si scartano. I <b>valori</b> (non le forze) delle carte vincenti si sommano per seme.</p>
+<p>La carta del 1° classificato va scoperta nella Zona vincente, accanto alle altre della stessa valuta; le altre carte della presa si scartano. I <b>valori</b> (non le forze) delle carte vincenti si sommano per valuta.</p>
 <h4>Fase 2 · carte Trade</h4>
 <p>In ordine di classifica ognuno prende una carta Trade dalla riga 1 del Mercato. Chi lo desidera può invece prendere la carta Lead Player (se ancora disponibile): aprirà la presa successiva ma non sceglie subito, e alla fine riceve l'<b>ultima carta rimasta</b> nella riga 1. Se nessuno prende la carta Lead, va all'ultimo classificato (che riceve l'unica carta rimasta).</p>
 <h4>Fase 3 · rifornimento</h4>
 <p>Quando la riga 1 è vuota, la riga 2 scende nella riga 1 e si rivela una nuova riga dal mazzo (se il mazzo è finito non si aggiunge nulla). La partita finisce dopo tante prese quante le carte in mano, quando sono state distribuite tutte le carte Trade.</p>
 <h4>Punteggio finale</h4>
-<p>Si guardano i valori totali dei semi nella Zona vincente. Il seme con il valore più alto vale <b>×3</b>, il secondo ×2, il terzo ×1 e l'ultimo <b>×−1</b>. Semi con lo stesso totale condividono il moltiplicatore più alto e il successivo viene saltato (es. 5, 5, 2, 2 → ×3, ×3, ×1, ×1). Ogni giocatore moltiplica le icone di ciascun seme sulle sue carte Trade per il moltiplicatore e somma. Vince il punteggio più alto; a parità, chi ha più icone del seme col moltiplicatore maggiore; poi vittoria condivisa.</p>
-<p><i>Nell'app:</i> la carta Lead può essere presa da qualunque giocatore nel proprio turno di scelta finché è disponibile (come nell'esempio del regolamento); se più semi condividono il moltiplicatore massimo, nello spareggio si sommano le loro icone. I punti mostrati durante la partita usano i moltiplicatori attuali e sono provvisori. L'AI stima le mani avversarie e il mazzo Trade con simulazioni.</p>
+<p>Si guardano i valori totali delle valute nella Zona vincente. La valuta con il valore più alto vale <b>×3</b>, la seconda ×2, la terza ×1 e l'ultima <b>×−1</b>. Valute con lo stesso totale condividono il moltiplicatore più alto e il successivo viene saltato (es. 5, 5, 2, 2 → ×3, ×3, ×1, ×1). Ogni giocatore moltiplica le icone di ciascuna valuta sulle sue carte Trade per il moltiplicatore e somma. Vince il punteggio più alto; a parità, chi ha più icone della valuta col moltiplicatore maggiore; poi vittoria condivisa.</p>
+<p><i>Nell'app:</i> la carta Lead può essere presa da qualunque giocatore nel proprio turno di scelta finché è disponibile (come nell'esempio del regolamento); se più valute condividono il moltiplicatore massimo, nello spareggio si sommano le loro icone. I punti mostrati durante la partita usano i moltiplicatori attuali e sono provvisori. L'AI stima le mani avversarie e il mazzo Trade con simulazioni.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -632,13 +634,13 @@ function menuHtml(){
   return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
-      <label class="opt-toggle" title="Aggiunge lettere e filigrane ai semi per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Aggiunge lettere e filigrane alle valute per distinguerle senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
     </div>`:''}</div>`;
 }
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
-  const top=`<div class="topbar"><div class="logo">TRICK <span class="amp">and</span> TRADE<small>trick-taking & drafting · semi classici al posto delle criptovalute</small></div>
+  const top=`<div class="topbar"><div class="logo">TRICK <span class="amp">and</span> TRADE<small>trick-taking & drafting · Nev, Zeus, Oct e Ratcoin</small></div>
     ${nyloHomeBtn()}
     ${G&&!G.over?`<span class="badge">Presa ${Math.min(G.trickNo,G.H)}/${G.H}</span>`:''}
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
