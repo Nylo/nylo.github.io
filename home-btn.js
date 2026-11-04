@@ -2,7 +2,8 @@
 // Nelle pagine con <html data-home-inline> il pulsante è nella barra in alto (window.nyloHomeBtn());
 // nelle altre compare un pulsante tondo fisso in basso a sinistra.
 (function () {
-  if (window.self !== window.top) { window.nyloHomeBtn = function () { return ''; }; window.nyloBackBtn = function () { return ''; }; return; }   // non negli iframe
+  var inFrame = window.self !== window.top;
+  if (inFrame) { window.nyloHomeBtn = function () { return ''; }; window.nyloBackBtn = function () { return ''; }; }
   var SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>';
   window.nyloHomeBtn = function () {
     return '<button type="button" class="nylo-home" data-home="1" title="Torna alla home" aria-label="Torna alla home">' + SVG + '<span>Home</span></button>';
@@ -29,10 +30,12 @@
   var ov;
   function build() {
     if (!document.documentElement.hasAttribute('data-home-inline')) {
-      var f = document.createElement('div');
-      f.innerHTML = window.nyloHomeBtn();
-      f = f.firstChild; f.className += ' nylo-home-float';
-      document.body.appendChild(f);
+      if (!inFrame) {
+        var f = document.createElement('div');
+        f.innerHTML = window.nyloHomeBtn();
+        f = f.firstChild; f.className += ' nylo-home-float';
+        document.body.appendChild(f);
+      }
     } else {
       if (document.querySelector('.menu-wrap')) document.documentElement.classList.add('nylo-mobile-menu-game-controls');
       var updateGameMenu = function () {
@@ -79,6 +82,7 @@
         if (label && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); label.click(); }
       });
     }
+    if (inFrame) return;
     ov = document.createElement('div');
     ov.style.cssText = 'position:fixed;inset:0;z-index:2147483001;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:16px;font-family:Inter,system-ui,sans-serif';
     ov.innerHTML = '<div role="dialog" aria-modal="true" style="width:min(340px,100%);padding:20px;border-radius:12px;background:#1e293b;color:#f1f5f9;border:1px solid #475569;box-shadow:0 14px 40px rgba(0,0,0,.5)">' +
