@@ -4,6 +4,7 @@
 (function () {
   var inFrame = window.self !== window.top;
   if (inFrame) { window.nyloHomeBtn = function () { return ''; }; window.nyloBackBtn = function () { return ''; }; }
+  var ONLINE_GAMES = { '/tt/vs-ai/spy-team/': '/tt/online/spy-team/' };
   var SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>';
   window.nyloHomeBtn = function () {
     return '<button type="button" class="nylo-home" data-home="1" title="Torna alla home" aria-label="Torna alla home">' + SVG + '<span>Home</span></button>';
@@ -71,8 +72,32 @@
           var original = button.getAttribute('data-player-label') || button.textContent;
           if (!button.hasAttribute('data-player-label')) button.setAttribute('data-player-label', original);
           var personalized = original.replace(/\btu\s*\+\s*/gi, name + ' vs ');
+          if (/^inizia la partita$/i.test(original)) {
+            var totalPlayers = Number(button.getAttribute('data-n'));
+            if (totalPlayers > 1) personalized = totalPlayers + ' giocatori (' + name + ' vs ' + (totalPlayers - 1) + ' AI)';
+          }
           if (button.textContent !== personalized) button.textContent = personalized;
         });
+
+        var dock = document.querySelector('.dock');
+        var message = dock && dock.querySelector('.dock-msg');
+        var options = dock && dock.querySelector('.opts');
+        var startOptions = options && Array.prototype.filter.call(options.querySelectorAll('button[data-n]'), function (button) {
+          return button.textContent.trim().toLowerCase() !== 'rigioca';
+        });
+        if (message && startOptions && startOptions.length) {
+          if (message.textContent !== 'In che modalità vuoi giocare?') message.textContent = 'In che modalità vuoi giocare?';
+          var path = location.pathname.replace(/\/?$/, '/');
+          var onlineHref = ONLINE_GAMES[path];
+          if (onlineHref && !options.querySelector('[data-mode-online]')) {
+            var friendsButton = document.createElement('button');
+            friendsButton.type = 'button';
+            friendsButton.className = startOptions[0].className;
+            friendsButton.textContent = 'Contro gli amici';
+            friendsButton.setAttribute('data-mode-online', onlineHref);
+            options.appendChild(friendsButton);
+          }
+        }
       };
       updateGameMenu();
       new MutationObserver(updateGameMenu).observe(document.body, { childList: true, subtree: true });
@@ -80,6 +105,10 @@
       document.addEventListener('keydown', function (e) {
         var label = e.target.closest && e.target.closest('.nylo-menu-action');
         if (label && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); label.click(); }
+      });
+      document.addEventListener('click', function (e) {
+        var friendsButton = e.target.closest && e.target.closest('[data-mode-online]');
+        if (friendsButton) location.href = friendsButton.getAttribute('data-mode-online');
       });
     }
     if (inFrame) return;

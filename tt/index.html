@@ -18,7 +18,14 @@
         <a href="/#online" class="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200"><i class="ph-fill ph-arrow-left"></i>Indietro</a>
         <h1 class="text-2xl font-bold">Trick-taking online</h1>
         <p class="mt-1 text-sm text-slate-400">Scegli il gioco e come giocarlo: contro l'AI o contro gli amici, in una stanza online.</p>
-        <div id="games" class="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4"></div>
+                <div class="mt-8 overflow-x-auto rounded-xl border border-slate-700/60">
+                        <table class="w-full min-w-[360px] border-collapse text-left text-sm">
+                                <thead class="bg-white/[0.05] text-xs uppercase tracking-wide text-slate-400">
+                                        <tr><th scope="col" class="px-4 py-3">Titolo</th><th scope="col" class="px-4 py-3">N. giocatori</th><th scope="col" class="px-4 py-3">Badge</th></tr>
+                                </thead>
+                                <tbody id="games" class="divide-y divide-slate-800"></tbody>
+                        </table>
+                </div>
     </main>
     <script>
         // ai = pagina contro l'AI; online = pagina "a stanze" (null finché non esiste/funziona: il pulsante resta disabilitato)
@@ -233,20 +240,34 @@
 ];
         function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
         GAMES.sort(function (a, b) { return a.name.localeCompare(b.name, 'it', { sensitivity: 'base' }); });
-        var BTN = 'inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-sm font-medium transition-colors';
-        function btn(href, icon, label, title) {
-            var inner = 'vs <i class="ph-fill ' + icon + ' text-base"></i>';
-            if (!href) return '<span class="' + BTN + ' cursor-not-allowed border-slate-700/50 bg-white/[0.03] text-slate-500" aria-disabled="true" aria-label="' + esc(label) + '" title="' + esc(title) + '">' + inner + '</span>';
-            return '<a href="' + href + '" class="' + BTN + ' border-teal-600/60 bg-teal-600/10 text-teal-200 hover:bg-teal-600/30" aria-label="' + esc(label) + '" title="' + esc(label) + '">' + inner + '</a>';
+                var BADGE_STYLE = {
+                        beta: 'border-amber-500/60 bg-amber-500/10 text-amber-300',
+                        new: 'border-emerald-500/60 bg-emerald-500/10 text-emerald-300',
+                        upd: 'border-sky-500/60 bg-sky-500/10 text-sky-300',
+                        wip: 'border-slate-500/60 bg-slate-500/10 text-slate-300'
+                };
+                function badge(g) {
+                        if (!g.badge) return '<span class="text-slate-600">—</span>';
+                        var value = String(g.badge).toLowerCase();
+                        var style = BADGE_STYLE[value] || 'border-slate-600 text-slate-300';
+                        return '<span class="inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ' + style + '">' + esc(g.badge) + '</span>';
         }
-        document.getElementById('games').innerHTML = GAMES.map(function (g) {
-            return '<div class="rounded-xl border border-slate-700/50 bg-white/[0.03] p-3 sm:p-5">' +
-                '<div class="flex items-start justify-between gap-2"><div class="flex flex-wrap items-center gap-x-2 gap-y-1"><h2 class="text-base font-semibold">' + esc(g.name) + '</h2>' +
-                (g.badge ? '<span class="rounded border border-amber-500/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">' + esc(g.badge) + '</span>' : '') + '</div>' +
-                '<span class="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-slate-700/60 px-2 py-0.5 text-xs font-medium text-slate-300" title="' + esc(g.players) + ' giocatori"><i class="ph-fill ph-users"></i> ' + esc(g.players) + '</span></div>' +
-                '<p class="mt-2 text-sm text-slate-400">' + esc(g.desc) + '</p>' +
-                '<div class="mt-3 flex gap-2 sm:mt-4">' + btn(g.ai, 'ph-robot', "Contro l'AI", 'Non ancora disponibile') + btn(g.online, 'ph-users-three', 'Contro gli Amici', 'Versione a stanze in arrivo') + '</div></div>';
+                var games = document.getElementById('games');
+                games.innerHTML = GAMES.map(function (g) {
+                        return '<tr data-href="' + esc(g.ai) + '" tabindex="0" aria-label="Apri ' + esc(g.name) + '" class="cursor-pointer transition-colors hover:bg-white/[0.04] focus-within:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500">' +
+                                '<th scope="row" class="px-4 py-3 font-semibold text-slate-100"><a href="' + esc(g.ai) + '" class="hover:text-teal-300">' + esc(g.name) + '</a></th>' +
+                                '<td class="whitespace-nowrap px-4 py-3 text-slate-300"><span class="inline-flex items-center gap-1.5"><i class="ph-fill ph-users text-slate-500"></i>' + esc(g.players) + '</span></td>' +
+                                '<td class="px-4 py-3">' + badge(g) + '</td></tr>';
         }).join('');
+                games.addEventListener('click', function (e) {
+                        var row = e.target.closest('tr[data-href]');
+                        if (row && !e.target.closest('a')) location.href = row.getAttribute('data-href');
+                });
+                games.addEventListener('keydown', function (e) {
+                        if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('tr[data-href]')) {
+                                e.preventDefault(); location.href = e.target.getAttribute('data-href');
+                        }
+                });
     </script>
 </body>
 </html>

@@ -510,7 +510,18 @@ const escL = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/
 function logHtml(){
   return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${escL(l)}</div>`).join('')}</div></details>`;
 }
+function renderMode(){
+  const app=document.getElementById('app');
+  app.innerHTML=`<div class="topbar">
+      <div class="logo">Spy <span>Team</span></div>
+      ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    </div>
+    <div class="dock"><div class="dock-msg">In che modalità vuoi giocare?</div>
+      <div class="opts"><button class="btn btn-primary" type="button" data-start-ai>Contro l'AI</button>
+      <button class="btn btn-primary" type="button" data-mode-online="/tt/online/spy-team/">Contro gli amici</button></div></div>`;
+}
 function render(){
+  if(!G){ renderMode(); return; }
   const app=document.getElementById('app');
   app.innerHTML=`
     <div class="topbar">
@@ -542,7 +553,8 @@ function render(){
 }
 
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
-newGame();
+document.getElementById('app').addEventListener('click',e=>{ if(e.target.closest('[data-start-ai]')) newGame(); });
+render();
 </script>
 </body>
 </html>

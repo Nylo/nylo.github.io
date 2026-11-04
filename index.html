@@ -155,8 +155,7 @@
                 var name = playerName() || 'Utente';
                 app.innerHTML =
                     '<div class="mb-6 flex items-center gap-3 sm:mb-8"><h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Nylo HomePage</h1>' +
-                    (isOpen(GATE) ? '<span class="relative ml-auto inline-flex"><button type="button" data-user aria-label="Utente: ' + esc(name) + '" title="' + esc(name) + '" aria-expanded="false" class="flex h-10 w-10 items-center justify-center rounded-full text-xl text-slate-400 transition-colors hover:bg-white/5 hover:text-teal-300"><i class="ph-fill ph-user"></i></button><span data-user-tip hidden class="absolute right-0 top-full z-10 mt-2 whitespace-nowrap rounded-lg border border-slate-700 bg-[#101820] px-3 py-2 text-sm text-slate-100 shadow-xl">' + esc(name) + '</span></span>' +
-                    '<button type="button" data-logout title="Esci e richiedi di nuovo il codice" aria-label="Esci e richiedi di nuovo il codice" class="ml-2 flex h-10 w-10 items-center justify-center rounded-full text-2xl text-slate-600 transition-colors hover:text-slate-400"><i class="ph-fill ph-arrow-clockwise"></i></button>' : '') + '</div>' +
+                    (isOpen(GATE) ? '<span class="relative ml-auto inline-flex"><button type="button" data-user aria-label="Account: ' + esc(name) + '" title="' + esc(name) + '" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu" class="flex h-10 w-10 items-center justify-center rounded-full text-xl text-slate-400 transition-colors hover:bg-white/5 hover:text-teal-300"><i class="ph-fill ph-user-list"></i></button><div id="userMenu" data-user-menu hidden role="menu" class="absolute right-0 top-full z-20 mt-2 min-w-56 rounded-lg border border-slate-700 bg-[#101820] p-3 text-sm text-slate-100 shadow-xl"><p class="mb-3 whitespace-nowrap">Sei connesso come <strong>' + esc(name) + '</strong></p><button type="button" data-logout role="menuitem" class="w-full rounded-md px-2 py-2 text-left text-slate-300 hover:bg-white/5 hover:text-white">Esci</button></div></span>' : '') + '</div>' +
                     '<div class="grid gap-3 sm:grid-cols-2 sm:gap-4 [&>*]:min-h-[96px]">' + HOME.map(card).join('') + '</div>';
             }
             function renderSection(sec) {
@@ -181,12 +180,12 @@
                 if (e.target.closest('[data-logout]')) { logout(); return; }
                 var userButton = e.target.closest('[data-user]');
                 if (userButton) {
-                    var tip = userButton.parentElement.querySelector('[data-user-tip]');
+                    var tip = userButton.parentElement.querySelector('[data-user-menu]');
                     tip.hidden = !tip.hidden;
                     userButton.setAttribute('aria-expanded', tip.hidden ? 'false' : 'true');
                     return;
                 }
-                var openTip = app.querySelector('[data-user-tip]:not([hidden])');
+                var openTip = app.querySelector('[data-user-menu]:not([hidden])');
                 if (openTip) {
                     openTip.hidden = true;
                     openTip.parentElement.querySelector('[data-user]').setAttribute('aria-expanded', 'false');
@@ -195,6 +194,13 @@
                 if (b) go(b.getAttribute('data-view'));
             });
             window.addEventListener('popstate', function () { show(location.hash.slice(1) || 'home'); });
+            document.addEventListener('keydown', function (e) {
+                if (e.key !== 'Escape') return;
+                var menu = app.querySelector('[data-user-menu]:not([hidden])');
+                if (!menu) return;
+                menu.hidden = true;
+                menu.parentElement.querySelector('[data-user]').setAttribute('aria-expanded', 'false');
+            });
 
             // esce: cancella tutti gli accessi (home, Lab, admin collection, nome automatico) e richiede di nuovo il codice
             function logout() {
