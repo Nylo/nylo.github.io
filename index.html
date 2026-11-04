@@ -35,6 +35,18 @@
         </form>
     </div>
 
+    <div id="nameGate" hidden class="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0c10]/60 p-4 backdrop-blur-md">
+        <form id="nameForm" autocomplete="off"
+              class="w-full max-w-xs rounded-xl border border-slate-700/50 bg-[#0a0c10]/95 p-4 text-sm shadow-2xl">
+            <label for="nameInput" class="mb-2 block text-slate-300">Come vuoi essere chiamato?</label>
+            <div class="flex gap-2">
+                <input id="nameInput" type="text" maxlength="16" autocomplete="nickname" required
+                       class="min-w-0 flex-1 rounded-lg border border-slate-700 bg-white/5 px-3 py-2 text-slate-100 outline-none focus:border-teal-500">
+                <button type="submit" class="rounded-lg bg-teal-600 px-3 py-2 font-semibold text-white transition-colors hover:bg-teal-500">Continua</button>
+            </div>
+        </form>
+    </div>
+
     <!-- Seconda password: area Lab -->
     <div id="labGate" hidden class="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0c10]/60 p-4 backdrop-blur-md">
         <form id="labForm" autocomplete="off"
@@ -99,6 +111,7 @@
             }
             function isOpen(g) { try { return localStorage.getItem(g.key) === g.hash; } catch (e) { return false; } }
             function remember(g) { try { localStorage.setItem(g.key, g.hash); } catch (e) {} }
+            function playerName() { try { return localStorage.getItem('nylo-player-name') || ''; } catch (e) { return ''; } }
 
             // ----- schede -----
             var CARD = 'group relative flex items-center gap-4 rounded-2xl border border-slate-700/50 bg-white/[0.04] p-4 sm:p-5 text-left transition-colors ';
@@ -139,9 +152,11 @@
 
             // ----- viste -----
             function renderHome() {
+                var name = playerName() || 'Utente';
                 app.innerHTML =
                     '<div class="mb-6 flex items-center gap-3 sm:mb-8"><h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Nylo HomePage</h1>' +
-                    (isOpen(GATE) ? '<button type="button" data-logout title="Esci e richiedi di nuovo il codice" aria-label="Esci e richiedi di nuovo il codice" class="ml-auto flex h-10 w-10 items-center justify-center rounded-full text-2xl text-slate-600 transition-colors hover:text-slate-400"><i class="ph-fill ph-arrow-clockwise"></i></button>' : '') + '</div>' +
+                    (isOpen(GATE) ? '<span class="relative ml-auto inline-flex"><button type="button" data-user aria-label="Utente: ' + esc(name) + '" title="' + esc(name) + '" aria-expanded="false" class="flex h-10 w-10 items-center justify-center rounded-full text-xl text-slate-400 transition-colors hover:bg-white/5 hover:text-teal-300"><i class="ph-fill ph-user"></i></button><span data-user-tip hidden class="absolute right-0 top-full z-10 mt-2 whitespace-nowrap rounded-lg border border-slate-700 bg-[#101820] px-3 py-2 text-sm text-slate-100 shadow-xl">' + esc(name) + '</span></span>' +
+                    '<button type="button" data-logout title="Esci e richiedi di nuovo il codice" aria-label="Esci e richiedi di nuovo il codice" class="ml-2 flex h-10 w-10 items-center justify-center rounded-full text-2xl text-slate-600 transition-colors hover:text-slate-400"><i class="ph-fill ph-arrow-clockwise"></i></button>' : '') + '</div>' +
                     '<div class="grid gap-3 sm:grid-cols-2 sm:gap-4 [&>*]:min-h-[96px]">' + HOME.map(card).join('') + '</div>';
             }
             function renderSection(sec) {
@@ -164,6 +179,18 @@
             }
             app.addEventListener('click', function (e) {
                 if (e.target.closest('[data-logout]')) { logout(); return; }
+                var userButton = e.target.closest('[data-user]');
+                if (userButton) {
+                    var tip = userButton.parentElement.querySelector('[data-user-tip]');
+                    tip.hidden = !tip.hidden;
+                    userButton.setAttribute('aria-expanded', tip.hidden ? 'false' : 'true');
+                    return;
+                }
+                var openTip = app.querySelector('[data-user-tip]:not([hidden])');
+                if (openTip) {
+                    openTip.hidden = true;
+                    openTip.parentElement.querySelector('[data-user]').setAttribute('aria-expanded', 'false');
+                }
                 var b = e.target.closest('[data-view]');
                 if (b) go(b.getAttribute('data-view'));
             });
@@ -189,12 +216,38 @@
             var gateForm = document.getElementById('gateForm');
             var gateInput = document.getElementById('gateInput');
             var gateErr = document.getElementById('gateErr');
+            var nameGate = document.getElementById('nameGate');
+            var nameForm = document.getElementById('nameForm');
+            var nameInput = document.getElementById('nameInput');
 
-            function unlockHome() {
+            function askPlayerName() {
+                nameInput.value = playerName();
+                nameGate.hidden = false;
+                app.setAttribute('aria-hidden', 'true');
+                document.body.classList.add('locked');
+                nameInput.focus();
+                nameInput.select();
+            }
+            nameForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var value = nameInput.value.trim().slice(0, 16);
+                if (!value) return;
+                try {
+                    localStorage.setItem('nylo-player-name', value);
+                    localStorage.setItem('nylo-skip-name', '1');
+                } catch (x) {}
+                nameGate.hidden = true;
+                app.removeAttribute('aria-hidden');
+                document.body.classList.remove('locked');
+                renderHome();
+            });
+
+            function unlockHome(askName) {
                 document.body.classList.remove('locked');
                 gate.hidden = true;
                 app.removeAttribute('aria-hidden');
                 show(location.hash.slice(1) || 'home');
+                if (askName || !playerName()) askPlayerName();
             }
             if (isOpen(GATE)) {
                 unlockHome();
@@ -206,8 +259,8 @@
             gateForm.addEventListener('submit', function (e) {
                 e.preventDefault();
                 sha256(gateInput.value).then(function (h) {
-                    if (h === GATE.hash) { remember(GATE); unlockHome(); }
-                    else if (h === MASTER_HASH) { masterUnlock(); unlockHome(); }
+                    if (h === GATE.hash) { remember(GATE); unlockHome(true); }
+                    else if (h === MASTER_HASH) { masterUnlock(); unlockHome(true); }
                     else { gateErr.hidden = false; gateInput.select(); }
                 });
             });

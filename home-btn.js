@@ -17,13 +17,13 @@
   var st = document.createElement('style');
   st.textContent = '.nylo-home{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:7px;border:1px solid var(--border,rgba(255,255,255,.35));background:transparent;color:var(--text-soft,#cbd5e1);font:500 12px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}' +
     '.nylo-home:hover{background:var(--surface-raised,rgba(255,255,255,.1));color:var(--text,#fff)}' +
-    '@media(max-width:600px){.nylo-home span{display:none}.nylo-home{padding:5px 8px}}' +
+    '@media(max-width:760px){.nylo-home span{display:none}.nylo-home{padding:5px 8px}}' +
     '.menu-pop .opt-toggle.nylo-menu-action{display:block;width:100%;padding:9px 10px;border:0;border-radius:6px;text-align:left;white-space:normal;font:500 13px Inter,system-ui,sans-serif;cursor:pointer;background:transparent;color:inherit}' +
     '.menu-pop .opt-toggle.nylo-menu-action:hover{background:var(--accent-soft,rgba(255,255,255,.1))}' +
     '.nylo-menu-action input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}' +
     '.nylo-home-float{position:fixed;left:12px;bottom:12px;z-index:2147483000;width:42px;height:42px;justify-content:center;border-radius:50%;background:rgba(15,23,42,.88);color:#f1f5f9;border-color:rgba(255,255,255,.45);box-shadow:0 4px 14px rgba(0,0,0,.4)}' +
     '.nylo-home-float span{display:none}' +
-    '@media(max-width:760px){html.nylo-mobile-menu-home .topbar>.nylo-home{display:none!important}.nylo-mobile-menu-home .menu-pop>.nylo-home{display:flex;width:100%;justify-content:flex-start;padding:9px 10px;border:0;border-radius:6px;font-size:13px}.nylo-mobile-menu-home .menu-pop>.nylo-home span{display:inline}}';
+    '@media(max-width:760px){html.nylo-mobile-menu-game-controls .topbar>[data-new]{display:none!important}.nylo-mobile-menu-game-controls .menu-pop>[data-new]{display:block!important;width:100%;text-align:left;padding:9px 10px}}';
   document.head.appendChild(st);
 
   var ov;
@@ -34,15 +34,15 @@
       f = f.firstChild; f.className += ' nylo-home-float';
       document.body.appendChild(f);
     } else {
-      if (document.querySelector('.menu-wrap')) document.documentElement.classList.add('nylo-mobile-menu-home');
+      if (document.querySelector('.menu-wrap')) document.documentElement.classList.add('nylo-mobile-menu-game-controls');
       var updateGameMenu = function () {
         var mobile = window.matchMedia && window.matchMedia('(max-width:760px)').matches;
         var topbar = document.querySelector('.topbar');
         var menu = document.querySelector('.menu-wrap .menu-pop');
-        var homeInMenu = document.querySelector('.menu-pop>.nylo-home[data-home]');
-        var homeInBar = topbar && topbar.querySelector(':scope > .nylo-home[data-home]');
-        if (mobile && menu && homeInBar) menu.appendChild(homeInBar);
-        else if (!mobile && topbar && homeInMenu) topbar.insertBefore(homeInMenu, document.querySelector('.menu-wrap'));
+        var newInMenu = document.querySelector('.menu-pop>[data-new]');
+        var newInBar = topbar && topbar.querySelector(':scope > [data-new]');
+        if (mobile && menu && newInBar) menu.appendChild(newInBar);
+        else if (!mobile && topbar && newInMenu) topbar.insertBefore(newInMenu, document.querySelector('.menu-wrap'));
 
         Array.prototype.forEach.call(document.querySelectorAll('.menu-pop .opt-toggle input#optA11y, .menu-pop .opt-toggle input#optUndo'), function (input) {
           var label = input.parentElement;
@@ -60,6 +60,15 @@
             label.appendChild(document.createTextNode(' ' + text));
             label.setAttribute('data-action-label', text);
           }
+        });
+
+        var name = '';
+        try { name = localStorage.getItem('nylo-player-name') || ''; } catch (e) {}
+        if (name) Array.prototype.forEach.call(document.querySelectorAll('.opts button[data-n]'), function (button) {
+          var original = button.getAttribute('data-player-label') || button.textContent;
+          if (!button.hasAttribute('data-player-label')) button.setAttribute('data-player-label', original);
+          var personalized = original.replace(/\btu\s*\+\s*/gi, name + ' vs ');
+          if (button.textContent !== personalized) button.textContent = personalized;
         });
       };
       updateGameMenu();
