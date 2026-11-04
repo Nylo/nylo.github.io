@@ -69,16 +69,24 @@
                     { title: 'Non-trick-taking', desc: 'Altri giochi online', icon: 'puzzle-piece', soon: true }
                 ]},
                 { id: 'lab', title: 'Lab', desc: 'Giochi e strumenti in sviluppo e sperimentali. Richiede password.', icon: 'flask', locked: true, children: [
-                    { title: 'Tambu / Haru', desc: 'Giochi a squadre di parole', icon: 'chats-circle', links: [
-                        { label: 'Tambu', href: '/tambu.html' },
-                        { label: 'Haru', href: '/haru.html' }
-                    ]},
+                    { title: 'Haru', desc: 'Prototipo per Tambu', icon: 'flower-lotus', href: '/haru.html' },
                     { title: 'Kogge', desc: 'Gioco da tavolo di commercio', icon: 'sailboat', href: '/kogge.html', badge: 'WIP' },
                     { title: 'Florenza Dice Game', desc: 'Versione solitario', icon: 'dice-five', href: '/fdg/solitario.html', badge: 'WIP' }
                 ]}
             ];
 
             var GATE = { hash: 'ad2fcdb7122f8f450a8f1c8a9f88a7632b1d5e561b93d66e735564e2e892100d', key: 'nylo-unlocked' };
+            // password "master": sblocca home, area Lab e admin della collection, e imposta il nome "Nylo" senza popup nei giochi vs AI
+            var MASTER_HASH = '85770706df4d616a498c17a05c1f8fe200d36b219ea00c688d4ac39ee46103c4';
+            function masterUnlock() {
+              try {
+                localStorage.setItem('nylo-unlocked', 'ad2fcdb7122f8f450a8f1c8a9f88a7632b1d5e561b93d66e735564e2e892100d');
+                localStorage.setItem('nylo-tambu-unlocked', 'c57025ae9174f33c56f41db133f1b855c82502a687de8eddcb9e1d6fa491bdfb');
+                localStorage.setItem('nylo-admin', MASTER_HASH);
+                localStorage.setItem('nylo-skip-name', '1');
+                localStorage.setItem('nylo-player-name', 'Nylo');
+              } catch (e) {}
+            }
             var LAB = { hash: 'c57025ae9174f33c56f41db133f1b855c82502a687de8eddcb9e1d6fa491bdfb', key: 'nylo-tambu-unlocked' };
 
             var app = document.getElementById('app');
@@ -182,6 +190,7 @@
                 e.preventDefault();
                 sha256(gateInput.value).then(function (h) {
                     if (h === GATE.hash) { remember(GATE); unlockHome(); }
+                    else if (h === MASTER_HASH) { masterUnlock(); unlockHome(); }
                     else { gateErr.hidden = false; gateInput.select(); }
                 });
             });
@@ -210,6 +219,7 @@
                 e.preventDefault();
                 sha256(labInput.value).then(function (h) {
                     if (h === LAB.hash) { remember(LAB); closeLab(); go(labTarget); }
+                    else if (h === MASTER_HASH) { masterUnlock(); closeLab(); go(labTarget); }
                     else { labErr.hidden = false; labInput.select(); }
                 });
             });

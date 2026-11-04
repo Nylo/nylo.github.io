@@ -3,6 +3,17 @@
 (function () {
   var PW_HASH = 'ad2fcdb7122f8f450a8f1c8a9f88a7632b1d5e561b93d66e735564e2e892100d';
   var KEY = 'nylo-unlocked';
+  // password "master": sblocca home, area Lab e admin della collection, e imposta il nome "Nylo" senza popup nei giochi vs AI
+  var MASTER_HASH = '85770706df4d616a498c17a05c1f8fe200d36b219ea00c688d4ac39ee46103c4';
+  function masterUnlock() {
+    try {
+      localStorage.setItem('nylo-unlocked', 'ad2fcdb7122f8f450a8f1c8a9f88a7632b1d5e561b93d66e735564e2e892100d');
+      localStorage.setItem('nylo-tambu-unlocked', 'c57025ae9174f33c56f41db133f1b855c82502a687de8eddcb9e1d6fa491bdfb');
+      localStorage.setItem('nylo-admin', MASTER_HASH);
+      localStorage.setItem('nylo-skip-name', '1');
+      localStorage.setItem('nylo-player-name', 'Nylo');
+    } catch (e) {}
+  }
   try { if (localStorage.getItem(KEY) === PW_HASH) return; } catch (e) {}
 
   var st = document.createElement('style');
@@ -30,8 +41,8 @@
     f.addEventListener('submit', function (e) {
       e.preventDefault();
       sha256(inp.value).then(function (h) {
-        if (h === PW_HASH) {
-          try { localStorage.setItem(KEY, PW_HASH); } catch (x) {}
+        if (h === PW_HASH || h === MASTER_HASH) {
+          if (h === MASTER_HASH) masterUnlock(); else { try { localStorage.setItem(KEY, PW_HASH); } catch (x) {} }
           g.remove(); st.remove();
         } else { err.style.display = 'block'; inp.select(); }
       });

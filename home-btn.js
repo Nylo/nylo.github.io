@@ -9,8 +9,10 @@
   };
   var BACK_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg>';
   // pulsante "Indietro": torna alla lista dei giochi trick-taking (stesso stile del pulsante Home)
-  window.nyloBackBtn = function () {
-    return '<button type="button" class="nylo-home nylo-back" data-back="/tt/" title="Torna alla lista dei giochi" aria-label="Torna alla lista dei giochi">' + BACK_SVG + '<span>Indietro</span></button>';
+  // to = destinazione (default /tt/), what = come la chiama il messaggio ("alla lista dei giochi")
+  window.nyloBackBtn = function (to, what) {
+    to = to || '/tt/'; what = what || 'alla lista dei giochi';
+    return '<button type="button" class="nylo-home nylo-back" data-back="' + to + '" data-back-what="' + what + '" title="Torna ' + what + '" aria-label="Torna ' + what + '">' + BACK_SVG + '<span>Indietro</span></button>';
   };
   var st = document.createElement('style');
   st.textContent = '.nylo-home{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:7px;border:1px solid var(--border,rgba(255,255,255,.35));background:transparent;color:var(--text-soft,#cbd5e1);font:500 12px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}' +
@@ -53,8 +55,8 @@
     if (!b || !ov) return;
     var back = b.getAttribute('data-back');
     ov._to = back || '/';
-    ov.querySelector('[data-title]').textContent = back ? 'Tornare alla lista dei giochi?' : 'Tornare alla home?';
-    ov.querySelector('[data-yes]').textContent = back ? 'Torna ai giochi' : 'Torna alla home';
+    ov.querySelector('[data-title]').textContent = back ? 'Tornare ' + (b.getAttribute('data-back-what') || 'alla lista dei giochi') + '?' : 'Tornare alla home?';
+    ov.querySelector('[data-yes]').textContent = !back ? 'Torna alla home' : back === '/tt/' ? 'Torna ai giochi' : 'Torna indietro';
     ov.querySelector('[data-warn]').style.display = gameOver() ? 'none' : '';
     ov.style.display = 'flex'; ov.querySelector('[data-no]').focus();
   });

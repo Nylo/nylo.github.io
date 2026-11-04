@@ -711,6 +711,7 @@ function toggleTheme(){
 // ─────────────── AUTH ───────────────
 const PWD_HASH = '4bd25b8fd42ac3a1f0cbcb5f88077ac3962d62b6c2910757bffd2b2e948e7d79';
 const AUTH_SESSION_KEY = 'trick-auth-session';
+const MASTER_HASH = '85770706df4d616a498c17a05c1f8fe200d36b219ea00c688d4ac39ee46103c4';   // password master della home: vale anche come admin
 let isAdmin = false;
 
 async function sha256(str){
@@ -759,8 +760,9 @@ function closeAuthModal(){ document.getElementById('authModal').classList.remove
 async function doLogin(){
   const pwd = document.getElementById('authInput').value;
   const hash = await sha256(pwd);
-  if(hash === PWD_HASH){
+  if(hash === PWD_HASH || hash === MASTER_HASH){
     isAdmin = true;
+    if(hash === MASTER_HASH){ try{ localStorage.setItem('nylo-admin', MASTER_HASH); }catch(e){} }
     try{ sessionStorage.setItem(AUTH_SESSION_KEY,'1'); }catch(e){}
     closeAuthModal();
     applyAuthUI();
@@ -774,7 +776,7 @@ async function doLogin(){
 function doLogout(){
   if(!confirm('Esci dalla modalità admin?')) return;
   isAdmin = false;
-  try{ sessionStorage.removeItem(AUTH_SESSION_KEY); }catch(e){}
+  try{ sessionStorage.removeItem(AUTH_SESSION_KEY); localStorage.removeItem('nylo-admin'); }catch(e){}
   const fpSel = document.getElementById('filterPlayed');
   if(fpSel) fpSel.value = '';
   closeManageModal(); closeWeightsModal();
@@ -783,7 +785,7 @@ function doLogout(){
 }
 
 function checkSession(){
-  try{ if(sessionStorage.getItem(AUTH_SESSION_KEY)==='1'){ isAdmin=true; } }catch(e){}
+  try{ if(sessionStorage.getItem(AUTH_SESSION_KEY)==='1' || localStorage.getItem('nylo-admin')===MASTER_HASH){ isAdmin=true; } }catch(e){}
 }
 
 // ─────────────── GITHUB SYNC ───────────────
