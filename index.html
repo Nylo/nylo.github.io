@@ -55,7 +55,7 @@
             // Struttura del menu: 4 schede principali; le schede con "children" aprono una vista con le schede figlie.
             // Figlio = { title, desc, icon, href } oppure { title, desc, icon, links: [{ label, href }] } oppure { ..., soon: true }
             var HOME = [
-                { id: 'collection', title: 'Trick Taking collection', desc: 'La collezione di giochi di prese di Nylo', icon: 'cards', href: '/tt/collection/' },
+                { id: 'collection', title: 'Trick Taking collection', desc: 'La collezione di giochi di trick-taking di Nylo', icon: 'cards', href: '/tt/collection/' },
                 { id: 'helpers', title: 'Boardgame Helpers', desc: 'Contatori e strumenti di supporto per i giochi da tavolo', icon: 'toolbox', children: [
                     { title: 'Gachapon Trick', desc: 'Contatore di punti per Gachapon Trick', icon: 'cards-three', links: [
                         { label: 'Stesso device', href: '/tt/gachapon/gcp_v2.html' },
@@ -64,11 +64,11 @@
                     { title: 'Cascadia', desc: 'Generatore di carte punteggio', icon: 'tree', href: '/webapp/index.html' },
                     { title: 'Tir na nóg', desc: 'Visualizzatore delle carte incontro', icon: 'compass', href: '/tnn_encounter_cards_viewer.html' }
                 ]},
-                { id: 'online', title: 'Online games', desc: 'Partite da giocare online', icon: 'globe', children: [
+                { id: 'online', title: 'Online games', desc: "Partite da giocare online contro l'AI o gli amici", icon: 'globe', children: [
                     { title: 'Trick-Taking', desc: 'Giochi di prese contro l\'AI o contro gli amici', icon: 'cards', href: '/tt/' },
                     { title: 'Non-trick-taking', desc: 'Altri giochi online', icon: 'puzzle-piece', soon: true }
                 ]},
-                { id: 'lab', title: 'Lab', desc: 'Giochi in sviluppo e sperimentali', icon: 'flask', locked: true, children: [
+                { id: 'lab', title: 'Lab', desc: 'Giochi e strumenti in sviluppo e sperimentali. Richiede password.', icon: 'flask', locked: true, children: [
                     { title: 'Tambu / Haru', desc: 'Giochi a squadre di parole', icon: 'chats-circle', links: [
                         { label: 'Tambu', href: '/tambu.html' },
                         { label: 'Haru', href: '/haru.html' }
@@ -114,7 +114,6 @@
                 if (item.soon) b += badgeText('In arrivo', 'border-slate-600 text-slate-400');
                 return b ? '<span class="absolute right-3 top-3 flex items-center gap-1.5">' + b + '</span>' : '';
             }
-            function chevron() { return '<i class="ph-fill ph-caret-right shrink-0 text-slate-500 transition-colors group-hover:text-teal-400"></i>'; }
 
             function card(item) {
                 if (item.soon) return '<div class="' + CARD_OFF + '" title="In arrivo">' + icon(item.icon) + body(item) + topBadges(item) + '</div>';
@@ -125,15 +124,15 @@
                             return '<a href="' + l.href + '" class="rounded-lg border border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:border-teal-500 hover:bg-teal-600 hover:text-white">' + esc(l.label) + '</a>';
                         }).join('') + '</div>' + topBadges(item) + '</div>';
                 }
-                if (item.href) return '<a href="' + item.href + '" class="' + CARD_LINK + '">' + icon(item.icon) + body(item) + chevron() + topBadges(item) + '</a>';
+                if (item.href) return '<a href="' + item.href + '" class="' + CARD_LINK + '">' + icon(item.icon) + body(item) + topBadges(item) + '</a>';
                 // scheda che apre una vista figlia
-                return '<button type="button" data-view="' + item.id + '" class="' + CARD_LINK + 'w-full">' + icon(item.icon) + body(item) + chevron() + topBadges(item) + '</button>';
+                return '<button type="button" data-view="' + item.id + '" class="' + CARD_LINK + 'w-full">' + icon(item.icon) + body(item) + topBadges(item) + '</button>';
             }
 
             // ----- viste -----
             function renderHome() {
                 app.innerHTML =
-                    '<h1 class="mb-6 text-2xl font-bold tracking-tight sm:mb-8 sm:text-3xl">Nylo</h1>' +
+                    '<h1 class="mb-6 text-2xl font-bold tracking-tight sm:mb-8 sm:text-3xl">Nylo HomePage</h1>' +
                     '<div class="grid gap-3 sm:grid-cols-2 sm:gap-4 [&>*]:min-h-[96px]">' + HOME.map(card).join('') + '</div>';
             }
             function renderSection(sec) {
