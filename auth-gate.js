@@ -18,7 +18,7 @@
   function build() {
     var g = document.createElement('div');
     g.id = 'nylo-gate';
-    g.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:linear-gradient(#142b34,#0e1e25);font-family:Inter,system-ui,sans-serif;color:#e2e8f0';
+    g.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#0a0c10;font-family:Inter,system-ui,sans-serif;color:#e2e8f0';
     g.innerHTML =
       '<form autocomplete="off" style="width:min(320px,90vw);padding:20px;border:1px solid rgba(100,116,139,.5);border-radius:14px;background:rgba(15,23,42,.95)">' +
       '<div style="font-size:15px;margin-bottom:10px">Password di accesso</div>' +
