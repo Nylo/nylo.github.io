@@ -46,6 +46,7 @@ body{background:radial-gradient(ellipse at 50% 0%,#241320 0%,#000 100%) fixed}
 .menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
 .menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
 .menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.menu-pop{min-width:260px}.suit-options{border:0;border-top:1px solid var(--border);padding:7px 0 0;margin-top:3px}.suit-options legend{padding-top:6px;font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:.05em;text-transform:uppercase}.suit-options .opt-toggle{white-space:normal;line-height:1.35}
 .flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
 .flag.first{background:#ffd54a;color:#2a2000}
 .flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
@@ -94,6 +95,8 @@ table.score .neg{color:var(--danger)}
 
 .fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Libre Baskerville',serif;font-weight:700;font-size:22px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
 .fc i{font-size:20px}
+.gi{width:1em;height:1em;flex-shrink:0;mix-blend-mode:screen}
+.fc.k1 .gi{filter:invert(1);mix-blend-mode:multiply}
 .fc.k0{background-color:var(--k0)} .fc.k1{background-color:var(--k1)} .fc.k2{background-color:var(--k2)} .fc.k3{background-color:var(--k3)} .fc.k4{background-color:var(--k4)}
 .fc.mini{width:42px;height:62px;font-size:19px}
 .fc.mini i{font-size:17px}
@@ -176,15 +179,21 @@ details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const SUITS = [
-  {n:'Pesca',  gum:'Peach Gum',  icon:'circle'},
-  {n:'Banana', gum:'Banana Gum', icon:'lightning'},
-  {n:'Melone', gum:'Melon Gum',  icon:'hexagon'},
-  {n:'Soda',   gum:'Soda Gum',   icon:'seal'}
+  {n:'Pesca',   gum:'Peach Gum',      icon:'circle',    original:'peach'},
+  {n:'Banana',  gum:'Banana Gum',     icon:'lightning', original:'banana'},
+  {n:'Anguria', gum:'Watermelon Gum', icon:'hexagon',   original:'watermelon'},
+  {n:'Soda',    gum:'Soda Gum',       icon:'seal',      original:'sodaCan'}
 ];
 const LIMIT = 15, HANDN = 10, WINS = 2;
 const NAMES = ['Tu','AI Yokome'];
 const HUM = 0;
-const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+const GAME_ICONS = {
+  peach:'https://game-icons.net/icons/ffffff/000000/1x1/delapouite/peach.svg',
+  banana:'https://game-icons.net/icons/ffffff/000000/1x1/delapouite/banana.svg',
+  watermelon:'https://game-icons.net/icons/ffffff/000000/1x1/delapouite/watermelon.svg',
+  sodaCan:'https://game-icons.net/icons/ffffff/000000/1x1/guard13007/soda-can.svg'
+};
+const ico = n => n.startsWith('gi:')?`<img class="gi" src="${GAME_ICONS[n.slice(3)]}" alt="" aria-hidden="true">`:`<i class="ph-fill ph-${n}"></i>`;
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
 const rnd = n => Math.floor(Math.random()*n);
@@ -192,8 +201,8 @@ function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const ABORT = {abort:true};
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('bg-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('bg-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,originalSuits:false};
+try{ const s=localStorage.getItem('bg-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('bg-a11y')==='1'; OPT.originalSuits=localStorage.getItem('bg-original-suits')==='1'; }catch(e){}
 const delay = ms => new Promise(r=>setTimeout(r,ms));
 async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
 const P = i => G.pl[i];
@@ -467,9 +476,10 @@ async function run(){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
-const kface=(c,cls='')=>`<span class="fc k${c.s} ${cls}" title="${cname(c)} (${SUITS[c.s].gum})"><span>${c.v}</span>${ico(SUITS[c.s].icon)}</span>`;
+const suitIcon=s=>ico(OPT.originalSuits?`gi:${SUITS[s].original}`:SUITS[s].icon);
+const kface=(c,cls='')=>`<span class="fc k${c.s} ${cls}" title="${cname(c)} (${SUITS[c.s].gum})"><span>${c.v}</span>${suitIcon(c.s)}</span>`;
 function handBtn(c,i,ok,sel){
-  return `<button class="fc k${c.s} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)} (${SUITS[c.s].gum})"><span>${c.v}</span>${ico(SUITS[c.s].icon)}</button>`;
+  return `<button class="fc k${c.s} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)} (${SUITS[c.s].gum})"><span>${c.v}</span>${suitIcon(c.s)}</button>`;
 }
 function frontHtml(p){
   const pl=P(p), sum=sumOf(pl.front), pct=Math.min(100,Math.round(100*sum/LIMIT));
@@ -572,6 +582,7 @@ const RULES_HTML = `
 <p>Dopo le 10 prese ogni giocatore somma i valori delle carte davanti a sé. Chi ha il totale più alto vince il round e gira la carta giocatore per mostrare la stella. In caso di parità vince chi ha più carte davanti a sé; se anche le carte sono pari, entrambi vincono il round.</p>
 <p>Si continua finché uno dei due vince 2 round. Il round successivo riparte dalla preparazione, cambiando il giocatore di mano. Se entrambi arrivano a 2 round vinti nello stesso momento, si gioca un round supplementare, e così via finché c'è un vincitore.</p>
 <p><i>Interpretazioni nell'app:</i> il «totale» che fa scoppiare il pallone è la somma dei valori delle carte davanti a te (come nella traduzione; sul regolamento inglese la didascalia dice «cards exceed 14/15»). Il perdente può scartare anche la carta appena ricevuta. Le tue carte scartate le vedi, quelle dell'avversario restano coperte.</p>
+<p><i>Attribuzioni delle icone:</i> <a href="https://game-icons.net/1x1/delapouite/peach.html" target="_blank" rel="noopener">Peach</a>, <a href="https://game-icons.net/1x1/delapouite/banana.html" target="_blank" rel="noopener">Banana</a> e <a href="https://game-icons.net/1x1/delapouite/watermelon.html" target="_blank" rel="noopener">Watermelon</a> di Delapouite; <a href="https://game-icons.net/1x1/guard13007/soda-can.html" target="_blank" rel="noopener">Soda can</a> di Guard13007. Da <a href="https://game-icons.net/" target="_blank" rel="noopener">game-icons.net</a>, licenza <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -585,6 +596,10 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <fieldset class="suit-options"><legend>Semi</legend>
+        <label class="opt-toggle"><input type="radio" name="suitIcons" value="simple" ${OPT.originalSuits?'':'checked'}> Usa semi semplificati (quelli attuali)</label>
+        <label class="opt-toggle"><input type="radio" name="suitIcons" value="original" ${OPT.originalSuits?'checked':''}> Usa semi originali (games-icons)</label>
+      </fieldset>
     </div>`:''}</div>`;
 }
 function render(){
@@ -634,6 +649,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
 });
 document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.name==='suitIcons'){
+    OPT.originalSuits=e.target.value==='original';
+    try{ localStorage.setItem('bg-original-suits',OPT.originalSuits?'1':'0'); }catch(err){}
+    render(); return;
+  }
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('bg-a11y',OPT.a11y?'1':'0'); }catch(err){}
