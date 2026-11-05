@@ -33,13 +33,16 @@ body{background:radial-gradient(ellipse at 50% 0%,#241320 0%,#000 100%) fixed}
 
 .topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
 .logo{font-family:'Libre Baskerville',serif;font-size:28px;font-weight:700;font-style:italic;line-height:1.1;flex:1;color:var(--accent)}
-.logo small{display:block;font-family:'Inter',sans-serif;font-style:normal;font-size:10px;font-weight:600;letter-spacing:0.12em;color:var(--text-soft);text-transform:uppercase;margin-bottom:3px}
 .badge{background:var(--accent);color:#2a2410;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
 .btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
 .btn:hover{background:var(--surface-raised)}
 .btn-sm{padding:5px 10px;font-size:12px}
 .opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
-.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.opt-toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:34px;height:19px;flex:0 0 34px;margin:0;border:1px solid var(--border);border-radius:999px;background:var(--surface-raised);cursor:pointer;transition:background .15s,border-color .15s}
+.opt-toggle input[type=checkbox]::before{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-soft);transition:transform .15s,background .15s}
+.opt-toggle input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.opt-toggle input[type=checkbox]:checked::before{transform:translateX(15px);background:#fff}
+.opt-toggle input[type=checkbox]:focus-visible{outline:2px solid var(--text);outline-offset:2px}
 .menu-wrap{position:relative;margin-left:auto}
 .hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
 .hamb:hover{background:var(--surface-raised);color:var(--text)}
@@ -602,7 +605,7 @@ function menuHtml(){
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
-  const top=`<div class="topbar"><div class="logo"><small>Gioco di prese per 2</small>Bubble Gum</div>
+  const top=`<div class="topbar"><div class="logo">Bubble Gum</div>
     ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
     ${G&&!G.over?`<span class="badge">Round ${G.round+1}</span>`:''}
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
