@@ -46,7 +46,7 @@ body{background:radial-gradient(ellipse at 50% 0%,#241320 0%,#000 100%) fixed}
 .menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
 .menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
 .menu-pop .opt-toggle:hover{background:var(--accent-soft)}
-.menu-pop{min-width:260px}.suit-options{border:0;border-top:1px solid var(--border);padding:7px 0 0;margin-top:3px}.suit-options legend{padding-top:6px;font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:.05em;text-transform:uppercase}.suit-options .opt-toggle{white-space:normal;line-height:1.35}
+.menu-pop{min-width:260px}.menu-pop .opt-toggle{white-space:normal;line-height:1.35;text-align:left;width:100%}.menu-pop button.opt-toggle{font-family:inherit;font-weight:500;cursor:pointer}
 .flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
 .flag.first{background:#ffd54a;color:#2a2000}
 .flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
@@ -182,7 +182,7 @@ const SUITS = [
   {n:'Pesca',   gum:'Peach Gum',      icon:'circle',    original:'peach'},
   {n:'Banana',  gum:'Banana Gum',     icon:'lightning', original:'banana'},
   {n:'Anguria', gum:'Watermelon Gum', icon:'hexagon',   original:'watermelon'},
-  {n:'Soda',    gum:'Soda Gum',       icon:'seal',      original:'sodaCan'}
+  {n:'Soda',    gum:'Soda Gum',       icon:'seal',      original:'sodaBottle'}
 ];
 const LIMIT = 15, HANDN = 10, WINS = 2;
 const NAMES = ['Tu','AI Yokome'];
@@ -191,7 +191,7 @@ const GAME_ICONS = {
   peach:'https://game-icons.net/icons/ffffff/000000/1x1/delapouite/peach.svg',
   banana:'https://game-icons.net/icons/ffffff/000000/1x1/delapouite/banana.svg',
   watermelon:'https://game-icons.net/icons/ffffff/000000/1x1/delapouite/watermelon.svg',
-  sodaCan:'https://game-icons.net/icons/ffffff/000000/1x1/guard13007/soda-can.svg'
+  sodaBottle:'https://game-icons.net/icons/ffffff/000000/1x1/caro-asercion/soda-bottle.svg'
 };
 const ico = n => n.startsWith('gi:')?`<img class="gi" src="${GAME_ICONS[n.slice(3)]}" alt="" aria-hidden="true">`:`<i class="ph-fill ph-${n}"></i>`;
 
@@ -551,7 +551,7 @@ function dockHtml(){
 }
 function recapHtml(){
   return `<div class="recap"><h3>RIEPILOGO</h3>
-    <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">24 carte: 4 colori (gusti) da 1 a 6 · 10 carte a testa, 4 da parte (la prima scoperta fa la briscola)</span></div>
+    <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>`<span class="rchip k${i}">${suitIcon(i)} ${s.n}</span>`).join('')}<span class="rv">24 carte: Pesca, Banana, Anguria e Soda, da 1 a 6 · 10 carte a testa, 4 da parte (la prima scoperta fa la briscola)</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">chi risponde deve rispondere al colore · stesso colore: vince il valore più alto · altrimenti vince solo una briscola giocata da chi risponde</span></div>
     <div class="recap-row"><span class="lbl">Premio</span><span class="rv" style="margin-left:0">il vincitore mette davanti a sé la carta del perdente (gonfia il pallone) · il perdente prende in mano la carta del vincitore e scarta una carta coperta</span></div>
     <div class="recap-row"><span class="lbl">POP!</span><span class="rv" style="margin-left:0">se il totale delle carte davanti a te supera ${LIMIT} il pallone scoppia e le perdi tutte</span></div>
@@ -582,7 +582,7 @@ const RULES_HTML = `
 <p>Dopo le 10 prese ogni giocatore somma i valori delle carte davanti a sé. Chi ha il totale più alto vince il round e gira la carta giocatore per mostrare la stella. In caso di parità vince chi ha più carte davanti a sé; se anche le carte sono pari, entrambi vincono il round.</p>
 <p>Si continua finché uno dei due vince 2 round. Il round successivo riparte dalla preparazione, cambiando il giocatore di mano. Se entrambi arrivano a 2 round vinti nello stesso momento, si gioca un round supplementare, e così via finché c'è un vincitore.</p>
 <p><i>Interpretazioni nell'app:</i> il «totale» che fa scoppiare il pallone è la somma dei valori delle carte davanti a te (come nella traduzione; sul regolamento inglese la didascalia dice «cards exceed 14/15»). Il perdente può scartare anche la carta appena ricevuta. Le tue carte scartate le vedi, quelle dell'avversario restano coperte.</p>
-<p><i>Attribuzioni delle icone:</i> <a href="https://game-icons.net/1x1/delapouite/peach.html" target="_blank" rel="noopener">Peach</a>, <a href="https://game-icons.net/1x1/delapouite/banana.html" target="_blank" rel="noopener">Banana</a> e <a href="https://game-icons.net/1x1/delapouite/watermelon.html" target="_blank" rel="noopener">Watermelon</a> di Delapouite; <a href="https://game-icons.net/1x1/guard13007/soda-can.html" target="_blank" rel="noopener">Soda can</a> di Guard13007. Da <a href="https://game-icons.net/" target="_blank" rel="noopener">game-icons.net</a>, licenza <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>.</p>
+<p><i>Attribuzioni delle icone:</i> <a href="https://game-icons.net/1x1/delapouite/peach.html" target="_blank" rel="noopener">Peach</a>, <a href="https://game-icons.net/1x1/delapouite/banana.html" target="_blank" rel="noopener">Banana</a> e <a href="https://game-icons.net/1x1/delapouite/watermelon.html" target="_blank" rel="noopener">Watermelon</a> di Delapouite; <a href="https://game-icons.net/1x1/caro-asercion/soda-bottle.html" target="_blank" rel="noopener">Soda bottle</a> di Caro Asercion. Da <a href="https://game-icons.net/" target="_blank" rel="noopener">game-icons.net</a>, licenza <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -596,10 +596,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
-      <fieldset class="suit-options"><legend>Semi</legend>
-        <label class="opt-toggle"><input type="radio" name="suitIcons" value="simple" ${OPT.originalSuits?'':'checked'}> Usa semi semplificati (quelli attuali)</label>
-        <label class="opt-toggle"><input type="radio" name="suitIcons" value="original" ${OPT.originalSuits?'checked':''}> Usa semi originali (games-icons)</label>
-      </fieldset>
+      <button class="opt-toggle" type="button" id="toggleSuitIcons" aria-pressed="${OPT.originalSuits}" aria-label="Cambia modalità semi">Semi attivi: ${OPT.originalSuits?'originali (games-icons)':'semplificati (quelli attuali)'}</button>
     </div>`:''}</div>`;
 }
 function render(){
@@ -642,6 +639,11 @@ function askName(){
 document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.id==='toggleSuitIcons'){
+    OPT.originalSuits=!OPT.originalSuits;
+    try{ localStorage.setItem('bg-original-suits',OPT.originalSuits?'1':'0'); }catch(err){}
+    render(); return;
+  }
   if(b.dataset.n){ if(G) newMatch(); else askName(); }
   else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
@@ -649,11 +651,6 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
 });
 document.getElementById('app').addEventListener('change',e=>{
-  if(e.target.name==='suitIcons'){
-    OPT.originalSuits=e.target.value==='original';
-    try{ localStorage.setItem('bg-original-suits',OPT.originalSuits?'1':'0'); }catch(err){}
-    render(); return;
-  }
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('bg-a11y',OPT.a11y?'1':'0'); }catch(err){}
