@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Can't Win!</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#1d1a2c;
+  --ink:#2a2540;
+  --surface:#ffffff;
+  --paper:#dfe6ea;
+  --accent:#3cc6c0;
+  --accent-soft:rgba(60,198,192,0.22);
+  --gold:#ffd75e;
+  --text:#221d33;
+  --text-soft:#575070;
+  --danger:#c62f3e;
+  --success:#1e8f55;
+  --border:rgba(34,29,51,0.3);
+  --radius:10px;
+  --c0:#3cc6c0; --c1:#f490b4; --c2:#8f76d6; --c3:#f6c437;
+  --cw:46px; --ch:66px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#3a3460 0%,#1d1a2c 60%,#110f1c 100%) fixed;background-color:var(--bg)}
+.app{max-width:1000px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Pixelify Sans',sans-serif;font-size:30px;font-weight:700;line-height:1;flex:1;letter-spacing:0.04em;color:#fff;text-shadow:3px 3px 0 #5b4f9a,-1px -1px 0 #2a2540}
+.logo .ex{color:var(--gold)}
+.badge{background:#fff;color:var(--ink);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:rgba(255,255,255,0.12);color:#fff;border:1px solid #fff}
+.btn:hover{background:rgba(255,255,255,0.3)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.nylo-home{color:#fff;border-color:#fff;background:rgba(255,255,255,0.12)}
+.nylo-home:hover{background:rgba(255,255,255,0.3);color:#fff}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid #fff;cursor:pointer}
+.hamb:hover{background:rgba(255,255,255,0.3)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:240px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.45)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.lead{background:var(--gold);color:#2a2540}
+.flag.deal{background:#b9c6d2;color:#2a2540}
+.flag.start{background:var(--accent);color:#0f2e2c}
+.paper{background:var(--paper)}
+.log{border:3px solid var(--ink);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Pixelify Sans',sans-serif;font-weight:700;font-size:19px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;border:3px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.25)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fff;border:2px solid var(--ink);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--ink);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.opt.sel{background:var(--ink);color:#fff;box-shadow:0 0 0 3px var(--accent)}
+.opt.num{min-width:42px;text-align:center}
+.opts.tiles .opt{display:flex;align-items:center;gap:8px}
+.opts.tiles .opt i{font-size:18px}
+.hint{font-size:12px;color:var(--text-soft)}
+.dock .opt-toggle.beg{align-self:flex-start;background:#fff}
+.scroll-x{overflow-x:auto}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle;white-space:nowrap}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left;white-space:normal}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:linear-gradient(160deg,#363f63 0%,#1c2137 100%);border:4px solid #6c62b0;outline:3px solid #0d0b18;border-radius:14px;padding:12px;margin-bottom:14px;min-height:620px;color:#eef0fb}
+.table.n3{grid-template-areas:"left center right" "bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,215,94,0.55);background:rgba(255,255,255,0.07)}
+.seat.active{border-color:var(--gold);background:rgba(255,215,94,0.16)}
+.seat.winner{border-color:#5ee08a;background:rgba(94,224,138,0.18)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.5);border-radius:4px;padding:2px 6px;color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.tag b{color:var(--gold)}
+.tag.hit{background:#1e8f55}
+.tile{display:inline-flex;align-items:center;gap:4px;border-radius:4px;padding:2px 6px;font-family:'Pixelify Sans',sans-serif;font-weight:700;font-size:12px;border:1px solid #fff;white-space:nowrap;color:#2a2540}
+.tile i{font-size:13px}
+.t0{background:#f6a9c6}.t1{background:#b3a1ea}.t2{background:#f8d66a}.t3{background:#b9cde0}.t4{background:#c5c5cf}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:10px;height:16px;border-radius:3px;background:radial-gradient(circle at 50% 50%,#d84a4a 0 2px,transparent 3px),#3a5fb8;border:1px solid #e9eefc}
+.seat.left .backs,.seat.right .backs{display:grid;grid-template-columns:repeat(6,10px);max-width:none}   /* due righe da 6 carte coperte */
+.tableau{display:flex;gap:4px;align-items:center;justify-content:center;min-height:68px;min-width:60px;padding:4px 6px;border-radius:8px;background:rgba(255,255,255,0.08)}
+.tableau .empty{width:34px;height:50px;border:1px dashed rgba(255,255,255,0.4);border-radius:6px}
+
+.pc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;line-height:1;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.5);font-family:'Pixelify Sans',sans-serif}
+.pc b{font-family:'Pixelify Sans',sans-serif;font-weight:700;font-size:20px;line-height:1;background:#2a2540;color:#fff;border-radius:4px;padding:3px 4px 2px;min-width:26px;text-align:center}
+.pc i{font-size:16px;color:rgba(20,16,40,0.78)}
+.pc small.lt{display:none;position:absolute;left:3px;bottom:2px;font-family:'Inter',sans-serif;font-size:8px;font-weight:800;color:#2a2540}
+.pc.mini{width:32px;height:46px;gap:2px}
+.pc.mini b{font-size:15px;min-width:20px;padding:2px 3px 1px}
+.pc.mini i{font-size:11px}
+.pc.side{width:var(--ch);height:var(--cw);flex-direction:row;gap:5px}
+.pc.mini.side{width:46px;height:32px;gap:3px}
+.pc .cwl{position:absolute;left:50%;top:-10px;transform:translateX(-50%) rotate(-5deg);background:var(--danger);color:#fff;font-family:'Pixelify Sans',sans-serif;font-weight:700;font-size:9px;font-style:normal;padding:1px 4px;border-radius:3px;white-space:nowrap;border:1px solid #fff;z-index:2}
+.pc .nb{position:absolute;right:-6px;top:-6px;width:17px;height:17px;border-radius:50%;background:var(--danger);display:flex;align-items:center;justify-content:center;border:1px solid #fff;z-index:2}
+.pc .nb i{font-size:10px;color:#fff}
+.s0{background-color:var(--c0)}
+.s1{background-color:var(--c1)}
+.s2{background-color:var(--c2)}
+.s2 i{color:#fff}
+.s3{background-color:var(--c3)}
+.pc.bk{background:radial-gradient(circle at 50% 50%,#d84a4a 0 5px,transparent 6px),#3a5fb8;border-color:#e9eefc}
+.pc.win{box-shadow:0 0 0 3px #5ee08a}
+button.pc{cursor:pointer;transition:transform 0.12s}
+button.pc:hover:not(:disabled){transform:translateY(-6px)}
+button.pc:disabled{cursor:default}
+.pc.dim{opacity:0.4;filter:saturate(0.5)}
+.pc.legal{box-shadow:0 0 0 3px var(--gold)}
+.pc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--gold)}
+.hand{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding-top:6px}
+.sw{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:5px;font-weight:700;font-size:11px;border:1px solid rgba(0,0,0,0.4);color:#2a2540}
+.sw i{font-size:12px}
+.sw.s2{color:#fff}
+body.a11y .s0.pc,body.a11y .s0.sw{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.35) 0 3px,transparent 3px 8px)}
+body.a11y .s1.pc,body.a11y .s1.sw{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.35) 0 3px,transparent 3px 8px)}
+body.a11y .s2.pc,body.a11y .s2.sw{background-image:radial-gradient(rgba(255,255,255,0.35) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .s3.pc,body.a11y .s3.sw{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.18) 0 2px,transparent 2px 7px)}
+body.a11y .pc small.lt{display:block}
+body.a11y .s2.pc small.lt{color:#fff}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5}
+.center b{color:var(--gold)}
+.trump{display:inline-flex;align-items:center;gap:8px;border-radius:10px;padding:6px 12px;font-weight:800;border:2px solid #fff;color:#2a2540}
+.trump.s2{color:#fff}
+.legend{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.tboard{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:320px}
+.tboard .tile{flex-direction:column;gap:2px;padding:4px 7px;min-width:78px}
+.tboard .tile small{font-family:'Inter',sans-serif;font-weight:600;font-size:10px;opacity:0.85}
+.tboard .tile.taken{opacity:0.45}
+.order{font-size:11px;opacity:0.9}
+
+.recap{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row b{margin-right:0}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .sw,.recap-row .tile{vertical-align:middle}
+details.rules{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
+.rtext h4{font-family:'Pixelify Sans',sans-serif;font-weight:700;font-size:17px;margin:14px 0 4px;letter-spacing:0.02em;color:#4a3f8a}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul,.rtext ol{padding-left:18px}
+.rtext table{border-collapse:collapse;font-size:12px;margin:6px 0}
+.rtext td,.rtext th{border:1px solid var(--border);padding:4px 8px;text-align:center}
+
+@media(max-width:600px){
+  :root{--cw:31px;--ch:46px}
+  .pc{border-width:1px;border-radius:5px;gap:2px}
+  .pc b{font-size:14px;min-width:19px;padding:2px 2px 1px}
+  .pc i{font-size:10px}
+  .pc.mini{width:25px;height:37px;gap:1px}
+  .pc.mini b{font-size:12px;min-width:16px}
+  .pc.mini i{font-size:8px}
+  .pc.mini.side{width:37px;height:25px}
+  .pc .cwl{font-size:7px;top:-9px;padding:0 3px}
+  .pc .nb{width:14px;height:14px;right:-5px;top:-5px}
+  .pc .nb i{font-size:8px}
+  .tableau{min-width:44px}
+  .tableau .empty{width:26px;height:38px}
+  .table{padding:8px;gap:6px}
+  .back{width:7px;height:11px}
+  .seat.left .backs,.seat.right .backs{grid-template-columns:repeat(6,7px)}
+  .hand{gap:4px}
+  .logo{font-size:24px}
+  .tile{font-size:11px}
+  .tboard .tile{min-width:64px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+// colori: 0 = Turchese (briscola, spade), 1 = Rosa (Revive), 2 = Viola (Spell), 3 = Giallo (Item)
+const SUITS = ['Turchese','Rosa','Viola','Giallo'];
+const SL    = ['Tu','Ro','Vi','Gi'];
+const SICO  = ['sword','flask','book-open','coins'];
+const TRUMP = 0;
+// tessere Can't Win: ognuna vieta di vincere prese con certe carte (vale solo per chi la prende)
+const TILES = [
+  {name:'Revive Ban',ico:'flask',    desc:'non vinci prese con le carte rosa (Revive)'},
+  {name:'Spell Ban', ico:'book-open',desc:'non vinci prese con le carte viola (Spell)'},
+  {name:'Item Ban',  ico:'coins',    desc:'non vinci prese con le carte gialle (Item)'},
+  {name:'No Escape', ico:'drop',     desc:'non vinci prese con le carte pari'},
+  {name:'No XP',     ico:'skull',    desc:'non vinci prese con le carte dispari'},
+];
+const HAND = 12, TRICKS = 12, BIDTOK = 18, SUPTOK = 12;
+const HUM = 0;
+const POS = {3:['bottom','left','right'],4:['bottom','left','top','right']};
+const NAMES = ['Tu','AI Hazel','AI Pixel','AI Slime'];
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false,beg:false};
+try{ const s=localStorage.getItem('cw-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('cw-a11y')==='1'; OPT.beg=localStorage.getItem('cw-beg')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const argmax = a => { let b=0; for(let i=1;i<a.length;i++) if(a[i]>a[b]) b=i; return b; };
+const cardName = c => `${c.v} ${SUITS[c.s]}`;
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+// confirm = la scelta va confermata (se «Abilita annulla» è attivo)
+async function ask(p,title,options,confirm){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,confirm:!!confirm,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askCard(legal,hint,mode){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',mode:mode||'play',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  if(PR.confirm&&OPT.undo){ PR.sel=i; render(); return; }
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function confirmAns(ok){
+  if(!PR||PR.type!=='choose'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const o=PR.options[PR.sel], r=PR.res; PR=null; render(); r(o.value);
+}
+function playIdx(i){
+  if(!PR||PR.type!=='card'||!PR.legal.has(i)) return;
+  if(OPT.undo){ PR.sel=i; render(); return; }
+  const r=PR.res; PR=null; render(); r(i);
+}
+function confirmCard(ok){
+  if(!PR||PR.type!=='card'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const i=PR.sel, r=PR.res; PR=null; render(); r(i);
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// 3 giocatori: carte 1–9 in 4 colori (36); 4 giocatori: 1–12 in 4 colori (48). Si distribuisce tutto il mazzo.
+function makeDeck(n){
+  const hi=n===3?9:12, d=[];
+  for(let s=0;s<4;s++) for(let v=1;v<=hi;v++) d.push({id:s*12+v-1,s,v});
+  return d;
+}
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
+// la carta c ricade nel vincolo t? (allora si gioca di traverso: «Can't win!»)
+function banned(t,c){
+  if(t==null||t<0) return false;
+  if(t<3) return c.s===t+1;
+  return t===3?c.v%2===0:c.v%2===1;
+}
+// obbligo di rispondere al colore della carta d'apertura (anche se è di traverso)
+function legalIdx(h,plays){
+  const all=h.map((_,i)=>i);
+  if(!plays.length) return all;
+  const lc=plays[0].c.s, m=all.filter(i=>h[i].s===lc);
+  return m.length?m:all;
+}
+// plays = [{p,c,side}] in ordine di gioco. Vince: 1) la briscola dritta più alta; 2) la carta dritta più alta del colore di mano;
+// 3) la carta dritta più alta di qualsiasi colore; 4) se sono tutte di traverso, la più alta. Nei casi 3–4 a parità vince l'ultima giocata.
+function trickWinner(plays){
+  const lead=plays[0].c.s;
+  let bt=null, bl=null, bu=null, ba=null;
+  for(const x of plays){
+    const v=x.c.v;
+    if(!ba||v>=ba.c.v) ba=x;
+    if(x.side) continue;
+    if(!bu||v>=bu.c.v) bu=x;
+    if(x.c.s===TRUMP){ if(!bt||v>bt.c.v) bt=x; }
+    else if(x.c.s===lead){ if(!bl||v>bl.c.v) bl=x; }
+  }
+  return (bt||bl||bu||ba).p;
+}
+function winTier(plays,w){
+  const x=plays.find(y=>y.p===w), lead=plays[0].c.s;
+  if(!x.side&&x.c.s===TRUMP) return 'briscola dritta più alta';
+  if(!x.side&&x.c.s===lead) return 'carta dritta più alta del colore di mano';
+  if(!x.side) return 'nessuna briscola o carta del colore di mano dritta: vince la carta dritta più alta';
+  return 'tutte le carte di traverso: vince la più alta';
+}
+// punti della puntata: 1 se indovinata, 2 se 0 puntate e 0 prese; con i gettoni Aiuto (regole per principianti) la puntata si può spostare di ±1 per gettone
+function roundPts(bid,won,sup){
+  if(bid===won) return bid===0?2:1;
+  if(sup>0&&Math.abs(bid-won)<=sup) return 1;
+  return 0;
+}
+// vince il punteggio finale (Σ prese × Σ punti) più alto; a pari merito chi ha più punti; se ancora pari, vittoria condivisa
+function winnersOf(F,PP){
+  const mx=Math.max(...F);
+  let w=F.map((f,i)=>f===mx?i:-1).filter(i=>i>=0);
+  if(w.length>1){ const mp=Math.max(...w.map(i=>PP[i])); w=w.filter(i=>PP[i]===mp); }
+  return w;
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Monte-Carlo con determinizzazione: le mani avversarie si campionano tra le carte non ancora viste (rispettando i colori mancanti noti);
+// il resto del round si simula con una politica leggera (ognuno cerca di centrare la sua puntata) e si valuta il punteggio finale atteso.
+const AIP = {play:80,choose:28,bidW:48,eps:0.12,pbar:0.55,delta:0.25};
+function sampleHands(me,sizes){
+  const mine=new Set(P(me).hand.map(c=>c.id));
+  const nv=c=>{ let k=0; for(let i=0;i<G.n;i++) if(i!==me&&!G.void[i][c.s]) k++; return k; };
+  const pool=shuffle(G.deck.filter(c=>!mine.has(c.id)&&!G.seen.has(c.id)));
+  pool.sort((a,b)=>nv(a)-nv(b));              // prima le carte più vincolate
+  const hands=G.pl.map(()=>[]);
+  hands[me]=P(me).hand.slice();
+  const room=i=>i!==me&&hands[i].length<sizes[i];
+  for(const c of pool){
+    const cands=[]; for(let i=0;i<G.n;i++) if(room(i)&&!G.void[i][c.s]) cands.push(i);
+    if(!cands.length) for(let i=0;i<G.n;i++) if(room(i)) cands.push(i);
+    if(!cands.length) break;
+    hands[cands[rnd(cands.length)]].push(c);
+  }
+  return hands;
+}
+const cstr = c => (c.s===TRUMP?20:0)+c.v;
+// forza grezza di una mano con un vincolo (carte che vincono spesso: briscole alte, carte alte)
+function handPow(h,t){
+  const top=G.n===3?9:12;
+  let e=0;
+  for(const c of h){
+    if(banned(t,c)) continue;
+    const r=c.v/top;
+    if(c.s===TRUMP) e+=r>0.75?0.9:(r>0.5?0.55:0.2);
+    else e+=r>0.85?0.45:(r>0.65?0.2:0.03);
+  }
+  return e;
+}
+const estBid = (h,t) => Math.max(0,Math.min(HAND,Math.round(handPow(h,t))));
+// puntate stimate per chi non ha ancora puntato: la forza delle mani riscalata sulle 12 prese in palio
+function estBids(hands,tiles){
+  const pw=hands.map((h,i)=>handPow(h,tiles[i])+0.05), s=pw.reduce((a,b)=>a+b,0);
+  return pw.map(x=>Math.max(0,Math.min(HAND,Math.round(TRICKS*x/s))));
+}
+function polPlay(S,q,lg,plays){
+  if(lg.length===1) return lg[0];
+  if(Math.random()<AIP.eps) return lg[rnd(lg.length)];
+  const h=S.hands[q], t=S.tiles[q], need=S.bids[q]-S.won[q];
+  const hi=a=>a.reduce((x,i)=>cstr(h[i])>cstr(h[x])?i:x,a[0]);
+  const lo=a=>a.reduce((x,i)=>cstr(h[i])<cstr(h[x])?i:x,a[0]);
+  if(!plays.length){
+    const up=lg.filter(i=>!banned(t,h[i])), sd=lg.filter(i=>banned(t,h[i]));
+    if(need>0) return up.length?hi(up):lo(lg);
+    return sd.length?hi(sd):lo(lg);
+  }
+  const win=[], lose=[];
+  for(const i of lg){
+    plays.push({p:q,c:h[i],side:banned(t,h[i])});
+    (trickWinner(plays)===q?win:lose).push(i);
+    plays.pop();
+  }
+  const last=plays.length===S.hands.length-1;
+  if(need>0){
+    if(win.length) return last?lo(win):hi(win);
+    return lo(lose);
+  }
+  if(lose.length) return hi(lose);
+  return lo(win);
+}
+function simRest(S,order,k0,plays){
+  for(let k=k0;k<order.length;k++){
+    const q=order[k], h=S.hands[q];
+    if(!h.length) continue;
+    const i=polPlay(S,q,legalIdx(h,plays),plays);
+    const c=h.splice(i,1)[0];
+    plays.push({p:q,c,side:banned(S.tiles[q],c)});
+  }
+}
+function simRound(S,leader){
+  const n=S.hands.length;
+  while(S.hands.some(h=>h.length)){
+    const order=[]; for(let k=0;k<n;k++) order.push((leader+k)%n);
+    const plays=[]; simRest(S,order,0,plays);
+    if(!plays.length) break;
+    const w=trickWinner(plays); S.won[w]++; leader=w;
+  }
+}
+// valore per l'AI «me» a fine round: nell'ultimo round la quota di vittoria, altrimenti
+// il vantaggio sul miglior avversario nel punteggio finale stimato (prese e punti dei round futuri a valore medio)
+function equityEnd(S,me){
+  const n=G.n, R=G.rounds-1-G.round, F=[], PP=[];
+  for(let i=0;i<n;i++){
+    const pts=roundPts(S.bids[i],S.won[i],S.sup[i]);
+    const T=G.pl[i].T+S.won[i]+R*TRICKS/n, Pp=G.pl[i].P+pts+R*AIP.pbar;
+    F.push(T*Pp); PP.push(Pp);
+  }
+  let mo=-1e9; for(let i=0;i<n;i++) if(i!==me) mo=Math.max(mo,F[i]);
+  if(R===0){
+    const w=winnersOf(F,PP);
+    return (w.includes(me)?1/w.length:0)+0.002*(F[me]-mo);
+  }
+  return (F[me]-mo)/10;
+}
+const freeTiles = () => TILES.map((_,i)=>i).filter(t=>!G.pl.some(p=>p.tile===t));
+const tokLeft = () => BIDTOK-G.pl.reduce((s,p)=>s+(p.bid||0),0);
+// valuta coppie {t: vincolo, b: puntata} per l'AI p con mondi campionati comuni; lead = chi aprirà la prima presa
+function evalPairs(p,pairs,lead,k){
+  const sizes=G.pl.map(x=>x.hand.length), sc=pairs.map(()=>0);
+  for(let s=0;s<k;s++){
+    const hands=sampleHands(p,sizes), perm=shuffle(freeTiles());
+    pairs.forEach((pr,j)=>{
+      const tiles=G.pl.map(x=>x.tile);
+      tiles[p]=pr.t;
+      const pool=perm.filter(t=>t!==pr.t);
+      for(let i=0;i<G.n;i++) if(i!==p&&tiles[i]<0) tiles[i]=pool.length?pool.shift():-1;
+      const est=estBids(hands,tiles);
+      const bids=G.pl.map((x,i)=>i===p?pr.b:(x.bid!=null?x.bid:est[i]));
+      const S={hands:hands.map(x=>x.slice()),tiles,bids,won:G.pl.map(()=>0),sup:G.pl.map(x=>G.beg?x.sup:0)};
+      simRound(S,lead);
+      sc[j]+=equityEnd(S,p);
+    });
+  }
+  return sc.map(x=>x/k);
+}
+function bidWindow(p){
+  const mx=Math.min(HAND,tokLeft(),10), out=[];
+  for(let b=0;b<=mx;b++) out.push(b);
+  return out;
+}
+// per ogni vincolo libero: miglior puntata e suo valore (ordinati dal migliore)
+function tileTable(p,lead){
+  const pairs=[];
+  for(const t of freeTiles()) for(const b of bidWindow(p)) pairs.push({t,b});
+  const v=evalPairs(p,pairs,lead,AIP.choose), best={};
+  pairs.forEach((pr,j)=>{ if(!(pr.t in best)||v[j]>best[pr.t].v) best[pr.t]={t:pr.t,b:pr.b,v:v[j]}; });
+  return Object.values(best).sort((a,b)=>b.v-a.v);
+}
+// prima scelta: vincolo (A) o puntata (B). Punta per primo (e prende il segnalino Start) solo se i vincoli liberi si equivalgono.
+function aiFirst(p){
+  if(G.start>=0) return 'A';
+  const tb=tileTable(p,p);
+  G.aiPlan={p,round:G.round,t:tb[0].t};
+  return (tb.length<2||tb[0].v-tb[1].v<AIP.delta)?'B':'A';
+}
+function aiTile(p){
+  const pl=P(p), free=freeTiles();
+  if(free.length===1) return free[0];
+  const lead=G.start>=0?G.start:G.dealer;
+  if(pl.bid!=null){
+    const pairs=free.map(t=>({t,b:pl.bid}));
+    return pairs[argmax(evalPairs(p,pairs,lead,AIP.bidW))].t;
+  }
+  return tileTable(p,lead)[0].t;
+}
+function aiBid(p){
+  const pl=P(p);
+  let t=pl.tile;
+  if(t<0){ const pn=G.aiPlan; t=(pn&&pn.p===p&&pn.round===G.round&&freeTiles().includes(pn.t))?pn.t:tileTable(p,p)[0].t; }
+  const mx=Math.min(HAND,tokLeft()), pairs=[];
+  for(let b=0;b<=Math.min(mx,10);b++) pairs.push({t,b});
+  return pairs[argmax(evalPairs(p,pairs,G.start>=0?G.start:p,AIP.bidW))].b;
+}
+function aiPlay(p){
+  const h=P(p).hand, lg=legalIdx(h,G.trick);
+  if(lg.length===1) return lg[0];
+  const k0=G.order.indexOf(p), sizes=G.pl.map(x=>x.hand.length);
+  const tiles=G.pl.map(x=>x.tile), bids=G.pl.map(x=>x.bid), won=G.pl.map(x=>x.won), sup=G.pl.map(x=>G.beg?x.sup:0);
+  const sc=lg.map(()=>Math.random()*1e-6);
+  for(let s=0;s<AIP.play;s++){
+    const hands=sampleHands(p,sizes);
+    lg.forEach((idx,j)=>{
+      const S={hands:hands.map(x=>x.slice()),tiles,bids,won:won.slice(),sup};
+      const plays=G.trick.map(x=>({p:x.p,c:x.c,side:x.side}));
+      const c=S.hands[p].splice(idx,1)[0];
+      plays.push({p,c,side:banned(tiles[p],c)});
+      simRest(S,G.order,k0+1,plays);
+      const w=trickWinner(plays); S.won[w]++;
+      simRound(S,w);
+      sc[j]+=equityEnd(S,p);
+    });
+  }
+  return lg[argmax(sc)];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,rounds:n,round:0,beg:OPT.beg,dealer0:rnd(n),dealer:-1,start:-1,leader:-1,turn:-1,win:-1,trickNo:0,trick:[],order:[],
+     msg:'',log:[],over:null,show:null,phase:'idle',deck:makeDeck(n),seen:new Set(),void:[],supply:SUPTOK,aiPlan:null,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],tile:-1,bid:null,won:0,first:null,sup:0,T:0,P:0,hist:[]}))};
+  run();
+}
+function deal(){
+  const n=G.n, deck=shuffle(G.deck.slice());
+  G.dealer=(G.dealer0+G.round)%n;
+  G.pl.forEach((p,i)=>{ p.hand=sortHand(deck.slice(i*HAND,(i+1)*HAND)); p.tile=-1; p.bid=null; p.won=0; p.first=null; });
+  G.start=-1; G.leader=-1; G.turn=-1; G.win=-1; G.trickNo=0; G.trick=[]; G.order=[]; G.show=null; G.aiPlan=null;
+  G.seen=new Set(); G.void=G.pl.map(()=>[false,false,false,false]);
+}
+async function chooseTile(p){
+  const pl=P(p), free=freeTiles();
+  let t;
+  if(p===HUM){
+    status('Scegli il tuo vincolo: con le carte vietate giocherai di traverso e non potrai vincere la presa.');
+    t=await ask(HUM,'Scegli il vincolo',free.map(i=>{ const k=pl.hand.filter(c=>banned(i,c)).length; return {label:`${TILES[i].name} — ${TILES[i].desc} (${k} ${k===1?'tua carta':'tue carte'})`,value:i,tile:i}; }),true);
+  }else{ await sleep(600); t=aiTile(p); }
+  pl.tile=t;
+  logMsg(`${pl.name} sceglie il vincolo ${TILES[t].name}: ${TILES[t].desc}.`);
+}
+async function chooseBid(p){
+  const pl=P(p), mx=Math.min(HAND,tokLeft());
+  let b;
+  if(p===HUM){
+    status(`Fai la tua puntata: quante prese vincerai esattamente? Gettoni puntata rimasti: ${tokLeft()}.`);
+    b=await ask(HUM,'La tua puntata',Array.from({length:mx+1},(_,i)=>({label:i===0?'0 (Zero)':String(i),value:i,num:true})),true);
+  }else{ await sleep(600); b=aiBid(p); }
+  pl.bid=b;
+  let m=`${pl.name} punta ${b===0?'Zero':b}.`;
+  if(G.start<0){ G.start=p; m+=` È il primo a puntare: prende il segnalino Start e aprirà la prima presa.`; }
+  logMsg(m);
+}
+async function choosePhase(){
+  G.phase='choose';
+  const n=G.n;
+  G.order=[]; for(let k=0;k<n;k++) G.order.push((G.dealer+k)%n);
+  for(let pass=0;pass<2;pass++){
+    for(const p of G.order){
+      const pl=P(p);
+      G.turn=p;
+      let o;
+      if(pass===0){
+        status(`${pl.name} sceglie cosa fare per primo: il vincolo (A) o la puntata (B).`);
+        if(p===HUM) o=await ask(HUM,'Cosa fai per primo?',[{label:'A · Scegli il vincolo',value:'A'},{label:'B · Fai la puntata'+(G.start<0?' (prendi il segnalino Start)':''),value:'B'}],true);
+        else{ await sleep(600); o=aiFirst(p); }
+        pl.first=o;
+      }else o=pl.first==='A'?'B':'A';
+      if(o==='A') await chooseTile(p); else await chooseBid(p);
+    }
+  }
+  G.turn=-1;
+}
+function humanHint(h){
+  const pl=P(HUM), need=pl.bid-pl.won;
+  const tail=` Puntata ${pl.bid}, prese ${pl.won}: ${need>0?`te ne ${need===1?'serve ancora 1':`servono ancora ${need}`}.`:(need===0?'non devi vincerne altre.':'sei già oltre la puntata.')}`;
+  const side=h.some(c=>banned(pl.tile,c))?` Le carte con ${ico('prohibit')} vanno di traverso (Can't win!).`:'';
+  if(!G.trick.length) return 'sei di mano: giochi quello che vuoi; il colore della tua carta diventa il colore di mano.'+tail+side;
+  const lc=G.trick[0].c.s, has=h.some(c=>c.s===lc);
+  return (has?`colore di mano ${SUITS[lc]}: devi giocarne una.`:`non hai carte ${SUITS[lc]}: puoi giocare qualsiasi carta.`)+tail+side;
+}
+async function playRound(){
+  G.phase='play';
+  G.leader=G.start;
+  const n=G.n;
+  for(let t=1;t<=TRICKS;t++){
+    G.trickNo=t; G.trick=[]; G.win=-1;
+    G.order=[]; for(let k=0;k<n;k++) G.order.push((G.leader+k)%n);
+    for(let k=0;k<n;k++){
+      const p=G.order[k], pl=P(p);
+      G.turn=p;
+      const lg=legalIdx(pl.hand,G.trick);
+      status(`Presa ${t}/${TRICKS} · tocca a ${pl.name}.`);
+      let idx;
+      if(p===HUM) idx=await askCard(lg,humanHint(pl.hand),'play'); else{ await sleep(600); idx=aiPlay(p); }
+      const c=pl.hand.splice(idx,1)[0], side=banned(pl.tile,c);
+      if(G.trick.length&&c.s!==G.trick[0].c.s) G.void[p][G.trick[0].c.s]=true;
+      G.seen.add(c.id);
+      G.trick.push({p,c,side});
+      logMsg(`${pl.name} gioca ${cardName(c)}${side?' di traverso: Can\'t win!':''}.`);
+    }
+    G.turn=-1;
+    const w=trickWinner(G.trick), pw=P(w);
+    G.win=w; pw.won++;
+    logMsg(`${pw.name} vince la presa ${t} (${winTier(G.trick,w)}): ${pw.won} ${pw.won===1?'presa':'prese'} su ${pw.bid} puntate.`);
+    status(`${pw.name} vince la presa ${t}.`);
+    await sleep(1600);
+    G.leader=w;
+  }
+}
+async function scoreRound(){
+  G.phase='score'; G.turn=-1;
+  const rows=G.pl.map((pl,i)=>{
+    const exact=pl.bid===pl.won, sup0=G.beg?pl.sup:0;
+    const pts=roundPts(pl.bid,pl.won,sup0), supHit=!exact&&pts>0;
+    let note='';
+    if(G.beg){
+      if(pts>0){ if(pl.sup>0){ G.supply+=pl.sup; note=`${supHit?'centrata grazie ai':'restituisce i'} ${pl.sup} ${pl.sup===1?'gettone':'gettoni'} Aiuto`; } pl.sup=0; }
+      else if(G.supply>0){ pl.sup++; G.supply--; note='+1 gettone Aiuto'; }
+    }
+    pl.T+=pl.won; pl.P+=pts;
+    pl.hist.push({tile:pl.tile,bid:pl.bid,won:pl.won,pts});
+    return {p:i,tile:pl.tile,bid:pl.bid,won:pl.won,pts,note,T:pl.T,P:pl.P};
+  });
+  G.show={rows};
+  logMsg(`Round ${G.round+1} concluso: `+rows.map(r=>`${P(r.p).name} ${r.won}/${r.bid} → ${r.pts} ${r.pts===1?'punto':'punti'}`).join(' · ')+'.');
+  const last=G.round>=G.rounds-1;
+  status(last?'Ultimo round concluso: ecco il punteggio finale.':'Round concluso: ecco i punti.');
+  await ask(HUM,'Risultato del round',[{label:last?'Vedi il risultato finale':'Round successivo',value:1}]);
+  if(!last) G.show=null;
+}
+async function run(){
+  const g=G;
+  try{
+    for(let r=0;r<g.rounds;r++){
+      g.round=r;
+      deal();
+      logMsg(`— Round ${r+1}/${g.rounds}: mazziere ${P(g.dealer).name}, ${HAND} carte a testa —`);
+      await choosePhase();
+      await playRound();
+      await scoreRound();
+    }
+    const F=g.pl.map(p=>p.T*p.P), PP=g.pl.map(p=>p.P);
+    g.over={winners:winnersOf(F,PP),F};
+    g.phase='over';
+    logMsg('Punteggio finale: '+g.pl.map((p,i)=>`${p.name} ${p.T}×${p.P} = ${F[i]}`).join(' · ')+'.');
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+function cardHtml(c,extra='',tag='span',attrs='',badge=''){
+  return `<${tag} class="pc s${c.s} ${extra}" ${attrs} title="${cardName(c)}"><b>${c.v}</b>${ico(SICO[c.s])}<small class="lt">${SL[c.s]}</small>${badge}</${tag}>`;
+}
+function backHtml(extra=''){ return `<span class="pc bk ${extra}" title="Carta coperta"></span>`; }
+function handHtml(pl){
+  const nb=`<span class="nb" title="Vietata dal tuo vincolo: andrebbe di traverso (Can't win!)">${ico('prohibit')}</span>`;
+  return `<div class="hand">${pl.hand.map((c,i)=>{
+    const b=banned(pl.tile,c)?nb:'';
+    if(PR&&PR.type==='card'){
+      const lg=PR.legal.has(i);
+      return cardHtml(c,`${lg?'legal':'dim'} ${PR.sel===i?'sel':''}`,'button',`${lg?'':'disabled'} data-p="${i}"`,b);
+    }
+    return cardHtml(c,'','span','',b);
+  }).join('')}</div>`;
+}
+function tableauHtml(p){
+  const x=G.trick.find(t=>t.p===p);
+  if(!x) return `<div class="tableau"><span class="empty"></span></div>`;
+  const cls=`mini ${x.side?'side':''} ${G.win===p&&G.turn<0?'win':''}`;
+  return `<div class="tableau">${cardHtml(x.c,cls,'span','',x.side?'<em class="cwl">Can\'t win!</em>':'')}</div>`;
+}
+function tileHtml(t){
+  if(t<0) return `<span class="tag" title="Vincolo non ancora scelto">${ico('prohibit')} vincolo ?</span>`;
+  return `<span class="tile t${t}" title="${TILES[t].name}: ${TILES[t].desc}">${ico(TILES[t].ico)} ${TILES[t].name}</span>`;
+}
+function flagsHtml(p){
+  if(!G||G.over) return '';
+  let f='';
+  if(G.dealer===p&&(G.phase==='choose'||G.phase==='play')) f+='<span class="flag deal">Mazziere</span>';
+  if(G.phase==='choose'&&G.start===p) f+='<span class="flag start">Start</span>';
+  if(G.phase==='play'&&G.leader===p) f+='<span class="flag lead">Di mano</span>';
+  return f;
+}
+function seatHtml(p,pos){
+  const pl=P(p);
+  const isLeader=G.phase==='play'&&G.leader===p, active=G.turn===p, winner=G.win===p&&G.turn<0&&G.phase==='play';
+  const hand=p===HUM?handHtml(pl):`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  const hit=pl.bid!=null&&pl.bid===pl.won;
+  let meta=`<div class="seat-meta">${G.phase==='idle'?'':tileHtml(pl.tile)}`;
+  if(G.phase!=='idle'){
+    meta+=`<span class="tag" title="Puntata (gettoni)">${ico('diamond')} <b>${pl.bid==null?'?':pl.bid}</b></span>`;
+    meta+=`<span class="tag ${hit&&G.phase!=='choose'?'hit':''}" title="Prese vinte in questo round">${ico('stack')} <b>${pl.won}</b></span>`;
+  }
+  meta+=`<span class="tag" title="Totale prese × totale punti">Σ <b>${pl.T}</b>×<b>${pl.P}</b></span>`;
+  if(G.beg) meta+=`<span class="tag" title="Gettoni Aiuto: ognuno sposta la puntata di ±1 al momento del punteggio">${ico('lifebuoy')} <b>${pl.sup}</b></span>`;
+  meta+='</div>';
+  const name=`<div class="seat-name">${esc(pl.name)}${flagsHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${hand}`
+    :(pos==='left'||pos==='right'?`${name}${meta}${tableauHtml(p)}${hand}`:`${hand}${name}${meta}${tableauHtml(p)}`);
+  return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+function swHtml(s){ return `<span class="sw s${s}">${ico(SICO[s])}${SUITS[s]}</span>`; }
+function centerHtml(){
+  let top='';
+  if(G.phase==='choose'){
+    const tb=TILES.map((t,i)=>{ const o=G.pl.find(p=>p.tile===i); return `<span class="tile t${i} ${o?'taken':''}" title="${t.desc}">${ico(t.ico)} ${t.name}<small>${o?esc(o.name):'libero'}</small></span>`; }).join('');
+    top=`<div>Vincoli e puntate · inizia il mazziere <b>${esc(P(G.dealer).name)}</b></div><div class="tboard">${tb}</div>
+      <div>Gettoni puntata rimasti: <b>${tokLeft()}</b>/${BIDTOK} · Segnalino Start: <b>${G.start>=0?esc(P(G.start).name):'libero'}</b></div>`;
+  }else if(G.phase==='play'){
+    const lc=G.trick.length?G.trick[0].c.s:-1;
+    top=(lc>=0?`<div class="trump s${lc}">${ico(SICO[lc])} Colore di mano: ${SUITS[lc]}</div>`:`<div class="hint" style="color:inherit">Nessun colore di mano: lo stabilisce la prima carta</div>`)
+      +`<div>Di mano: <b>${esc(P(G.leader).name)}</b> · Presa <b>${G.trickNo}/${TRICKS}</b></div>`;
+  }else top=`<div class="hint" style="color:inherit">Fase: ${({idle:'',score:'risultato del round',over:'fine partita'}[G.phase]||'')}</div>`;
+  return `<div class="center">${top}
+    <div class="legend">${[0,1,2,3].map(swHtml).join('')}</div>
+    <div>Round <b>${G.round+1}/${G.rounds}</b> · Briscola: <b>Turchese</b></div>
+    <div class="hint order" style="color:inherit">Forza: briscola dritta › colore di mano dritto › qualsiasi carta dritta › carte di traverso</div></div>`;
+}
+function scoreTable(){
+  const cols=Array.from({length:G.rounds},(_,i)=>i);
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${cols.map(i=>{ const h=p.hist[i]; return `<td>${h?`${h.won} · <span class="${h.pts?'pos':'neg'}">${h.pts}</span>`:'–'}</td>`; }).join('')}<td><b>${p.T}</b></td><td><b>${p.P}</b></td><td><b>${p.T*p.P}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Punteggi</th>${cols.map(i=>`<th>R${i+1}</th>`).join('')}<th>Σ prese</th><th>Σ punti</th><th>Finale</th></tr>${rows}</table></div>
+    <div class="hint" style="margin-top:6px">Per ogni round: prese vinte · punti della puntata. Punteggio finale = Σ prese × Σ punti.</div>`;
+}
+function roundTable(){
+  const rows=G.show.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td class="l">${TILES[r.tile].name}</td><td>${r.bid}</td><td>${r.won}</td><td class="l ${r.pts?'pos':'neg'}"><b>${r.pts}</b>${r.pts===2?' (Zero centrato)':(r.pts?' (centrata)':' (mancata)')}${r.note?` · ${r.note}`:''}</td><td><b>${r.T}×${r.P} = ${r.T*r.P}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th></th><th class="l">Vincolo</th><th>Puntata</th><th>Prese</th><th class="l">Punti</th><th>Totale</th></tr>${rows}</table></div>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Can't Win! contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>
+    <label class="opt-toggle beg" title="Chi sbaglia la puntata riceve un gettone Aiuto: ognuno permette di spostare di ±1 le puntate successive"><input type="checkbox" id="optBeg" ${OPT.beg?'checked':''}> Regole per principianti (gettoni Aiuto)</label>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    const f=G.over.F[G.over.winners[0]];
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> Punteggio finale ${f} (Σ prese × Σ punti).</div>${G.show?roundTable():''}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show) html+=roundTable();
+  if(PR&&PR.type==='choose'){
+    const tiles=PR.options.some(o=>o.tile!=null);
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts ${tiles?'tiles':''}">${PR.options.map((o,i)=>`<button class="opt ${o.num?'num':''} ${PR.sel===i?'sel':''}" ${o.disabled?'disabled':''} data-i="${i}">${o.tile!=null?ico(TILES[o.tile].ico):''}${esc(o.label)}</button>`).join('')}</div>`;
+    if(PR.sel!=null) html+=`<div class="opts"><button class="opt" data-af="1">Conferma: ${esc(PR.options[PR.sel].label)}</button><button class="opt" data-af="0">Annulla</button></div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">Tocca a te: ${PR.hint}</div>`;
+    if(PR.sel!=null){
+      const c=P(HUM).hand[PR.sel], sd=banned(P(HUM).tile,c);
+      html+=`<div class="opts"><button class="opt" data-cf="1">${esc(`Conferma: gioca ${cardName(c)}${sd?' (di traverso: Can\'t win!)':''}`)}</button><button class="opt" data-cf="0">Annulla</button></div>`;
+    }
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n;
+  return `<div class="recap paper"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Mazzo</span>${[0,1,2,3].map(swHtml).join('')} carte 1–${n===3?9:12} (${n*HAND} carte), ${HAND} a testa · ${n} round</div>
+    <div class="recap-row"><span class="lbl">Vincolo e puntata</span>Dal mazziere in senso orario ognuno sceglie prima il vincolo o la puntata, poi completa l'altra. Il primo che punta prende il segnalino Start e apre la prima presa.</div>
+    <div class="recap-row"><span class="lbl">Vincoli</span>${TILES.map((t,i)=>`<span class="tile t${i}">${ico(t.ico)} ${t.name}</span> ${t.desc}`).join(' · ')}</div>
+    <div class="recap-row"><span class="lbl">Presa</span>Si segue il colore se si può. Le carte vietate dal proprio vincolo vanno di traverso (Can't win!). Vince la briscola (Turchese) dritta più alta, poi il colore di mano dritto, poi qualsiasi carta dritta, infine la più alta di traverso (a parità, l'ultima giocata).</div>
+    <div class="recap-row"><span class="lbl">Punti</span>Puntata centrata 1 punto, Zero centrato 2 punti${G.beg?'; regole per principianti: ogni gettone Aiuto sposta la puntata di ±1':''}. Finale = Σ prese × Σ punti; a pari merito vince chi ha più punti.</div></div>`;
+}
+const RULES_HTML = `
+<details class="rules paper"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>Can't Win! (キャントウィン!, Taiki Shinzawa · Engames) è un gioco di prese per 3–4 giocatori in cui devi prevedere esattamente quante prese vincerai. All'inizio di ogni round scegli anche un <b>vincolo</b> (tessera Can't Win) che ti impedisce di vincere prese con certe carte: può aiutarti o ostacolarti nel centrare la puntata. Il punteggio finale è il totale delle prese vinte moltiplicato per il totale dei punti ottenuti con le puntate indovinate.</p>
+<h4>Componenti e preparazione</h4>
+<p>Le carte sono in 4 colori: <b>Turchese</b> (spade, è la <b>briscola</b>), <b>Rosa</b> (Revive), <b>Viola</b> (Spell) e <b>Giallo</b> (Item). In <b>4</b> giocatori si usano le carte 1–12 di ogni colore (48 carte); in <b>3</b> giocatori solo le carte 1–9 (36 carte). Ci sono 5 tessere Can't Win, 18 gettoni puntata e il segnalino Start. Si giocano tanti round quanti sono i giocatori.</p>
+<h4>1. Distribuzione</h4>
+<p>Nel primo round il mazziere è scelto a caso; poi passa ogni round al giocatore alla sua sinistra. Ognuno riceve 12 carte (tutto il mazzo).</p>
+<h4>2. Vincolo e puntata</h4>
+<p>Partendo dal mazziere e in senso orario, ognuno sceglie se fare prima <b>A</b> (prendere un vincolo) oppure <b>B</b> (fare la puntata). Quando tutti hanno fatto la prima scelta, si riparte dal mazziere e ognuno completa l'altra. Bisogna fare entrambe.</p>
+<ul>
+<li><b>A · Vincolo:</b> prendi una tessera tra quelle rimaste. Vale solo per te:
+<table><tr><th>Tessera</th><th>Non puoi vincere prese con</th></tr>
+<tr><td>Revive Ban</td><td>le carte rosa (Revive)</td></tr><tr><td>Spell Ban</td><td>le carte viola (Spell)</td></tr><tr><td>Item Ban</td><td>le carte gialle (Item)</td></tr><tr><td>No Escape</td><td>le carte pari</td></tr><tr><td>No XP</td><td>le carte dispari</td></tr></table></li>
+<li><b>B · Puntata:</b> prevedi quante prese vincerai e prendi altrettanti gettoni (puoi puntare 0 dicendo «Zero»). Il <b>primo</b> che fa la puntata prende il segnalino Start.</li>
+</ul>
+<h4>3. Le prese</h4>
+<p>Si giocano 12 prese. Apre la prima chi ha il segnalino Start, le successive chi ha vinto la presa precedente. Chi apre gioca una carta qualsiasi: il suo colore è il <b>colore di mano</b>. Gli altri, in senso orario, devono giocare una carta del colore di mano se ce l'hanno, altrimenti una carta qualsiasi.</p>
+<p>Se giochi una carta che ricade nel tuo vincolo dici «<b>Can't win!</b>» e la metti <b>di traverso</b>: con quella carta non puoi vincere la presa. Anche se la carta d'apertura è di traverso, il colore di mano resta il suo e va seguito.</p>
+<p><b>Chi vince la presa:</b></p>
+<ol>
+<li>se ci sono briscole (Turchese) dritte, vince la più alta;</li>
+<li>altrimenti vince la carta dritta più alta del colore di mano;</li>
+<li>se non ci sono né briscole né carte del colore di mano dritte, vince la carta dritta più alta di qualsiasi colore; a parità di numero vince chi l'ha giocata più tardi;</li>
+<li>se tutte le carte sono di traverso, vince la più alta di qualsiasi colore; a parità di numero vince chi l'ha giocata più tardi.</li>
+</ol>
+<p>Il vincitore mette le carte della presa coperte davanti a sé (una pila per ogni presa vinta) e apre la presa successiva.</p>
+<h4>4. Punteggio del round</h4>
+<p>Ognuno annota le prese vinte. Poi i punti della puntata: <b>1 punto</b> se le prese vinte sono esattamente quante ne avevi puntate; <b>2 punti</b> se avevi puntato Zero e non hai vinto prese; <b>0 punti</b> se hai sbagliato.</p>
+<h4>Fine della partita</h4>
+<p>Dopo tanti round quanti sono i giocatori, si sommano separatamente le prese e i punti: il <b>punteggio finale</b> è Σ prese × Σ punti. Vince il punteggio più alto; a parità vince chi ha più punti; se ancora pari, la vittoria è condivisa.</p>
+<h4>Regole per principianti (opzionali)</h4>
+<p>Si attivano dalla schermata iniziale. Chi sbaglia la puntata prende 0 punti ma riceve un <b>gettone Aiuto</b> (ce ne sono 12) e lo tiene finché non centra una puntata. Al momento del punteggio ogni gettone permette di aggiungere o togliere 1 alla puntata: se così la puntata corrisponde alle prese, è centrata. Quando una puntata è centrata (esattamente o grazie ai gettoni) si restituiscono tutti i gettoni Aiuto. I punti per una puntata centrata non cambiano.</p>
+<p><i>Nell'app:</i> il primo mazziere è scelto a caso; i 18 gettoni puntata sono un limite reale (non si può puntare più dei gettoni rimasti); con le regole per principianti i 2 punti spettano solo a chi ha puntato davvero Zero e non ha vinto prese, una puntata centrata con i gettoni Aiuto vale sempre 1 punto. Il log elenca le carte giocate (come se tutti avessero buona memoria); l'AI stima le mani avversarie con simulazioni.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log paper" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare carte, vincoli e puntate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">CAN'T WIN<span class="ex">!</span></div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${G.rounds}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      <div class="dock paper" style="position:static">${scoreTable()}</div>
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock paper">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  try{ if(localStorage.getItem('nylo-skip-name')==='1'){ NAMES[0]=localStorage.getItem('nylo-player-name')||'Nylo'; newMatch(n); return; } }catch(e){}
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.af!==undefined) confirmAns(b.dataset.af==='1');
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('cw-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optBeg'){
+    OPT.beg=e.target.checked;
+    try{ localStorage.setItem('cw-beg',OPT.beg?'1':'0'); }catch(err){}
+    return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('cw-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(!OPT.undo&&PR&&PR.type==='card'&&PR.sel!=null){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+  if(!OPT.undo&&PR&&PR.type==='choose'&&PR.sel!=null){ const o=PR.options[PR.sel],r=PR.res; PR=null; render(); r(o.value); return; }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
