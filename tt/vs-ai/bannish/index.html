@@ -65,6 +65,7 @@ body{background:radial-gradient(ellipse at 50% 0%,#1d4a33 0%,#0d2217 62%,#08150e
 .name-box input:focus{border-color:var(--accent)}
 
 .dock{position:sticky;top:0;z-index:10;border:3px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.25)}
+.dock.tall{position:static}
 .dock-msg{font-size:13px;line-height:1.5}
 .dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 .opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -123,7 +124,7 @@ table.score td i{color:#c27a00}
 .s4{background-color:var(--c4);color:#fff}
 .pc.bk{background:linear-gradient(135deg,#2f7a4f,#0c2418);border-color:var(--gold);color:var(--gold)}
 .pc.ban{opacity:0.8;border-style:dashed;border-color:#ff7b6b}
-.pc.ban::after{content:'×';position:absolute;right:3px;top:0;font-family:'Inter',sans-serif;font-size:15px;font-weight:800;color:#fff;text-shadow:0 0 3px #b3261e,0 0 3px #b3261e}
+.pc.ban::after{content:'×';position:absolute;right:-5px;top:-6px;width:14px;height:14px;border-radius:50%;background:#d6362a;border:1px solid #fff;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:11px;font-weight:800;line-height:1;color:#fff}
 .pc.win{box-shadow:0 0 0 3px #5ee08a}
 .pc.taken{box-shadow:0 0 0 3px var(--gold),0 0 12px var(--gold)}
 button.pc{cursor:pointer;transition:transform 0.12s}
@@ -133,14 +134,18 @@ button.pc:disabled{cursor:default}
 .pc.legal{box-shadow:0 0 0 3px var(--gold)}
 .pc.warn{outline:3px dashed #ff6b5a;outline-offset:2px}
 .pc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--gold)}
-.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:14px}
 .sw{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:5px;font-weight:700;font-size:11px;border:1px solid rgba(0,0,0,0.4)}
 body.a11y .s0.pc,body.a11y .s0.sw{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.3) 0 3px,transparent 3px 8px)}
 body.a11y .s1.pc,body.a11y .s1.sw{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.28) 0 3px,transparent 3px 8px)}
 body.a11y .s2.pc,body.a11y .s2.sw{background-image:radial-gradient(rgba(0,0,0,0.3) 22%,transparent 24%);background-size:9px 9px}
 body.a11y .s3.pc,body.a11y .s3.sw{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.28) 0 2px,transparent 2px 7px),repeating-linear-gradient(-45deg,rgba(255,255,255,0.28) 0 2px,transparent 2px 7px)}
 body.a11y .s4.pc,body.a11y .s4.sw{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.22) 0 2px,transparent 2px 7px)}
-body.a11y .pc small.lt{display:block}
+body.a11y .pc small.lt{display:block;background:rgba(0,0,0,0.42);color:#fff;border-radius:3px;padding:0 2px}
+body.a11y .pc.mini small.lt{position:static}
+body.a11y .pc.mini .rb{display:none}
+body.a11y .pc b{align-self:flex-end;margin-right:4px}
+body.a11y .pc.mini b{align-self:center;margin-right:0}
 
 .center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5}
 .center b{color:var(--gold)}
@@ -181,7 +186,12 @@ details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--
   .hand{gap:3px}
   .logo{font-size:24px}
   .bannish{font-size:20px;padding:4px 10px}
+  .seat.top .backs{display:grid;grid-template-columns:repeat(6,7px);max-width:none;justify-content:center}
+  .dock table.score{font-size:11px}
+  .dock table.score td,.dock table.score th{padding:4px 3px}
+  .dock table.score td:not(:first-child):not(.l){white-space:nowrap}
 }
+@media(max-width:380px){.topbar{gap:6px}.logo{font-size:20px}.badge{padding:4px 9px}}
 </style>
 </head>
 <body>
@@ -324,6 +334,16 @@ function equity(vp,me){
 // il resto del round si simula con una politica leggera e si valuta l'esito della partita dopo il round (PV).
 const AIP = {play:140,claim:140,eps:0.15,intent:0.6,epsC:0.25};
 function sampleHands(me,sizes){
+  let h;
+  for(let a=0;a<6;a++){
+    h=sampleOnce(me,sizes);
+    let bad=false;
+    for(let i=0;i<G.n&&!bad;i++) if(i!==me) for(const c of h[i]) if(G.void[i][c.s]){ bad=true; break; }
+    if(!bad) break;
+  }
+  return h;
+}
+function sampleOnce(me,sizes){
   const mine=new Set(P(me).hand.map(c=>c.id));
   const nv=c=>{ let k=0; for(let i=0;i<G.n;i++) if(i!==me&&!G.void[i][c.s]) k++; return k; };
   const pool=shuffle(G.deck.filter(c=>!mine.has(c.id)&&!G.seen.has(c.id)));
@@ -640,11 +660,11 @@ function scoreTable(){
   const R=G.pl[0].hist.length, cols=Array.from({length:R},(_,i)=>i);
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${cols.map(i=>{ const h=p.hist[i]; return `<td>${h.tot?h.tot:'–'}${h.gain?` ${ico('trophy')}`:''}</td>`; }).join('')}<td><b>${p.vp}</b>/${VPWIN}</td></tr>`).join('');
   return `<div class="scroll-x"><table class="score"><tr><th>Punteggi</th>${cols.map(i=>`<th>R${i+1}</th>`).join('')}<th>PV</th></tr>${rows}</table></div>
-    ${R?`<div class="hint" style="margin-top:6px">Per ogni round: punti stella totali (carte vinte + carte in mano) · ${ico('trophy')} = 1 PV</div>`:''}`;
+    ${R?`<div class="hint" style="margin-top:6px">Per ogni round: punti stella totali (carte vinte + carte in mano) · ${ico('trophy')} = 1 PV · – = 0 punti, fuori classifica</div>`:''}`;
 }
 function roundTable(){
   const rows=G.show.rows.map(r=>{
-    const out=r.tot===0?'escluso (0)':`${r.rank}º posto`;
+    const out=r.tot===0?'fuori classifica (0 punti)':`${r.rank}º posto${r.rank===2&&!r.gain?' · niente PV (più carte contate)':''}`;
     return `<tr><td>${esc(P(r.p).name)}</td><td>${r.wn} → ${r.ws}</td><td>${r.hn} → ${r.hs}</td><td><b>${r.tot}</b></td><td class="l ${r.gain?'pos':''}">${out}${r.gain?' · <b>+1 PV</b>':''}</td></tr>`;
   }).join('');
   return `<div class="scroll-x"><table class="score"><tr><th></th><th>Carte vinte → ${ico('star')}</th><th>In mano → ${ico('star')}</th><th>Totale</th><th class="l">Esito</th></tr>${rows}</table></div>`;
@@ -714,11 +734,11 @@ const RULES_HTML = `
 <p><i>Nell'app:</i> i colori usati sono scelti a caso a inizio partita e il segnalino iniziale va a un giocatore a caso; la classifica è «densa» (a pari punti stessa posizione e il posto successivo è il punteggio diverso seguente, quindi con un pari merito al primo posto il secondo è il gruppo subito sotto); le carte giocate e scartate sono viste da tutti e l'AI stima le mani avversarie con simulazioni.</p>
 </div></details>`;
 
-let LOGOPEN=false;
+let LOGOPEN=false, RULESOPEN=false;
 function logHtml(){
   return `<details class="log paper" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
 }
-document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; if(e.target.matches&&e.target.matches('details.rules')) RULESOPEN=e.target.open; },true);
 let MENUOPEN=false;
 function menuHtml(){
   return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
@@ -741,9 +761,9 @@ function render(){
       <div class="dock paper" style="position:static">${scoreTable()}</div>
       ${logHtml()}
       ${recapHtml()}
-      ${RULES_HTML}`;
+      ${RULES_HTML.replace('<details class="rules','<details '+(RULESOPEN?'open ':'')+'class="rules')}`;
   }
-  app.innerHTML=top+`<div class="dock paper">${dockHtml()}</div>`+body;
+  app.innerHTML=top+`<div class="dock paper${G&&(G.show||G.over)?' tall':''}">${dockHtml()}</div>`+body;
 }
 
 function askName(n){
