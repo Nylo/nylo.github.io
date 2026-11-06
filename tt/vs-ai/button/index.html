@@ -127,6 +127,7 @@ button.pc:disabled{cursor:default}
 .hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:6px}
 .sw{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:5px;font-weight:700;font-size:11px;border:1px solid rgba(0,0,0,0.4);color:#fff;text-shadow:-1px -1px 0 #111,1px -1px 0 #111,-1px 1px 0 #111,1px 1px 0 #111}
 body.a11y .pc small.lt{display:block}
+body.a11y .pc .stm{left:auto;right:-3px;top:-3px}
 
 .center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;min-width:0}
 .center b{color:var(--gold)}
@@ -168,7 +169,9 @@ details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--
   .otr .cs .slot{width:25px;height:37px}
   .table{padding:8px;gap:6px;grid-template-columns:minmax(0,1fr) minmax(0,3.4fr) minmax(0,1fr)}
   .table.n2{grid-template-columns:minmax(0,1fr)}
-  .seat{padding:4px}
+  .seat{padding:4px;overflow:hidden}
+  .seat.left .flag,.seat.right .flag{white-space:normal;margin-left:0;font-size:8px;line-height:1.15;padding:1px 5px}
+  .seat-name{max-width:100%}
   .seat-name{font-size:11px}
   .seat-meta{font-size:10px}
   .back{width:7px;height:11px}
@@ -224,6 +227,7 @@ const cs = c => c>>4, cv = c => c&15;
 const cardName = c => `${cv(c)} ${SUITS[cs(c)]}`;
 const sortHand = h => h.sort((a,b)=>a-b);
 function makeDeck(maxV){ const d=[]; for(let s=0;s<4;s++) for(let v=1;v<=maxV;v++) d.push(mk(s,v)); return d; }
+const plu = (n,s,p) => `${n} ${n===1?s:p}`;
 const bonusOf = (b,t) => b===t ? (b===0?ZBONUS:5*b) : 0;
 const partner = p => (p+2)&3;
 
@@ -301,8 +305,8 @@ function cloneS(S){
 function scoresOf(S){
   if(!S.team) return S.cw.map((c,i)=>c+(S.bets[i]==null?0:bonusOf(S.bets[i],S.tr[i])));
   const t=[0,1].map(k=>{
-    let c=0,tr=0,b=0; for(const i of [k,k+2]){ c+=S.cw[i]; tr+=S.tr[i]; b+=S.bets[i]||0; }
-    return c+(b===tr?(b===0?TEAMZ:5*b):0);
+    let c=0,tr=0,b=0,unk=false; for(const i of [k,k+2]){ c+=S.cw[i]; tr+=S.tr[i]; if(S.bets[i]==null) unk=true; else b+=S.bets[i]; }
+    return c+(unk?0:(b===tr?(b===0?TEAMZ:5*b):0));
   });
   return [t[0],t[1],t[0],t[1]];
 }
@@ -533,8 +537,8 @@ async function bettingPhase(){
         status(`${pl.name} decide la scommessa…`); await sleep(700);
         k=pl.decided?0:aiBet(p); pl.decided=true;
       }
-      if(k>0){ pl.tokens+=k; g.pool-=k; logMsg(`${pl.name} prende ${k} ${k===1?'bottone':'bottoni'} (ora ne ha ${pl.tokens}).`); }
-      else{ pl.passed=true; logMsg(pl.tokens?`${pl.name} passa con ${pl.tokens} ${pl.tokens===1?'bottone':'bottoni'}: scommette ${pl.tokens} ${pl.tokens===1?'presa':'prese'}.`:`${pl.name} passa senza bottoni: scommette 0 prese.`); }
+      if(k>0){ pl.tokens+=k; g.pool-=k; logMsg(`${pl.name} ${V(p,'prende','prendi')} ${k} ${k===1?'bottone':'bottoni'} (ora ne ${V(p,'ha','hai')} ${pl.tokens}).`); }
+      else{ pl.passed=true; logMsg(pl.tokens?`${pl.name} ${V(p,'passa','passi')} con ${pl.tokens} ${pl.tokens===1?'bottone':'bottoni'}: ${V(p,'scommette','scommetti')} ${pl.tokens} ${pl.tokens===1?'presa':'prese'}.`:`${pl.name} ${V(p,'passa','passi')} senza bottoni: ${V(p,'scommette','scommetti')} 0 prese.`); }
     }
   }
   g.S.bets=g.pl.map(p=>p.tokens);
@@ -544,10 +548,10 @@ async function bettingPhase(){
     : g.pl.map(p=>`${p.name} ${p.tokens}`).join(' · '))+'.');
 }
 function describeRes(r){
-  const w=r.p>=0?P(r.p).name:'';
+  const w=r.p>=0?(you(r.p)?'te':P(r.p).name):'';
   const base=`Presa ${r.id}`;
-  if(r.kind==='tie') return `${base}: pareggio anche al secondo confronto, presa scartata (${r.n} carte).`;
-  if(r.p<0) return `${base}: vince la carta iniziale (${cardName(r.card)}), presa scartata (${r.n} carte).`;
+  if(r.kind==='tie') return `${base}: pareggio senza vincitore, presa scartata (${plu(r.n,'carta','carte')}).`;
+  if(r.p<0) return `${base}: vince la carta iniziale (${cardName(r.card)}), presa scartata (${plu(r.n,'carta','carte')}).`;
   const pts=`+${r.n} ${r.n===1?'carta':'carte'}, +1 presa`;
   if(r.kind==='high') return `${base}: ${SUITS[r.suit]} in maggioranza, vince la carta più alta (${cardName(r.card)}) di ${w} (${pts}).`;
   if(r.kind==='low') return `${base}: pareggio tra semi, vince la carta più bassa (${cardName(r.card)}) di ${w} (${pts}).`;
@@ -565,7 +569,7 @@ async function playRound(){
     else{ status(`${pl.name} sta scegliendo…`); await sleep(500); mv=aiPlay(p); }
     const tid=S.open[mv.ti].id, c=applyPlay(S,p,mv.ci,mv.ti);
     g.seen.add(c); g.recv=-1;
-    logMsg(`${pl.name} gioca ${cardName(c)} nella presa ${tid}.`);
+    logMsg(`${pl.name} ${V(p,'gioca','giochi')} ${cardName(c)} nella presa ${tid}.`);
     if(S.open[mv.ti].plays.length>=4){
       g.turn=-1; status(`La presa ${tid} è completa…`); await sleep(1000);
       const res=settleTrick(S,mv.ti,true);
@@ -598,7 +602,7 @@ async function scoreRound(){
     const z=rows.filter(r=>r.zero).map(r=>r.k);
     if(z.length){ g.instant=z; logMsg(`${z.map(k=>g.un[k].name).join(' e ')}: scommessa di 0 prese riuscita, vittoria immediata!`); }
   }
-  logMsg('Punteggio del round: '+rows.map(r=>`${g.un[r.k].name} ${r.cards} carte${r.bonus?` + ${r.bonus} bonus`:''} = ${r.tot}`).join(' · ')+'.');
+  logMsg('Punteggio del round: '+rows.map(r=>`${g.un[r.k].name} ${plu(r.cards,'carta','carte')}${r.bonus?` + ${r.bonus} bonus`:''} = ${r.tot}`).join(' · ')+'.');
   status(`Round ${g.round+1} concluso.`);
   if(last||g.instant) return;
   await ask(HUM,'Round concluso',[{label:'Prossimo round',value:1}]);
@@ -642,6 +646,8 @@ function handHtml(p){
     return cardHtml(c,tk);
   }).join('')}</div>`;
 }
+const you = p => p===HUM&&P(p).name==='Tu';
+const V = (p,third,second) => you(p)?second:third;
 const initial = p => esc((P(p).name.replace(/^AI\s+/,'')[0]||'?').toUpperCase());
 function ownerBadge(p){ return `<em class="ow" style="background:${SEATC[p]}" title="${esc(P(p).name)}">${initial(p)}</em>`; }
 function trickHtml(t,ti){
@@ -663,7 +669,7 @@ function flagHtml(p){
   if(!G||G.over||G.phase==='idle') return '';
   let f='';
   if(G.dealer===p) f+='<span class="flag deal">Mazziere</span>';
-  if(G.team) f+=`<span class="flag team">Squadra ${unitOf(p)===unitOf(HUM)?'tua':'avversaria'}</span>`;
+  if(G.team) f+=`<span class="flag team">${unitOf(p)===unitOf(HUM)?'Squadra tua':'Avversari'}</span>`;
   return f;
 }
 function seatHtml(p,pos){
@@ -672,7 +678,7 @@ function seatHtml(p,pos){
   const mate=G.team&&p!==HUM&&unitOf(p)===unitOf(HUM);
   const hand=p===HUM?handHtml(p):`<div class="backs">${S.hands[p].map(()=>'<span class="back"></span>').join('')}</div>`;
   const toks=Array.from({length:pl.tokens},()=>'<span class="bt"></span>').join('');
-  let meta=`<div class="seat-meta"><span class="tag" title="Bottoni scommessa presi">${pl.tokens>0&&pl.tokens<=5?toks:'<span class="bt"></span>'} <b>${pl.tokens}</b></span>`;
+  let meta=`<div class="seat-meta"><span class="tag" title="Bottoni scommessa presi">${(pos==='bottom'||pos==='top')&&pl.tokens>0&&pl.tokens<=5?toks:'<span class="bt"></span>'} <b>${pl.tokens}</b></span>`;
   meta+=`<span class="tag" title="Prese vinte in questo round · carte vinte">${ico('stack')} <b>${S.tr[p]}</b> · <b>${S.cw[p]}</b></span>`;
   if(!G.team) meta+=`<span class="tag" title="Punteggio totale">${ico('trophy')} <b>${G.un[p].total}</b></span>`;
   meta+='</div>';
@@ -693,13 +699,13 @@ function centerHtml(){
     <div>Round <b>${G.round+1}/${G.rounds}</b>${ph?` · fase: <b>${ph}</b>`:''}</div>
     <div class="legend">${[0,1,2,3].map(swHtml).join('')}</div>
     ${pool}${mid}${G.phase==='play'||G.phase==='score'?lastResHtml():''}
-    ${S?`<div class="hint" style="color:inherit">Mazzo di pesca: <b>${S.draw.length}</b> · Scartate: <b>${S.disc}</b> carte</div>`:''}</div>`;
+    ${S?`<div class="hint" style="color:inherit">Mazzo di pesca: <b>${S.draw.length}</b> · Scartate: <b>${S.disc}</b> ${S.disc===1?'carta':'carte'}</div>`:''}</div>`;
 }
 function scoreTable(){
   const R=G.rounds, cols=Array.from({length:R},(_,i)=>i);
   const rows=G.un.map(u=>`<tr><td>${esc(u.name)}</td>${cols.map(i=>`<td>${u.hist[i]!=null?u.hist[i]:'–'}</td>`).join('')}<td><b>${u.total}</b></td></tr>`).join('');
   return `<div class="scroll-x"><table class="score"><tr><th>Punteggi</th>${cols.map(i=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table></div>
-    <div class="hint" style="margin-top:6px">Per ogni round: 1 punto per carta vinta + bonus della scommessa (5 per bottone, 30 per uno 0 riuscito).</div>`;
+    <div class="hint" style="margin-top:6px">Per ogni round: 1 punto per carta vinta + bonus della scommessa (5 per bottone; ${G.team?'uno 0 riuscito = vittoria immediata':'30 per uno 0 riuscito'}).</div>`;
 }
 function roundTable(){
   const rows=G.show.rows.map(r=>{
@@ -713,9 +719,10 @@ function dockHtml(){
     <div class="opts">${[2,3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}
     <button class="opt" data-n="4" data-team="1">A squadre: 4 giocatori (tu e un compagno AI contro 2 AI)</button></div>`;
   if(G.over){
+    const you1=G.over.winners.length===1&&!G.team&&G.un[G.over.winners[0]].name==='Tu';
     const nm=G.over.winners.map(i=>esc(G.un[i].name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
     const why=G.instant?' per la scommessa di 0 prese riuscita':'';
-    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}${why}!</b>${G.instant?'':` Punteggio finale ${G.un[G.over.winners[0]].total}.`}</div>${G.show?roundTable():''}
+    return `<div class="dock-msg"><b>${you1?'Hai vinto!':`${G.over.winners.length>1?'Vittoria condivisa: ':(G.team?'Vincono ':'Vince ')}${w}${why}!`}</b>${G.instant?'':` Punteggio finale ${G.un[G.over.winners[0]].total}.`}</div>${G.show?roundTable():''}
       <div class="opts"><button class="opt" data-n="${G.n}" ${G.team?'data-team="1"':''}>Rigioca</button></div>`;
   }
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
@@ -753,7 +760,7 @@ const RULES_HTML = `
 <h4>Fase scommesse</h4>
 <p>Inizia il giocatore a sinistra del mazziere, poi si procede in senso orario. Nel proprio turno si prendono quanti bottoni si vuole, oppure si passa; chi passa non può prenderne altri. Chi non prende nessun bottone scommette di vincere 0 prese. Le scommesse proseguono finché finiscono i bottoni o tutti hanno passato.</p>
 <h4>Fase prese</h4>
-<p>Inizia il giocatore a sinistra del mazziere e si procede in senso orario. Nel proprio turno si gioca una carta in una presa aperta. Un giocatore può giocare al massimo 2 volte nella stessa presa (nella partita a 2 giocatori, 3 volte) e ci sono sempre 4 prese aperte (tante quanti i giocatori).</p>
+<p>Inizia il giocatore a sinistra del mazziere e si procede in senso orario. Nel proprio turno si gioca una carta in una presa aperta. Un giocatore può giocare al massimo 2 volte nella stessa presa (nella partita a 2 giocatori, 3 volte) e ci sono sempre 4 prese aperte (tante quante i giocatori).</p>
 <p>Appena una presa contiene 5 carte (la carta iniziale e quattro giocate) si risolve subito:</p>
 <ul>
 <li><b>Maggioranza netta</b> di un seme: vince la carta più alta di quel seme.</li>
