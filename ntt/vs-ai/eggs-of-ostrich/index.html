@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eggs of Ostrich</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#e4f2ec;
+  --surface:#fbfffc;
+  --surface-raised:#d3e8de;
+  --accent:#d5222d;
+  --accent-soft:rgba(213,34,45,0.12);
+  --text:#1c2a26;
+  --text-soft:#52665f;
+  --danger:#b3261e;
+  --success:#1e8f55;
+  --border:#b8d3c6;
+  --radius:10px;
+  --gold:#f6d96a;
+  --p0:#d92d8e; --p1:#2a5bd7; --p2:#efd83a;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% -20%,#f6fffb 0%,var(--bg) 62%,#c9e2d6 100%) fixed;background-color:var(--bg)}
+.app{max-width:980px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Fredoka',sans-serif;font-size:30px;font-weight:700;line-height:1.1;flex:1;min-width:190px;color:var(--accent);text-shadow:2px 2px 0 #1b1b1b;letter-spacing:0.01em}
+.logo em{font-style:normal;color:#fff;-webkit-text-stroke:1px #d5222d}
+.badge{background:var(--accent);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.25)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.out{background:#3a3a3a;color:#fff}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Fredoka',sans-serif;font-size:19px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(20,60,45,0.18)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+.fin{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--text-soft)}
+.fin b{color:var(--text)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+
+/* tavolo: panno rosso come nelle foto; i tre giocatori sono impilati perché ognuno ha 4 sacchi e 5 carte */
+.table{display:flex;flex-direction:column;gap:10px;background:radial-gradient(ellipse at 50% 30%,#c0272f 0%,#7e141b 100%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;color:#fff6f0}
+.center{display:flex;gap:18px;align-items:center;justify-content:center;flex-wrap:wrap;padding:4px 0}
+.cgroup{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px}
+.cinfo{display:flex;flex-direction:column;gap:5px;font-size:12px;line-height:1.5;max-width:300px}
+.cinfo b{color:var(--gold)}
+.stones{display:inline-flex;gap:4px;vertical-align:middle}
+.stone{display:inline-block;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6b0,#f4c01e 45%,#b9800a);box-shadow:0 1px 2px rgba(0,0,0,0.5)}
+.stone.gone{opacity:0.25}
+.seat{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:rgba(0,0,0,0.22);border-left:6px solid var(--pc)}
+.seat.active{border-color:var(--gold);background:rgba(246,217,106,0.14);border-left-color:var(--pc)}
+.seat.out{opacity:0.7}
+.seat-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.seat-name{font-weight:600;font-size:14px}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--pc);border:1px solid rgba(255,255,255,0.8);vertical-align:middle;margin-right:6px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.42);border-radius:4px;padding:2px 6px;color:#fff;display:inline-flex;align-items:center;gap:4px}
+.tag b{color:var(--gold)}
+.tag i.am{color:#f4c01e}
+.seat-body{display:flex;gap:6px 18px;flex-wrap:wrap;align-items:flex-end}
+.grp{display:flex;flex-direction:column;gap:3px}
+.gl{font-size:10px;letter-spacing:0.06em;text-transform:uppercase;opacity:0.75}
+.row{display:flex;gap:4px;align-items:flex-end}
+.p0{--pc:var(--p0)} .p1{--pc:var(--p1)} .p2{--pc:var(--p2)}
+
+/* carta sacco: panno colorato col numero e le uova (cerchietti bianchi) */
+.bag{position:relative;display:inline-block;width:62px;height:86px;border:3px solid #111;border-radius:7px;background:#d8262d;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,0.5);overflow:hidden}
+.bag .cloth{position:absolute;left:7px;right:7px;top:8px;bottom:8px;border-radius:6px 6px 16px 16px;background-color:var(--pc);display:grid;place-items:start center;padding-top:3px}
+.bag .cloth b,.cl .bub b,.ec b{font-family:'Fredoka',sans-serif;font-weight:700;line-height:1;color:#111;text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff}
+.bag .cloth b{font-size:31px}
+.bag .eggs{position:absolute;left:0;right:0;bottom:6px;display:flex;flex-wrap:wrap;gap:2px;justify-content:center;padding:0 8px}
+.egg{width:11px;height:11px;border-radius:50%;background:#fff;box-shadow:inset -2px -2px 0 rgba(0,0,0,0.16),0 1px 2px rgba(0,0,0,0.5)}
+/* anello fuori dal sacco (il sacco rotto è in grigio col filtro, che altrimenti scolorirebbe anche l'anello):
+   oro = sacco pieno, verde = ha appena ricevuto uova, rosso = si è appena rotto */
+.bagw{display:inline-block;border-radius:10px;flex-shrink:0;line-height:0}
+.bagw.full{box-shadow:0 0 0 3px var(--gold)}
+.bagw.hit{box-shadow:0 0 0 3px #88e8bd}
+.bagw.full.hit{box-shadow:0 0 0 3px var(--gold),0 0 0 6px #88e8bd}
+.bagw.crash{box-shadow:0 0 0 3px #ff5b4d}
+.row.bags{gap:7px}
+.bag.broken{filter:grayscale(1) brightness(0.65)}
+.bag em.x{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-size:56px;font-weight:700;color:#ff3b30;text-shadow:0 0 3px #000}
+.bag .cap{position:absolute;right:3px;top:1px;font-size:9px;font-weight:700;color:#fff;font-family:'Inter',sans-serif;opacity:0.9}
+
+/* carta richiesta: fumetto colorato col numero del sacco (o SKIP) */
+.cl{position:relative;display:inline-block;width:52px;height:72px;border:3px solid #3d9c33;border-radius:7px;background:linear-gradient(#bfe6f6 0 45%,#b9de8f 45% 78%,#ecd9a0 78%);flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,0.45);padding:0;overflow:hidden;font-family:'Fredoka',sans-serif}
+.cl .bub{position:absolute;left:4px;right:4px;top:5px;height:46px;background-color:var(--pc);border:2px solid #111;border-radius:7px;display:grid;place-items:center}
+.cl .bub b{font-size:30px}
+.cl.skip .bub b{font-size:15px;letter-spacing:0.02em}
+.cl.back{background:var(--pc);border-color:#fff;display:inline-grid;place-items:center}
+.cl.back small{font:700 7px/1.2 'Inter',sans-serif;color:#fff;text-align:center;text-shadow:0 1px 1px rgba(0,0,0,0.6)}
+.cl.p2.back small{color:#2b2500;text-shadow:none}
+.cl.empty{background:transparent;border:1px dashed rgba(255,255,255,0.4);box-shadow:none}
+.cl.rest{opacity:0.55;filter:saturate(0.6)}
+button.cl{cursor:pointer;transition:transform 0.12s}
+button.cl:hover:not(:disabled){transform:translateY(-6px)}
+button.cl:disabled{cursor:default}
+.cl.legal{box-shadow:0 0 0 3px var(--gold)}
+.cl.dim{opacity:0.4}
+.cl.sel{transform:translateY(-10px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--gold)}
+
+/* carta uovo: paesaggio, numero grande e struzzo */
+.ec{position:relative;display:inline-block;width:84px;height:116px;border:4px solid #2f9e3a;border-radius:9px;background:linear-gradient(#a9dcf5 0 50%,#c3e29a 50% 82%,#ecd9a0 82%);box-shadow:0 3px 8px rgba(0,0,0,0.5);flex-shrink:0;overflow:hidden}
+.ec b{position:absolute;left:0;right:0;top:8px;text-align:center;font-size:44px}
+.ec i{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:44px;color:#111;line-height:1}
+.ec.back{background:linear-gradient(145deg,#6cc36a,#2f8f3a);display:inline-grid;place-items:center}
+.ec.back b{position:static;font-size:30px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.6)}
+.ec.empty{background:transparent;border:2px dashed rgba(255,255,255,0.4);box-shadow:none}
+.ec.amber .gem{position:absolute;left:50%;top:30px;width:46px;height:46px;margin-left:-23px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6b0,#f4c01e 45%,#b9800a);box-shadow:0 2px 5px rgba(0,0,0,0.5)}
+.ec.amber small{position:absolute;left:0;right:0;bottom:8px;text-align:center;font:700 11px 'Inter',sans-serif;letter-spacing:0.08em;color:#5a3d00}
+body.a11y .p0 .cloth,body.a11y .p0 .bub{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.38) 0 3px,transparent 3px 8px)}
+body.a11y .p1 .cloth,body.a11y .p1 .bub{background-image:radial-gradient(rgba(255,255,255,0.45) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .p2 .cloth,body.a11y .p2 .bub{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.25) 0 3px,transparent 3px 9px)}
+body.a11y .bag .cloth b,body.a11y .cl .bub b{font-size:36px}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row b{margin-right:0}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.rtext h4{font-family:'Fredoka',sans-serif;font-size:15px;color:#a8161f;margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+.rtext a{color:#a8161f}
+
+@media(max-width:600px){
+  .bag{width:50px;height:70px;border-width:2px}
+  .bag .cloth{left:5px;right:5px;top:6px;bottom:6px}
+  .bag .cloth b{font-size:24px}
+  .bag .eggs{gap:1px;padding:0 5px;bottom:4px}
+  .egg{width:9px;height:9px}
+  .row.bags{gap:6px}
+  .bag em.x{font-size:44px}
+  .cl{width:42px;height:58px;border-width:2px}
+  .cl .bub{left:3px;right:3px;top:4px;height:36px;border-width:2px}
+  .cl .bub b{font-size:23px}
+  .cl.skip .bub b{font-size:12px}
+  .ec{width:68px;height:94px;border-width:3px}
+  .ec b{font-size:36px;top:6px}
+  .ec i{font-size:34px}
+  .table{padding:8px;gap:8px}
+  .seat{padding:8px 8px}
+  .logo{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const CAPS = [2,3,5,7];                    // capacità dei 4 sacchi: la carta richiesta ha lo stesso numero
+const SKIP = 4;                            // la quinta carta richiesta è SKIP
+const EGGS = [4,5,5,6,7,8,9,9,10];         // carte uovo numerate (più 3 ambra)
+const AMBERS = 3;
+const REMOVED = 2;                         // carte uovo tolte a caso a inizio partita: restano 10 round
+const NAMES = ['Tu','AI Volpe','AI Gufo'];
+const PNAME = ['rosa','blu','giallo'];
+const HUM = 0;
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('eggs-ostrich-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('eggs-ostrich-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>600) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const claimName = c => c===SKIP?'SKIP':`sacco da ${CAPS[c]}`;
+const bagPts = b => b.broken?0:(b.x===b.cap?b.cap:Math.floor(b.x/2));
+const liveScore = p => p.bags.reduce((a,b)=>a+bagPts(b),0)+4*p.amber;
+const cardName = c => c.amber?'ambra':`${c.n} uova`;
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+function askClaim(legal,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'claim',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function pickClaim(c){
+  if(!PR||PR.type!=='claim'||!PR.legal.has(c)) return;
+  if(OPT.undo){ PR.sel=c; render(); return; }
+  const r=PR.res; PR=null; render(); r(c);
+}
+function confirmClaim(ok){
+  if(!PR||PR.type!=='claim'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const v=PR.sel, r=PR.res; PR=null; render(); r(v);
+}
+
+// ═════════════════════════ REGOLE ═════════════════════════
+function makeDeck(){
+  const d=EGGS.map(n=>({n,amber:false}));
+  for(let i=0;i<AMBERS;i++) d.push({n:0,amber:true});
+  return d;
+}
+function newPlayer(i){
+  return {id:i,name:NAMES[i],bags:CAPS.map(c=>({cap:c,x:0,broken:false})),hand:[0,1,2,3,4],rest:null,played:null,amber:0,out:false};
+}
+// a fine round la carta usata resta a riposo (non si può rigiocare subito) e quella del round prima torna in mano
+function settleRests(){
+  G.pl.forEach(p=>{
+    if(p.out){ p.rest=null; p.played=null; return; }
+    if(p.played===null) return;
+    if(p.rest!==null) p.hand.push(p.rest);
+    p.rest=(p.played<4&&p.bags[p.played].broken)?null:p.played;     // la carta di un sacco rotto non si usa più
+    p.played=null;
+    p.hand.sort((a,b)=>a-b);
+  });
+}
+// risolve il round dopo la rivelazione: aggiorna sacchi e ambra e restituisce il testo
+function resolve(){
+  const cur=G.cur, act=G.pl.filter(p=>!p.out), out=[];
+  G.fx={};
+  const fx=(p,b,k)=>{ (G.fx[p.id]=G.fx[p.id]||{})[b]=k; };
+  out.push('Carte rivelate: '+act.map(p=>`${p.name} ${claimName(p.played)}`).join(' · ')+'.');
+  let res;
+  if(cur.amber){
+    const sk=act.filter(p=>p.played===SKIP);
+    if(sk.length===1){
+      sk[0].amber++; G.amberLeft--;
+      res=`${sk[0].name} è l'unico a giocare SKIP e prende l'ambra (+4 punti).`;
+    }else res=sk.length?`${sk.length} giocatori giocano SKIP: nessuno prende l'ambra.`:`Nessuno gioca SKIP: l'ambra non va a nessuno.`;
+    out.push(res);
+  }else{
+    const W=act.filter(p=>p.played!==SKIP);
+    if(!W.length){ res='Tutti giocano SKIP: nessuno prende uova.'; out.push(res); }
+    else{
+      const e=Math.floor(cur.n/W.length);
+      res=W.length===1?`${W[0].name} è l'unico a volere le uova e le prende tutte (${cur.n}).`:`${W.length} giocatori vogliono le uova: ${cur.n} ÷ ${W.length} = ${e} a testa.`;
+      out.push(res);
+      W.forEach(p=>{
+        const b=p.bags[p.played]; b.x+=e;
+        if(b.x>b.cap){
+          out.push(`${p.name}: il sacco da ${b.cap} dovrebbe contenere ${b.x} uova e si rompe! Le uova sono perse e la carta ${b.cap} non si può più usare.`);
+          b.lost=b.x; b.x=0; b.broken=true; fx(p,p.played,'crash');
+          res+=` ${p.name} rompe il sacco da ${b.cap}!`;
+        }else{
+          out.push(`${p.name}: sacco da ${b.cap} → ${b.x}/${b.cap}${b.x===b.cap?' (pieno!)':''}.`);
+          fx(p,p.played,'hit');
+        }
+      });
+    }
+  }
+  G.last=res;
+  G.pl.forEach(p=>{
+    if(!p.out&&p.bags.every(b=>b.broken)){ p.out=true; p.hand=[]; out.push(`${p.name} ha rotto tutti i sacchi: è fuori dalla partita.`); }
+  });
+  return out;
+}
+function gameWinners(){
+  const sc=G.pl.map(liveScore), mx=Math.max(...sc);
+  return sc.map((s,i)=>s===mx?i:-1).filter(i=>i>=0);
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Stato di un giocatore = uova nei 4 sacchi (sacco rotto = capacità+1): 4·5·7·9 = 1260 stati.
+// Programmazione dinamica: V[r][stato][carta a riposo] = punti attesi a fine partita con r round ancora da giocare,
+// contro avversari che chiedono le uova con una probabilità tipica (QCLAIM) e giocano SKIP per l'ambra (SAMB).
+// Nel round in corso le AI risolvono il gioco simultaneo tra i giocatori (fictitious play) e pescano la mossa con una logit sui payoff attesi.
+const STR = [1,4,20,140], RAD = [4,5,7,9], NS = 1260;
+const DIG = new Int8Array(NS*4), BAGPTS = new Float64Array(NS);
+(function(){
+  for(let s=0;s<NS;s++){
+    let t=s, pts=0;
+    for(let b=0;b<4;b++){ const d=t%RAD[b]; t=Math.floor(t/RAD[b]); DIG[s*4+b]=d; pts+=d===CAPS[b]?CAPS[b]:(d>CAPS[b]?0:Math.floor(d/2)); }
+    BAGPTS[s]=pts;
+  }
+})();
+const addEggs = (s,b,e) => { const d=DIG[s*4+b]; let nd=d+e; if(nd>CAPS[b]) nd=CAPS[b]+1; return s+(nd-d)*STR[b]; };
+const stateOf = p => p.bags.reduce((s,b,i)=>s+(b.broken?b.cap+1:b.x)*STR[i],0);
+const MODEL = {q:{4:0.6,5:0.6,6:0.6,7:0.6,8:0.6,9:0.6,10:0.6}, samb:0.5};
+function buildV(D,R){
+  const V=new Float64Array((R+1)*NS*6);
+  for(let s=0;s<NS;s++) for(let pv=0;pv<6;pv++) V[s*6+pv]=BAGPTS[s];
+  const PK={}; Object.keys(MODEL.q).forEach(n=>{ const q=MODEL.q[n]; PK[n]=[(1-q)*(1-q),2*q*(1-q),q*q]; });
+  const pa0=(1-MODEL.samb)*(1-MODEL.samb);
+  const qa=new Float64Array(5), acc=new Float64Array(6), al=[false,false,false,false];
+  for(let r=1;r<=R;r++){
+    const base=r*NS*6, pb=(r-1)*NS*6;
+    for(let s=0;s<NS;s++){
+      for(let b=0;b<4;b++) al[b]=DIG[s*4+b]<=CAPS[b];
+      if(!al[0]&&!al[1]&&!al[2]&&!al[3]){ for(let pv=0;pv<6;pv++) V[base+s*6+pv]=BAGPTS[s]; continue; }
+      acc.fill(0);
+      for(const t of D){
+        qa.fill(-1e9);
+        if(t.n===0){
+          for(let b=0;b<4;b++) if(al[b]) qa[b]=V[pb+s*6+b];
+          qa[4]=V[pb+s*6+4]+4*pa0;
+        }else{
+          const pk=PK[t.n];
+          for(let b=0;b<4;b++) if(al[b]){
+            let sum=0;
+            for(let k=0;k<3;k++) sum+=pk[k]*V[pb+addEggs(s,b,Math.floor(t.n/(k+1)))*6+b];
+            qa[b]=sum;
+          }
+          qa[4]=V[pb+s*6+4];
+        }
+        for(let pv=0;pv<6;pv++){
+          let best=-1e9;
+          for(let a=0;a<5;a++) if(a!==pv&&qa[a]>best) best=qa[a];
+          acc[pv]+=t.p*best;
+        }
+      }
+      for(let pv=0;pv<6;pv++) V[base+s*6+pv]=acc[pv];
+    }
+  }
+  return V;
+}
+// carte uovo non ancora uscite (comprese le 2 tolte a caso): è tutto ciò che si sa del futuro
+function unseenDist(){
+  const cnt={};
+  makeDeck().forEach(c=>{ const k=c.amber?0:c.n; cnt[k]=(cnt[k]||0)+1; });
+  G.seen.forEach(c=>{ const k=c.amber?0:c.n; cnt[k]--; });
+  const keys=Object.keys(cnt).filter(k=>cnt[k]>0), tot=keys.reduce((a,k)=>a+cnt[k],0);
+  return keys.map(k=>({n:Number(k),p:cnt[k]/tot}));
+}
+// equilibrio approssimato del round in corso: payoff = valore atteso a fine partita meno una frazione (lam) di quello degli avversari,
+// perché conta vincere, non fare punti: far rompere i sacchi agli altri (con uno SKIP al momento giusto) vale quasi quanto riempire i propri.
+// La scelta finale non è la mossa "pura" dell'equilibrio ma una logit con precisione beta: le mosse quasi equivalenti restano
+// possibili, così le due AI non giocano sempre la stessa carta e nessuno può prevederle del tutto.
+function solveRound(info,cur,V,r){
+  const n=info.length, dims=info.map(x=>x.A.length), total=dims.reduce((a,b)=>a*b,1);
+  const vget=(s,pv)=>V[(r*NS+s)*6+pv];
+  const U=info.map(()=>new Float64Array(total)), acts=new Array(n), idx=new Array(n), vals=new Array(n);
+  for(let k=0;k<total;k++){
+    let t=k;
+    for(let i=0;i<n;i++){ idx[i]=t%dims[i]; t=Math.floor(t/dims[i]); acts[i]=info[i].A[idx[i]]; }
+    if(cur.amber){
+      let sk=0; for(let i=0;i<n;i++) if(acts[i]===SKIP) sk++;
+      for(let i=0;i<n;i++) vals[i]=vget(info[i].s,acts[i])+(acts[i]===SKIP&&sk===1?4:0);
+    }else{
+      let w=0; for(let i=0;i<n;i++) if(acts[i]!==SKIP) w++;
+      const e=w?Math.floor(cur.n/w):0;
+      for(let i=0;i<n;i++) vals[i]=vget(acts[i]===SKIP?info[i].s:addEggs(info[i].s,acts[i],e),acts[i]);
+    }
+    let sum=0; for(let i=0;i<n;i++) sum+=vals[i];
+    for(let i=0;i<n;i++) U[i][k]=vals[i]-(n>1?info[i].lam*(sum-vals[i])/(n-1):0);
+  }
+  const cnt=dims.map(d=>new Float64Array(d).fill(1/d)), mix=dims.map(d=>new Float64Array(d));
+  const setMix=()=>{ for(let i=0;i<n;i++){ let s=0; for(let a=0;a<dims[i];a++) s+=cnt[i][a]; for(let a=0;a<dims[i];a++) mix[i][a]=cnt[i][a]/s; } };
+  // payoff atteso di ogni mossa contro le strategie miste degli altri
+  const expect=()=>{
+    const E=dims.map(d=>new Float64Array(d));
+    for(let k=0;k<total;k++){
+      let t=k;
+      for(let i=0;i<n;i++){ idx[i]=t%dims[i]; t=Math.floor(t/dims[i]); }
+      for(let i=0;i<n;i++){ let w=1; for(let j=0;j<n;j++) if(j!==i) w*=mix[j][idx[j]]; E[i][idx[i]]+=w*U[i][k]; }
+    }
+    return E;
+  };
+  for(let it=0;it<300;it++){
+    setMix();
+    const E=expect();
+    for(let i=0;i<n;i++){ let b=0; for(let a=1;a<dims[i];a++) if(E[i][a]>E[i][b]) b=a; cnt[i][b]+=1; }
+  }
+  setMix();
+  const E=expect();
+  return dims.map((d,i)=>{
+    let mx=-Infinity; for(let a=0;a<d;a++) if(E[i][a]>mx) mx=E[i][a];
+    const w=Array.from(E[i],e=>Math.exp(info[i].beta*(e-mx))), s=w.reduce((x,y)=>x+y,0);
+    return w.map(x=>x/s);
+  });
+}
+// "carattere" delle tre sedie: lam = quanto conta danneggiare gli altri, beta = quanto è netta la scelta (Volpe spietata, Gufo prudente)
+const PERS = [{lam:1.5,beta:4.5},{lam:2.2,beta:3.5},{lam:0.8,beta:5.5}];
+function aiSolve(){
+  const act=G.pl.filter(p=>!p.out), cur=G.cur, r=G.total-G.round;
+  const V=buildV(r>0?unseenDist():[],r);
+  const info=act.map(p=>({id:p.id,A:p.hand.slice(),s:stateOf(p),lam:PERS[p.id].lam,beta:PERS[p.id].beta}));
+  return {act,mixes:solveRound(info,cur,V,r),info};
+}
+function sampleMix(A,mix){
+  let x=Math.random(), i=0;
+  for(;i<mix.length-1;i++){ x-=mix[i]; if(x<0) break; }
+  return A[i];
+}
+// scelte simultanee delle AI (non vedono la carta del giocatore)
+function aiPicks(){
+  const picks={};
+  try{
+    const {act,mixes,info}=aiSolve();
+    act.forEach((p,i)=>{ if(p.id!==HUM) picks[p.id]=sampleMix(info[i].A,mixes[i]); });
+  }catch(e){
+    console.error(e);
+    G.pl.forEach(p=>{ if(!p.out&&p.id!==HUM) picks[p.id]=p.hand[rnd(p.hand.length)]; });
+  }
+  return picks;
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n:3,round:0,total:0,msg:'',log:[],over:null,phase:'idle',cur:null,deck:[],removed:[],seen:[],amberLeft:AMBERS,revealed:false,fx:{},last:'',
+     pl:[0,1,2].map(newPlayer)};
+  run();
+}
+function deal(){
+  const all=shuffle(makeDeck());
+  G.removed=all.splice(0,REMOVED); G.deck=all; G.total=G.deck.length;
+}
+async function playRound(){
+  settleRests();
+  const card=G.deck.shift();
+  G.cur=card; G.seen.push(card); G.fx={}; G.revealed=false; G.phase='draw';
+  G.pl.forEach(p=>{ p.played=null; });
+  logMsg(`— Round ${G.round}/${G.total}: ${card.amber?'esce la carta ambra':`escono ${card.n} uova`} —`);
+  status(card.amber?`Ambra! La prende solo chi è l'unico a giocare SKIP.`:`Escono ${card.n} uova: chi gioca un sacco se le divide.`);
+  await sleep(800);
+  G.phase='choose';
+  const picks=aiPicks(), me=P(HUM);
+  if(!me.out){
+    const rest=me.rest===null?'':` Il ${claimName(me.rest)} è a riposo: non puoi usarlo.`;
+    status(card.amber?'Ambra! Scegli una carta richiesta.':`Escono ${card.n} uova: scegli una carta richiesta.`);
+    const hint=(card.amber
+      ?`è ambra: la prende solo chi è l'unico a giocare SKIP, qualsiasi altra carta non fa nulla.`
+      :`${card.n} uova: chi gioca un sacco se le divide (per difetto) e le mette in quel sacco; se un sacco ne riceve troppe si rompe. SKIP = non le voglio.`)+rest;
+    me.played=await askClaim(me.hand,hint);
+    me.hand=me.hand.filter(x=>x!==me.played);
+  }
+  G.pl.forEach(p=>{ if(!p.out&&p.id!==HUM){ p.played=picks[p.id]; p.hand=p.hand.filter(x=>x!==p.played); } });
+  G.phase='hidden';
+  status('Tutti hanno scelto: le carte si rivelano insieme…');
+  await sleep(900);
+  G.revealed=true; G.phase='reveal';
+  status('Carte rivelate!');
+  await sleep(1100);
+  const lines=resolve();
+  lines.slice().forEach(l=>G.log.unshift(l));
+  status(G.last);
+  await sleep(1700);
+}
+async function run(){
+  const g=G;
+  try{
+    deal();
+    logMsg(`Partita di 3 giocatori: ${EGGS.length+AMBERS} carte uovo, ${REMOVED} tolte a caso senza guardarle: si giocano ${g.total} round.`);
+    for(let r=1;r<=g.total;r++){
+      if(g.pl.every(p=>p.out)){ logMsg('Nessun giocatore ha più sacchi utilizzabili: la partita finisce qui.'); break; }
+      g.round=r; await playRound();
+    }
+    g.phase='over'; g.cur=null;
+    g.over={winners:gameWinners()};
+    logMsg('Punteggi finali: '+g.pl.map(p=>`${p.name} ${liveScore(p)}`).join(' · ')+'.');
+    logMsg('Le carte uovo tolte a inizio partita erano: '+g.removed.map(cardName).join(' e ')+'.');
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+function bagHtml(p,b){
+  const bag=P(p).bags[b], fx=(G.fx[p]&&G.fx[p][b])||'';
+  const full=!bag.broken&&bag.x===bag.cap;
+  let eggs=''; if(!bag.broken) for(let i=0;i<bag.x;i++) eggs+='<span class="egg"></span>';
+  const t=bag.broken?`Sacco da ${bag.cap}: rotto`:`Sacco da ${bag.cap}: ${bag.x} ${bag.x===1?'uovo':'uova'}${full?' (pieno)':''}`;
+  return `<span class="bagw ${full?'full':''} ${fx}"><span class="bag p${p} ${bag.broken?'broken':''}" title="${t}"><span class="cloth"><b>${bag.cap}</b></span><span class="eggs">${eggs}</span>${bag.broken?'<em class="x">✕</em>':''}</span></span>`;
+}
+function claimHtml(p,c,extra='',tag='span',attrs=''){
+  const lab=c===SKIP?'SKIP':CAPS[c];
+  return `<${tag} class="cl p${p} ${c===SKIP?'skip':''} ${extra}" ${attrs} title="${c===SKIP?'SKIP: non voglio uova':`Carta richiesta: sacco da ${CAPS[c]}`}"><span class="bub"><b>${lab}</b></span></${tag}>`;
+}
+const claimBack = p => `<span class="cl back p${p}" title="Carta richiesta coperta"><small>EGGS<br>OF<br>OSTRICH</small></span>`;
+const claimEmpty = () => '<span class="cl empty"></span>';
+function ecHtml(c){
+  if(!c) return '<span class="ec empty"></span>';
+  if(c.amber) return '<span class="ec amber" title="Carta ambra"><span class="gem"></span><small>AMBRA</small></span>';
+  return `<span class="ec" title="Carta uovo: ${c.n} uova"><b>${c.n}</b>${ico('bird')}</span>`;
+}
+function seatHtml(p){
+  const pl=P(p), me=p===HUM, choosing=me&&PR&&PR.type==='claim';
+  let hand;
+  if(pl.out) hand='<span class="hint" style="color:inherit">Fuori dalla partita</span>';
+  else if(me) hand=pl.hand.map(c=>{
+    if(choosing){ const lg=PR.legal.has(c); return claimHtml(p,c,`${lg?'legal':'dim'} ${PR.sel===c?'sel':''}`,'button',`${lg?'':'disabled'} data-c="${c}"`); }
+    return claimHtml(p,c);
+  }).join('')||claimEmpty();
+  else hand=pl.hand.map(()=>claimBack(p)).join('')||claimEmpty();
+  const rest=pl.out?claimEmpty():(pl.rest!==null?claimHtml(p,pl.rest,'rest'):claimEmpty());
+  const shown=pl.played===null?claimEmpty():(G.revealed||me?claimHtml(p,pl.played):claimBack(p));
+  const meta=`<div class="seat-meta"><span class="tag" title="Punteggio attuale (se la partita finisse ora)">${ico('star')} <b>${liveScore(pl)}</b></span><span class="tag" title="Ambra (4 punti ciascuna)"><i class="ph-fill ph-diamond am"></i> <b>${pl.amber}</b></span></div>`;
+  const flag=pl.out?'<span class="flag out">Fuori</span>':'';
+  return `<div class="seat p${p} ${choosing?'active':''} ${pl.out?'out':''}">
+    <div class="seat-head"><div class="seat-name"><span class="dot"></span>${esc(pl.name)}${flag}</div>${meta}</div>
+    <div class="seat-body">
+      <div class="grp"><div class="gl">Sacchi</div><div class="row bags">${[0,1,2,3].map(b=>bagHtml(p,b)).join('')}</div></div>
+      <div class="grp"><div class="gl">In mano</div><div class="row">${hand}</div></div>
+      <div class="grp"><div class="gl">A riposo</div><div class="row">${rest}</div></div>
+      <div class="grp"><div class="gl">Giocata</div><div class="row">${shown}</div></div>
+    </div></div>`;
+}
+function centerHtml(){
+  const left=G.deck.length;
+  const stones=Array.from({length:AMBERS},(_,i)=>`<span class="stone ${i<G.amberLeft?'':'gone'}"></span>`).join('');
+  const state={idle:'',draw:'Si scopre la carta del mazzo',choose:'Si sceglie la carta richiesta',hidden:'Carte coperte',reveal:'Carte rivelate',over:'Fine partita'}[G.phase]||'';
+  return `<div class="center">
+    <div class="cgroup"><span class="ec back" title="Mazzo di carte uovo"><b>${left}</b></span><span>Mazzo</span></div>
+    <div class="cgroup">${ecHtml(G.cur)}<span>${G.cur?(G.cur.amber?'Ambra':`${G.cur.n} uova`):'—'}</span></div>
+    <div class="cinfo">
+      <div>Round <b>${Math.min(Math.max(G.round,1),G.total||10)}/${G.total||10}</b> · ${state}</div>
+      <div>Ambra rimasta: <span class="stones">${stones}</span></div>
+      ${G.last?`<div>Ultimo round: ${esc(G.last)}</div>`:''}
+    </div></div>`;
+}
+function scoreTable(){
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}${p.out?' <span class="hint">(fuori)</span>':''}</td>${p.bags.map(b=>`<td class="${b.broken?'neg':''}" title="${b.broken?'Sacco rotto':`${b.x}/${b.cap} uova`}">${b.broken?'✕':bagPts(b)}</td>`).join('')}<td>${4*p.amber}</td><td><b>${liveScore(p)}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th>Punteggio attuale</th>${CAPS.map(c=>`<th>Sacco ${c}</th>`).join('')}<th>Ambra</th><th>Totale</th></tr>${rows}</table>`;
+}
+function finalLines(){
+  return `<div class="fin">${G.pl.map(p=>`<div><b>${esc(p.name)}</b>: ${p.bags.map(bagPts).join(' + ')} + ${4*p.amber} (ambra) = <b>${liveScore(p)}</b> punti</div>`).join('')}</div>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Eggs of Ostrich contro l'AI. Si gioca in 3: tu e due AI.</div>
+    <div class="opts"><button class="opt" data-n="3">3 giocatori (tu + 2 AI)</button></div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (vince il totale più alto)</div>${finalLines()}
+      <div class="opts"><button class="opt" data-n="3">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(PR&&PR.type==='claim'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null) html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${claimName(PR.sel)}</button><button class="opt" data-cf="0">Annulla</button></div>`;
+  }else if(P(HUM).out){
+    html+=`<div class="hint">Hai rotto tutti i sacchi: sei fuori dalla partita, ma i punti dell'ambra restano. Gli altri due continuano.</div>`;
+  }
+  return html;
+}
+function recapHtml(){
+  return `<div class="recap"><h3>RIEPILOGO · 3 GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Mazzo</span>12 carte uovo (4, 5, 5, 6, 7, 8, 9, 9, 10 e 3 ambra): 2 tolte a caso, si giocano 10 round.</div>
+    <div class="recap-row"><span class="lbl">Sacchi</span>Ognuno ha 4 sacchi da 2, 3, 5 e 7 uova e 5 carte richiesta: 2, 3, 5, 7 e SKIP.</div>
+    <div class="recap-row"><span class="lbl">Round</span>Si scopre una carta uovo; tutti scelgono in segreto una carta richiesta e la rivelano insieme. Un numero = «voglio le uova in quel sacco», SKIP = «non le voglio».</div>
+    <div class="recap-row"><span class="lbl">Uova</span>Chi non gioca SKIP si divide le uova in parti uguali (per difetto) e le mette nel sacco scelto. Se un sacco supera la capacità si rompe: uova perse e carta non più utilizzabile.</div>
+    <div class="recap-row"><span class="lbl">Ambra</span>Con la carta ambra la prende solo chi gioca SKIP da solo.</div>
+    <div class="recap-row"><span class="lbl">Riposo</span>La carta giocata non si può usare nel round dopo; dal secondo round quella del round precedente torna in mano (SKIP compreso).</div>
+    <div class="recap-row"><span class="lbl">Punteggio</span>Sacco pieno = tanti punti quanta la capacità · sacco incompleto = metà delle uova (per difetto) · sacco rotto = 0 · ambra = 4 punti. Vince il totale più alto.</div></div>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Storia</h4>
+<p>Tre fratelli dal cuore buono (?) vanno a raccogliere uova di struzzo. Ognuno ha 4 sacchi che riempie a poco a poco con le uova. Ma le uova sono molto pesanti e la stoffa dei sacchi è sottilissima: con troppe uova i sacchi rischiano di rompersi! Quale fratello raccoglierà più uova?</p>
+<h4>Contenuto</h4>
+<p>12 carte uovo (4, 5, 5, 6, 7, 8, 9, 9, 10 e 3 ambra), 12 carte sacco (2, 3, 5, 7 in tre colori), 15 carte richiesta (2, 3, 5, 7 e «skip» in tre colori), 50 uova di plastica e 3 pietre d'ambra gialle.</p>
+<h4>Obiettivo</h4>
+<p>Il punteggio si calcola dopo 10 round. Se un sacco contiene il numero giusto di uova, il giocatore ottiene tanti punti quanti sono le uova che può contenere; se ce ne sono troppo poche i punti si dimezzano, se ce ne sono troppe il sacco si rompe e le uova sono perse. Anche l'ambra dà punti. Vince chi ha il punteggio più alto.</p>
+<h4>Preparazione</h4>
+<p>Si mescolano le carte uovo e se ne tolgono 2 a caso, rimettendole nella scatola senza guardarle. Le altre 10 formano il mazzo coperto al centro. Ogni giocatore sceglie un colore (rosa, blu o giallo) e prende i suoi sacchi e le sue carte richiesta: i sacchi si allineano scoperti davanti a sé, le carte richiesta restano in mano. Uova e ambra si mettono al centro.</p>
+<h4>Inizio di un round</h4>
+<p>Si scopre la prima carta del mazzo (nel gioco da tavolo lo fa il «rivelatore», chi ha rotto un uovo più di recente; qui è automatico).</p>
+<h4>Come raccogliere le uova</h4>
+<p>Se la carta è un uovo numerato, il numero indica quante uova ci sono in questo round. Ogni giocatore decide se le vuole e sceglie una carta richiesta, che mette coperta: se le vuole, gioca la carta con il numero del sacco in cui metterle; altrimenti gioca «skip». Quando tutti hanno giocato, le carte si rivelano insieme.</p>
+<p>Tutti quelli che hanno giocato una carta numerata si dividono le uova in parti uguali (per difetto). Se tutti giocano «skip» nessuno prende uova. Le uova si prendono dalla riserva e si mettono sul sacco con lo stesso numero della carta richiesta giocata.</p>
+<p><i>Esempio:</i> la carta dice 9 uova; i giocatori giocano 7, 5 e «skip». In due vogliono le uova, quindi ne prendono 4 a testa: le uova vanno sul sacco 7 e sul sacco 5.</p>
+<h4>Sacchi che si rompono</h4>
+<p>Il numero di ogni sacco indica quante uova può contenere. Se, dividendo le uova, un sacco ne riceve più di quante ne contiene, si rompe e tutte le sue uova sono schiacciate! Le uova del sacco rotto tornano nella riserva e la carta richiesta con lo stesso numero si mette coperta sopra la carta sacco: né il sacco né la carta richiesta si possono più usare.</p>
+<h4>Come ottenere l'ambra</h4>
+<p>Se la carta scoperta è ambra, i giocatori giocano una carta richiesta a piacere, come per un uovo. Dopo la rivelazione, se un solo giocatore ha giocato «skip» prende un'ambra dalla riserva. L'ambra non si mette nei sacchi ma si tiene accanto e non si può perdere. Se due o tre giocatori giocano «skip» nessuno prende l'ambra, e chi ha giocato altro non prende nulla.</p>
+<h4>Fine del round</h4>
+<p>Quando è stato stabilito chi prende uova o ambra, le carte richiesta usate in questo round restano scoperte davanti a ciascuno e non si possono usare nel round successivo. Dal secondo round in poi, le carte usate nel round precedente tornano in mano.</p>
+<h4>Se si rompono tutti i sacchi…</h4>
+<p>È improbabile, ma se si rompono tutti i sacchi di un giocatore, quel giocatore è fuori dalla partita (tiene la sua ambra); si continua con gli altri due.</p>
+<h4>Vittoria e punteggio</h4>
+<p>La partita termina dopo 10 round. Ogni giocatore controlla i sacchi: quelli completamente pieni valgono tanti punti quante sono le uova che possono contenere (il sacco da 7 con 7 uova vale 7 punti). I sacchi con meno uova di quante ne possono contenere valgono la metà dei punti delle uova che hanno, per difetto (il sacco da 5 con 3 uova vale 1 punto). Ogni ambra vale 4 punti. Vince chi ha più punti in totale; in caso di parità la vittoria è condivisa.</p>
+<p><i>Esempio:</i> 2 + 0 + 1 + 1 + 4 = 8 punti.</p>
+<p>Gioco di Shinpei Sato (conception), illustrazioni di KONOKI. Titolo originale «タマゴリッチ!».</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare la carta scelta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori dei giocatori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">Eggs of <em>Ostrich</em></div>
+    ${window.nyloBackBtn?nyloBackBtn('/ntt/'):""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${Math.min(Math.max(G.round,1),G.total||10)}/${G.total||10}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=`<div class="table">${centerHtml()}${[1,2,0].map(seatHtml).join('')}</div>
+      <div class="dock" style="position:static">${scoreTable()}</div>
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  try{ if(localStorage.getItem('nylo-skip-name')==='1'){ NAMES[0]=localStorage.getItem('nylo-player-name')||'Nylo'; newMatch(n); return; } }catch(e){}
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  else if(b.dataset.c!==undefined) pickClaim(Number(b.dataset.c));
+  else if(b.dataset.cf!==undefined) confirmClaim(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('eggs-ostrich-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('eggs-ostrich-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(!OPT.undo&&PR&&PR.type==='claim'&&PR.sel!=null){ const v=PR.sel, r=PR.res; PR=null; render(); r(v); return; }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>

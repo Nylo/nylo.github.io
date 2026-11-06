@@ -143,7 +143,7 @@
     var back = b.getAttribute('data-back');
     ov._to = back || '/';
     ov.querySelector('[data-title]').textContent = back ? 'Tornare ' + (b.getAttribute('data-back-what') || 'alla lista dei giochi') + '?' : 'Tornare alla home?';
-    ov.querySelector('[data-yes]').textContent = !back ? 'Torna alla home' : back === '/tt/' ? 'Torna ai giochi' : 'Torna indietro';
+    ov.querySelector('[data-yes]').textContent = !back ? 'Torna alla home' : (back === '/tt/' || back === '/ntt/') ? 'Torna ai giochi' : 'Torna indietro';
     // niente avviso se la partita non è iniziata o è finita: al suo posto una riga vuota, per tenere staccati titolo e pulsanti
     var warn = ov.querySelector('[data-warn]'), noWarn = notStarted() || gameOver();
     warn.textContent = noWarn ? ' ' : 'La partita in corso andrà persa.';
