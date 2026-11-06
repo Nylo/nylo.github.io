@@ -51,7 +51,7 @@ body.a11y .pc.c1{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,tran
 body.a11y .pc.c2{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 body.a11y .pc.c3{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 
-.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 16px rgba(90,60,25,0.25)}
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 16px rgba(90,60,25,0.25)}
 .dock-msg{font-size:13px;line-height:1.5}
 .dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 .opts{display:flex;gap:8px;flex-wrap:wrap}
@@ -252,6 +252,7 @@ function confirmCard(ok){
 }
 
 // ═════════════════════════ REGOLE ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,game:0,start0:rnd(n),start:0,msg:'',log:[],over:null,conds:[],order:mkOrder(n),
@@ -558,7 +559,7 @@ function recapHtml(){
 }
 
 const RULES_HTML = `
-<details class="rules"><summary>REGOLAMENTO (traduzione di Danilo, allineata al PDF inglese)</summary>
+<details class="rules"><summary>REGOLAMENTO</summary>
 <div class="rtext">
 <h4>Setup</h4>
 <p>Posiziona i gettoni al centro del tavolo. Separa le carte Contratto per tipologia, mescola i 4 mazzetti e piazzali coperti. In 3 giocatori si usano le carte da gioco dall'1 al 9 (36 carte), in 4 giocatori tutte le 48. Distribuisci 12 carte a ciascun giocatore. Se finiscono i gettoni si possono usare monete: nell'app non c'è alcun limite.</p>
@@ -610,7 +611,7 @@ function render(){
     const pos=POS[G.n];
     body=`${G.conds.length?condsHtml():''}
       <div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
-      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static;border-top-width:1px">${scoreTable()}</div>`:''}
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -653,7 +654,7 @@ document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
   if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');

@@ -65,7 +65,7 @@ body{background:
 .name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
 .name-box input:focus{border-color:var(--accent)}
 
-.dock{position:sticky;top:0;z-index:10;border:2px solid #2a1d5c;border-top:6px solid #ffc933;border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(30,15,80,0.25)}
+.dock{position:sticky;top:0;z-index:10;border:2px solid #2a1d5c;border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(30,15,80,0.25)}
 .dock-msg{font-size:13px;line-height:1.5}
 .dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 .opts{display:flex;gap:8px;flex-wrap:wrap}
@@ -387,6 +387,7 @@ function aiChoosePlan(p){
 }
 
 // ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,hand:0,start:rnd(n),u:0,ring:[],plan:180,msg:'',log:[],over:null,
@@ -469,11 +470,11 @@ async function scoring(overage){
   G.pl.forEach((p,i)=>{ p.sim+=r.d[i]; p.hist.push(r.d[i]); });
   const rows=G.pl.map((p,i)=>({p:i,mins:mins[i],over:r.over[i],exact:mins[i]===G.plan,fewest:i===r.fewest,d:r.d[i],sim:p.sim}));
   G.show={rows,overage};
-  logMsg(overage?`Mano conclusa in anticipo: superamento del piano di ${G.plan} minuti.`:`Mano conclusa: nessuno ha superato il piano di ${G.plan} minuti.`);
+  logMsg(overage?`Round concluso in anticipo: superamento del piano di ${G.plan} minuti.`:`Round concluso: nessuno ha superato il piano di ${G.plan} minuti.`);
   rows.forEach(x=>logMsg(`${P(x.p).name}: ${x.mins}′${x.over?' (SUPERAMENTO)':''}${x.exact?' (esatto: +1 SIM)':''}${x.fewest?' · meno minuti':''} → SIM ${sg(x.d)} (ora ${x.sim}).`));
-  status('Mano conclusa.');
+  status('Round concluso.');
   const end=G.pl.some(p=>p.sim<=0);
-  await ask(HUM,'Risultato della mano',[{label:end?'Vedi il risultato finale':'Mano successiva',value:1}]);
+  await ask(HUM,'Risultato del round',[{label:end?'Vedi il risultato finale':'Round successivo',value:1}]);
   G.show=null;
   return r;
 }
@@ -484,7 +485,7 @@ function winners(){
 async function choosePlan(chooser){
   if(chooser===HUM){
     const o=PLANS.map(p=>({label:`${p} minuti`,value:p}));
-    return ask(HUM,'Hai superato il piano: scegli il piano per questa mano (hai visto la tua mano)',o);
+    return ask(HUM,'Hai superato il piano: scegli il piano per questo round (hai visto la tua mano)',o);
   }
   await sleep(700);
   return aiChoosePlan(chooser);
@@ -504,13 +505,13 @@ async function run(){
         g.plan=pl;
         logMsg(`${P(chooser).name} sceglie il piano da ${pl} minuti.`);
       }
-      logMsg(`— Mano ${h+1}: piano ${g.plan} minuti, primo giocatore ${P(g.start).name}${g.n===3?' (con il chiamante ignoto)':''} —`);
+      logMsg(`— Round ${h+1}: piano ${g.plan} minuti, primo giocatore ${P(g.start).name}${g.n===3?' (con il chiamante ignoto)':''} —`);
       status(g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`);
-      await ask(HUM,`Mano ${h+1}: piano da ${g.plan} minuti. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
+      await ask(HUM,`Round ${h+1}: piano da ${g.plan} minuti. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
       const overage=await playHand();
       const r=await scoring(overage);
       if(g.pl.some(p=>p.sim<=0)) break;
-      // mano successiva: inizia chi ha raccolto meno minuti; sceglie il piano chi ha superato (a pari merito il totale di conversazione più alto), se nessuno chi ha meno minuti
+      // round successivo: inizia chi ha raccolto meno minuti; sceglie il piano chi ha superato (a pari merito il totale di conversazione più alto), se nessuno chi ha meno minuti
       g.start=r.fewest;
       const ov=g.pl.filter((p,i)=>r.over[i]);
       if(ov.length===0) chooser=r.fewest;
@@ -572,11 +573,11 @@ function centerHtml(){
     <div class="tm">${SLOT.map((s,i)=>`<span class="${i===G.tIdx%3&&G.trickNo>0&&!G.show?'on':''} ${i===2?'ev':''}">${s}</span>`).join('')}</div>
     ${ev&&G.trickNo>0&&!G.show?'<div class="hint">Sera: chiamate GRATIS, le carte si scartano</div>':''}
     ${uc}
-    <div>Presa <b>${Math.min(G.trickNo,HAND)}/${HAND}</b> · Mano <b>${G.hand+1}</b></div></div>`;
+    <div>Presa <b>${Math.min(G.trickNo,HAND)}/${HAND}</b> · Round <b>${G.hand+1}</b></div></div>`;
 }
 function scoreTable(){
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.hist.map(sg).join(' ')||'–'}</td><td><b>${p.sim}</b></td></tr>`).join('');
-  return `<table class="score"><tr><th>Gettoni SIM</th><th class="l">Variazioni per mano</th><th>Ora</th></tr>${rows}</table>`;
+  return `<table class="score"><tr><th>Gettoni SIM</th><th class="l">Variazioni per round</th><th>Ora</th></tr>${rows}</table>`;
 }
 function dockHtml(){
   if(!G) return `<div class="dock-msg">Daytime Minutes contro l'AI. Quanti giocatori in tutto?</div>
@@ -614,23 +615,23 @@ function recapHtml(){
     <div class="recap-row"><span class="rv" style="margin-left:0">45 carte (1–15 in 3 semi) · il numero decide chi vince, i minuti si contano verso il piano · ${HAND} carte a testa</span></div>
     ${minsTable()}
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">al massimo due semi: dopo il secondo seme devi giocarne uno dei due, se puoi · di giorno (mattina, pomeriggio) per ogni seme chi ha giocato il valore più alto raccoglie tutte le carte di quel seme · di sera le carte si scartano · guida chi ha giocato il valore più alto del seme di mano</span></div>
-    <div class="recap-row"><span class="lbl">Fine mano</span><span class="rv" style="margin-left:0">se qualcuno supera i minuti del piano la mano finisce subito e perde un SIM · chi ha meno minuti perde un SIM · chi arriva ESATTAMENTE ai minuti del piano guadagna un SIM</span></div>
+    <div class="recap-row"><span class="lbl">Fine round</span><span class="rv" style="margin-left:0">se qualcuno supera i minuti del piano il round finisce subito e perde un SIM · chi ha meno minuti perde un SIM · chi arriva ESATTAMENTE ai minuti del piano guadagna un SIM</span></div>
     <div class="recap-row"><span class="lbl">Fine</span><span class="rv" style="margin-left:0">la partita finisce quando qualcuno ha 0 SIM · vince chi ne ha di più · parte 3 SIM a testa, piano iniziale 180 minuti${n===3?' · in 3 giocatori una carta in più per presa da un «chiamante ignoto»':''}</span></div></div>`;
 }
 const RULES_HTML = `
-<details class="rules paper"><summary>REGOLAMENTO (traduzione dal PDF inglese)</summary>
+<details class="rules paper"><summary>REGOLAMENTO</summary>
 <div class="rtext">
 <h4>Introduzione</h4>
 <p>È il 2003 e tutti sembrano avere un cellulare. Hai pagato quei minuti, quindi vuoi usarli tutti. Ma restare incastrato in una chiamata e superare il limite è catastrofico. Per fortuna, sere e fine settimana sono GRATIS!</p>
 <h4>Componenti</h4>
-<p>45 carte conversazione (1–15 in 3 semi: amici, famiglia, lavoro), 4 carte piano (150, 180, 210, 240), 1 carta orario, 1 segnalino orario, 1 segnalino primo giocatore, 18 gettoni SIM, 4 carte riassuntive, 1 regolamento. Ogni carta ha due valori: il <b>valore di conversazione</b> (1–15), che serve a stabilire chi vince le prese e raccoglie le carte, e il <b>valore in minuti</b> (5, 15, 30, 45, 60), che si conta verso la carta piano attiva, l'obiettivo di tutti per la mano.</p>
+<p>45 carte conversazione (1–15 in 3 semi: amici, famiglia, lavoro), 4 carte piano (150, 180, 210, 240), 1 carta orario, 1 segnalino orario, 1 segnalino primo giocatore, 18 gettoni SIM, 4 carte riassuntive, 1 regolamento. Ogni carta ha due valori: il <b>valore di conversazione</b> (1–15), che serve a stabilire chi vince le prese e raccoglie le carte, e il <b>valore in minuti</b> (5, 15, 30, 45, 60), che si conta verso la carta piano attiva, l'obiettivo di tutti per il round.</p>
 <h4>Preparazione</h4>
 <ul>
 <li>Chi ha telefonato più di recente prende il segnalino di primo giocatore. Ognuno prende <b>3 gettoni SIM</b>.</li>
 <li>La carta orario è al centro; il segnalino parte da «Mattina». Il piano da <b>180 minuti</b> è scoperto; gli altri piani sono da parte.</li>
 <li>Si mescolano tutte le carte e se ne distribuiscono <b>9 a testa</b>; le altre restano coperte senza guardarle.</li>
 </ul>
-<h4>Giocare una mano</h4>
+<h4>Giocare un round</h4>
 <p>Il primo giocatore guida la prima presa. In senso orario ognuno gioca una carta dalla mano; chi guida può giocare qualsiasi carta.</p>
 <p><b>In generale nella presa si possono giocare al massimo due semi diversi.</b> Se finora è stato giocato un solo seme, chi tocca può giocare qualsiasi seme. Dopo che è stato giocato un secondo seme, chi tocca deve giocare una carta di uno di quei due semi, se può. Se la mano di un giocatore è composta da un solo seme, può giocarlo anche se diventa il terzo seme della presa. Se nella presa ci sono già tutti e tre i semi, i giocatori successivi possono giocare qualsiasi seme.</p>
 <h4>Giorno e sera</h4>
@@ -639,20 +640,20 @@ const RULES_HTML = `
 <p><b>Prese serali:</b> le carte sono scartate coperte e non si raccolgono.</p>
 <p>Dopo ogni presa guida la successiva chi ha giocato il valore più alto del seme di mano (il seme originale della presa).</p>
 <h4>3 giocatori</h4>
-<p>Con tre giocatori una carta in più viene aggiunta a ogni presa da un <b>chiamante ignoto</b>. Nella prima mano, dopo aver distribuito 9 carte a testa, il mazzo avanzato si mette coperto alla destra del primo giocatore. Dopo ogni mano il mazzo si sposta di un posto in senso orario. In ogni presa si gira la carta in cima al mazzo del chiamante ignoto dopo che ha giocato il giocatore a destra del mazzo (nella prima presa il chiamante gioca quarto). Le sue carte seguono le normali regole di raccolta; se raccoglie carte, le scarta coperte. Se il chiamante vince la guida, guida con la carta in cima al mazzo e il gioco continua in senso orario. Il chiamante non ha gettoni SIM, non può superare il piano né avere meno minuti.</p>
+<p>Con tre giocatori una carta in più viene aggiunta a ogni presa da un <b>chiamante ignoto</b>. Nel primo round, dopo aver distribuito 9 carte a testa, il mazzo avanzato si mette coperto alla destra del primo giocatore. Dopo ogni round il mazzo si sposta di un posto in senso orario. In ogni presa si gira la carta in cima al mazzo del chiamante ignoto dopo che ha giocato il giocatore a destra del mazzo (nella prima presa il chiamante gioca quarto). Le sue carte seguono le normali regole di raccolta; se raccoglie carte, le scarta coperte. Se il chiamante vince la guida, guida con la carta in cima al mazzo e il gioco continua in senso orario. Il chiamante non ha gettoni SIM, non può superare il piano né avere meno minuti.</p>
 <h4>Punteggio</h4>
 <ul>
-<li>Alla fine di una presa, se qualcuno ha raccolto più minuti del piano attivo, ha incorso nel <b>superamento</b> e la mano finisce subito.</li>
-<li>Chi ha superato il piano scarta un gettone SIM. Anche chi ha raccolto <b>meno minuti</b> nella mano scarta un SIM.</li>
+<li>Alla fine di una presa, se qualcuno ha raccolto più minuti del piano attivo, ha incorso nel <b>superamento</b> e il round finisce subito.</li>
+<li>Chi ha superato il piano scarta un gettone SIM. Anche chi ha raccolto <b>meno minuti</b> nel round scarta un SIM.</li>
 <li>Chi ha raccolto <b>esattamente</b> i minuti del piano guadagna un gettone SIM.</li>
 <li>Se nessuno supera il piano, solo chi ha meno minuti scarta un SIM.</li>
 <li>Se tutti tranne uno superano il piano, l'unico rimasto non perde un SIM anche se ha meno minuti.</li>
 </ul>
-<h4>Mano successiva</h4>
-<p>Il segnalino primo giocatore va a chi ha raccolto meno minuti (a parità, chi ha il valore di conversazione totale più basso nelle carte raccolte). Si rimescolano tutte le carte e si distribuiscono 9 carte a testa. Chi ha superato il piano sceglie il piano della mano successiva dopo aver visto la nuova mano (uno qualsiasi dei quattro). Se due o più giocatori hanno superato il piano, sceglie quello con il valore di conversazione totale più alto; se nessuno ha superato il piano, sceglie chi ha meno minuti.</p>
+<h4>Round successivo</h4>
+<p>Il segnalino primo giocatore va a chi ha raccolto meno minuti (a parità, chi ha il valore di conversazione totale più basso nelle carte raccolte). Si rimescolano tutte le carte e si distribuiscono 9 carte a testa. Chi ha superato il piano sceglie il piano del round successivo dopo aver visto la nuova mano (uno qualsiasi dei quattro). Se due o più giocatori hanno superato il piano, sceglie quello con il valore di conversazione totale più alto; se nessuno ha superato il piano, sceglie chi ha meno minuti.</p>
 <h4>Fine della partita</h4>
 <p>La partita finisce quando un giocatore ha 0 gettoni SIM. Vince chi ne ha di più; in caso di parità la vittoria è condivisa.</p>
-<p><i>Nell'app:</i> il segnalino orario riparte da Mattina a ogni mano; a parità di minuti più bassi perde il SIM chi ha il valore di conversazione totale più basso (poi a sorte). L'AI conosce tutte le carte già giocate e stima le mani avversarie con simulazioni.</p>
+<p><i>Nell'app:</i> il segnalino orario riparte da Mattina a ogni round; a parità di minuti più bassi perde il SIM chi ha il valore di conversazione totale più basso (poi a sorte). L'AI conosce tutte le carte già giocate e stima le mani avversarie con simulazioni.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -673,14 +674,14 @@ function render(){
   const app=document.getElementById('app');
   const top=`<div class="topbar"><div class="logo">daytime<br>minutes<small>make the most of your cell phone plan</small></div>
     ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
-    ${G&&!G.over?`<span class="badge">Mano ${G.hand+1} · piano ${G.plan}′</span>`:''}
+    ${G&&!G.over?`<span class="badge">Round ${G.hand+1} · piano ${G.plan}′</span>`:''}
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
     ${menuHtml()}</div>`;
   let body='';
   if(G){
     const pos=POS[G.n];
     body=`<div class="table ${G.n===5?'n5':''}">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
-      ${G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static;border-top-width:2px">${scoreTable()}</div>`:''}
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -710,7 +711,7 @@ document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
   if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');

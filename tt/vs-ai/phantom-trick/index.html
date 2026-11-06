@@ -65,7 +65,7 @@ body{background:radial-gradient(ellipse at 50% 0%,#3a2166 0%,#1b1030 60%,#120a22
 .name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
 .name-box input:focus{border-color:var(--accent)}
 
-.dock{position:sticky;top:0;z-index:10;border:3px solid var(--ink);border-top:8px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.25)}
+.dock{position:sticky;top:0;z-index:10;border:3px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.25)}
 .dock-msg{font-size:13px;line-height:1.5}
 .dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 .opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -412,6 +412,7 @@ function aiRight(p){
 function aiClaim(p,ups){ return bestClaim(P(p).right,ups.map(x=>x.c)); }
 
 // ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,round:0,msg:'',log:[],over:null,show:null,phase:'idle',leader:-1,turn:-1,win:-1,claimed:-1,trickNo:0,trick:[],order:[],pend:{},
@@ -668,7 +669,7 @@ function recapHtml(){
     <div class="recap-row"><span class="lbl">Fine</span>Si parte da ${START} punti; la partita termina dopo 3 round o appena qualcuno arriva a 0 o meno. Vince il punteggio più alto.</div></div>`;
 }
 const RULES_HTML = `
-<details class="rules paper"><summary>REGOLAMENTO (dal regolamento originale)</summary>
+<details class="rules paper"><summary>REGOLAMENTO</summary>
 <div class="rtext">
 <h4>Panoramica</h4>
 <p>Phantom Trick (ファントムトリック, MouB) è un gioco di prese per 3–5 giocatori in cui i fantasmi svaniscono sotto gli occhi di tutti. Vincere una presa ti «infesta» e ti fa perdere punti, ma se abbini due fantasmi con lo stesso valore trasformi la penalità in un premio.</p>
@@ -715,7 +716,7 @@ function render(){
   let body='';
   if(G){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
-      <div class="dock paper" style="position:static;border-top-width:3px">${scoreTable()}</div>
+      <div class="dock paper" style="position:static">${scoreTable()}</div>
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -745,7 +746,7 @@ document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
   if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');

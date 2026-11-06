@@ -65,13 +65,14 @@ body{background:var(--bg)}
 .name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
 .name-box input:focus{border-color:var(--accent)}
 
-.dock{position:sticky;top:0;z-index:10;border:3px solid var(--ink);border-top:8px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.12)}
+.dock{position:sticky;top:0;z-index:10;border:3px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.12)}
 .dock-msg{font-size:13px;line-height:1.5}
 .dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 .opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .opt{background:#fff;border:2px solid var(--ink);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
 .opt:hover:not(:disabled){background:var(--ink);color:#fff}
 .opt:disabled{opacity:0.35;cursor:not-allowed}
+.opt.on{background:var(--ink);color:#fff}
 .opt.num{min-width:38px;text-align:center}
 .hint{font-size:12px;color:var(--text-soft)}
 table.score{border-collapse:collapse;font-size:12px;width:100%}
@@ -141,7 +142,7 @@ body.a11y .oc small.lt{display:block}
 .recap-row .sw{vertical-align:middle}
 details.rules{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
-.rtext h4{font-family:'Anton',sans-serif;font-weight:400;font-size:16px;margin:14px 0 4px;letter-spacing:0.02em;background:linear-gradient(90deg,#d92b2b,#ffb3b3);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block}
+.rtext h4{font-family:'Anton',sans-serif;font-weight:400;font-size:16px;margin:14px 0 4px;letter-spacing:0.02em;color:#c42424;display:inline-block}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
 .rtext table{border-collapse:collapse;font-size:12px;margin:6px 0}
@@ -402,6 +403,7 @@ function aiGiveUp(p,k){
 }
 
 // ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,long:OPT.long,round:0,rounds:OPT.long?n:1,start:rnd(n),msg:'',log:[],over:null,show:null,xchg:null,phase:'idle',showBids:false,
@@ -654,7 +656,10 @@ function xchgHtml(){
     <div class="hint" style="margin-top:4px">${x.lines.map(esc).join('<br>')}</div></div>`;
 }
 function dockHtml(){
-  if(!G) return `<div class="dock-msg">Oboro contro l'AI. Quanti giocatori in tutto?</div>
+  if(!G) return `<div class="dock-msg">In che modalità vuoi giocare?</div>
+    <div class="dock-title">TIPO DI PARTITA</div>
+    <div class="opts"><button class="opt ${OPT.long?'':'on'}" data-len="0" title="Un solo round">Partita corta (un round)</button><button class="opt ${OPT.long?'on':''}" data-len="1" title="Un round per giocatore, 1 punto al vincitore di ogni round">Partita lunga (un round per giocatore)</button></div>
+    <div class="dock-title">GIOCATORI</div>
     <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
   if(G.over){
     const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
@@ -685,7 +690,7 @@ function recapHtml(){
     <div class="recap-row"><span class="lbl">Vittoria</span>Vince chi ha fatto esattamente le prese puntate; se nessuno, il più vicino; a parità chi ha puntato di più; altrimenti vittoria condivisa.</div></div>`;
 }
 const RULES_HTML = `
-<details class="rules paper"><summary>REGOLAMENTO (dal regolamento originale giapponese)</summary>
+<details class="rules paper"><summary>REGOLAMENTO</summary>
 <div class="rtext">
 <h4>Panoramica</h4>
 <p>Oboro (朧, «sfocato») è un gioco di prese per 3–4 giocatori in cui i colori delle tue carte non sono stampati: dipendono dalla posizione dei <b>pennelli</b> nella tua mano. Prima di ogni mano si puntano in segreto le prese che si pensa di fare: vince chi centra la puntata.</p>
@@ -718,13 +723,12 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
-      <label class="opt-toggle" title="Un round per giocatore, 1 punto al vincitore di ogni round. Vale dalla prossima partita."><input type="checkbox" id="optLong" ${OPT.long?'checked':''}> Partita lunga (un round per giocatore)</label>
     </div>`:''}</div>`;
 }
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
-  const top=`<div class="topbar"><div class="logo"><span class="jp">朧</span>-OBORO-<small>a trick-taking game · pennelli e colori sfocati</small></div>
+  const top=`<div class="topbar"><div class="logo">Oboro</div>
     ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
     ${G&&!G.over&&G.long?`<span class="badge">Round ${G.round+1}/${G.rounds}</span>`:''}
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
@@ -732,7 +736,7 @@ function render(){
   let body='';
   if(G){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
-      ${G.long&&G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static;border-top-width:3px">${totalTable()}</div>`:''}
+      ${G.long&&G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static">${totalTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -762,10 +766,11 @@ document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
   if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+  else if(b.dataset.len!==undefined){ OPT.long=b.dataset.len==='1'; try{ localStorage.setItem('ob-long',OPT.long?'1':'0'); }catch(err){} render(); }
   else if(b.dataset.h!==undefined) togglePick(Number(b.dataset.h));
   else if(b.dataset.hk!==undefined) confirmPick();
 });
@@ -773,11 +778,6 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('ob-a11y',OPT.a11y?'1':'0'); }catch(err){}
-    render(); return;
-  }
-  if(e.target.id==='optLong'){
-    OPT.long=e.target.checked;
-    try{ localStorage.setItem('ob-long',OPT.long?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

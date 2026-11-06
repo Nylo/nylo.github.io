@@ -73,7 +73,7 @@ body::before{content:'';position:absolute;left:-70px;top:-70px;width:260px;heigh
 .name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:#14161f;font-size:14px;font-family:inherit;outline:none}
 .name-box input:focus{border-color:var(--accent)}
 
-.dock{position:sticky;top:0;z-index:10;border:3px solid var(--ink);border-top:8px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.3)}
+.dock{position:sticky;top:0;z-index:10;border:3px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.3)}
 .dock-msg{font-size:13px;line-height:1.5}
 .dock-title{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:0.05em}
 .opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -373,6 +373,7 @@ function aiAct(p){
 }
 
 // ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={round:0,dealer:rnd(4),msg:'',log:[],over:null,show:null,
@@ -559,7 +560,7 @@ function recapHtml(){
     <div class="recap-row"><span class="lbl">Fine</span><span class="rv">il round finisce con la presa in cui qualcuno finisce le carte · ogni carta 4 raccolta vale −1 solo a te · si giocano 4 round, vince chi ha più punti</span></div></div>`;
 }
 const RULES_HTML = `
-<details class="rules paper"><summary>REGOLAMENTO (traduzione dal PDF inglese)</summary>
+<details class="rules paper"><summary>REGOLAMENTO</summary>
 <div class="rtext">
 <h4>Panoramica</h4>
 <p>Pack Tricks è un gioco di prese con puntate e squadre in cui, a ogni round, i giocatori scelgono una squadra e collaborano per raggiungere un numero obiettivo di prese.</p>
@@ -619,7 +620,7 @@ function render(){
   let body='';
   if(G){
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,POS[i])).join('')}${centerHtml()}</div>
-      ${G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static;border-top-width:3px">${scoreTable()}</div>`:''}
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -649,7 +650,7 @@ document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
   if(b.dataset.n){ if(G) newMatch(); else askName(); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');

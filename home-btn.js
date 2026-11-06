@@ -25,7 +25,7 @@
     '.nylo-menu-action input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}' +
     '.nylo-home-float{position:fixed;left:12px;bottom:12px;z-index:2147483000;width:42px;height:42px;justify-content:center;border-radius:50%;background:rgba(15,23,42,.88);color:#f1f5f9;border-color:rgba(255,255,255,.45);box-shadow:0 4px 14px rgba(0,0,0,.4)}' +
     '.nylo-home-float span{display:none}' +
-    '@media(max-width:760px){html.nylo-mobile-menu-game-controls .topbar>[data-new]{display:none!important}.nylo-mobile-menu-game-controls .menu-pop>[data-new]{display:block!important;width:100%;text-align:left;padding:9px 10px}}';
+    '@media(max-width:760px){html.nylo-mobile-menu-game-controls .topbar>[data-new]{display:none!important}.nylo-mobile-menu-game-controls .menu-pop>[data-new]{display:block!important;width:100%;text-align:left;padding:9px 10px;border:0!important;border-radius:6px;background:transparent!important;font-size:13px;color:inherit}.nylo-mobile-menu-game-controls .menu-pop>[data-new]:hover{background:var(--accent-soft,rgba(255,255,255,.1))!important}}';
   document.head.appendChild(st);
 
   var ov;
@@ -131,6 +131,11 @@
     try { if (typeof S !== 'undefined' && S && S.phase === 'gameEnd') return true; } catch (e) {}
     return false;
   }
+  // partita non ancora iniziata (stato di gioco presente ma nullo = schermata di scelta modalità): niente da perdere
+  function notStarted() {
+    try { if (typeof G !== 'undefined') return !G; } catch (e) {}
+    return false;
+  }
   // delegato: funziona anche per i pulsanti ridisegnati dal render delle pagine
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-home],[data-back]');
@@ -139,7 +144,9 @@
     ov._to = back || '/';
     ov.querySelector('[data-title]').textContent = back ? 'Tornare ' + (b.getAttribute('data-back-what') || 'alla lista dei giochi') + '?' : 'Tornare alla home?';
     ov.querySelector('[data-yes]').textContent = !back ? 'Torna alla home' : back === '/tt/' ? 'Torna ai giochi' : 'Torna indietro';
-    ov.querySelector('[data-warn]').style.display = gameOver() ? 'none' : '';
+    // niente avviso se la partita non è iniziata o è finita: al suo posto una riga vuota, per tenere staccati titolo e pulsanti
+    var warn = ov.querySelector('[data-warn]'), noWarn = notStarted() || gameOver();
+    warn.textContent = noWarn ? ' ' : 'La partita in corso andrà persa.';
     ov.style.display = 'flex'; ov.querySelector('[data-no]').focus();
   });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();

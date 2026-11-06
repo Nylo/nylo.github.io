@@ -62,7 +62,7 @@ body{background:radial-gradient(ellipse at 50% -20%,#fff 0%,var(--bg) 62%,#d1e6e
 .name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
 .name-box input:focus{border-color:var(--accent)}
 
-.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(37,89,97,0.18)}
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(37,89,97,0.18)}
 .dock-msg{font-size:13px;line-height:1.5}
 .dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 .opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -291,6 +291,7 @@ function aiPlay(p){
 }
 
 // ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,round:0,msg:'',log:[],over:null,show:null,phase:'idle',dealer:rnd(n),dealer0:0,leader:-1,turn:-1,win:-1,trickNo:0,trick:[],
@@ -314,26 +315,16 @@ function awardChip(p){
   pl.chip=G.chips.shift();
   logMsg(`${pl.name} prende il chip ${pl.chip}.`);
 }
-// ogni giocatore, a partire dal mazziere, sceglie uno dei mazzetti da 8 carte; l'ultimo diventa il mazzo di pesca
+// le mani da 8 carte vengono assegnate a caso (l'ultimo mazzetto resta come mazzo di pesca)
 async function pilesPhase(){
   G.phase='piles';
-  for(let k=0;k<G.n;k++){
-    const p=(G.dealer+k)%G.n; G.turn=p;
-    let ix;
-    if(p===HUM){
-      status('Scelta della mano: scegli un mazzetto da 8 carte. Quello che resta diventerà il mazzo di pesca.');
-      ix=await ask(HUM,'Scegli la tua mano',G.piles.map((_,i)=>({label:`Mazzetto ${i+1} · 8 carte`,value:i})));
-    }else{
-      status(`${P(p).name} sceglie un mazzetto.`);
-      await sleep(600);
-      ix=rnd(G.piles.length);
-    }
-    P(p).hand=G.piles.splice(ix,1)[0];
-    logMsg(`${P(p).name} sceglie un mazzetto.`);
-  }
-  G.draw=G.piles[0]; G.piles=[]; G.turn=-1;
+  status('Le mani da 8 carte vengono assegnate a caso…');
+  await sleep(700);
+  const order=shuffle(G.piles.map((_,i)=>i));
+  G.pl.forEach((p,k)=>{ p.hand=G.piles[order[k]]; });
+  G.draw=G.piles[order[G.n]]; G.piles=[]; G.turn=-1;
   sortHand(P(HUM).hand);
-  logMsg('Tutti hanno una mano. Il mazzetto rimasto è il mazzo di pesca.');
+  logMsg('Mani assegnate a caso a tutti i giocatori; il mazzetto rimasto è il mazzo di pesca.');
 }
 // a turno si sceglie una carta da una mano qualsiasi, senza guardarne il fronte: il numero sul retro è la previsione
 async function bidPhase(){
@@ -414,7 +405,7 @@ async function run(){
     for(let r=0;r<g.n;r++){
       g.round=r; g.dealer=(g.dealer0+r)%g.n;
       deal();
-      logMsg(`— Round ${r+1}/${g.n}: ${P(g.dealer).name} è il mazziere e sceglie per primo —`);
+      logMsg(`— Round ${r+1}/${g.n}: ${P(g.dealer).name} è il mazziere e fa la prima previsione —`);
       await pilesPhase();
       await bidPhase();
       await playRound();
@@ -488,7 +479,7 @@ function centerHtml(){
   let top;
   if(G.phase==='play'&&G.trick.length) top=`<div>Colore di mano: <b>${SUITS[G.trick[0].card.c].n}</b> ${ico(SUITS[G.trick[0].card.c].icon)}</div>`;
   else{
-    const txt={idle:'',piles:`${G.piles.length} ${G.piles.length===1?'mazzetto':'mazzetti'} coperti: scegline uno`,bid:`Mazzo di pesca: ${G.draw.length} carte`,play:'Nessun colore di mano: lo stabilisce la prima carta',score:'Risultato del round',over:'Fine partita'}[G.phase]||'';
+    const txt={idle:'',piles:'Mani assegnate a caso',bid:`Mazzo di pesca: ${G.draw.length} carte`,play:'Nessun colore di mano: lo stabilisce la prima carta',score:'Risultato del round',over:'Fine partita'}[G.phase]||'';
     top=`<div class="hint" style="color:inherit">${txt}</div>`;
   }
   return `<div class="center">${top}
@@ -534,7 +525,7 @@ function recapHtml(){
   const n=G.n, mx=MAXN[n];
   return `<div class="recap"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
     <div class="recap-row"><span class="lbl">Mazzo</span>numeri 0–${mx} in 4 colori (${(mx+1)*4} carte) · ${SUITS.map((_,s)=>swHtml(s)).join('')}</div>
-    <div class="recap-row"><span class="lbl">Mani</span>${n+1} mazzetti da 8 carte: ognuno ne sceglie uno (dal mazziere), l'ultimo è il mazzo di pesca.</div>
+    <div class="recap-row"><span class="lbl">Mani</span>${n+1} mazzetti da 8 carte: uno a testa, assegnati a caso; l'ultimo è il mazzo di pesca.</div>
     <div class="recap-row"><span class="lbl">Previsione</span>A turno si sceglie una carta coperta da una mano qualsiasi: il numero sul retro è la previsione di prese. Chi perde la carta ne pesca un'altra. Con previsione 0 si prende subito il chip più basso.</div>
     <div class="recap-row"><span class="lbl">Presa</span>8 prese, si segue il colore di mano se si può. Vince il Viola più alto (briscola); senza Viola vince il numero più alto del colore di mano. Chi centra la previsione raccoglie il chip più basso.</div>
     <div class="recap-row"><span class="lbl">Punteggio</span>Previsione esatta: +2 più il valore del chip · altrimenti −1 per ogni presa di differenza.</div>
@@ -545,7 +536,7 @@ const RULES_HTML = `
 <div class="rtext">
 <h4>Preparazione</h4>
 <p>Ogni giocatore parte da 3 punti. Si giocano tanti round quanti sono i giocatori (3 o 4); il mazziere passa a ogni round alla persona alla sua sinistra.</p>
-<p>In <b>3</b> giocatori si usano i numeri da 0 a 7 e si rimuove il chip 3; in <b>4</b> i numeri da 0 a 9. I colori sono quattro: Giallo, Viola, Grigio e Azzurro. Le carte si dividono in mazzetti da 8 e ognuno ne sceglie uno, a partire dal mazziere; il mazzetto che resta è il mazzo di pesca.</p>
+<p>In <b>3</b> giocatori si usano i numeri da 0 a 7 e si rimuove il chip 3; in <b>4</b> i numeri da 0 a 9. I colori sono quattro: Giallo, Viola, Grigio e Azzurro. Le carte si dividono in mazzetti da 8, assegnati a caso uno a testa; il mazzetto che resta è il mazzo di pesca.</p>
 <p>All'inizio del round si mescolano i chip utilizzabili, se ne scarta uno e gli altri si dispongono in ordine crescente.</p>
 <h4>Previsione</h4>
 <p>A turno, a partire dal mazziere, si sceglie una carta da una qualsiasi mano (anche la propria) senza guardarne il fronte: il numero visibile sul retro è la previsione di prese. La carta scelta esce dal gioco e chi la possedeva ne pesca una dal mazzo di pesca. Con previsione 0 si prende subito il chip più basso disponibile.</p>
@@ -573,7 +564,7 @@ function menuHtml(){
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
-  const top=`<div class="topbar"><div class="logo"><small>Gioco di prese</small>The Ice <em>Raccoon</em></div>
+  const top=`<div class="topbar"><div class="logo">The Ice <em>Raccoon</em></div>
     ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
     ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${G.n}</span>`:''}
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
@@ -581,7 +572,7 @@ function render(){
   let body='';
   if(G){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
-      <div class="dock" style="position:static;border-top-width:1px">${scoreTable()}</div>
+      <div class="dock" style="position:static">${scoreTable()}</div>
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -611,7 +602,7 @@ document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
   if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');

@@ -60,7 +60,7 @@ body{background:radial-gradient(ellipse at 50% 0%,#f7eed6 0%,#d8c395 100%) fixed
 .name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.6);color:var(--text);font-size:14px;font-family:inherit;outline:none}
 .name-box input:focus{border-color:var(--accent)}
 
-.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(90,68,30,0.25)}
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(90,68,30,0.25)}
 .dock-msg{font-size:13px;line-height:1.5}
 .dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 .opts{display:flex;gap:8px;flex-wrap:wrap}
@@ -299,6 +299,7 @@ function aiChoose(p){
 }
 
 // ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,round:0,first0:rnd(n),first:0,msg:'',log:[],over:null,seen:[],
@@ -465,7 +466,7 @@ function recapHtml(){
     <div class="recap-row"><span class="lbl">Partita</span><span class="rv" style="margin-left:0">15 carte a testa · ${G.n} round, un primo giocatore a testa · vince chi ha più punti</span></div></div>`;
 }
 const RULES_HTML = `
-<details class="rules"><summary>REGOLAMENTO (traduzione di Danilo)</summary>
+<details class="rules"><summary>REGOLAMENTO</summary>
 <div class="rtext">
 <h4>Componenti</h4>
 <p>75 carte (valori da 1 a 15 in 5 colori).</p>
@@ -506,7 +507,7 @@ function render(){
   if(G){
     const pos=POS[G.n];
     body=`<div class="table ${G.n===5?'n5':''}">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
-      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static;border-top-width:1px">${scoreTable()}</div>`:''}
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -536,7 +537,7 @@ document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
   if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');

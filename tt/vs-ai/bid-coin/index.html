@@ -60,7 +60,7 @@ body{background:#f6f3ec fixed}
 .name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.12);color:var(--text);font-size:14px;font-family:inherit;outline:none}
 .name-box input:focus{border-color:var(--accent)}
 
-.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.45)}
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.45)}
 .dock-msg{font-size:13px;line-height:1.5}
 .dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 .opts{display:flex;gap:8px;flex-wrap:wrap}
@@ -143,8 +143,9 @@ details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--
 /* look della cover: blocchi piatti colorati, barra titolo nera */
 .logo{font-family:'Inter',sans-serif;font-style:normal;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;background:#1b1b1b;color:#fff;padding:10px 18px;border-radius:6px;flex:0 1 auto;margin-right:auto}
 .logo small{color:#f7cf3d}
+.menu-wrap{margin-left:0}
 .badge{background:#f7cf3d;color:#1b1b1b}
-.dock{background:#f7cf3d;border:2px solid #1b1b1b;border-top:6px solid #1b1b1b;box-shadow:0 6px 0 rgba(0,0,0,0.12)}
+.dock{background:#f7cf3d;border:2px solid #1b1b1b;box-shadow:0 6px 0 rgba(0,0,0,0.12)}
 .dock .opt{background:#fff;color:#1b1b1b;border:2px solid #1b1b1b;font-weight:600}
 .dock .opt:hover:not(:disabled){background:#1b1b1b;color:#fff;border-color:#1b1b1b}
 .dock .hint,.dock .dock-title{color:#3a3320}
@@ -434,6 +435,7 @@ function aiBidCard(p){
 }
 
 // ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,round:0,start:rnd(n),msg:'',log:[],over:null,maxR:MAXR[n],trump:-1,trumpCard:null,left:[],res:9-n,
@@ -674,7 +676,7 @@ function recapHtml(){
     <div class="recap-row"><span class="lbl">Fine</span><span class="rv" style="margin-left:0">${n} round (o prima, se qualcuno scarta tutti i BiD COIN) · vince chi ha il valore residuo più basso</span></div></div>`;
 }
 const RULES_HTML = `
-<details class="rules"><summary>REGOLAMENTO (traduzione di Danilo, allineata al PDF inglese)</summary>
+<details class="rules"><summary>REGOLAMENTO</summary>
 <div class="rtext">
 <h4>Introduzione</h4>
 <p>«BiD COIN» è un gioco di prese per 3-4 giocatori. Siete investitori che possiedono la criptovaluta «BiD COIN»: dopo aver sentito la voce di un imminente crollo del suo valore, dovete scambiarla in fretta con altri beni per ridurre i vostri averi. Il numero di prese vinte rappresenta il valore dei beni finanziari; le carte BiD COIN davanti a ognuno rappresentano la quantità di BiD COIN posseduta. Per completare una transazione le prese vinte e la puntata dichiarata devono coincidere ESATTAMENTE.</p>
@@ -722,7 +724,7 @@ function menuHtml(){
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
-  const top=`<div class="topbar"><div class="logo"><small>Gioco di prese</small>Bid COIN</div>
+  const top=`<div class="topbar"><div class="logo">Bid COIN</div>
     ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
     ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${G.n}</span>`:''}
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
@@ -731,7 +733,7 @@ function render(){
   if(G){
     const pos=POS[G.n];
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
-      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static;border-top-width:1px">${scoreTable()}</div>`:''}
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -761,7 +763,7 @@ document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
   if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.x!==undefined) cardExtra(Number(b.dataset.x));

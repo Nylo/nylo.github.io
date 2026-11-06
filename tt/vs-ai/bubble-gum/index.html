@@ -64,7 +64,7 @@ body{background:radial-gradient(ellipse at 50% 0%,#241320 0%,#000 100%) fixed}
 .name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.12);color:var(--text);font-size:14px;font-family:inherit;outline:none}
 .name-box input:focus{border-color:var(--accent)}
 
-.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.45)}
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.45)}
 .dock-msg{font-size:13px;line-height:1.5}
 .dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 .opts{display:flex;gap:8px;flex-wrap:wrap}
@@ -372,6 +372,7 @@ function best(tot){
 }
 
 // ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={round:0,lead:rnd(2),msg:'',log:[],over:null,trump:-1,trumpCard:null,left:0,table:[],turn:-1,win:-1,lose:-1,fresh:-1,trickNo:0,
@@ -533,7 +534,7 @@ function centerHtml(){
 function histHtml(){
   if(!G.pl[0].hist.length) return '';
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${p.hist.map(h=>`<td class="${h.win?'':'neg'}">${h.sum} <span class="hint">(${h.cnt})</span>${h.win?' ★':''}</td>`).join('')}<td><b>${p.stars}</b> ★</td></tr>`).join('');
-  return `<div class="dock" style="position:static;border-top-width:1px"><table class="score"><tr><th>Totale pallone (carte)</th>${G.pl[0].hist.map((_,i)=>`<th>R${i+1}</th>`).join('')}<th>Round vinti</th></tr>${rows}</table></div>`;
+  return `<div class="dock" style="position:static"><table class="score"><tr><th>Totale pallone (carte)</th>${G.pl[0].hist.map((_,i)=>`<th>R${i+1}</th>`).join('')}<th>Round vinti</th></tr>${rows}</table></div>`;
 }
 function dockHtml(){
   if(!G) return `<div class="dock-msg">Bubble Gum, gioco per 2 giocatori: sfida l'AI. Vince chi per primo vince 2 round.</div>
@@ -561,7 +562,7 @@ function recapHtml(){
     <div class="recap-row"><span class="lbl">Round</span><span class="rv" style="margin-left:0">dopo 10 prese vince il totale più alto (a parità più carte, altrimenti entrambi) · il primo a vincere 2 round vince la partita</span></div></div>`;
 }
 const RULES_HTML = `
-<details class="rules"><summary>REGOLAMENTO (traduzione di Danilo, allineata al PDF inglese)</summary>
+<details class="rules"><summary>REGOLAMENTO</summary>
 <div class="rtext">
 <h4>Panoramica del gioco</h4>
 <p>Bubble Gum è un rapido gioco di prese esclusivamente per 2 giocatori. Lo scopo è vincere le prese per «gonfiare» un pallone di gomma e totalizzare più punti dell'avversario, facendo però molta attenzione a non gonfiarlo troppo, altrimenti scoppia!</p>
@@ -599,7 +600,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
-      <button class="opt-toggle" type="button" id="toggleSuitIcons" aria-pressed="${OPT.originalSuits}" aria-label="Cambia modalità semi">Semi attivi: ${OPT.originalSuits?'originali':'semplificati'}</button>
+      <button class="opt-toggle nylo-menu-action" type="button" id="toggleSuitIcons">${OPT.originalSuits?'Usa semi stilizzati':'Usa semi originali'}</button>
     </div>`:''}</div>`;
 }
 function render(){
@@ -648,7 +649,7 @@ document.getElementById('app').addEventListener('click',e=>{
     render(); return;
   }
   if(b.dataset.n){ if(G) newMatch(); else askName(); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');

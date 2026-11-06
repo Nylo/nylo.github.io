@@ -47,7 +47,7 @@ body{background:radial-gradient(ellipse at 50% 0%,#33505f 0%,#1b2a33 100%) fixed
 .menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
 .menu-pop .opt-toggle:hover{background:var(--accent-soft)}
 
-.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.45)}
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.45)}
 .dock-msg{font-size:13px;line-height:1.5}
 .dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 .opts{display:flex;gap:8px;flex-wrap:wrap}
@@ -343,6 +343,7 @@ function aiBid(p,maxBid){
 }
 
 // ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,game:0,start0:rnd(n),start:0,msg:'',log:[],over:null,black:BLACK,trump:-1,revealed:[],mull:[],
@@ -463,10 +464,10 @@ async function tricks(){
 async function scoring(){
   const rows=G.pl.map(p=>{ const d=Math.abs(p.won-p.bid), pt=pen(d); p.total+=pt; p.hist.push(pt); return {p:p.id,bid:p.bid,won:p.won,pt}; });
   G.show={rows};
-  rows.forEach(r=>logMsg(`Mano ${G.game+1}: ${P(r.p).name} puntata ${r.bid}, prese ${r.won} → ${r.pt>0?'+':''}${r.pt} punti.`));
-  status(`Mano ${G.game+1} conclusa.`);
+  rows.forEach(r=>logMsg(`Round ${G.game+1}: ${P(r.p).name} puntata ${r.bid}, prese ${r.won} → ${r.pt>0?'+':''}${r.pt} punti.`));
+  status(`Round ${G.game+1} concluso.`);
   const last=G.game===HANDS-1;
-  await ask(HUM,'Punteggio della mano',[{label:last?'Vedi il risultato finale':'Prossima mano',value:1}]);
+  await ask(HUM,'Punteggio del round',[{label:last?'Vedi il risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
 
@@ -476,7 +477,7 @@ async function run(){
     for(let k=0;k<HANDS;k++){
       g.game=k; g.start=(g.start0+k)%g.n;
       deal();
-      logMsg(`— Mano ${k+1}/${HANDS}: primo giocatore ${P(g.start).name}. Briscola: ${SUITS[g.trump].n} —`);
+      logMsg(`— Round ${k+1}/${HANDS}: primo giocatore ${P(g.start).name}. Briscola: ${SUITS[g.trump].n} —`);
       if(g.mull.length) logMsg(`Mano rimescolata per ${g.mull.map(i=>P(i).name).join(', ')} (meno di 3 carte seme o numero).`);
       await bidding();
       await announceFirst();
@@ -556,7 +557,7 @@ function dockHtml(){
 
 
 function recapHtml(){
-  const tr=G.trump>=0?`<span class="rchip s${G.trump}">${ico(SUITS[G.trump].icon)} ${SUITS[G.trump].n}</span>`:'<span class="rv">si scopre a inizio mano</span>';
+  const tr=G.trump>=0?`<span class="rchip s${G.trump}">${ico(SUITS[G.trump].icon)} ${SUITS[G.trump].n}</span>`:'<span class="rv">si scopre a inizio round</span>';
   return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
     <div class="recap-row"><span class="lbl">Semi</span>${SUITS.map((s,i)=>`<span class="rchip s${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">8 carte per seme</span></div>
     <div class="recap-row"><span class="lbl">Numeri</span>${Array.from({length:8-1+1},(_,i)=>`<span class="nchip">${i+1}</span>`).join('')}<span class="rv">4 copie per numero</span></div>
@@ -571,17 +572,17 @@ const RULES_HTML = `
 <h4>Panoramica</h4>
 <p>Charms è un gioco di prese: in ogni presa ogni giocatore gioca una carta e chi gioca il valore più alto vince la presa (e prende un gettone bianco). Si continua finché nessuno ha più carte in mano. A differenza dei giochi di prese standard, le carte hanno un seme <i>o</i> un numero, non entrambi.</p>
 <h4>Preparazione</h4>
-<p>Si mescolano le carte e se ne distribuiscono 13 a ciascun giocatore. Chi riceve meno di 3 carte seme o meno di 3 carte numero mostra la mano, la rimescola con il resto del mazzo e ne riceve una nuova (da ripetere se necessario). Si gira la carta in cima al mazzo rimasto finché non esce una carta seme: è il seme di briscola della mano. Ognuno dichiara quante prese vincerà prendendo gettoni di puntata (anche zero). Il giocatore alla sinistra del mazziere è il giocatore iniziale.</p>
+<p>Si mescolano le carte e se ne distribuiscono 13 a ciascun giocatore. Chi riceve meno di 3 carte seme o meno di 3 carte numero mostra la mano, la rimescola con il resto del mazzo e ne riceve una nuova (da ripetere se necessario). Si gira la carta in cima al mazzo rimasto finché non esce una carta seme: è il seme di briscola del round. Ognuno dichiara quante prese vincerà prendendo gettoni di puntata (anche zero). Il giocatore alla sinistra del mazziere è il giocatore iniziale.</p>
 <h4>Svolgimento</h4>
 <p><b>Prima presa.</b> Partendo dal giocatore iniziale, ognuno gioca due carte scoperte davanti a sé, una accanto all'altra: una carta seme e una carta numero. Il giocatore iniziale può giocare qualsiasi seme; gli altri devono seguire il seme: se hanno in mano il seme del giocatore di testa devono giocarlo, altrimenti possono giocare qualsiasi seme. Il numero è sempre a discrezione del giocatore.</p>
 <p><b>Vincitore.</b> Se almeno un giocatore ha giocato il seme di briscola, vince chi ha giocato il numero più alto insieme alla briscola. Se nessuno l'ha giocata, vince chi ha il numero più alto del seme giocato dal giocatore iniziale. In caso di parità vince, tra i pari, chi ha giocato per ultimo. Il vincitore prende un gettone bianco (si può posare sopra ai gettoni di puntata per tenere traccia dei progressi) e diventa il nuovo giocatore iniziale.</p>
 <p><b>Le carte giocate restano dove sono</b> e influenzano la presa successiva.</p>
 <p><b>Prese 2–12.</b> Ogni giocatore gioca una sola carta, coprendo la carta precedente dello stesso tipo (seme o numero). Il giocatore iniziale può coprire una qualsiasi delle sue carte. Gli altri devono comunque seguire il seme: se non hanno già visibile il seme iniziale e ne hanno una carta in mano, devono giocarla coprendo la carta seme precedente. Anche se hanno già visibile il seme iniziale, non possono coprirlo se non con un'altra carta dello stesso seme. Unica eccezione: se in mano hanno solo carte seme e nessuna è del seme iniziale. Il vincitore si determina come nella prima presa.</p>
-<h4>Fine della mano</h4>
-<p>La mano termina quando tutti hanno esaurito le carte. Si ottengono solo punti negativi in base all'errore di previsione: esatta = 0 punti, ±1 = 1 punto, ±2 = 3 punti, ±3 o più = 5 punti. Si raccolgono le carte e si ripete la preparazione.</p>
+<h4>Fine del round</h4>
+<p>Il round termina quando tutti hanno esaurito le carte. Si ottengono solo punti negativi in base all'errore di previsione: esatta = 0 punti, ±1 = 1 punto, ±2 = 3 punti, ±3 o più = 5 punti. Si raccolgono le carte e si ripete la preparazione.</p>
 <h4>Fine del gioco</h4>
-<p>Si giocano 4 mani; vince chi ha ottenuto meno punti.</p>
-<p><i>Interpretazioni nell'app:</i> il regolamento non specifica l'ordine delle dichiarazioni (qui si punta a turno partendo dal giocatore iniziale) né chi inizia le mani successive (qui il giocatore iniziale passa a sinistra a ogni mano). Una puntata non può superare i gettoni rimasti (16 in totale).</p>
+<p>Si giocano 4 round; vince chi ha ottenuto meno punti.</p>
+<p><i>Interpretazioni nell'app:</i> il regolamento non specifica l'ordine delle dichiarazioni (qui si punta a turno partendo dal giocatore iniziale) né chi inizia i round successivi (qui il giocatore iniziale passa a sinistra a ogni round). Una puntata non può superare i gettoni rimasti (16 in totale).</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -602,7 +603,7 @@ function render(){
   const app=document.getElementById('app');
   const top=`<div class="topbar"><div class="logo"><small>TAIKI SHINZAWA'S</small>Charms</div>
     ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
-    ${G&&!G.over?`<span class="badge">Mano ${G.game+1}/${HANDS}</span>`:''}
+    ${G&&!G.over?`<span class="badge">Round ${G.game+1}/${HANDS}</span>`:''}
     
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
     ${menuHtml()}</div>`;
@@ -610,7 +611,7 @@ function render(){
   if(G){
     const pos=POS[G.n];
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
-      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static;border-top-width:1px">${scoreTable()}</div>`:''}
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -653,7 +654,7 @@ document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
   if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) newMatch(G.n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
