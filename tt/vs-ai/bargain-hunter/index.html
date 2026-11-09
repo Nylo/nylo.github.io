@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bargain Hunter</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#b9d4e8;
+  --surface:#fbf4d8;
+  --surface-raised:#f0e4b8;
+  --accent:#d41f1f;
+  --accent-soft:rgba(212,31,31,0.14);
+  --text:#2c2a1e;
+  --text-soft:#6a6446;
+  --danger:#b3261e;
+  --success:#2c7a3c;
+  --border:rgba(70,60,20,0.3);
+  --radius:10px;
+  --k0:#cf3340; --k1:#3f7fc4; --k2:#3a9a63; --k3:#c48a0a; --k4:#d0609a; --k5:#8b6a3a;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#d7e8f4 0%,#8fb4d0 100%) fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Libre Baskerville',serif;font-size:28px;font-weight:700;font-style:italic;line-height:1.1;flex:1;color:var(--accent);text-shadow:0 1px 0 #fff}
+.badge{background:var(--accent);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:rgba(255,255,255,0.4);color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:rgba(255,255,255,0.4);color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd54a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.flag.dealer{background:#6a6446;color:#fff}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Libre Baskerville',serif;font-size:16px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.6);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(40,50,70,0.3)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+.scroll-x{overflow-x:auto}
+
+.table{display:grid;grid-template-columns:1fr 1.3fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#f6ecc0 0%,#d9c98a 95%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:520px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
+.seat.top{grid-area:top}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.active{border-color:#d08a1e;background:rgba(208,138,30,0.18)}
+.seat.winner{border-color:var(--success);background:rgba(44,122,60,0.16)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(70,60,20,0.14);border-radius:4px;padding:2px 6px}
+.tag b{color:#8a1a10}
+.piles{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:11px}
+.pile{display:inline-flex;align-items:center;gap:5px;padding:3px 6px;border-radius:7px;background:rgba(255,255,255,0.4)}
+.pile .lbl{font-size:10px;color:var(--text-soft);letter-spacing:0.04em;text-transform:uppercase}
+.jb{display:inline-block;width:20px;height:28px;border-radius:4px;background:linear-gradient(135deg,#9a8c6a,#5b5238);border:1px solid #efe3bc}
+.jmine{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;font-size:11px}
+.jmine .jc{background:rgba(70,60,20,0.14);border-radius:4px;padding:2px 6px;font-weight:700}
+.jmine .jc.set{background:#ffe9a8;color:#6a3b00}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:12px;height:18px;border-radius:3px;background:linear-gradient(135deg,#7fa9c9,#2f5577);border:1px solid #fbf4d8}
+.seat.left .backs,.seat.right .backs{max-width:130px}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Libre Baskerville',serif;font-weight:700;font-size:22px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
+.fc i{font-size:20px}
+.fc.k0{background-color:var(--k0)} .fc.k1{background-color:var(--k1)} .fc.k2{background-color:var(--k2)} .fc.k3{background-color:var(--k3)} .fc.k4{background-color:var(--k4)} .fc.k5{background-color:var(--k5)}
+.fc.io{background:linear-gradient(135deg,#ffe45a,#ff9d1a);color:#7a1a00;font-family:'Inter',sans-serif;font-size:8px;font-weight:800;letter-spacing:0.02em;text-shadow:none;text-align:center}
+.fc.io i{font-size:22px;color:#d41f1f}
+.fc.mini{width:42px;height:62px;font-size:19px}
+.fc.mini i{font-size:17px}
+.fc.mini.io i{font-size:20px}
+.fc.win{box-shadow:0 0 0 3px var(--success)}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.legal{box-shadow:0 0 0 3px #2f6db5}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+body.a11y .fc.k0,body.a11y .rchip.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .fc.k1,body.a11y .rchip.k1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k2,body.a11y .rchip.k2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k5,body.a11y .rchip.k5{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.3) 0 2px,transparent 2px 7px),repeating-linear-gradient(-45deg,rgba(255,255,255,0.3) 0 2px,transparent 2px 7px)}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:var(--text-soft)}
+.center b{color:var(--text)}
+.trick{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:76px;align-items:center;padding:6px;border-radius:8px;background:rgba(70,60,20,0.1);min-width:70px}
+.trick .empty{width:42px;height:62px;border:1px dashed rgba(70,60,20,0.4);border-radius:6px}
+.tc{position:relative;display:inline-block;padding:0 4px 8px 0}
+.tc .own{position:absolute;right:0;bottom:2px;width:15px;height:15px;border-radius:50%;border:1.5px solid #fff;font-family:'Inter',sans-serif;font-size:8px;font-weight:800;color:#1b1233;display:flex;align-items:center;justify-content:center;font-style:normal}
+.tc .rel{position:absolute;left:-2px;top:-8px;font:700 8px Inter,sans-serif;padding:1px 4px;border-radius:6px;background:#fff;color:#1d4f8a;letter-spacing:0.04em}
+.chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .rchip{vertical-align:middle}
+.rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,0.35);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
+.rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)} .rchip.k4{background-color:var(--k4)} .rchip.k5{background-color:var(--k5)}
+.rchip.io{background:linear-gradient(135deg,#ffe45a,#ff9d1a);color:#7a1a00;text-shadow:none}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:44px}
+  .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
+  .fc i{font-size:13px}
+  .fc.mini{width:32px;height:48px;font-size:14px}
+  .fc.mini i{font-size:12px}
+  .trick .empty{width:32px;height:48px}
+  .table{padding:8px;gap:6px;grid-template-columns:1fr 1.2fr 1fr}
+  .back{width:9px;height:14px}
+  .hand{gap:2px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const COL = [
+  {n:'Rosso',  icon:'circle'},
+  {n:'Blu',    icon:'square'},
+  {n:'Verde',  icon:'triangle'},
+  {n:'Giallo', icon:'star'},
+  {n:'Rosa',   icon:'diamond'},
+  {n:'Marrone',icon:'heart'}
+];
+const ROUNDS = {3:6, 4:4};                               // round in base ai giocatori
+const MINTRASH = {3:3, 4:2};                             // carte da buttare per ogni pulizia
+const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
+const NAMES = ['Tu','AI Marta','AI Gino','AI Livia'];
+const SEATC = ['#ffd166','#ff8fb8','#6ee7b7','#7cc4ff'];
+const HUM = 0;
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('bh-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('bh-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const cname = c => c.io?'Offerta Irresistibile':`${COL[c.c].n} ${c.n}`;
+const keyOf = c => c.io?'io':c.c*10+c.n;
+const plu = (n,s,p) => `${n} ${n===1?s:p}`;
+const argmax = a => { let b=0; for(let i=1;i<a.length;i++) if(a[i]>a[b]) b=i; return b; };
+// mazzo: 6 colori × 9 oggetti × 2 copie + 2 Offerte Irresistibili
+const DECK = (()=>{ const d=[]; let id=0; for(let c=0;c<6;c++) for(let n=1;n<=9;n++) for(let k=0;k<2;k++) d.push({c,n,id:id++}); for(let k=0;k<2;k++) d.push({io:true,c:-1,n:0,id:id++}); return d; })();
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  if(p!==HUM) return ok[rnd(ok.length)].value;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+// scelta di una carta dalla mano (Affare iniziale)
+function askCard(legal,hint,verb){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,verb,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+// carta da giocare + eventuali dichiarazioni (briscola, più alta/più bassa)
+function askPlay(legal,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'play',legal:new Set(legal),hint,sel:null,tr:undefined,rl:undefined,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function needsOf(i){ const c=P(HUM).hand[i], ts=G.R.ts; return {t:needTrump(c,ts), r:needRel(c,ts)}; }
+function playDone(){ const n=needsOf(PR.sel); return (!n.t||PR.tr!==undefined)&&(!n.r||PR.rl!==undefined); }
+function finishPlay(){ const r=PR.res, out={i:PR.sel,d:{trump:PR.tr,rel:PR.rl}}; PR=null; render(); r(out); }
+function playIdx(i){
+  if(!PR) return;
+  if(PR.type==='card'){
+    if(!PR.legal.has(i)) return;
+    if(OPT.undo){ PR.sel=i; render(); return; }
+    const r=PR.res; PR=null; render(); r(i);
+  }else if(PR.type==='play'){
+    if(!PR.legal.has(i)) return;
+    PR.sel=i; PR.tr=undefined; PR.rl=undefined;
+    if(playDone()&&!OPT.undo) finishPlay(); else render();
+  }
+}
+function setDecl(kind,v){
+  if(!PR||PR.type!=='play'||PR.sel==null) return;
+  if(kind==='t') PR.tr=v; else PR.rl=v;
+  if(playDone()&&!OPT.undo) finishPlay(); else render();
+}
+function confirmCard(ok){
+  if(!PR) return;
+  if(PR.type==='card'){
+    if(PR.sel==null) return;
+    if(!ok){ PR.sel=null; render(); return; }
+    const i=PR.sel, r=PR.res; PR=null; render(); r(i);
+  }else if(PR.type==='play'){
+    if(PR.sel==null||!playDone()) return;
+    if(!ok){ PR.sel=null; PR.tr=undefined; PR.rl=undefined; render(); return; }
+    finishPlay();
+  }
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+const sortHand = h => h.sort((a,b)=>(a.io?1:0)-(b.io?1:0)||a.c-b.c||a.n-b.n);
+// mosse legali: si segue il colore di mano; l'Offerta Irresistibile si può giocare sempre
+function legalCards(hand,lead){
+  const all=hand.map((_,i)=>i);
+  if(lead==null) return all;
+  const ok=all.filter(i=>hand[i].io||hand[i].c===lead);
+  return ok.some(i=>!hand[i].io)?ok:all;
+}
+// chi non può seguire dichiara se il colore della carta è briscola (una sola briscola per presa, mai il colore di mano)
+function needTrump(c,ts){ return !c.io&&ts.lead!=null&&c.c!==ts.lead&&ts.trump==null; }
+// carta già presente nella presa: si dichiara se la seconda è più alta o più bassa
+function needRel(c,ts){ return !c.io&&ts.plays.some(x=>!x.c.io&&x.c.c===c.c&&x.c.n===c.n); }
+function applyPlay(ts,p,c,d){
+  if(ts.lead==null&&!c.io) ts.lead=c.c;
+  else if(d&&d.trump&&ts.trump==null&&needTrump(c,ts)) ts.trump=c.c;
+  ts.plays.push({p,c,rel:d?d.rel:undefined});
+}
+function trickWinner(ts){
+  const first={}; let io=0, best=0, bv=-2;
+  ts.plays.forEach((x,i)=>{
+    const c=x.c; let v;
+    if(c.io) v=5000+(++io);
+    else{
+      v=(ts.trump!=null&&c.c===ts.trump)?1000+c.n*2:(c.c===ts.lead?c.n*2:-1);
+      const k=c.c*10+c.n;
+      if(first[k]!==undefined){ if(v>=0) v+=x.rel==='hi'?1:-1; } else first[k]=v;
+    }
+    if(v>bv){ bv=v; best=i; }
+  });
+  return ts.plays[best].p;
+}
+const topItem = pl => pl.bargain.length?pl.bargain[pl.bargain.length-1].n:0;
+// pulizia di un oggetto: restituisce {trash:[], keep:[], all:[]}
+function cleanSplit(junk,item,m){
+  const all=junk.filter(c=>!c.io&&c.n===item);
+  if(all.length<=m) return {trash:all,keep:[],all};
+  return {trash:all.slice(0,m),keep:all.slice(m),all};
+}
+// guadagno netto di una pulizia sull'oggetto con c carte: scarti le carte dalla pila Cianfrusaglie (+c) e quelle tenute passano all'Affare (+c−m)
+const cleanGain = (c,m) => c<m?c:2*c-m;
+function junkCounts(junk){ const cnt=Array(10).fill(0); junk.forEach(c=>{ if(!c.io) cnt[c.n]++; }); return cnt; }
+// valore atteso delle pulizie di fine round (nei round intermedi le carte tenute valgono un po' di più: servono per future pulizie)
+function springValue(cnt,m,final){
+  const g=[]; for(let n=1;n<=9;n++) if(cnt[n]>0) g.push({n,v:cnt[n]<m?(final?cnt[n]:0.6*cnt[n]):cleanGain(cnt[n],m)});
+  g.sort((a,b)=>b.v-a.v);
+  if(final) return (g[0]?g[0].v:0)+(g[1]?g[1].v:0);
+  if(!g.length) return 0;
+  let hoard=0; for(let n=1;n<=9;n++) if(n!==g[0].n) hoard+=cnt[n]*(cnt[n]-1)/2;
+  return g[0].v+0.1*hoard;
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Per ogni mossa possibile si simula il resto del round: mani avversarie pescate a caso tra le carte non viste (rispettando i colori
+// che hanno dimostrato di non avere), gioco casuale; valore = variazione di punti (Affare − Cianfrusaglie) + valore delle pulizie finali.
+function sampleHands(p){
+  const R=G.R, cnt={};
+  const add=c=>{ const k=keyOf(c); cnt[k]=(cnt[k]||0)+1; };
+  P(p).hand.forEach(add);
+  G.pl.forEach(q=>{ q.bargain.forEach(add); q.junk.forEach(add); });
+  G.trash.forEach(add); R.ts.plays.forEach(x=>add(x.c));
+  const pool=[]; DECK.forEach(c=>{ const k=keyOf(c); if(cnt[k]>0) cnt[k]--; else pool.push(c); });
+  shuffle(pool);
+  const hands=G.pl.map(()=>[]); hands[p]=P(p).hand.slice();
+  const opp=shuffle(G.pl.map(q=>q.id).filter(q=>q!==p));
+  for(const q of opp){
+    const need=P(q).hand.length, v=R.void[q];
+    for(let i=0;i<pool.length&&hands[q].length<need;){
+      const c=pool[i];
+      if(!c.io&&v.has(c.c)){ i++; continue; }
+      hands[q].push(c); pool.splice(i,1);
+    }
+    while(hands[q].length<need&&pool.length) hands[q].push(pool.pop());
+  }
+  return hands;
+}
+function makeSim(p,hands){
+  const R=G.R;
+  return {n:G.n,me:p,hands:hands.map(h=>h.slice()),
+    ts:{lead:R.ts.lead,trump:R.ts.trump,plays:R.ts.plays.map(x=>({p:x.p,c:x.c,rel:x.rel}))},
+    next:(R.ts.plays.length?(R.ts.plays[R.ts.plays.length-1].p+1)%G.n:R.leader),
+    item:G.pl.map(topItem),dB:Array(G.n).fill(0),dJ:Array(G.n).fill(0),myJ:junkCounts(P(p).junk)};
+}
+function simPolicy(X,q){
+  const h=X.hands[q], ts=X.ts, lg=legalCards(h,ts.lead), i=lg[rnd(lg.length)], c=h[i];
+  const d={}; if(needTrump(c,ts)) d.trump=Math.random()<0.4; if(needRel(c,ts)) d.rel=Math.random()<0.5?'hi':'lo';
+  return {i,d};
+}
+function simAct(X,q,m){
+  const c=X.hands[q].splice(m.i,1)[0];
+  applyPlay(X.ts,q,c,m.d);
+}
+function simCollect(X){
+  const w=trickWinner(X.ts), it=X.item[w];
+  X.ts.plays.forEach(x=>{
+    if(!x.c.io&&x.c.n===it) X.dB[w]++;
+    else{ X.dJ[w]++; if(w===X.me&&!x.c.io) X.myJ[x.c.n]++; }
+  });
+  X.ts={lead:null,trump:null,plays:[]}; X.next=w;
+}
+function simFinish(X,final){
+  for(;;){
+    while(X.ts.plays.length<X.n){ const q=X.next; if(!X.hands[q].length) break; simAct(X,q,simPolicy(X,q)); X.next=(q+1)%X.n; }
+    if(X.ts.plays.length<X.n) break;
+    simCollect(X);
+    if(!X.hands[X.me].length) break;
+  }
+  let opp=0; for(let q=0;q<X.n;q++) if(q!==X.me) opp+=X.dB[q]-X.dJ[q];
+  return X.dB[X.me]-X.dJ[X.me]+springValue(X.myJ,MINTRASH[X.n],final)-0.3*opp/(X.n-1);
+}
+function variants(hand,i,ts){
+  const c=hand[i], out=[];
+  for(const tr of needTrump(c,ts)?[true,false]:[undefined]) for(const rl of needRel(c,ts)?['hi','lo']:[undefined]) out.push({i,d:{trump:tr,rel:rl}});
+  return out;
+}
+function aiPlay(p){
+  const R=G.R, hand=P(p).hand;
+  const cands=[]; legalCards(hand,R.ts.lead).forEach(i=>variants(hand,i,R.ts).forEach(v=>cands.push(v)));
+  if(cands.length===1) return cands[0];
+  const final=G.round===G.rounds-1, ns=Math.max(10,Math.min(40,Math.floor(1500/cands.length)));
+  const sc=new Array(cands.length).fill(0);
+  for(let s=0;s<ns;s++){
+    const hands=sampleHands(p);
+    cands.forEach((m,j)=>{
+      const X=makeSim(p,hands); simAct(X,p,m); X.next=(p+1)%X.n;
+      sc[j]+=simFinish(X,final);
+    });
+  }
+  return cands[argmax(sc.map(v=>v+Math.random()*0.001))];
+}
+// Affare iniziale: l'oggetto che ho in più copie in mano e che nessun altro ha già scelto
+function aiBargain(p){
+  const h=P(p).hand, chosen=G.pl.filter(q=>q.id!==p&&q.bargain.length).map(q=>topItem(q));
+  let best=0, bv=-1e9;
+  h.forEach((c,i)=>{
+    if(c.io) return;
+    const copies=h.filter(x=>!x.io&&x.n===c.n).length-1;
+    const v=copies*1.2-0.9*chosen.filter(n=>n===c.n).length+Math.random()*0.5;
+    if(v>bv){ bv=v; best=i; }
+  });
+  return best;
+}
+function aiClean(p,final){
+  const m=MINTRASH[G.n], cnt=junkCounts(P(p).junk), g=[];
+  for(let n=1;n<=9;n++) if(cnt[n]>0) g.push({n,v:cnt[n]<m?(final?cnt[n]:0.6*cnt[n]):cleanGain(cnt[n],m)+Math.random()*0.01});
+  g.sort((a,b)=>b.v-a.v);
+  return g.slice(0,final?2:1).map(x=>x.n);
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,rounds:ROUNDS[n],round:0,dealer:rnd(n),msg:'',log:[],over:null,show:null,res:null,turn:-1,
+     stock:shuffle(DECK.slice()),trash:[],R:null,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],bargain:[],junk:[]}))};
+  run();
+}
+function dealRound(){
+  if(G.trash.length){ G.stock=G.stock.concat(shuffle(G.trash)); G.trash=[]; }
+  const per=Math.min(8,Math.floor(G.stock.length/G.n));
+  if(per<1) return false;
+  G.pl.forEach(p=>{ p.hand=sortHand(G.stock.splice(0,per)); });
+  G.R={ts:{lead:null,trump:null,plays:[]},leader:(G.dealer+1)%G.n,tricks:per,done:0,last:-1,void:G.pl.map(()=>new Set()),show:null,started:false};
+  return true;
+}
+async function chooseBargains(){
+  for(let k=0;k<G.n;k++){
+    const p=(G.dealer+1+k)%G.n; G.turn=p;
+    status(p===HUM?'Scegli il tuo Affare: una carta della mano che ti mostra quale oggetto cercare.':`${P(p).name} sceglie il suo Affare.`);
+    let i;
+    if(p===HUM) i=await askCard(P(HUM).hand.map((_,j)=>j),'Scegli l\'oggetto (il numero) che vuoi raccogliere: la carta va nella tua pila Affare.','scegli come Affare'); else { await sleep(700); i=aiBargain(p); }
+    const c=P(p).hand.splice(i,1)[0]; P(p).bargain.push(c);
+    logMsg(`${P(p).name} sceglie come Affare ${cname(c)}: cerca gli oggetti ${c.n}.`);
+  }
+  G.turn=-1;
+  G.R.tricks=P(0).hand.length;
+}
+function realPlay(p,i,d){
+  const R=G.R, ts=R.ts, hand=P(p).hand, c=hand[i];
+  const nt=needTrump(c,ts), nr=needRel(c,ts);
+  if(ts.lead!=null&&!hand.some(x=>!x.io&&x.c===ts.lead)) R.void[p].add(ts.lead);
+  hand.splice(i,1);
+  applyPlay(ts,p,c,d);
+  let m=`${P(p).name} gioca ${cname(c)}`;
+  if(nt) m+=d.trump?` e dichiara briscola il ${COL[c.c].n}`:` e dichiara che ${COL[c.c].n} non è briscola`;
+  if(nr) m+=` (la seconda copia è ${d.rel==='hi'?'più alta':'più bassa'} della prima)`;
+  return m+'.';
+}
+async function playRound(){
+  const R=G.R;
+  R.started=true;
+  while(R.done<R.tricks){
+    R.ts={lead:null,trump:null,plays:[]};
+    let p=R.leader;
+    for(let k=0;k<G.n;k++){
+      G.turn=p;
+      status(k===0?(p===HUM?'Sei di mano: gioca la carta che vuoi.':`Di mano: ${P(p).name}.`):(p===HUM?'Tocca a te.':`Tocca a ${P(p).name}.`));
+      let m;
+      if(p===HUM){
+        const ts=R.ts, lg=legalCards(P(HUM).hand,ts.lead);
+        const hint=ts.lead==null
+          ?(ts.plays.length?'Sei il primo a giocare un colore: la tua carta fissa il colore di mano.':'Sei di mano: gioca la carta che vuoi.')
+          :(P(HUM).hand.some(c=>!c.io&&c.c===ts.lead)?`Devi rispondere al colore ${COL[ts.lead].n} (oppure giocare un\'Offerta Irresistibile).`:`Non hai il colore ${COL[ts.lead].n}: puoi giocare qualsiasi carta.`);
+        m=await askPlay(lg,hint);
+      }else{ await sleep(700); m=aiPlay(p); }
+      logMsg(realPlay(p,m.i,m.d));
+      p=(p+1)%G.n;
+    }
+    G.turn=-1;
+    const ts=R.ts, w=trickWinner(ts), it=topItem(P(w));
+    let a=0,j=0;
+    ts.plays.forEach(x=>{ if(!x.c.io&&x.c.n===it){ P(w).bargain.push(x.c); a++; } else { P(w).junk.push(x.c); j++; } });
+    R.show={plays:ts.plays.slice(),lead:ts.lead,trump:ts.trump,w};
+    const msg=`${P(w).name} vince la presa${ts.trump!=null?` (briscola ${COL[ts.trump].n})`:''}: ${plu(a,'carta va','carte vanno')} all'Affare (oggetto ${it}), ${plu(j,'alla pila Cianfrusaglie','alla pila Cianfrusaglie')}.`;
+    status(msg); logMsg(msg);
+    await sleep(2300);
+    R.show=null; R.ts={lead:null,trump:null,plays:[]}; R.done++; R.last=w; R.leader=w;
+    render();
+  }
+}
+// pulizie di primavera: dal vincitore dell'ultima presa; nell'ultimo round due oggetti a testa
+async function springCleaning(){
+  const R=G.R, final=G.round===G.rounds-1, m=MINTRASH[G.n], times=final?2:1;
+  for(let k=0;k<G.n;k++){
+    const p=(R.last+k)%G.n, pl=P(p);
+    let done=[];
+    for(let t=0;t<times;t++){
+      let item=null;
+      if(p===HUM){
+        const cnt=junkCounts(pl.junk), opts=[];
+        for(let n=1;n<=9;n++) if(cnt[n]>0&&!done.includes(n)){
+          const c=cnt[n];
+          const txt=c<m?`scarti tutte le ${c} carte`:c===m?`scarti ${m} carte, nessuna all'Affare`:`scarti ${m} carte e ${c-m} vanno all'Affare (nuovo Affare: ${n})`;
+          opts.push({label:`Oggetto ${n} · ${plu(c,'carta','carte')}: ${txt}`,value:n});
+        }
+        if(!opts.length) break;
+        opts.push({label:'Salta',value:0});
+        status(final&&t===0?'Pulizie di primavera finali: puoi pulire fino a due oggetti.':'Pulizie di primavera: puoi ripulire un oggetto dalla tua pila Cianfrusaglie.');
+        item=await ask(HUM,final?`Pulizie di primavera (${t+1}/2)`:'Pulizie di primavera',opts);
+      }else{
+        if(t===0){ var plan=aiClean(p,final); }
+        item=plan[t]||0;
+      }
+      if(!item){ logMsg(`${pl.name} salta ${t===0?'le pulizie di primavera':'la seconda pulizia'}.`); break; }
+      const sp=cleanSplit(pl.junk,item,m);
+      pl.junk=pl.junk.filter(c=>!sp.all.includes(c));
+      G.trash.push(...sp.trash); pl.bargain.push(...sp.keep);
+      done.push(item);
+      logMsg(sp.keep.length
+        ?`${pl.name} ripulisce l'oggetto ${item}: butta ${plu(sp.trash.length,'carta','carte')} e ne mette ${sp.keep.length} nell'Affare. Nuovo Affare: ${item}.`
+        :`${pl.name} ripulisce l'oggetto ${item}: butta ${plu(sp.trash.length,'carta','carte')}.`);
+    }
+  }
+}
+const pts = p => p.bargain.length-p.junk.length;
+async function run(){
+  const g=G;
+  try{
+    for(let r=0;r<g.rounds;r++){
+      g.round=r;
+      if(!dealRound()){ logMsg('Carte insufficienti per un nuovo round: la partita termina qui.'); break; }
+      logMsg(`— Round ${r+1}/${g.rounds} · mazziere ${P(g.dealer).name} —`);
+      if(r===0){
+        status(`Round 1: ogni giocatore sceglie un Affare dalla sua mano, da sinistra del mazziere (${P((g.dealer+1)%g.n).name}).`);
+        await chooseBargains();
+      }
+      await playRound();
+      await springCleaning();
+      g.show=true;
+      const last=r===g.rounds-1;
+      status(last?'Partita conclusa: ecco i punteggi.':`Round ${r+1} concluso.`);
+      await ask(HUM,'Punteggio dopo le pulizie',[{label:last?'Vedi il risultato finale':'Avanti',value:1}]);
+      g.show=null;
+      g.dealer=(g.dealer+1)%g.n;
+    }
+    const m=Math.max(...g.pl.map(pts)), top=g.pl.filter(p=>pts(p)===m), mj=Math.min(...top.map(p=>p.junk.length));
+    g.over={winners:top.filter(p=>p.junk.length===mj).map(p=>p.id)};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='')=>c.io
+  ?`<span class="fc io ${cls}" title="Offerta Irresistibile">${ico('sparkle')}<span>OFFERTA</span></span>`
+  :`<span class="fc k${c.c} ${cls}" title="${cname(c)}"><span>${c.n}</span>${ico(COL[c.c].icon)}</span>`;
+function handBtn(c,i,ok,sel){
+  return c.io
+    ?`<button class="fc io ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="Offerta Irresistibile">${ico('sparkle')}<span>OFFERTA</span></button>`
+    :`<button class="fc k${c.c} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}"><span>${c.n}</span>${ico(COL[c.c].icon)}</button>`;
+}
+const initial = p => esc((P(p).name.replace(/^AI\s+/,'')[0]||'?').toUpperCase());
+function trickHtml(){
+  const R=G.R, src=R.show||R.ts, plays=src.plays;
+  const cards=plays.length?plays.map(x=>`<span class="tc">${kface(x.c,`mini ${R.show&&R.show.w===x.p?'win':''}`)}${x.rel?`<em class="rel">${x.rel==='hi'?'PIÙ ALTA':'PIÙ BASSA'}</em>`:''}<em class="own" style="background:${SEATC[x.p]}" title="${esc(P(x.p).name)}">${initial(x.p)}</em></span>`).join(''):'<span class="empty"></span>';
+  const lead=src.lead!=null?`<span class="rchip k${src.lead}">${ico(COL[src.lead].icon)} di mano: ${COL[src.lead].n}</span>`:'<span class="hint">colore di mano: –</span>';
+  const tr=src.trump!=null?`<span class="rchip k${src.trump}">${ico(COL[src.trump].icon)} briscola: ${COL[src.trump].n}</span>`:'<span class="hint">briscola: nessuna</span>';
+  return `<div class="trick">${cards}</div><div class="chips">${lead}${tr}</div>`;
+}
+function flagHtml(p){
+  if(!G||G.over||!G.R) return '';
+  let h='';
+  if(G.dealer===p) h+='<span class="flag dealer">Mazziere</span>';
+  if(G.R.show){ /* presa conclusa */ }
+  else if(!G.R.started&&G.R.leader===p) h+='<span class="flag first">Primo giocatore</span>';
+  else if(G.R.started&&G.R.ts.plays.length&&G.R.ts.plays[0].p===p) h+='<span class="flag lead">Di mano</span>';
+  return h;
+}
+function seatHtml(p,pos){
+  const pl=P(p), R=G.R;
+  const active=G.turn===p, winner=R.show&&R.show.w===p;
+  let hand;
+  if(p===HUM){
+    hand=`<div class="hand">${pl.hand.map((c,i)=>{
+      if(PR&&(PR.type==='card'||PR.type==='play')) return handBtn(c,i,PR.legal.has(i),PR.sel===i);
+      return kface(c);
+    }).join('')}</div>`;
+  }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag">carte <b>${pl.hand.length}</b></span><span class="tag">punti <b>${pts(pl)}</b></span></div>`;
+  const top=pl.bargain.length?pl.bargain[pl.bargain.length-1]:null;
+  const piles=`<div class="piles"><span class="pile" title="Pila Affare: ${pl.bargain.length} carte, oggetto cercato ${top?top.n:'–'}"><span class="lbl">Affare</span>${top?kface(top,'mini'):''}<b>×${pl.bargain.length}</b></span><span class="pile" title="Pila Cianfrusaglie (coperta)"><span class="lbl">Cianfrusaglie</span><span class="jb"></span><b>×${pl.junk.length}</b></span></div>`;
+  let mine='';
+  if(p===HUM&&pl.junk.length){
+    const cnt=junkCounts(pl.junk), io=pl.junk.filter(c=>c.io).length, m=MINTRASH[G.n];
+    mine=`<div class="jmine"><span class="hint">Le tue Cianfrusaglie:</span>${cnt.map((c,n)=>c?`<span class="jc ${c>m?'set':''}" title="Oggetto ${n}">${n}×${c}</span>`:'').join('')}${io?`<span class="jc">Offerta×${io}</span>`:''}</div>`;
+  }
+  const name=`<div class="seat-name" style="border-bottom:3px solid ${SEATC[p]}">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${name}${meta}${piles}${mine}${hand}`
+    :(pos==='top'?`${hand}${name}${meta}${piles}`:`${name}${meta}${piles}${hand}`);
+  return `<div class="seat ${pos} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const R=G.R;
+  return `<div class="center">
+    <div>Round <b>${Math.min(G.round+1,G.rounds)}/${G.rounds}</b> · presa <b>${Math.min(R.done+1,R.tricks)}/${R.tricks}</b></div>
+    ${trickHtml()}
+    <div class="hint">Dal mazzo: ${G.stock.length} carte · Cestino: ${G.trash.length}</div></div>`;
+}
+function scoreTable(){
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.bargain.length}</td><td>${p.junk.length}</td><td><b>${pts(p)}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th></th><th>Affare (+1)</th><th>Cianfrusaglie (−1)</th><th>Punti</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Bargain Hunter contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI) · ${ROUNDS[n]} round</button>`).join('')}</div>`;
+  if(G.over){
+    const nm=G.over.winners.map(i=>esc(P(i).name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (più punti; a pari punti vince chi ha meno Cianfrusaglie)</div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show) html+=scoreTable();
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){ const c=P(HUM).hand[PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: ${PR.verb} ${cname(c)}</button><button class="opt" data-cf="0">Annulla</button></div>`; }
+  }else if(PR&&PR.type==='play'){
+    html+=`<div class="hint">${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){
+      const c=P(HUM).hand[PR.sel], n=needsOf(PR.sel);
+      if(n.t&&PR.tr===undefined) html+=`<div class="dock-title">DICHIARA SE ${COL[c.c].n.toUpperCase()} È BRISCOLA</div><div class="opts"><button class="opt" data-tr="1">${COL[c.c].n} è briscola</button><button class="opt" data-tr="0">Non è briscola</button></div>`;
+      else if(n.r&&PR.rl===undefined) html+=`<div class="dock-title">LA SECONDA COPIA È…</div><div class="opts"><button class="opt" data-rl="hi">Più alta della prima</button><button class="opt" data-rl="lo">Più bassa della prima</button></div>`;
+      else if(playDone()){
+        const x=(n.t?(PR.tr?` · ${COL[c.c].n} briscola`:' · non briscola'):'')+(n.r?(PR.rl==='hi'?' · più alta':' · più bassa'):'');
+        html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${cname(c)}${x}</button><button class="opt" data-cf="0">Annulla</button></div>`;
+      }
+    }
+  }
+  return html;
+}
+function recapHtml(){
+  const m=MINTRASH[G.n];
+  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Mazzo</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rchip io">${ico('sparkle')} Offerta Irresistibile ×2</span><span class="rv">108 oggetti (1–9, due copie per colore) + 2 Offerte</span></div>
+    <div class="recap-row"><span class="lbl">Round</span><span class="rv">${G.rounds} round · 8 carte a testa (nel primo 7 prese: prima si sceglie l'Affare) · si gioca in senso orario, apre il giocatore a sinistra del mazziere</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">segui il colore di mano; senza quel colore giochi ciò che vuoi e dichiari se è briscola (una sola per presa, mai il colore di mano) · carta doppia: dichiari se è più alta o più bassa · l'Offerta batte tutto</span></div>
+    <div class="recap-row"><span class="lbl">Carte vinte</span><span class="rv">chi vince la presa mette all'Affare (visibile, +1) le carte con il suo oggetto, tutte le altre nelle Cianfrusaglie (coperte, −1)</span></div>
+    <div class="recap-row"><span class="lbl">Pulizie</span><span class="rv">a fine round ripulisci un oggetto dalle Cianfrusaglie: ${m} carte nel cestino, le altre vanno all'Affare e diventano il tuo nuovo oggetto · nell'ultimo round due oggetti</span></div>
+    <div class="recap-row"><span class="lbl">Fine</span><span class="rv">carte nell'Affare − carte nelle Cianfrusaglie (Offerte comprese) · a pari punti vince chi ha meno Cianfrusaglie</span></div></div>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Obiettivo</h4>
+<p>Bargain Hunter è un gioco di prese in cui la <b>briscola</b> viene decisa <i>durante</i> ogni presa. Si cerca di raccogliere il proprio oggetto (l'«Affare») e di scaricare Cianfrusaglie sugli altri. Gli Affari valgono punti positivi, le Cianfrusaglie punti negativi; a ogni round però si può trasformare parte delle Cianfrusaglie in nuovi Affari. Vince chi ha più Affari e meno Cianfrusaglie.</p>
+<h4>Componenti</h4>
+<p>108 carte oggetto in 6 colori (numeri da 1 a 9, ogni carta compare due volte per colore) e 2 Offerte Irresistibili (le briscole più alte, senza altro valore).</p>
+<h4>Round</h4>
+<p>Con 3 giocatori si giocano 6 round, con 4 giocatori 4 round. Il primo round ha solo 7 prese perché prima si sceglie l'Affare; gli altri ne hanno 8. Il mazziere distribuisce 8 carte a testa; le altre restano da parte per i round successivi. Il mazziere passa in senso orario a ogni round; si gioca sempre in senso orario.</p>
+<h4>L'Affare</h4>
+<p>Solo prima della prima presa del primo round, a partire dal giocatore a sinistra del mazziere, ognuno sceglie una carta dalla mano e la mette scoperta davanti a sé: è la sua pila Affare e il suo <b>oggetto</b> (il numero) da raccogliere per il round. Si può scegliere un oggetto già scelto da un altro, ma diventa più difficile trovarlo.</p>
+<h4>La caccia (la presa)</h4>
+<ul>
+<li>Il giocatore a sinistra del mazziere apre giocando una carta qualsiasi; il suo colore è il <b>colore di mano</b> e va seguito (l'Offerta Irresistibile si può giocare comunque).</li>
+<li>Chi non ha quel colore gioca una carta di un altro colore (o un'Offerta) e dichiara subito se quel colore è <b>briscola</b> o no. In ogni presa c'è una sola briscola e il colore di mano non può essere briscola. Qualunque altro colore può essere dichiarato briscola, anche se era già stato giocato (senza briscola) da un altro.</li>
+<li>Ogni carta esiste in due copie: se si gioca una carta già presente nella presa, chi la gioca dichiara subito se questa seconda copia è <b>più alta</b> o <b>più bassa</b> della prima.</li>
+<li>L'Offerta Irresistibile è la briscola più alta e si può giocare anche avendo il colore di mano. La seconda Offerta giocata è sempre più alta della prima.</li>
+<li>Vince la carta più alta: senza briscola quella più alta del colore di mano, con briscola quella più alta della briscola. Il vincitore apre la presa successiva; la briscola non si porta alla presa dopo.</li>
+</ul>
+<p>Il vincitore mette scoperte nella pila Affare le carte che corrispondono al suo oggetto (conta solo il numero, non il colore); tutte le altre, Offerte comprese, vanno coperte nella sua pila Cianfrusaglie.</p>
+<h4>Pulizie di primavera</h4>
+<p>Dopo l'ultima presa, a partire da chi l'ha vinta, ogni giocatore può ripulire <b>un solo oggetto</b> dalle proprie Cianfrusaglie, prendendo tutte le carte di quel numero. Prima si buttano nel cestino le prime ${'3'} carte (con 3 giocatori) o ${'2'} (con 4 giocatori); se ce ne sono meno, si buttano tutte e finisce lì. Le carte restanti vanno in cima alla pila Affare: l'oggetto diventa il nuovo Affare da raccogliere dal round dopo. Si può ripulire anche un oggetto già usato come Affare, un insieme anche troppo piccolo per cambiare Affare, oppure saltare le pulizie. Le Offerte Irresistibili non si possono buttare.</p>
+<h4>Nuovo round</h4>
+<p>Il nuovo mazziere rimescola il cestino e lo mette sotto le carte rimaste, poi distribuisce. Se non bastano 8 carte a testa si distribuiscono meno carte, uguali per tutti. Solo la carta in cima alla pila Affare determina l'oggetto da raccogliere; le carte già nell'Affare mantengono il loro valore.</p>
+<h4>Fine della partita</h4>
+<p>Nell'ultimo round si possono fare <b>due</b> pulizie a testa. Si conta +1 per ogni carta nell'Affare e −1 per ogni carta nelle Cianfrusaglie (Offerte comprese). Vince chi ha più punti; a parità chi ha meno Cianfrusaglie; altrimenti la vittoria è condivisa.</p>
+<p><i>Interpretazioni nell'app:</i> se si apre con un'Offerta Irresistibile, il colore di mano è quello della prima carta non-Offerta giocata dopo (chi la gioca non può dichiararla briscola). Le pulizie sono private: gli altri vedono solo cosa entra nell'Affare e quante carte hai nelle Cianfrusaglie. Se l'oggetto ripulito ha esattamente tanti esemplari quanti il minimo da buttare, l'Affare non cambia. L'AI deduce i colori che un avversario non ha dalle sue risposte.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">Bargain Hunter</div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${Math.min(G.round+1,G.rounds)}/${G.rounds}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G&&G.R){
+    const pos=POS[G.n];
+    body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${G.show?'':`<div class="dock" style="position:static">${scoreTable()}</div>`}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  try{ if(localStorage.getItem('nylo-skip-name')==='1'){ NAMES[0]=localStorage.getItem('nylo-player-name')||'Nylo'; newMatch(n); return; } }catch(e){}
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.tr!==undefined) setDecl('t',b.dataset.tr==='1');
+  else if(b.dataset.rl!==undefined) setDecl('r',b.dataset.rl);
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('bh-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('bh-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(!OPT.undo&&PR){
+    if(PR.type==='card'&&PR.sel!=null){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+    if(PR.type==='play'&&PR.sel!=null&&playDone()){ finishPlay(); return; }
+  }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
