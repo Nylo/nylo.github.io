@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kung Fu Trick</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f6e6d4;
+  --surface:#fff6ea;
+  --surface-raised:#f0dcc4;
+  --accent:#b3261e;
+  --accent-soft:rgba(179,38,30,0.14);
+  --gold:#c8922a;
+  --text:#3a2418;
+  --text-soft:#7a5a45;
+  --danger:#b3261e;
+  --success:#2c7a3c;
+  --border:rgba(110,50,30,0.28);
+  --radius:10px;
+  --k0:#cf3340; --k1:#3f7fc4; --k2:#3a9a63; --k3:#c98a12; --k4:#8a5cc0;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#fbeedd 0%,#e2b99a 100%) fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Libre Baskerville',serif;font-size:28px;font-weight:700;font-style:italic;line-height:1.1;flex:1;color:var(--accent)}
+.badge{background:var(--accent);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd54a;color:#2a2000}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Libre Baskerville',serif;font-size:16px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.6);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(110,50,30,0.25)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+.scroll-x{overflow-x:auto}
+
+/* ── templi ── */
+.temples{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.tp{background:linear-gradient(180deg,#fff3e3,#f1d8bb);border:2px solid var(--gold);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0;position:relative}
+.tp.can{cursor:pointer;border-color:#2f6db5;box-shadow:0 0 0 3px rgba(47,109,181,0.3)}
+.tp.sel{border-color:var(--accent);box-shadow:0 0 0 4px rgba(179,38,30,0.4)}
+.tp.res{border-color:var(--success);background:linear-gradient(180deg,#ecf7e6,#d5ebc6)}
+.tp-h{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tp-n{font-family:'Libre Baskerville',serif;font-weight:700;font-size:13px;color:var(--accent)}
+.tp-c{margin-left:auto;font-size:11px;font-weight:700;background:rgba(110,50,30,0.14);border-radius:10px;padding:2px 8px;white-space:nowrap}
+.tp-s{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-soft);flex-wrap:wrap}
+.chain{display:flex;gap:6px;flex-wrap:wrap;min-height:70px;align-items:center}
+.chain .empty{width:42px;height:62px;border:1px dashed rgba(110,50,30,0.45);border-radius:6px}
+.ce{position:relative;display:inline-block;padding:0 4px 4px 0}
+.ce .fc.hold{box-shadow:0 0 0 3px var(--gold),0 0 10px var(--gold)}
+.ce .pawn{position:absolute;left:-5px;top:-7px;width:18px;height:18px;border-radius:50%;background:#fff;color:var(--pc);display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 1px 3px rgba(0,0,0,0.5)}
+.ce .own{position:absolute;right:-1px;bottom:-1px;width:15px;height:15px;border-radius:50%;border:1.5px solid #fff;font-family:'Inter',sans-serif;font-size:8px;font-weight:800;color:#1b1233;display:flex;align-items:center;justify-content:center;font-style:normal}
+.tile{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#ffe08a,#c8922a);color:#4a2b00;font-weight:800;font-size:11px;border:1px solid #8a5a00;padding:0 3px}
+.tile.gone{opacity:0.25;filter:grayscale(1)}
+.tiles{display:inline-flex;gap:3px}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#f1d3b5 0%,#d6a07c 90%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:430px}
+.table.n5{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
+.seat.top{grid-area:top} .seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.active{border-color:#c8922a;background:rgba(200,146,42,0.2)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(110,50,30,0.14);border-radius:4px;padding:2px 6px}
+.tag b{color:#8a2a10}
+.tag.rel{background:rgba(255,255,255,0.45)}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:12px;height:18px;border-radius:3px;background:linear-gradient(135deg,#d9564a,#7a1a14);border:1px solid #f3d9c4}
+.seat.left .backs,.seat.right .backs{max-width:130px}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Libre Baskerville',serif;font-weight:700;font-size:22px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
+.fc i{font-size:20px}
+.fc.k0{background-color:var(--k0)} .fc.k1{background-color:var(--k1)} .fc.k2{background-color:var(--k2)} .fc.k3{background-color:var(--k3)} .fc.k4{background-color:var(--k4)}
+.fc.mini{width:42px;height:62px;font-size:19px}
+.fc.mini i{font-size:17px}
+.fc.fresh{box-shadow:0 0 0 3px #2f6db5}
+.fc.win{box-shadow:0 0 0 3px var(--success)}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.legal{box-shadow:0 0 0 3px #2f6db5}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+body.a11y .fc.k0,body.a11y .rchip.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .fc.k1,body.a11y .rchip.k1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k2,body.a11y .rchip.k2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:var(--text-soft)}
+.center b{color:var(--text)}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .rchip{vertical-align:middle}
+.rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,0.35);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
+.rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)} .rchip.k4{background-color:var(--k4)}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:44px}
+  .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
+  .fc i{font-size:13px}
+  .fc.mini{width:32px;height:48px;font-size:14px}
+  .fc.mini i{font-size:12px}
+  .chain{min-height:54px;gap:4px}
+  .chain .empty{width:32px;height:48px}
+  .temples{grid-template-columns:1fr}
+  .table{padding:8px;gap:6px;grid-template-columns:1fr 1fr 1fr}
+  .table.n5{grid-template-columns:1fr 1fr 1fr 1fr}
+  .back{width:9px;height:14px}
+  .hand{gap:2px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const COL = [
+  {n:'Rosso',  icon:'circle'},
+  {n:'Blu',    icon:'square'},
+  {n:'Verde',  icon:'triangle'},
+  {n:'Giallo', icon:'star'},
+  {n:'Viola',  icon:'diamond'}
+];
+const BLUE = 1;                                          // colore del 5 che decide il primo giocatore
+const TNAME = ['Tempio Grande','Tempio Medio','Tempio Piccolo'];
+const NEED  = [4,3,2];                                   // partecipanti necessari per la competizione
+const TTILE = [3,1,0];                                   // punti di ogni Tecnica Segreta del tempio
+const TTILES= [2,3,0];                                   // numero di Tecniche Segrete del tempio
+const HANDN = {3:15,4:15,5:12};
+const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right'], 5:['bottom','left','tl','tr','right']};
+const NAMES = ['Tu','AI Lin','AI Mei','AI Jun','AI Bao'];
+const SEATC = ['#ffd166','#ff8fb8','#6ee7b7','#7cc4ff','#c4a1ff'];
+const HUM = 0;
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false,short:false};
+try{ const s=localStorage.getItem('kft-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('kft-a11y')==='1'; OPT.short=localStorage.getItem('kft-short')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const cname = c => `${COL[c.k].n} ${c.n}`;
+const argmax = a => { let b=0; for(let i=1;i<a.length;i++) if(a[i]>a[b]) b=i; return b; };
+const ALL = []; for(let k=0;k<5;k++) for(let n=1;n<=12;n++) ALL.push({k,n});
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  if(p!==HUM) return ok[rnd(ok.length)].value;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+// scelta di una carta dalla mano (scambio iniziale)
+function askCard(legal,hint,verb){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,verb,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+// scelta di carta + tempio (turno di gioco)
+function askMove(lm){
+  const g=G, map=new Map();
+  lm.forEach(([i,t])=>{ if(!map.has(i)) map.set(i,[]); map.get(i).push(t); });
+  return new Promise((res,rej)=>{ PR={type:'move',map,selC:null,selT:null,lt:[],res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function finishMove(){
+  const m=[PR.selC,PR.selT], r=PR.res; PR=null; render(); r(m);
+}
+function playIdx(i){
+  if(!PR) return;
+  if(PR.type==='card'){
+    if(!PR.legal.has(i)) return;
+    if(OPT.undo){ PR.sel=i; render(); return; }
+    const r=PR.res; PR=null; render(); r(i);
+  }else if(PR.type==='move'){
+    if(!PR.map.has(i)) return;
+    PR.selC=i; PR.lt=PR.map.get(i); PR.selT=PR.lt.length===1?PR.lt[0]:null;
+    if(PR.selT!=null&&!OPT.undo) finishMove(); else render();
+  }
+}
+function pickTemple(t){
+  if(!PR||PR.type!=='move'||PR.selC==null||!PR.lt.includes(t)) return;
+  PR.selT=t;
+  if(!OPT.undo) finishMove(); else render();
+}
+function confirmCard(ok){
+  if(!PR) return;
+  if(PR.type==='card'){
+    if(PR.sel==null) return;
+    if(!ok){ PR.sel=null; render(); return; }
+    const i=PR.sel, r=PR.res; PR=null; render(); r(i);
+  }else if(PR.type==='move'){
+    if(PR.selC==null||PR.selT==null) return;
+    if(!ok){ PR.selC=null; PR.selT=null; PR.lt=[]; render(); return; }
+    finishMove();
+  }
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+const sortHand = h => h.sort((a,b)=>a.k-b.k||a.n-b.n);
+const mas = (S,p) => S.ord[(S.pos[p]+1)%S.n];            // Maestro: il vicino di sinistra (gioca dopo di me)
+const dis = (S,p) => S.ord[(S.pos[p]+S.n-1)%S.n];        // Discepolo: il vicino di destra
+function newSeason(n,ord){
+  const per=HANDN[n];
+  let deck;
+  if(n===3){                                              // 45 carte su 60: il Blu 5 resta sempre in gioco
+    const rest=shuffle(ALL.filter(c=>!(c.k===BLUE&&c.n===5))).slice(0,44);
+    deck=shuffle(rest.concat([ALL.find(c=>c.k===BLUE&&c.n===5)]));
+  }else deck=shuffle(ALL.slice());
+  const hands=Array.from({length:n},(_,i)=>sortHand(deck.slice(i*per,(i+1)*per)));
+  const pos=[]; ord.forEach((p,i)=>pos[p]=i);
+  return {n,ord,pos,hands,tp:[{ch:[]},{ch:[]},{ch:[]}],wins:Array(n).fill(0),tiles:Array(n).fill(0),tl:Array.from({length:n},()=>[]),left:TTILES.slice(),seen:[],ti:0,played:0};
+}
+// mosse legali: coppie [indice carta, tempio]
+function legalMoves(S,p){
+  const h=S.hands[p], allOcc=S.tp.every(t=>t.ch.length), out=[];
+  for(let t=0;t<3;t++){
+    const T=S.tp[t];
+    if(!T.ch.length){ for(let i=0;i<h.length;i++) out.push([i,t]); continue; }
+    const hk=T.ch[0].c.k;
+    const has=h.some(c=>c.k===hk);
+    for(let i=0;i<h.length;i++) if(h[i].k===hk||(allOcc&&!has)) out.push([i,t]);
+  }
+  return out;
+}
+function resolveTemple(S,t,tile){
+  const T=S.tp[t], h=T.ch.find(x=>x.hold), w=h.p;
+  S.wins[w]++;
+  let got=0;
+  if(tile&&TTILES[t]&&h.c.n<=9&&S.left[t]>0){ S.left[t]--; got=TTILE[t]; S.tiles[w]+=got; if(S.tl) S.tl[w].push(got); }
+  const res={t,w,card:h.c,ch:T.ch.map(x=>({p:x.p,c:x.c,hold:x.hold})),tile:got};
+  T.ch=[]; return res;
+}
+// gioca la carta i della mano di p nel tempio t; restituisce {c,kind,prev,comp}
+function applyMove(S,p,i,t){
+  const c=S.hands[p].splice(i,1)[0], T=S.tp[t], e={p,c,hold:false};
+  let kind, prev=null;
+  if(!T.ch.length){ e.hold=true; kind='start'; }
+  else{
+    const h=T.ch.find(x=>x.hold);
+    if(c.k!==T.ch[0].c.k) kind='off';
+    else if(c.n>h.c.n){ prev=h.c; h.hold=false; e.hold=true; kind='lead'; }
+    else kind='low';
+  }
+  T.ch.push(e);
+  if(S.seen) S.seen.push(c);
+  S.played++;
+  const comp=T.ch.length>=NEED[t]?resolveTemple(S,t,true):null;
+  return {c,kind,prev,comp};
+}
+// fine stagione: nei giochi a 5 la carta con il segnalino vince; a 3-4 gli Allievi rimasti non hanno effetto
+function finishSeason(S){
+  const out=[];
+  for(let t=0;t<3;t++){
+    const T=S.tp[t];
+    if(T.ch.length&&S.n===5) out.push(resolveTemple(S,t,false)); else T.ch=[];
+  }
+  return out;
+}
+// punteggio di stagione: Tecniche Segrete + relazioni Maestro/Discepolo (se qualcuno ha 0 vittorie solo 5/3 punti)
+function seasonScore(S){
+  const rows=S.tiles.map(t=>({tile:t,rel:0,note:''}));
+  const zeros=[]; for(let p=0;p<S.n;p++) if(S.wins[p]===0) zeros.push(p);
+  if(zeros.length){
+    zeros.forEach(q=>{ rows[q].rel+=5; rows[dis(S,q)].rel+=3; });
+  }else{
+    for(let p=0;p<S.n;p++){
+      const w=S.wins[p], wm=S.wins[mas(S,p)], wd=S.wins[dis(S,p)];
+      rows[p].rel+=(w<wm?3:w===wm?1:0)+(w>wd?3:w===wd?1:0);
+    }
+  }
+  rows.forEach(r=>r.pts=r.tile+r.rel);
+  return {rows,zeros};
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Ogni mossa viene valutata con simulazioni dell'intera stagione: le mani degli altri sono pescate a caso tra le carte
+// non ancora viste (rispettando le carte scambiate con me); il resto della stagione è giocato a caso. Valore = punti di stagione.
+function sampleState(p){
+  const S=G.S, key=c=>c.k*20+c.n, known=new Set();
+  S.seen.forEach(c=>known.add(key(c))); S.hands[p].forEach(c=>known.add(key(c)));
+  let pool=ALL.filter(c=>!known.has(key(c)));
+  const forced=S.hands.map(()=>[]);
+  (G.pinfo[p]||[]).forEach(x=>{ const j=pool.findIndex(c=>c===x.c||(c.k===x.c.k&&c.n===x.c.n)); if(j>=0){ forced[x.q].push(pool[j]); pool.splice(j,1); } });
+  shuffle(pool);
+  const hands=S.hands.map((h,q)=>q===p?h.slice():forced[q].concat(pool.splice(0,Math.max(0,h.length-forced[q].length))));
+  return {n:S.n,ord:S.ord,pos:S.pos,hands,tp:S.tp,wins:S.wins,tiles:S.tiles,left:S.left,ti:S.ti};
+}
+function cloneSim(B){
+  return {n:B.n,ord:B.ord,pos:B.pos,hands:B.hands.map(h=>h.slice()),
+    tp:B.tp.map(t=>({ch:t.ch.map(e=>({p:e.p,c:e.c,hold:e.hold}))})),
+    wins:B.wins.slice(),tiles:B.tiles.slice(),left:B.left.slice(),ti:B.ti,played:0};
+}
+function rollout(X){
+  let left=0; for(const h of X.hands) left+=h.length;
+  while(left>0){
+    const p=X.ord[X.ti], lm=legalMoves(X,p), m=lm[rnd(lm.length)];
+    applyMove(X,p,m[0],m[1]); X.ti=(X.ti+1)%X.n; left--;
+  }
+  finishSeason(X);
+  return seasonScore(X).rows.map(r=>r.pts);
+}
+function aiMove(p){
+  const S=G.S, lm=legalMoves(S,p);
+  if(lm.length===1) return lm[0];
+  const ns=Math.max(8,Math.min(40,Math.floor(2400/lm.length)));
+  const sc=new Array(lm.length).fill(0);
+  for(let s=0;s<ns;s++){
+    const B=sampleState(p);
+    lm.forEach((m,j)=>{
+      const X=cloneSim(B);
+      applyMove(X,p,m[0],m[1]); X.ti=(X.ti+1)%X.n;
+      sc[j]+=rollout(X)[p];
+    });
+  }
+  return lm[argmax(sc.map(v=>v+Math.random()*0.01))];
+}
+// scambio iniziale: al Discepolo una carta bassa (voglio più vittorie di lui), al Maestro una carta alta
+function aiPass(p,dir){
+  const h=G.S.hands[p], cnt=k=>h.filter(c=>c.k===k).length;
+  let best=0, bv=-1e9;
+  h.forEach((c,i)=>{
+    const v=(dir==='disc'?-1:1)*(c.n-0.4*cnt(c.k))+Math.random()*2;
+    if(v>bv){ bv=v; best=i; }
+  });
+  return best;
+}
+// nuovi posti: il Maestro è il più forte (più punti), il Discepolo il più debole
+function aiOrder(ch){
+  const rest=G.ord.filter(x=>x!==ch).sort((a,b)=>P(b).total-P(a).total||rnd(3)-1);
+  return [ch,...rest];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,seasons:OPT.short?2:3,season:0,first:-1,msg:'',log:[],over:null,show:null,res:null,turn:-1,freshT:-1,pinfo:[],
+     ord:[HUM,...shuffle(Array.from({length:n-1},(_,i)=>i+1))],S:null,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  run();
+}
+function startSeason(){
+  G.S=newSeason(G.n,G.ord);
+  G.pinfo=G.pl.map(()=>[]); G.res=null; G.show=null; G.turn=-1; G.freshT=-1; G.first=-1;
+}
+async function passStage(dir){
+  const S=G.S, n=G.n, picks=new Array(n);
+  const recip=p=>dir==='disc'?dis(S,p):mas(S,p);
+  for(let p=0;p<n;p++) if(p!==HUM) picks[p]=S.hands[p][aiPass(p,dir)];
+  const r=recip(HUM);
+  const hint=dir==='disc'
+    ?`Scegli la carta da passare al tuo Discepolo (a destra): ${P(r).name}.`
+    :`Scegli la carta da passare al tuo Maestro (a sinistra): ${P(r).name}.`;
+  const idx=await askCard(S.hands[HUM].map((_,i)=>i),hint,'passa');
+  picks[HUM]=S.hands[HUM][idx];
+  const got=new Array(n);
+  for(let p=0;p<n;p++){
+    const h=S.hands[p]; h.splice(h.indexOf(picks[p]),1);
+    const q=recip(p); S.hands[q].push(picks[p]); got[q]=picks[p];
+    G.pinfo[p].push({q,c:picks[p]});
+  }
+  S.hands.forEach(sortHand);
+  return got[HUM];
+}
+async function passing(){
+  status('Scambio: scegli una carta da passare al Discepolo (a destra).');
+  const a=await passStage('disc');
+  logMsg(`Scambio 1: passi una carta a ${P(dis(G.S,HUM)).name}; da ${P(mas(G.S,HUM)).name} ricevi ${cname(a)}.`);
+  status('Scambio: ora scegli una carta da passare al Maestro (a sinistra).');
+  const b=await passStage('mas');
+  logMsg(`Scambio 2: passi una carta a ${P(mas(G.S,HUM)).name}; da ${P(dis(G.S,HUM)).name} ricevi ${cname(b)}.`);
+  const S=G.S;
+  const f=S.hands.findIndex(h=>h.some(c=>c.k===BLUE&&c.n===5));
+  G.first=f; S.ti=S.pos[f];
+  const msg=`Hai ricevuto ${cname(a)} dal Maestro e ${cname(b)} dal Discepolo. ${f===HUM?'Hai il Blu 5: inizi tu.':`${P(f).name} ha il Blu 5 e inizia.`}`;
+  logMsg(`Primo giocatore: ${P(f).name} (ha il Blu 5).`);
+  status(msg);
+  await ask(HUM,msg,[{label:'Ok, si parte',value:1}]);
+}
+function moveMsg(p,t,r){
+  const nm=P(p).name, c=cname(r.c), T=TNAME[t];
+  if(r.kind==='start') return `${nm} apre il ${T} con ${c}: scuola ospite ${COL[r.c.k].n}.`;
+  if(r.kind==='lead') return `${nm} gioca ${c} al ${T}: supera ${cname(r.prev)} e diventa il candidato alla vittoria.`;
+  if(r.kind==='low') return `${nm} gioca ${c} al ${T}: non supera il candidato, conta solo come partecipante.`;
+  return `${nm} gioca ${c} al ${T}: colore diverso dalla scuola ospite, conta solo come partecipante.`;
+}
+function compMsg(x){
+  return `Competizione al ${TNAME[x.t]}: vince ${P(x.w).name} con ${cname(x.card)}${x.tile?` e prende una Tecnica Segreta da ${x.tile} ${x.tile===1?'punto':'punti'}`:''}.`;
+}
+async function showComp(x){
+  G.res=x; const m=compMsg(x); status(m); logMsg(m);
+  await sleep(2000);
+  G.res=null; render();
+}
+async function playSeason(){
+  const S=G.S;
+  while(S.hands.some(h=>h.length)){
+    const p=S.ord[S.ti]; G.turn=p;
+    status(p===HUM?'Tocca a te.':`Tocca a ${P(p).name}.`);
+    let m;
+    if(p===HUM) m=await askMove(legalMoves(S,HUM)); else { await sleep(700); m=aiMove(p); }
+    const r=applyMove(S,p,m[0],m[1]);
+    S.ti=(S.ti+1)%S.n; G.freshT=m[1];
+    logMsg(moveMsg(p,m[1],r));
+    if(r.comp) await showComp(r.comp);
+  }
+  G.turn=-1; G.freshT=-1;
+  const rest=S.tp.filter(t=>t.ch.length).length;
+  const comps=finishSeason(S);
+  if(rest&&!comps.length){ logMsg(`Fine stagione: ${rest===1?'gli Allievi rimasti in un Tempio non hanno':'gli Allievi rimasti nei Templi non hanno'} effetto.`); }
+  for(const x of comps) await showComp(x);
+}
+async function scoring(){
+  const S=G.S, sc=seasonScore(S);
+  const rows=sc.rows.map((r,p)=>({p,w:S.wins[p],...r}));
+  rows.forEach(r=>{ P(r.p).total+=r.pts; P(r.p).hist.push(r.pts); });
+  G.show={rows,zeros:sc.zeros};
+  rows.forEach(r=>logMsg(`Stagione ${G.season+1}: ${P(r.p).name} ${r.w} ${r.w===1?'vittoria':'vittorie'} → ${r.pts} punti (tecniche ${r.tile}, relazioni ${r.rel}).`));
+  if(sc.zeros.length) logMsg(`Chi non ha vinto nessuna competizione prende 5 punti e il suo Discepolo 3: nessun altro punto per le relazioni.`);
+  const last=G.season===G.seasons-1;
+  status(`Stagione ${G.season+1} conclusa.`);
+  await ask(HUM,'Punteggio della stagione',[{label:last?'Vedi il risultato finale':'Avanti',value:1}]);
+  G.show=null;
+}
+async function reseat(){
+  const mn=Math.min(...G.pl.map(p=>p.total)), low=G.pl.filter(p=>p.total===mn).map(p=>p.id);
+  const ch=low.includes(HUM)?HUM:low[rnd(low.length)];
+  let ord;
+  if(ch===HUM){
+    const rest=G.ord.filter(x=>x!==HUM); ord=[HUM];
+    status(`Hai il punteggio più basso: riorganizzi i posti.`);
+    while(rest.length>1){
+      const prev=ord[ord.length-1];
+      const v=await ask(HUM,prev===HUM?'Chi siede alla tua sinistra (il tuo Maestro)?':`Chi siede alla sinistra di ${P(prev).name}?`,rest.map(q=>({label:P(q).name,value:q})));
+      ord.push(v); rest.splice(rest.indexOf(v),1);
+    }
+    ord.push(rest[0]);
+  }else{
+    ord=aiOrder(ch);
+    logMsg(`${P(ch).name} ha il punteggio più basso e riorganizza i posti.`);
+  }
+  G.ord=ord;
+  const nm=i=>P(i).name;
+  logMsg(`Nuovi posti, in senso orario (ognuno ha il Maestro a sinistra): ${ord.map(nm).join(' → ')}.`);
+  status(`Nuovi posti: il tuo Maestro è ${nm(ord[(ord.indexOf(HUM)+1)%G.n])}, il tuo Discepolo ${nm(ord[(ord.indexOf(HUM)+G.n-1)%G.n])}.`);
+  await ask(HUM,`Nuovi posti: il tuo Maestro (sinistra) è ${nm(ord[(ord.indexOf(HUM)+1)%G.n])}, il tuo Discepolo (destra) ${nm(ord[(ord.indexOf(HUM)+G.n-1)%G.n])}`,[{label:'Ok, nuova stagione',value:1}]);
+}
+async function run(){
+  const g=G;
+  try{
+    for(let k=0;k<g.seasons;k++){
+      g.season=k; startSeason();
+      logMsg(`— Stagione ${k+1}/${g.seasons} —`);
+      await passing();
+      await playSeason();
+      await scoring();
+      if(k<g.seasons-1) await reseat();
+    }
+    const m=Math.max(...g.pl.map(p=>p.total));
+    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='')=>`<span class="fc k${c.k} ${cls}" title="${cname(c)}"><span>${c.n}</span>${ico(COL[c.k].icon)}</span>`;
+function handBtn(c,i,ok,sel){
+  return `<button class="fc k${c.k} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}"><span>${c.n}</span>${ico(COL[c.k].icon)}</button>`;
+}
+const initial = p => esc((P(p).name.replace(/^AI\s+/,'')[0]||'?').toUpperCase());
+function templeHtml(t){
+  const S=G.S, T=S.tp[t], showRes=G.res&&G.res.t===t;
+  const shown=showRes?G.res.ch:T.ch;
+  const can=PR&&PR.type==='move'&&PR.selC!=null&&PR.lt.includes(t), sel=can&&PR.selT===t;
+  const host=shown.length?shown[0].c.k:null;
+  const tiles=TTILES[t]
+    ?`<span class="tiles" title="Tecniche Segrete rimaste (${TTILE[t]} punti ciascuna, solo con carta vincente da 1 a 9)">${Array.from({length:TTILES[t]},(_,i)=>`<span class="tile ${i<S.left[t]?'':'gone'}">${TTILE[t]}</span>`).join('')}</span>`
+    :'<span class="hint">nessuna Tecnica Segreta</span>';
+  const chain=shown.length?shown.map((e,i)=>{
+    const win=showRes&&G.res.w===e.p&&e.hold;
+    const cls=`mini ${e.hold?'hold':''} ${win?'win':''} ${!showRes&&G.freshT===t&&i===shown.length-1?'fresh':''}`;
+    return `<span class="ce" style="--pc:${SEATC[e.p]}">${kface(e.c,cls)}${e.hold?`<em class="pawn" title="Segnalino di ${esc(P(e.p).name)}: candidato alla vittoria">${ico('chess-pawn')}</em>`:''}<em class="own" style="background:${SEATC[e.p]}" title="${esc(P(e.p).name)}">${initial(e.p)}</em></span>`;
+  }).join(''):'<span class="empty"></span>';
+  return `<div class="tp ${can?'can':''} ${sel?'sel':''} ${showRes?'res':''}" data-tp="${t}">
+    <div class="tp-h"><span class="tp-n">${TNAME[t]}</span><span class="tp-c" title="Partecipanti necessari">${shown.length}/${NEED[t]}</span></div>
+    <div class="tp-s">${host!=null?`Scuola ospite: <span class="rchip k${host}">${ico(COL[host].icon)} ${COL[host].n}</span>`:'Tempio vuoto'} ${tiles}</div>
+    <div class="chain">${chain}</div></div>`;
+}
+function flagHtml(p){
+  if(!G||G.over||!G.S) return '';
+  if(G.turn>=0&&G.S.played===0&&G.first===p) return '<span class="flag first">Primo giocatore</span>';
+  return '';
+}
+function seatHtml(p,pos){
+  const S=G.S, pl=P(p);
+  const active=G.turn===p;
+  let hand;
+  if(p===HUM){
+    hand=`<div class="hand">${S.hands[HUM].map((c,i)=>{
+      if(PR&&PR.type==='card') return handBtn(c,i,PR.legal.has(i),PR.sel===i);
+      if(PR&&PR.type==='move') return handBtn(c,i,PR.map.has(i),PR.selC===i);
+      return kface(c);
+    }).join('')}</div>`;
+  }else hand=`<div class="backs">${S.hands[p].map(()=>'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag">carte <b>${S.hands[p].length}</b></span><span class="tag">vittorie <b>${S.wins[p]}</b></span><span class="tag">punti <b>${pl.total}</b></span></div>`;
+  const tl=S.tl[p].length?`<div class="seat-meta"><span class="hint">Tecniche:</span>${S.tl[p].map(v=>`<span class="tile">${v}</span>`).join('')}</div>`:'';
+  const rel=`<div class="seat-meta"><span class="tag rel" title="Maestro (a sinistra)">Maestro: ${esc(P(mas(S,p)).name.replace(/^AI /,''))}</span><span class="tag rel" title="Discepolo (a destra)">Discepolo: ${esc(P(dis(S,p)).name.replace(/^AI /,''))}</span></div>`;
+  const name=`<div class="seat-name" style="border-bottom:3px solid ${SEATC[p]}">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${name}${meta}${rel}${tl}${hand}`
+    :(pos==='top'||pos==='tl'||pos==='tr'?`${hand}${name}${meta}${rel}${tl}`:`${name}${meta}${rel}${tl}${hand}`);
+  return `<div class="seat ${pos} ${active?'active':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const S=G.S;
+  const cards=S.hands.reduce((s,h)=>s+h.length,0);
+  return `<div class="center">
+    <div>Stagione <b>${Math.min(G.season+1,G.seasons)}/${G.seasons}</b></div>
+    <div>Carte rimaste: <b>${cards}</b></div>
+    <div class="hint">Senso orario: il Maestro è il vicino di sinistra, il Discepolo quello di destra.</div></div>`;
+}
+function scoreTable(){
+  const R=G.seasons;
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:R},(_,i)=>i<p.hist.length?`<td>${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th></th>${Array.from({length:R},(_,i)=>`<th>S${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Kung Fu Trick contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>
+    <label class="opt-toggle" title="Due stagioni invece di tre"><input type="checkbox" id="optShort" ${OPT.short?'checked':''}> Partita breve (2 stagioni)</label>`;
+  if(G.over){
+    const nm=G.over.winners.map(i=>esc(P(i).name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Gran Maestro a pari merito: ':'Gran Maestro di Kung Fu: '}${w}!</b> (vince chi ha più punti)</div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    html+=`<div class="scroll-x"><table class="score"><tr><th></th><th>Vittorie</th><th>Tecniche</th><th>Relazioni</th><th>Stagione</th></tr>${G.show.rows.map(r=>
+      `<tr><td>${esc(P(r.p).name)}</td><td>${r.w}</td><td>${r.tile}</td><td>${r.rel}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`;
+  }
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){ const c=G.S.hands[HUM][PR.sel]; html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: ${PR.verb} ${cname(c)}</button><button class="opt" data-cf="0">Annulla</button></div>`; }
+  }else if(PR&&PR.type==='move'){
+    if(PR.selC==null) html+=`<div class="hint">Scegli una carta della tua mano e il Tempio in cui giocarla.</div>`;
+    else{
+      const c=G.S.hands[HUM][PR.selC];
+      if(PR.selT==null) html+=`<div class="hint">Dove giochi ${cname(c)}?</div><div class="opts">${PR.lt.map(t=>`<button class="opt" data-t="${t}">${TNAME[t]}</button>`).join('')}</div>`;
+      else html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${cname(c)} al ${TNAME[PR.selT]}</button><button class="opt" data-cf="0">Annulla</button></div>`;
+    }
+  }
+  return html;
+}
+function recapHtml(){
+  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
+    <div class="recap-row"><span class="lbl">Allievi</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rv">60 carte (1–12 per colore)${G.n===3?' · con 3 giocatori se ne usano 45':''} · ${HANDN[G.n]} carte a testa</span></div>
+    <div class="recap-row"><span class="lbl">Templi</span><span class="rv">Grande (4 partecipanti, 2 Tecniche da 3 punti) · Medio (3 partecipanti, 3 Tecniche da 1 punto) · Piccolo (2 partecipanti)</span></div>
+    <div class="recap-row"><span class="lbl">Scambio</span><span class="rv">una carta coperta al Discepolo (destra), poi una al Maestro (sinistra) · inizia chi ha il Blu 5</span></div>
+    <div class="recap-row"><span class="lbl">Turno</span><span class="rv">gioca un Allievo a destra di un Tempio (il primo decide la scuola ospite) o in fondo alla fila · stesso colore della scuola ospite, altrimenti solo se tutti i Templi sono occupati e non ne hai</span></div>
+    <div class="recap-row"><span class="lbl">Vince</span><span class="rv">a competizione completa vince l'Allievo più alto della scuola ospite (il segnalino): una Tessera Vittoria; con carta da 1 a 9 anche una Tecnica Segreta (Grande e Medio)</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">Tecniche Segrete + relazioni: Maestro (meno vittorie +3, pari +1) e Discepolo (più vittorie +3, pari +1) · chi ha 0 vittorie prende 5 e il suo Discepolo 3, e basta</span></div>
+    <div class="recap-row"><span class="lbl">Partita</span><span class="rv">${G.seasons} stagioni · a fine stagione chi ha meno punti riorganizza i posti · vince chi ha più punti</span></div></div>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Componenti</h4>
+<p>60 carte Allievo (5 colori, numerate da 1 a 12), 3 carte Tempio (Grande, Medio, Piccolo), carte segnapunti, Tessere Vittoria, 5 Tecniche Segrete (2 da 3 punti e 3 da 1 punto) e 3 segnalini per giocatore.</p>
+<h4>Preparazione</h4>
+<p>Il giocatore alla tua sinistra è il tuo <b>Maestro</b>, quello alla tua destra il tuo <b>Discepolo</b> (i posti cambieranno). Si distribuiscono 15 carte a testa; con 5 giocatori 12 carte a testa; con 3 giocatori le carte inutilizzate tornano nella scatola. Le 2 Tecniche Segrete da 3 punti vanno accanto al Tempio Grande, le 3 da 1 punto accanto al Tempio Medio; il Tempio Piccolo non ha Tecniche Segrete.</p>
+<p><b>Scambio:</b> tutti scelgono insieme una carta e la passano coperta al Discepolo; poi, con la nuova carta in mano, ne scelgono un'altra e la passano al Maestro. Inizia chi possiede il <b>Blu 5</b> (non lo gioca per forza: lo annuncia soltanto).</p>
+<h4>Giocare gli Allievi</h4>
+<p>Si gioca in senso orario, una carta scoperta a turno, a destra di un Tempio o a destra di un Allievo già giocato (cioè in fondo alla fila di quel Tempio). Quando giochi un Allievo direttamente a destra di un Tempio vuoto, metti su di esso un tuo segnalino: è il <b>candidato alla vittoria</b>, e il suo colore è la <b>scuola ospite</b> di quella competizione.</p>
+<p>Giocando a destra di un altro Allievo, la carta deve essere del colore della scuola ospite. Se il suo numero è più alto di quello dell'Allievo con il segnalino, il segnalino torna al suo proprietario e ne metti uno tuo sulla nuova carta (se era già tuo, lo sposti). Altrimenti la carta resta senza segnalino.</p>
+<p><b>Colore diverso:</b> se tutti e tre i Templi hanno almeno un Allievo e non hai nella mano il colore della scuola ospite di quel Tempio, puoi giocare qualsiasi Allievo in quel Tempio: non può vincere e non prende il segnalino, ma conta come partecipante. Non è ammesso se hai ancora quel colore o se il Tempio è vuoto.</p>
+<h4>Vincere la competizione</h4>
+<p>Quando i partecipanti di un Tempio raggiungono il numero richiesto (4, 3 o 2) si tiene la competizione: vince chi ha giocato l'Allievo più alto della scuola ospite (quello col segnalino). Il vincitore prende una Tessera Vittoria, scarta tutti gli Allievi e riprende i segnalini; il Tempio è di nuovo vuoto.</p>
+<p><b>Tecniche Segrete:</b> se la carta vincente al Tempio Grande o Medio è da 1 a 9, il vincitore prende una Tecnica Segreta di quel Tempio (se ne restano). Il Tempio Piccolo non le dà.</p>
+<p><b>Nessuna competizione:</b> se a fine stagione un Tempio non ha raggiunto il numero richiesto, con 3 o 4 giocatori gli Allievi rimasti non hanno effetto; con 5 giocatori vince l'Allievo con il segnalino (senza Tecnica Segreta).</p>
+<h4>Punteggio di stagione</h4>
+<ul><li>Si sommano i punti delle proprie Tecniche Segrete.</li>
+<li>Chi non ha vinto nessuna competizione prende <b>5 punti</b> e il suo Discepolo <b>3 punti</b>; in questo caso non si assegna altro.</li>
+<li>Se tutti hanno vinto almeno una volta: <b>3 punti</b> se hai meno vittorie del Maestro, <b>1</b> se pari; <b>3 punti</b> se hai più vittorie del Discepolo, <b>1</b> se pari. Non si perdono mai punti.</li></ul>
+<h4>Cambio posti e fine partita</h4>
+<p>A fine stagione chi ha meno punti può riorganizzare tutti i posti; con più giocatori a pari merito decidono insieme. Si ripete la preparazione mantenendo i punteggi. La partita dura <b>3 stagioni</b> (2 nella partita breve); vince il Gran Maestro con più punti.</p>
+<p><i>Interpretazioni nell'app:</i> con 3 giocatori il Blu 5 resta sempre tra le 45 carte in gioco, così c'è sempre un primo giocatore. Il vincitore prende sempre la Tecnica Segreta quando ne ha diritto. La Tessera Vittoria è solo il conteggio delle vittorie. Con più giocatori a pari merito per il punteggio più basso, se tra loro ci sei tu scegli tu i posti, altrimenti sceglie un'AI. In caso di parità finale la vittoria è condivisa.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">Kung Fu Trick</div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Stagione ${Math.min(G.season+1,G.seasons)}/${G.seasons}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G&&G.S){
+    const pos=POS[G.n], S=G.S, h=S.pos[HUM];
+    body=`<div class="temples">${[0,1,2].map(templeHtml).join('')}</div>
+      <div class="table ${G.n===5?'n5':''}">${G.pl.map((p,i)=>seatHtml(i,pos[(S.pos[i]-h+G.n)%G.n])).join('')}${centerHtml()}</div>
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  try{ if(localStorage.getItem('nylo-skip-name')==='1'){ NAMES[0]=localStorage.getItem('nylo-player-name')||'Nylo'; newMatch(n); return; } }catch(e){}
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button');
+  if(!b||b.disabled){
+    const tp=e.target.closest('.tp.can'); if(tp&&!b) pickTemple(Number(tp.dataset.tp));
+    return;
+  }
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.t!==undefined) pickTemple(Number(b.dataset.t));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('kft-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optShort'){
+    OPT.short=e.target.checked;
+    try{ localStorage.setItem('kft-short',OPT.short?'1':'0'); }catch(err){}
+    return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('kft-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(!OPT.undo&&PR){
+    if(PR.type==='card'&&PR.sel!=null){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+    if(PR.type==='move'&&PR.selC!=null&&PR.selT!=null){ finishMove(); return; }
+  }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>

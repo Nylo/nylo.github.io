@@ -105,7 +105,6 @@ table.score .pos{color:var(--success)}
 
 .pc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-weight:700;line-height:1;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.5);font-size:12px;color:#fff}
 .pc b{font-family:'Fredoka',sans-serif;font-weight:700;font-size:26px;line-height:1;color:#fff;text-shadow:-1px -1px 0 #111,1px -1px 0 #111,-1px 1px 0 #111,1px 1px 0 #111,0 0 5px #000}
-.pc small.lt{display:none;position:absolute;left:3px;top:2px;font-family:'Inter',sans-serif;font-size:8px;font-weight:800;color:#fff;background:rgba(0,0,0,0.6);border-radius:3px;padding:0 2px}
 .pc .ow{position:absolute;right:-3px;bottom:-3px;width:14px;height:14px;border-radius:50%;border:1.5px solid #fff;font-family:'Inter',sans-serif;font-size:8px;font-weight:800;color:#1b1233;display:flex;align-items:center;justify-content:center;font-style:normal}
 .pc .stm{position:absolute;left:-3px;top:-3px;width:14px;height:14px;border-radius:50%;background:#fff;color:var(--ink);font-size:9px;display:flex;align-items:center;justify-content:center}
 .pc.mini{width:32px;height:46px}
@@ -126,8 +125,6 @@ button.pc:disabled{cursor:default}
 .pc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--gold)}
 .hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:6px}
 .sw{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:5px;font-weight:700;font-size:11px;border:1px solid rgba(0,0,0,0.4);color:#fff;text-shadow:-1px -1px 0 #111,1px -1px 0 #111,-1px 1px 0 #111,1px 1px 0 #111}
-body.a11y .pc small.lt{display:block}
-body.a11y .pc .stm{left:auto;right:-3px;top:-3px}
 
 .center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;min-width:0}
 .center b{color:var(--gold)}
@@ -201,7 +198,7 @@ const ZBONUS = 30;    // scommessa 0 riuscita
 const TEAMZ = 60;     // valore usato dall'AI per la scommessa 0 a squadre (vittoria immediata)
 const HUM = 0;
 const POS = {2:['bottom','top'],3:['bottom','left','right'],4:['bottom','left','top','right']};
-const NAMES = ['Tu','AI Ago','AI Filo','AI Bottone'];
+const NAMES = ['Tu','AI Ago','AI Bottone','AI Cucito'];
 const SEATC = ['#ffd166','#ff6fa8','#6ee7b7','#7cc4ff'];
 const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 
@@ -211,8 +208,8 @@ function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const ABORT = {abort:true};
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('bt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('bt-a11y')==='1'; }catch(e){}
+const OPT = {undo:true};
+try{ const s=localStorage.getItem('bt-undo'); if(s!==null) OPT.undo=s==='1'; }catch(e){}
 const delay = ms => new Promise(r=>setTimeout(r,ms));
 async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
 const P = i => G.pl[i];
@@ -635,7 +632,7 @@ async function run(){
 
 // ═════════════════════════ RENDER ═════════════════════════
 function cardHtml(c,extra='',tag='span',attrs='',inner=''){
-  return `<${tag} class="pc s${cs(c)} ${extra}" ${attrs} title="${cardName(c)}"><b>${cv(c)}</b><small class="lt">${SL[cs(c)]}</small>${inner}</${tag}>`;
+  return `<${tag} class="pc s${cs(c)} ${extra}" ${attrs} title="${cardName(c)}"><b>${cv(c)}</b>${inner}</${tag}>`;
 }
 function backHtml(extra=''){ return `<span class="pc bk ${extra}" title="Carta coperta"></span>`; }
 function handHtml(p){
@@ -697,7 +694,6 @@ function centerHtml(){
   const ph=({idle:'',swap:'scambio con il compagno',bet:'scommesse',play:'prese',score:'risultato del round',over:'fine partita'})[G.phase]||'';
   return `<div class="center">
     <div>Round <b>${G.round+1}/${G.rounds}</b>${ph?` · fase: <b>${ph}</b>`:''}</div>
-    <div class="legend">${[0,1,2,3].map(swHtml).join('')}</div>
     ${pool}${mid}${G.phase==='play'||G.phase==='score'?lastResHtml():''}
     ${S?`<div class="hint" style="color:inherit">Mazzo di pesca: <b>${S.draw.length}</b> · Scartate: <b>${S.disc}</b> ${S.disc===1?'carta':'carte'}</div>`:''}</div>`;
 }
@@ -798,11 +794,9 @@ function menuHtml(){
   return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
-      <label class="opt-toggle" title="Mostra l'abbreviazione del seme su ogni carta"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
     </div>`:''}</div>`;
 }
 function render(){
-  document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
   const top=`<div class="topbar"><div class="logo">Button</div>
     ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
@@ -850,11 +844,6 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.cf!==undefined) confirmMove(b.dataset.cf==='1');
 });
 document.getElementById('app').addEventListener('change',e=>{
-  if(e.target.id==='optA11y'){
-    OPT.a11y=e.target.checked;
-    try{ localStorage.setItem('bt-a11y',OPT.a11y?'1':'0'); }catch(err){}
-    render(); return;
-  }
   if(e.target.id!=='optUndo') return;
   OPT.undo=e.target.checked;
   try{ localStorage.setItem('bt-undo',OPT.undo?'1':'0'); }catch(err){}

@@ -317,7 +317,12 @@ function heurTeam(h,avail){
   const e=handPower(h);
   let b=avail[0], bv=1e9;
   for(const t of avail){ const v=Math.abs(teamTarget(t)-e)+0.7*Math.random(); if(v<bv){ bv=v; b=t; } }
-  return b;
+  return preferCapo(b,avail);
+}
+// l'AI che prende High o Low sceglie sempre il Capogruppo, se ancora disponibile
+function preferCapo(t,avail){
+  const capo = t==='HM'?'HL':t==='LM'?'LL':t;
+  return capo!==t&&avail.includes(capo)?capo:t;
 }
 function takeTeam(S,p,t){ S.team[p]=t; S.avail=S.avail.filter(x=>x!==t); }
 function simAct(S,p,plays){
@@ -369,7 +374,8 @@ function aiAct(p){
       sc[j]+=objective(S,p);
     });
   }
-  return acts[argmax(sc)];
+  const best=acts[argmax(sc)];
+  return best.type==='take'?{type:'take',team:preferCapo(best.team,G.avail)}:best;
 }
 
 // ═════════════════════════ PARTITA ═════════════════════════
