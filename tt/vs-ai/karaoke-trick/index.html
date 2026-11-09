@@ -130,6 +130,10 @@ body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(
 .recap-row .lbl{font-weight:600;color:var(--text-soft)}
 .recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
 .recap-row .rchip{vertical-align:middle}
+table.rsvt{border-collapse:collapse;font-size:12px;margin:6px 0 8px;width:100%;max-width:460px}
+table.rsvt th,table.rsvt td{border:1px solid var(--border);padding:4px 8px;text-align:center}
+table.rsvt th{background:var(--surface-raised);font-weight:600;color:var(--text-soft)}
+table.rsvt tr.cur td{background:var(--accent-soft);font-weight:700;color:var(--text)}
 .rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,0.35);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
 .rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)} .rchip.k4{background-color:var(--k4)}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
@@ -569,11 +573,16 @@ function dockHtml(){
   }
   return html;
 }
+// tabella delle canzoni prenotate iniziali (cur = riga evidenziata)
+function rsvTable(cur){
+  return `<table class="rsvt"><tr><th>Giocatori</th><th>Leader</th><th>2° giocatore</th><th>Altri giocatori</th></tr>${[3,4,5].map(n=>{
+    const r=RESN[n]; return `<tr class="${n===cur?'cur':''}"><td>${n}</td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`;
+  }).join('')}</table>`;
+}
 function recapHtml(){
-  const r=RESN[G.n];
   return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
     <div class="recap-row"><span class="lbl">Carte</span>${G.suits.map(s=>`<span class="rchip k${s}">${ico(COL[s].icon)} ${COL[s].n}</span>`).join('')}<span class="rv">${12*G.n} carte (1–12) · 12 carte a testa</span></div>
-    <div class="recap-row"><span class="lbl">Canzoni</span><span class="rv">prenotate all'inizio dal Leader, dal 2° e dagli altri: ${r.join(' · ')} · al massimo 2 per giocatore · solo con una canzone si può aprire una presa</span></div>
+    <div class="recap-row"><span class="lbl">Canzoni</span><span class="rv">prenotate all'inizio (al massimo 2 per giocatore · solo con una canzone si può aprire una presa)</span>${rsvTable(G.n)}</div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">il Leader gioca la 1ª canzone (fissa il seme) · gli altri, in senso orario: giocano una carta (seme obbligatorio se ce l'hanno) oppure prenotano una canzone</span></div>
     <div class="recap-row"><span class="lbl">Vince</span><span class="rv">la carta più alta del seme di apertura raccoglie tutte le carte giocate · apre la presa dopo (o il primo con canzoni, in senso orario)</span></div>
     <div class="recap-row"><span class="lbl">Round</span><span class="rv">finisce quando nessuno ha canzoni, o un giocatore (non il Leader) non ha più carte in mano</span></div>
@@ -588,7 +597,9 @@ const RULES_HTML = `
 <p>Karaoke Trick è un gioco di prese: chi vince il maggior numero di prese riceve 1 punto per ogni presa, tutti gli altri ricevono 1 punto per ogni carta vinta. Si giocano tanti round quanti sono i giocatori e vince chi ha più punti.</p>
 <h4>Componenti e preparazione</h4>
 <p>60 carte (da 1 a 12 in 5 semi). Si usano tanti semi quanti sono i giocatori. Il Leader mescola e distribuisce 12 carte a testa: sono la tua mano, da tenere nascosta.</p>
-<p>Ognuno sceglie dalla mano alcune carte e le rivela insieme davanti a sé: sono le <b>canzoni prenotate</b>. Quante? Il Leader sempre 2; con 3 giocatori anche gli altri 2; con 4 giocatori il 2° giocatore 2 e gli altri 1; con 5 giocatori il 2° giocatore 1 e gli altri 1. La prima canzone prenotata va davanti a tutte le altre: è quella che userai per prima.</p>
+<p>Ognuno sceglie dalla mano alcune carte e le rivela insieme davanti a sé: sono le <b>canzoni prenotate</b>. Quante? Dipende dal numero di giocatori (il 2° giocatore è quello alla sinistra del Leader):</p>
+${rsvTable(0)}
+<p>La prima canzone prenotata va davanti a tutte le altre: è quella che userai per prima.</p>
 <h4>Canzoni prenotate</h4>
 <p>Sono le <b>sole</b> carte con cui si può aprire una presa. Ognuno ne può avere al massimo 2; non fanno più parte della mano e non si possono giocare quando non sei tu ad aprire.</p>
 <h4>La presa</h4>
