@@ -37,7 +37,7 @@ body{background:radial-gradient(ellipse at 50% 0%,#fff3d2 0%,#e4cf9d 100%) fixed
 .btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
 .btn:hover{background:var(--surface-raised)}
 .btn-sm{padding:5px 10px;font-size:12px}
-.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
 .opt-toggle input{accent-color:var(--accent);cursor:pointer}
 .menu-wrap{position:relative;margin-left:auto}
 .hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
@@ -184,8 +184,8 @@ const SEATC = ['#ffd166','#ff8fb8','#8ecbff','#d3a6ff'];
 const HUM = 0;
 let HUMNAME='Tu';
 const ico = n => `<i class="ph-fill ph-${n}"></i>`;
-// simboli di avanzamento per numero (1–2: 4, 3–6: 3, 7–9: 2, 10–12: 1)
-const prog = v => v<=2?4:v<=6?3:v<=9?2:1;
+// simboli di avanzamento per numero (1: 4, 2–6: 3, 7–9: 2, 10–12: 1)
+const prog = v => v<=1?4:v<=6?3:v<=9?2:1;
 const ALL = []; for(let s=0;s<4;s++) for(let v=1;v<=12;v++) ALL.push({s,v});
 const mk = c => c.s*20+c.v;
 
@@ -649,7 +649,7 @@ function dockHtml(){
 function recapHtml(){
   const n=G.n;
   return `<div class="recap"><h3>RIEPILOGO · ${n} GIOCATORI${n===3?' + FANTINO DUMMY':''} · ${n} GARE</h3>
-    <div class="recap-row"><span class="lbl">Carte</span>${COLS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">48 carte gara 1–12 · 4 mazzetti da 12 legati ai 4 cavalli (passano a sinistra dopo ogni gara) · simboli di avanzamento: 1–2 = 4, 3–6 = 3, 7–9 = 2, 10–12 = 1</span></div>
+    <div class="recap-row"><span class="lbl">Carte</span>${COLS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">48 carte gara 1–12 · 4 mazzetti da 12 legati ai 4 cavalli (passano a sinistra dopo ogni gara) · simboli di avanzamento: 1 = 4, 2–6 = 3, 7–9 = 2, 10–12 = 1</span></div>
     <div class="recap-row"><span class="lbl">Paddock</span><span class="rv">si scopre la prima carta del mazzetto (inutilizzabile), poi si scarta coperta una delle 11 restanti: restano 10 carte</span></div>
     <div class="recap-row"><span class="lbl">Scommesse</span><span class="rv">una carta scoperta (in ordine di turno, tipi tutti diversi) + una coperta: <b>Vincitore semplice</b> + cavallo = vinci 2 × quota se vince · <b>Coppia vincente</b> = due cavalli, la quota di ognuno che arriva 1° o 2°</span></div>
     <div class="recap-row"><span class="lbl">Gara</span><span class="rv">prese con obbligo di colore · vince la carta più alta del colore di apertura · <b>Frusta</b> (1 a gara, 1 a presa): il colore della tua carta decide la presa · chi vince fa avanzare il proprio cavallo dei simboli della carta · fine con 2 cavalli al traguardo (casella 8) o carte finite</span></div>
