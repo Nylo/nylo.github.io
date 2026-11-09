@@ -89,8 +89,8 @@ table.score td:first-child,table.score th:first-child{text-align:left}
 .ht{display:flex;flex-direction:column;gap:4px;padding:5px 6px;border-radius:8px;background:rgba(255,255,255,0.45);border:1px solid var(--border)}
 .ht.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft);background:rgba(255,255,255,0.75)}
 .ht-n{font-size:10px;font-weight:700;color:var(--text-soft);letter-spacing:0.05em}
-.ht-c{display:flex;gap:4px;align-items:center}
-.ht-c .arr{font-size:10px;color:var(--text-soft)}
+.ht-c{display:flex;flex-direction:column;gap:2px;align-items:center}
+.ht-c .arr{font-size:10px;line-height:1;color:var(--text-soft)}
 .tc{position:relative;display:inline-block;padding:0 2px 5px 0}
 .tc .own{position:absolute;right:-1px;bottom:0;width:14px;height:14px;border-radius:50%;border:1.5px solid #fff;font-family:'Inter',sans-serif;font-size:8px;font-weight:800;color:#1b1233;display:flex;align-items:center;justify-content:center;font-style:normal}
 
@@ -522,11 +522,11 @@ function histHtml(){
   const tr=S.tricks.map((t,ti)=>({t,ti})).filter(x=>x.t.length||x.ti===S.cur);
   if(!tr.length) return '<div class="hint">Lo storico delle prese è ancora vuoto.</div>';
   return `<div class="hist">${tr.map(({t,ti})=>`<div class="ht ${ti===S.cur&&S.done<TRICKS?'cur':''}"><span class="ht-n">PRESA ${ti+1}${ti===S.cur&&S.done<TRICKS?' · in corso':''}</span><div class="ht-c">${
-    t.length?t.map((e,i)=>`${i?'<span class="arr">→</span>':''}<span class="tc">${kface(e.c,'mini')}<em class="own" style="background:${e.p<0?'#d9cfb8':SEATC[e.p]}" title="${e.p<0?'Mazzo':esc(P(e.p).name)}">${initial(e.p)}</em></span>`).join(''):'<span class="hint">vuota</span>'}</div></div>`).join('')}</div>`;
+    t.length?t.map((e,i)=>`${i?'<span class="arr">↓</span>':''}<span class="tc">${kface(e.c,'mini')}<em class="own" style="background:${e.p<0?'#d9cfb8':SEATC[e.p]}" title="${e.p<0?'Mazzo':esc(P(e.p).name)}">${initial(e.p)}</em></span>`).join(''):'<span class="hint">vuota</span>'}</div></div>`).join('')}</div>`;
 }
 function boardHtml(){
   const S=G.S;
-  return `<div class="board">${rulesNow(S.R)}${histHtml()}${S.deck.length||G.n===2?`<div class="hint">${G.n===2?`Mazzo: ${S.deck.length} carte · `:''}Ogni carta giocata deve battere quelle già nella presa; le carte più a destra sono più forti.</div>`:''}</div>`;
+  return `<div class="board">${rulesNow(S.R)}${histHtml()}${S.deck.length||G.n===2?`<div class="hint">${G.n===2?`Mazzo: ${S.deck.length} carte · `:''}Ogni carta giocata deve battere quelle già nella presa; dall'alto al basso ogni carta è più forte della precedente.</div>`:''}</div>`;
 }
 function flagHtml(p){
   if(!G||G.over||!G.S) return '';

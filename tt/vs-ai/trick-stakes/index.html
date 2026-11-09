@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trick Stakes</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f3e6c4;
+  --surface:#fffaf0;
+  --surface-raised:#f3e7c9;
+  --accent:#2c6fb7;
+  --accent-soft:rgba(44,111,183,0.16);
+  --text:#2c2a22;
+  --text-soft:#6f6a58;
+  --danger:#b3261e;
+  --success:#2c7a3c;
+  --border:rgba(70,60,30,0.3);
+  --radius:10px;
+  --k0:#d6402f; --k1:#2f8fd4; --k2:#f0a020; --k3:#2f9e55;
+  --cw:44px; --ch:64px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#fff3d2 0%,#e4cf9d 100%) fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Libre Baskerville',serif;font-size:28px;font-weight:700;font-style:italic;line-height:1.1;flex:1;color:var(--accent);letter-spacing:0.02em}
+.badge{background:var(--accent);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.3)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd54a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Libre Baskerville',serif;font-size:16px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.8);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(60,50,20,0.3)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left;display:inline-flex;align-items:center;gap:8px}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.opt .hd{width:12px;height:12px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,0.4)}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+.scroll-x{overflow-x:auto}
+
+.track{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin-bottom:12px;display:flex;flex-direction:column;gap:5px}
+.trow{display:grid;grid-template-columns:150px 1fr 64px;gap:8px;align-items:center;font-size:12px}
+.trow .hn{display:flex;flex-direction:column;line-height:1.25}
+.trow .hn b{font-size:12px}
+.trow .hn span{font-size:10px;color:var(--text-soft)}
+.lane{display:grid;grid-template-columns:repeat(9,1fr);gap:2px}
+.cell{height:24px;border-radius:4px;background:linear-gradient(180deg,#7bbf72,#4f9a4f);border:1px solid rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(255,255,255,0.8);font-weight:700}
+.cell.fin{background:linear-gradient(180deg,#fff,#ddd);color:#333}
+.tok{width:20px;height:20px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:800}
+.odd{font-weight:800;text-align:right;white-space:nowrap}
+.odd small{font-weight:500;color:var(--text-soft)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#8fcf86 0%,#3f8a4a 95%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:520px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;background:rgba(255,255,255,0.18)}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(0,0,0,0.45);background:rgba(255,255,255,0.4)}
+.seat.active{border-color:#d08a1e;background:rgba(255,200,90,0.5)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.14);border-radius:4px;padding:2px 6px}
+.tag b{color:#8a2a10}
+.tag.hz{color:#fff;font-weight:700}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:220px}
+.back{width:12px;height:18px;border-radius:3px;background:linear-gradient(135deg,#4a86c4,#183a66);border:1px solid #fff}
+.seat.left .backs,.seat.right .backs{max-width:130px}
+.lbl2{font-size:10px;font-weight:700;color:rgba(0,0,0,0.55);letter-spacing:0.06em}
+.hrow{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;min-height:20px}
+.hand{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding-top:8px}
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:6px}
+.tr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;min-height:70px;align-items:flex-end}
+.tcell{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600}
+.tcell.win .fc{box-shadow:0 0 0 3px #ffd54a}
+.tcell .who{padding:1px 7px;border-radius:9px;color:#111;font-weight:700}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:'Libre Baskerville',serif;font-weight:700;font-size:22px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.45);text-shadow:0 1px 2px rgba(0,0,0,0.4)}
+.fc i{font-size:17px}
+.fc .pg{font-family:'Inter',sans-serif;font-size:10px;letter-spacing:-1px;font-weight:800}
+.fc.k0{background-color:var(--k0)} .fc.k1{background-color:var(--k1)} .fc.k2{background-color:var(--k2);color:#3a2600;text-shadow:none} .fc.k3{background-color:var(--k3)}
+.fc.mini{width:32px;height:46px;font-size:15px;gap:0}
+.fc.mini i{font-size:11px}
+.fc.mini .pg{font-size:8px}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+body.a11y .fc.k0,body.a11y .rchip.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .fc.k1,body.a11y .rchip.k1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.4) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k2,body.a11y .rchip.k2{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .rchip{vertical-align:middle}
+.rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(0,0,0,0.3);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
+.rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2);color:#3a2600;text-shadow:none} .rchip.k3{background-color:var(--k3)}
+table.rsvt{border-collapse:collapse;font-size:12px;margin:6px 0 8px;width:100%;max-width:520px}
+table.rsvt th,table.rsvt td{border:1px solid var(--border);padding:4px 8px;text-align:center}
+table.rsvt th{background:var(--surface-raised);font-weight:600;color:var(--text-soft)}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:44px}
+  .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
+  .fc i{font-size:11px}
+  .fc .pg{font-size:7px}
+  .fc.mini{width:25px;height:36px;font-size:12px}
+  .fc.mini i{font-size:9px}
+  .fc.mini .pg{display:none}
+  .table{padding:8px;gap:6px;min-height:0}
+  .back{width:9px;height:14px}
+  .hand{gap:3px}
+  .tr{gap:5px}
+  .trow{grid-template-columns:92px 1fr 46px;gap:5px}
+  .cell{height:20px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const COLS = [
+  {n:'Rosso', icon:'paint-brush'},
+  {n:'Blu',   icon:'hard-hat'},
+  {n:'Giallo',icon:'armchair'},
+  {n:'Verde', icon:'magnet'}
+];
+const HORSES = [
+  {n:'Vanilla Bean', c:'#3a9d5a'},
+  {n:'Peaches',      c:'#f0a020'},
+  {n:'Showoff',      c:'#2f7fd0'},
+  {n:'Nibble',       c:'#d6402f'}
+];
+const POS = ['bottom','left','top','right'];
+const AINAMES = ['AI Jolly','AI Pepe','AI Rocco'];
+const DUMMY_NAME = 'Fantino Dummy';
+const SEATC = ['#ffd166','#ff8fb8','#8ecbff','#d3a6ff'];
+const HUM = 0;
+let HUMNAME='Tu';
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+// simboli di avanzamento per numero (1–2: 4, 3–6: 3, 7–9: 2, 10–12: 1)
+const prog = v => v<=2?4:v<=6?3:v<=9?2:1;
+const ALL = []; for(let s=0;s<4;s++) for(let v=1;v<=12;v++) ALL.push({s,v});
+const mk = c => c.s*20+c.v;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('ts-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ts-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const cname = c => `${COLS[c.s].n} ${c.v}`;
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
+const key = c => mk(c);
+const betName = t => t==='S'?'Vincitore semplice':HORSES[t].n;
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  if(p!==HUM) return ok[rnd(ok.length)].value;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+
+// ═════════════════════════ REGOLE DI GARA (funzioni pure) ═════════════════════════
+function trickWinner(tr){
+  const wp=tr.find(e=>e.w), col=wp?wp.c.s:tr[0].c.s;
+  let b=-1; tr.forEach((e,i)=>{ if(e.c.s===col&&(b<0||e.c.v>tr[b].c.v)) b=i; });
+  return b;
+}
+function legalOf(hand,trick){
+  if(!trick.length) return hand.slice();
+  const f=hand.filter(c=>c.s===trick[0].c.s);
+  return f.length?f:hand.slice();
+}
+function doMove(X,p,m){
+  X.hand[p]=X.hand[p].filter(x=>x!==m.c);
+  X.trick.push({p,c:m.c,w:!!m.w});
+  if(m.w){ X.whip[p]=false; X.whipUsed=true; }
+  X.next=(p+1)%4;
+}
+function finishTrick(X,bi){
+  const e=X.trick[bi], s=e.p, h=X.H[s];
+  if(X.pos[h]<8){
+    X.pos[h]=Math.min(8,X.pos[h]+prog(e.c.v)); X.clock++; X.tick[h]=X.clock;
+    if(X.pos[h]>=8) X.fin.push(h);
+  }
+  X.trick=[]; X.whipUsed=false; X.next=s;
+}
+const raceOver = X => X.fin.length>=2||X.hand.every(h=>!h.length);
+// ordine di arrivo (indici di cavallo, dal primo all'ultimo)
+function rankOf(X){
+  const fin=X.fin.slice(), rest=[0,1,2,3].filter(h=>!fin.includes(h)), v=X.H.indexOf(0);
+  const so=h=>(v-X.H.indexOf(h)+4)%4;
+  rest.sort((a,b)=>X.pos[b]-X.pos[a]||(X.pos[a]>0?X.tick[b]-X.tick[a]:so(a)-so(b)));
+  return fin.concat(rest);
+}
+function betPts(a,b,ranks,odds){
+  if(a==null||b==null) return 0;
+  if(a==='S'||b==='S'){ const h=a==='S'?b:a; return ranks[0]===h?2*odds[h]:0; }
+  let s=0; [a,b].forEach(h=>{ if(ranks[0]===h||ranks[1]===h) s+=odds[h]; });
+  return s;
+}
+const prize = r => r===0?4:r===1?2:0;
+
+// ═════════════════════════ AI ═════════════════════════
+// politica euristica usata per tutti i giocatori nelle simulazioni (il Fantino Dummy segue le sue regole fisse)
+function polMove(X,p){
+  const h=X.hand[p], tr=X.trick, lead=tr.length?tr[0].c.s:-1;
+  if(p===X.dummy){
+    if(lead<0) return {c:h[0],w:false};
+    let b=null; h.forEach(c=>{ if(c.s===lead&&(!b||c.v>b.v)) b=c; });
+    if(b) return {c:b,w:false};
+    return {c:h[0],w:X.whip[p]&&!X.whipUsed};
+  }
+  const hasLead=lead>=0&&h.some(c=>c.s===lead), L=hasLead?h.filter(c=>c.s===lead):h;
+  if(lead<0){ const s=L.slice().sort((a,b)=>b.v-a.v); return {c:s[rnd(Math.min(3,s.length))],w:false}; }
+  const wp=tr.find(e=>e.w), eff=wp?wp.c.s:lead;
+  let bv=0; tr.forEach(e=>{ if(e.c.s===eff&&e.c.v>bv) bv=e.c.v; });
+  const opts=[];
+  L.forEach(c=>{
+    if(c.s===eff&&c.v>bv) opts.push({c,w:false});
+    if(!wp&&X.whip[p]&&c.s!==lead){
+      let b2=0; tr.forEach(e=>{ if(e.c.s===c.s&&e.c.v>b2) b2=e.c.v; });
+      if(c.v>b2) opts.push({c,w:true});
+    }
+  });
+  if(opts.length&&Math.random()<0.9){
+    opts.sort((a,b)=>(a.w-b.w)||(a.c.v-b.c.v));
+    return opts[0];
+  }
+  const dump=L.filter(c=>!opts.some(o=>o.c===c)), pool=dump.length?dump:L;
+  return {c:pool.reduce((a,b)=>b.v<a.v?b:a),w:false};
+}
+function simRace(X){
+  for(;;){
+    while(X.trick.length<4){ const p=X.next, m=polMove(X,p); doMove(X,p,m); }
+    finishTrick(X,trickWinner(X.trick));
+    if(raceOver(X)) return;
+  }
+}
+// campiona le mani nascoste degli altri tenendo conto dei set già visti dal giocatore p
+function worldRace(p,myHand){
+  const S=G.S, H=S.H, know=G.know[p], pad=S.phase==='paddock';
+  const hands=[null,null,null,null], used=new Set(), pending=[];
+  hands[p]=(myHand||S.hand[p]).slice();
+  G.setCards[H[p]].forEach(c=>used.add(mk(c)));
+  for(let q=0;q<4;q++){
+    if(q===p) continue;
+    const hid=H[q];
+    if(q===S.dummy){ hands[q]=S.hand[q].slice(); G.setCards[hid].forEach(c=>used.add(mk(c))); continue; }
+    const cnt=pad?10:S.hand[q].length;
+    if(know.has(hid)){
+      G.setCards[hid].forEach(c=>used.add(mk(c)));
+      const dead=new Set(S.disc[q].concat(S.played[q]).map(mk));
+      hands[q]=shuffle(G.setCards[hid].filter(c=>!dead.has(mk(c)))).slice(0,cnt);
+    }else pending.push(q);
+  }
+  const dead=new Set();
+  for(let q=0;q<4;q++){ S.disc[q].forEach(c=>dead.add(mk(c))); S.played[q].forEach(c=>dead.add(mk(c))); }
+  const pool=shuffle(ALL.filter(c=>!used.has(mk(c))&&!dead.has(mk(c))));
+  pending.forEach(q=>{ hands[q]=pool.splice(0,pad?10:S.hand[q].length); });
+  return hands;
+}
+function lightRace(hands){
+  const S=G.S;
+  return {H:S.H.slice(),hand:hands.map(h=>h.slice()),pos:S.pos.slice(),tick:S.tick.slice(),fin:S.fin.slice(),clock:S.clock,
+    whip:S.whip.slice(),whipUsed:S.whipUsed,trick:S.trick.map(e=>({...e})),next:(S.lead+S.trick.length)%4,dummy:S.dummy,odds:G.odds.slice()};
+}
+function aiThrow(p,hand11){
+  const NS=5, tot=hand11.map(()=>0);
+  for(let s=0;s<NS;s++){
+    hand11.forEach((c,i)=>{
+      const hands=worldRace(p,hand11.filter(x=>x!==c));
+      const X=lightRace(hands); simRace(X);
+      const r=rankOf(X).indexOf(X.H[p]);
+      tot[i]+=[4,2,0.6,0][r];
+    });
+  }
+  let bi=0; tot.forEach((v,i)=>{ if(v>tot[bi]) bi=i; });
+  return hand11[bi];
+}
+function betProbs(p){
+  const NS=24, P1=[0,0,0,0], P2=[0,0,0,0];
+  for(let s=0;s<NS;s++){
+    const X=lightRace(worldRace(p)); simRace(X);
+    const r=rankOf(X); P1[r[0]]++; P2[r[0]]++; P2[r[1]]++;
+  }
+  return {P1:P1.map(x=>x/NS),P2:P2.map(x=>x/NS)};
+}
+function evBet(a,b,pr,odds){
+  if(a==='S'||b==='S'){ const h=a==='S'?b:a; return 2*odds[h]*pr.P1[h]; }
+  return odds[a]*pr.P2[a]+odds[b]*pr.P2[b];
+}
+function aiBetUp(p,pr){
+  const S=G.S, taken=new Set(S.betUp.filter(x=>x!=null)), types=['S',0,1,2,3];
+  let best=null,bv=-1e9;
+  types.filter(t=>!taken.has(t)).forEach(t=>{
+    let m=-1e9; types.forEach(d=>{ if(d!==t) m=Math.max(m,evBet(t,d,pr,G.odds)); });
+    const v=m+Math.random()*0.15; if(v>bv){ bv=v; best=t; }
+  });
+  return best;
+}
+function aiBetDown(p,pr){
+  const S=G.S, up=S.betUp[p]; let best=null,bv=-1e9;
+  ['S',0,1,2,3].forEach(d=>{ if(d===up) return; const v=evBet(up,d,pr,G.odds)+Math.random()*0.1; if(v>bv){ bv=v; best=d; } });
+  return best;
+}
+function aiPlayRace(p){
+  const S=G.S, h=S.hand[p], lead=S.trick.length?S.trick[0].c.s:-1;
+  const L=legalOf(h,S.trick), cm=[];
+  L.forEach(c=>{ cm.push({c,w:false}); if(S.whip[p]&&!S.whipUsed&&lead>=0&&c.s!==lead) cm.push({c,w:true}); });
+  if(cm.length===1) return cm[0];
+  const NS=18, tot=cm.map(()=>0), up=S.betUp[p], dn=S.betDown[p];
+  for(let s=0;s<NS;s++){
+    const hands=worldRace(p);
+    cm.forEach((m,i)=>{
+      const X=lightRace(hands); doMove(X,p,m);
+      if(X.trick.length===4) finishTrick(X,trickWinner(X.trick));
+      if(!raceOver(X)) simRace(X);
+      const r=rankOf(X);
+      tot[i]+=prize(r.indexOf(X.H[p]))+betPts(up,dn,r,G.odds);
+    });
+  }
+  let bi=0; tot.forEach((v,i)=>{ if(v>tot[bi]) bi=i; });
+  return cm[bi];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  // anello dei posti (in senso orario) con il Fantino Dummy a destra di chi riceve Vanilla Bean (3 giocatori)
+  let ring, horse0, x=rnd(3);
+  if(n===4){ ring=[0,1,2,3]; horse0=shuffle([0,1,2,3]); }
+  else{
+    ring=x===0?[0,1,2,'D']:x===1?[0,'D',1,2]:[0,1,'D',2];
+    const vs=ring.indexOf(x), rest=shuffle([1,2,3]);
+    horse0=[]; ring.forEach((_,s)=>{ horse0[s]=s===vs?0:rest.pop(); });
+  }
+  const pl=ring.map((id,i)=>({id:i,name:id==='D'?DUMMY_NAME:id===0?HUMNAME:AINAMES[id-1],total:0,hist:[],dummy:id==='D'}));
+  const all=shuffle(ALL.map(c=>({...c})));
+  G={n,race:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,ring,pl,horse0,odds:[2,2,2,2],
+     setCards:[0,1,2,3].map(i=>all.slice(i*12,(i+1)*12)),know:[new Set(),new Set(),new Set(),new Set()],lastRank:null};
+  run();
+}
+function startRace(){
+  const g=G, r=g.race;
+  const H=[0,1,2,3].map(s=>g.horse0[(s-r%4+4)%4]);
+  const dummy=g.pl.findIndex(p=>p.dummy);
+  const sets=H.map(h=>shuffle(g.setCards[h].slice()));
+  const S={H,dummy,phase:'paddock',pos:[0,0,0,0],tick:[0,0,0,0],fin:[],clock:0,whip:[true,true,true,true],whipUsed:false,
+    hand:[],disc:[],played:[[],[],[],[]],thrown:[null,null,null,null],trick:[],lead:H.indexOf(0),first:H.indexOf(0),
+    betUp:[null,null,null,null],betDown:[null,null,null,null],done:0,res:null,started:false};
+  for(let s=0;s<4;s++){
+    if(s===dummy){ S.disc[s]=[sets[s][0],sets[s][11]]; S.hand[s]=sets[s].slice(1,11); }
+    else{ S.disc[s]=[sets[s][0]]; S.hand[s]=sortHand(sets[s].slice(1)); }
+  }
+  g.S=S;
+}
+async function paddock(){
+  const S=G.S;
+  for(let s=0;s<4;s++) if(s!==S.dummy&&s!==HUM){
+    const c=aiThrow(s,S.hand[s]); S.thrown[s]=c; S.hand[s]=S.hand[s].filter(x=>x!==c);
+  }
+  logMsg('Paddock: ogni giocatore scopre la prima carta del proprio mazzetto (non utilizzabile) e scarta coperta una carta.');
+  status('Paddock: scegli la carta da scartare coperta (le altre 10 le userai in gara).');
+  const c=await humanThrow();
+  S.thrown[HUM]=c; S.hand[HUM]=S.hand[HUM].filter(x=>x!==c);
+  for(let s=0;s<4;s++){ if(s===S.dummy){ for(let q=0;q<4;q++) G.know[q].add(S.H[s]); } else G.know[s].add(S.H[s]); }
+  S.phase='bet';
+  logMsg(`Hai scartato ${cname(c)}. Il tuo cavallo in questa gara è ${HORSES[S.H[HUM]].n}.`);
+}
+async function betting(){
+  const S=G.S, first=S.first;
+  const prs={};
+  for(let k=0;k<4;k++){
+    const p=(first+k)%4; if(p===S.dummy) continue;
+    G.turn=p; status(p===HUM?'Scommesse: scegli la carta scommessa scoperta.':`Scommette ${P(p).name}.`);
+    let t;
+    if(p===HUM){
+      const taken=new Set(S.betUp.filter(x=>x!=null));
+      t=await ask(HUM,'Scommessa scoperta (visibile a tutti; i tipi già scelti non sono disponibili)',['S',0,1,2,3].map(x=>({html:x==='S'?`${ico('trophy')} ${betName(x)}`:`<span class="hd" style="background:${HORSES[x].c}"></span> ${betName(x)}`,value:x,disabled:taken.has(x)})));
+    }else{ await sleep(600); if(!prs[p]) prs[p]=betProbs(p); t=aiBetUp(p,prs[p]); }
+    S.betUp[p]=t;
+    logMsg(`${P(p).name} gioca scoperta la carta scommessa «${betName(t)}».`);
+  }
+  for(let k=0;k<4;k++){
+    const p=(first+k)%4; if(p===S.dummy) continue;
+    G.turn=p;
+    let d;
+    if(p===HUM){
+      status('Scegli la seconda carta scommessa, coperta.');
+      d=await ask(HUM,`Scommessa coperta (la scoperta è «${betName(S.betUp[HUM])}»)`,['S',0,1,2,3].map(x=>({html:x==='S'?`${ico('trophy')} ${betName(x)}`:`<span class="hd" style="background:${HORSES[x].c}"></span> ${betName(x)}`,value:x,disabled:x===S.betUp[HUM]})));
+    }else d=aiBetDown(p,prs[p]||(prs[p]=betProbs(p)));
+    S.betDown[p]=d;
+  }
+  G.turn=-1;
+  const bt=(a,b)=>a==='S'||b==='S'?'Vincitore semplice':'Coppia vincente';
+  logMsg(`Scommesse fatte: la tua combinazione è ${betName(S.betUp[HUM])} + ${betName(S.betDown[HUM])} (${bt(S.betUp[HUM],S.betDown[HUM])}).`);
+  S.phase='race';
+}
+async function racePhase(){
+  const S=G.S;
+  S.started=true; S.lead=S.first;
+  while(true){
+    S.trick=[]; S.whipUsed=false; S.res=null; S.shown=null;
+    logMsg(`Presa ${S.done+1}: apre ${P(S.lead).name} (${HORSES[S.H[S.lead]].n}).`);
+    for(let k=0;k<4;k++){
+      const p=(S.lead+k)%4; G.turn=p;
+      status(p===HUM?'Tocca a te: gioca una carta.':`Tocca a ${P(p).name}.`);
+      let m;
+      if(p===HUM) m=await humanPlay();
+      else{ await sleep(650); m=p===S.dummy?polMove(S,p):aiPlayRace(p); }
+      doMove(S,p,m); S.played[p].push(m.c);
+      logMsg(`${P(p).name} gioca ${cname(m.c)}${m.w?' e usa la FRUSTA (il colore '+COLS[m.c.s].n+' decide la presa)':''}.`);
+    }
+    G.turn=-1;
+    const bi=trickWinner(S.trick), e=S.trick[bi], h=S.H[e.p];
+    S.res=bi;
+    const crossed=S.pos[h]>=8;
+    S.shown=S.trick.map(x=>({...x}));
+    finishTrick(S,bi);
+    logMsg(`${P(e.p).name} vince con ${cname(e.c)}: ${HORSES[h].n} ${crossed?'ha già tagliato il traguardo':`avanza di ${prog(e.c.v)} (${S.pos[h]>=8?'TRAGUARDO!':`casella ${S.pos[h]}`})`}.`);
+    status(`${P(e.p).name} vince la presa${S.fin.length?` · arrivati: ${S.fin.map(x=>HORSES[x].n).join(', ')}`:''}.`);
+    await sleep(1300);
+    S.done++;
+    if(raceOver(S)) break;
+    S.lead=e.p;
+  }
+  S.trick=[]; S.res=null; S.shown=null;
+  logMsg(S.fin.length>=2?'Due cavalli hanno tagliato il traguardo: la gara è finita.':'Nessuno ha più carte: la gara è finita.');
+}
+async function payout(){
+  const S=G.S, ranks=rankOf(S), odds=G.odds.slice(), rows=[];
+  for(let s=0;s<4;s++){
+    if(s===S.dummy) continue;
+    const pz=prize(ranks.indexOf(S.H[s])), bp=betPts(S.betUp[s],S.betDown[s],ranks,odds);
+    rows.push({s,h:S.H[s],rank:ranks.indexOf(S.H[s])+1,pz,bp,up:S.betUp[s],dn:S.betDown[s],tot:pz+bp});
+  }
+  rows.forEach(r=>{ P(r.s).total+=r.tot; P(r.s).hist.push(r.tot); });
+  G.lastRank=rows.map(r=>({s:r.s,rank:r.rank}));
+  G.show={rows,ranks,odds};
+  S.phase='payout';
+  logMsg(`Ordine d'arrivo: ${ranks.map((h,i)=>`${i+1}° ${HORSES[h].n}`).join(' · ')}.`);
+  rows.forEach(r=>logMsg(`${P(r.s).name}: premio ${r.pz} + scommessa ${r.bp} = ${r.tot} punti.`));
+  status(`Gara ${G.race+1} conclusa.`);
+  G.odds=G.odds.map((o,h)=>o+ranks.indexOf(h));
+  const last=G.race===G.n-1;
+  await ask(HUM,'Pagamenti della gara',[{label:last?'Vedi il risultato finale':'Prossima gara (i cavalli passano a sinistra)',value:1}]);
+  G.show=null;
+}
+async function run(){
+  const g=G;
+  try{
+    for(let r=0;r<g.n;r++){
+      g.race=r;
+      startRace();
+      logMsg(`— Gara ${r+1}/${g.n}: primo giocatore ${P(g.S.first).name} (Vanilla Bean) —`);
+      await paddock();
+      await betting();
+      await racePhase();
+      await payout();
+    }
+    const m=Math.max(...g.pl.filter(p=>!p.dummy).map(p=>p.total));
+    let w=g.pl.filter(p=>!p.dummy&&p.total===m);
+    if(w.length>1){ const rk=s=>g.lastRank.find(x=>x.s===s).rank, b=Math.min(...w.map(p=>rk(p.id))); w=w.filter(p=>rk(p.id)===b); }
+    g.over={winners:w.map(p=>p.id)};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ MOSSE UMANE ═════════════════════════
+function humanThrow(){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'throw',sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function humanPlay(){
+  const S=G.S, g=G, L=legalOf(S.hand[HUM],S.trick);
+  return new Promise((res,rej)=>{ PR={type:'play',legal:new Set(L.map(key)),sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+const canWhip = () => G.S.whip[HUM]&&!G.S.whipUsed;
+function pickCard(k){
+  if(!PR) return;
+  if(PR.type==='throw'){ PR.sel=PR.sel===k?null:k; render(); return; }
+  if(PR.type!=='play'||!PR.legal.has(k)) return;
+  if(!OPT.undo&&!canWhip()){ finishPlay(k,false); return; }
+  PR.sel=PR.sel===k?null:k; render();
+}
+function finishPlay(k,w){
+  if(!PR||PR.type!=='play'||!PR.legal.has(k)) return;
+  const c=G.S.hand[HUM].find(x=>key(x)===k), r=PR.res; PR=null; render(); r({c,w:!!w});
+}
+function confirmThrow(){
+  if(!PR||PR.type!=='throw'||PR.sel==null) return;
+  const c=G.S.hand[HUM].find(x=>String(key(x))===String(PR.sel)), r=PR.res; PR=null; render(); r(c);
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const pgs = v => '›'.repeat(prog(v));
+const kface=(c,cls='')=>`<span class="fc k${c.s} ${cls}" title="${cname(c)} · ${prog(c.v)} ${prog(c.v)===1?'casella':'caselle'}"><span>${c.v}</span>${ico(COLS[c.s].icon)}<span class="pg">${pgs(c.v)}</span></span>`;
+const mini = c => kface(c,'mini');
+function handBtn(c){
+  const k=key(c);
+  if(PR&&(PR.type==='throw'||PR.type==='play')){
+    const ok=PR.type==='throw'||PR.legal.has(k), sel=String(PR.sel)===String(k);
+    return `<button class="fc k${c.s} ${ok?'':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-k="${k}" title="${cname(c)}"><span>${c.v}</span>${ico(COLS[c.s].icon)}<span class="pg">${pgs(c.v)}</span></button>`;
+  }
+  return kface(c);
+}
+function flagHtml(p){
+  if(!G||G.over||!G.S) return '';
+  const S=G.S;
+  if(!S.started&&S.first===p) return '<span class="flag first">Primo giocatore</span>';
+  if(S.started&&S.lead===p&&S.phase==='race') return '<span class="flag lead">Di mano</span>';
+  return '';
+}
+function betChips(p){
+  const S=G.S, pl=P(p);
+  if(pl.dummy) return '<span class="tag">nessuna scommessa</span>';
+  const up=S.betUp[p], dn=S.betDown[p];
+  const show=p===HUM||S.phase==='payout';
+  return `${up!=null?`<span class="tag" title="Carta scommessa scoperta">${esc(betName(up))}</span>`:''}${dn!=null?`<span class="tag" title="Carta scommessa coperta">${show?esc(betName(dn)):'?'}</span>`:''}`;
+}
+function seatHtml(p,pos){
+  const S=G.S, pl=P(p), active=G.turn===p, h=S.H[p];
+  let hand;
+  if(p===HUM) hand=`<div class="hand">${S.hand[HUM].map(handBtn).join('')||'<span class="hint">—</span>'}</div>`;
+  else if(pl.dummy) hand=`<div class="hrow" title="Il Fantino Dummy gioca a carte scoperte, dalla prima a sinistra">${S.hand[p].map(mini).join('')||'<span class="hint">—</span>'}</div>`;
+  else hand=`<div class="backs">${S.hand[p].map(()=>'<span class="back"></span>').join('')||'<span class="hint">—</span>'}</div>`;
+  const disc=`<div class="hrow" title="Carte scoperte nell'area scarti">${S.disc[p].map(mini).join('')}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag hz" style="background:${HORSES[h].c}">${esc(HORSES[h].n)}</span><span class="tag" title="Frusta">${ico('lightning')} ${S.whip[p]?'disponibile':'usata'}</span><span class="tag">punti <b>${pl.dummy?'–':pl.total}</b></span></div>`;
+  const name=`<div class="seat-name" style="border-bottom:3px solid ${SEATC[p]}">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const bets=`<div class="seat-meta">${betChips(p)}</div>`;
+  const lbl=`<span class="lbl2">SCARTI SCOPERTI</span>`;
+  const inner=pos==='bottom'?`${name}${meta}${bets}${lbl}${disc}${hand}`:`${hand}${name}${meta}${bets}${lbl}${disc}`;
+  return `<div class="seat ${pos} ${S.started&&S.phase==='race'&&S.lead===p?'leader':''} ${active?'active':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const S=G.S;
+  const cells=(S.shown||S.trick).map((e,i)=>`<div class="tcell ${S.res===i&&S.phase==='race'?'win':''}">${kface(e.c)}<span class="who" style="background:${SEATC[e.p]}">${esc(P(e.p).name.replace(/^AI /,''))}${e.w?' · '+ico('lightning'):''}</span></div>`);
+  const lead=S.trick.length?S.trick[0].c.s:-1, wp=S.trick.find(e=>e.w);
+  const eff=wp?wp.c.s:lead;
+  return `<div class="center"><span class="lbl2">${S.phase==='race'?`PRESA ${S.done+1}`:S.phase==='bet'?'SCOMMESSE':S.phase==='paddock'?'PADDOCK':'ARRIVO'}${lead>=0?` · COLORE ${COLS[eff].n.toUpperCase()}${wp?' (frusta)':''}`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div></div>`;
+}
+function trackHtml(){
+  const S=G.S;
+  const ranks=S.phase==='payout'||S.fin.length?rankOf(S):null;
+  const rows=[0,1,2,3].map(h=>{
+    const seat=S.H.indexOf(h), cells=Array.from({length:9},(_,i)=>`<div class="cell ${i===8?'fin':''}">${S.pos[h]===i?`<span class="tok" style="background:${HORSES[h].c}">${HORSES[h].n[0]}</span>`:(i===8?ico('flag-checkered'):i)}</div>`).join('');
+    const fi=S.fin.indexOf(h);
+    return `<div class="trow"><div class="hn"><b><span style="color:${HORSES[h].c}">●</span> ${esc(HORSES[h].n)}</b><span>${esc(P(seat).name)}${fi>=0?` · arrivato ${fi+1}°`:''}</span></div><div class="lane">${cells}</div><div class="odd">×${G.odds[h]} <small>quota</small></div></div>`;
+  }).join('');
+  return `<div class="track">${rows}</div>`;
+}
+function scoreTable(){
+  const R=G.n, pls=G.pl.filter(p=>!p.dummy);
+  const rows=pls.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:R},(_,i)=>i<p.hist.length?`<td>${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th></th>${Array.from({length:R},(_,i)=>`<th>G${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Trick Stakes contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts"><button class="opt" data-n="3">3 giocatori (tu + 2 AI + Fantino Dummy)</button><button class="opt" data-n="4">4 giocatori (tu + 3 AI)</button></div>`;
+  if(G.over){
+    const nm=G.over.winners.map(i=>esc(P(i).name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    html+=`<div class="scroll-x"><table class="score"><tr><th></th><th>Cavallo</th><th>Arrivo</th><th>Premio</th><th>Scommessa</th><th>Totale</th></tr>${G.show.rows.map(r=>`<tr><td>${esc(P(r.s).name)}</td><td>${esc(HORSES[r.h].n)}</td><td>${r.rank}°</td><td>${r.pz}</td><td>${esc(betName(r.up))} + ${esc(betName(r.dn))}: ${r.bp}</td><td><b>${r.tot}</b></td></tr>`).join('')}</table></div>`;
+  }
+  if(PR&&PR.type==='choose') html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${o.html||esc(o.label)}</button>`).join('')}</div>`;
+  else if(PR&&PR.type==='throw'){
+    const c=PR.sel!=null?G.S.hand[HUM].find(x=>String(key(x))===String(PR.sel)):null;
+    html+=`<div class="hint">La carta scoperta del tuo mazzetto (${G.S.disc[HUM].map(cname).join(', ')}) non è utilizzabile. Scegli ora una delle tue 11 carte da scartare coperta: ne resteranno 10.</div>
+      <div class="opts"><button class="opt" data-th="1" ${c?'':'disabled'}>Scarta${c?` ${cname(c)}`:''}</button></div>`;
+  }
+  else if(PR&&PR.type==='play'){
+    if(PR.sel!=null){
+      const c=G.S.hand[HUM].find(x=>String(key(x))===String(PR.sel));
+      html+=`<div class="opts"><button class="opt" data-ok="0">Gioca ${cname(c)}</button>${canWhip()?`<button class="opt" data-ok="1" title="Il colore di questa carta diventa il colore che decide la presa">${ico('lightning')} Gioca ${cname(c)} con la FRUSTA</button>`:''}<button class="opt" data-no="1">Annulla</button></div>`;
+    }else html+=`<div class="hint">${G.S.trick.length?`Devi rispondere a ${COLS[G.S.trick[0].c.s].n} se puoi, altrimenti qualsiasi carta.`:'Apri la presa con una carta qualsiasi.'}${canWhip()?' Puoi usare la frusta (una volta a gara, una sola per presa).':''} Vince la carta più alta del colore che decide la presa.</div>`;
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n;
+  return `<div class="recap"><h3>RIEPILOGO · ${n} GIOCATORI${n===3?' + FANTINO DUMMY':''} · ${n} GARE</h3>
+    <div class="recap-row"><span class="lbl">Carte</span>${COLS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">48 carte gara 1–12 · 4 mazzetti da 12 legati ai 4 cavalli (passano a sinistra dopo ogni gara) · simboli di avanzamento: 1–2 = 4, 3–6 = 3, 7–9 = 2, 10–12 = 1</span></div>
+    <div class="recap-row"><span class="lbl">Paddock</span><span class="rv">si scopre la prima carta del mazzetto (inutilizzabile), poi si scarta coperta una delle 11 restanti: restano 10 carte</span></div>
+    <div class="recap-row"><span class="lbl">Scommesse</span><span class="rv">una carta scoperta (in ordine di turno, tipi tutti diversi) + una coperta: <b>Vincitore semplice</b> + cavallo = vinci 2 × quota se vince · <b>Coppia vincente</b> = due cavalli, la quota di ognuno che arriva 1° o 2°</span></div>
+    <div class="recap-row"><span class="lbl">Gara</span><span class="rv">prese con obbligo di colore · vince la carta più alta del colore di apertura · <b>Frusta</b> (1 a gara, 1 a presa): il colore della tua carta decide la presa · chi vince fa avanzare il proprio cavallo dei simboli della carta · fine con 2 cavalli al traguardo (casella 8) o carte finite</span></div>
+    <div class="recap-row"><span class="lbl">Premi</span><span class="rv">1° cavallo: 4 punti · 2° cavallo: 2 punti · scommesse con la quota attuale · quote dopo ogni gara: 1° +0, 2° +1, 3° +2, 4° +3</span></div></div>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Obiettivo</h4>
+<p>In Trick Stakes sei insieme fantino e scommettitore: devi guidare il tuo cavallo in gara e prevedere i risultati. Guadagni punti coi premi da fantino e con le scommesse vincenti. Vince chi ha più punti alla fine.</p>
+<h4>Componenti e preparazione</h4>
+<p>48 carte gara (1–12 in rosso, blu, giallo e verde), 3 tabelloni di pista (caselle 0–7 più il traguardo, casella 8), 4 cavalli (Vanilla Bean, Peaches, Showoff, Nibble) con relativa carta cavallo, 4 carte quota, 4 carte frusta, 20 carte scommessa (per ogni giocatore: Vincitore semplice e le 4 carte cavallo), il Fantino Dummy per 3 giocatori.</p>
+<p>Ogni giocatore riceve una carta cavallo; chi ha Vanilla Bean è il primo giocatore. Le 48 carte si dividono in 4 mazzetti da 12 legati ai cavalli: il mazzetto resta abbinato alla carta cavallo anche quando passa a un altro giocatore. Tutte le quote partono da 2. Una partita dura tanti gare quanti sono i giocatori.</p>
+<h4>1. Paddock</h4>
+<p>Ogni giocatore mescola le 12 carte del proprio mazzetto e scopre la prima: va negli scarti scoperti e non si può usare. Guarda le altre 11 e ne scarta una coperta. Restano 10 carte in mano.</p>
+<h4>2. Scommesse</h4>
+<p>Dal primo giocatore in senso orario, ognuno gioca scoperta una carta scommessa che nessun altro ha già giocato scoperta. Poi ognuno gioca coperta un'altra carta scommessa qualsiasi. <b>Vincitore semplice + cavallo</b>: vinci se quel cavallo arriva primo. <b>Due cavalli (coppia vincente)</b>: segni punti quando uno dei due arriva primo o secondo.</p>
+<h4>3. Gara</h4>
+<p>Il primo giocatore gioca una carta, gli altri la seguono in senso orario: devi rispondere al colore se puoi. Vince la carta più alta del colore di apertura.</p>
+<p><b>Frusta:</b> giocando una carta puoi girare la tua frusta: il colore della tua carta diventa il colore che decide la presa (vince la carta più alta di quel colore). Se hai il colore di apertura, la frusta lo mantiene; se non lo hai, puoi scegliere un nuovo colore. Una sola frusta per presa, una volta a gara; anche il primo giocatore può usarla. Non esiste una briscola: la frusta cambia solo il colore da seguire per decidere la presa.</p>
+<p>Chi vince fa avanzare il cavallo che sta guidando di tanti passi quanti i <b>simboli di avanzamento</b> della carta giocata. Un cavallo già al traguardo non avanza più. Chi vince apre la presa successiva. La gara finisce quando due cavalli hanno tagliato il traguardo o nessuno ha più carte.</p>
+<h4>4. Pagamenti</h4>
+<p>L'ordine d'arrivo segue la posizione dei cavalli (se meno di due sono arrivati, quelli più vicini al traguardo). A parità di casella è davanti il cavallo arrivato per ultimo; se nessuno si è mosso, prima Vanilla Bean, poi i cavalli dei giocatori alla sua destra dal più vicino al più lontano.</p>
+<ul><li><b>Premi:</b> il giocatore che guida (in quella gara) il cavallo 1° prende 4 punti, il 2° prende 2 punti. Il Fantino Dummy non segna punti.</li>
+<li><b>Vincitore semplice:</b> se il cavallo scommesso arriva 1°, 2 × la quota di quel cavallo.</li>
+<li><b>Coppia vincente:</b> per ogni cavallo scommesso che arriva 1° o 2°, la sua quota (la somma se arrivano entrambi).</li></ul>
+<h4>5. Prossima gara</h4>
+<p>Ognuno riprende le carte scartate, poi passa a sinistra mazzetto di 12 carte e carta cavallo. Le quote cambiano in base all'arrivo: 1° +0, 2° +1, 3° +2, 4° +3. Dopo l'ultima gara vince chi ha più punti; a parità, chi ha guidato il cavallo arrivato meglio nell'ultima gara.</p>
+<h4>3 giocatori: il Fantino Dummy</h4>
+<p>Il Fantino Dummy guida uno dei 4 cavalli e siede a destra di chi riceve Vanilla Bean; non scommette e il suo mazzetto passa come gli altri. Nel Paddock scarta la prima e l'ultima carta del mazzetto (scoperte); le altre 10 sono scoperte in ordine e sono visibili a tutti. Se il Dummy ha carte del colore di apertura gioca la più alta; altrimenti gioca la prima carta e, se ha ancora la frusta e nessuno l'ha usata in quella presa, la usa. Se è di mano gioca sempre la prima carta. Può diventare primo giocatore vincendo una presa.</p>
+<p><i>Interpretazioni nell'app:</i> la frusta non è una briscola (come chiarito dalle note al regolamento); «cavallo del giocatore» è quello che guida in quella gara, non quello scelto con la carta scommessa; negli esempi del regolamento Peaches e Nibble sono i cavalli citati. I simboli di avanzamento per numero sono letti dalle immagini del regolamento (1–2: 4, 5–6: 3, 8–9: 2, 10–11: 1; gli altri valori interpolati). Le AI ricordano i mazzetti che hanno già guidato e usano simulazioni per scartare, scommettere e giocare.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">Trick Stakes</div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Gara ${Math.min(G.race+1,G.n)}/${G.n}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G&&G.S){
+    body=`${trackHtml()}
+      <div class="table">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,POS[i])).join('')}</div>
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  try{ if(localStorage.getItem('nylo-skip-name')==='1'){ HUMNAME=localStorage.getItem('nylo-player-name')||'Nylo'; newMatch(n); return; } }catch(e){}
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    HUMNAME=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.k!==undefined) pickCard(Number(b.dataset.k));
+  else if(b.dataset.th!==undefined) confirmThrow();
+  else if(b.dataset.ok!==undefined){ if(PR&&PR.type==='play'&&PR.sel!=null) finishPlay(PR.sel,b.dataset.ok==='1'); }
+  else if(b.dataset.no!==undefined){ if(PR&&PR.type==='play'){ PR.sel=null; render(); } }
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('ts-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('ts-undo',OPT.undo?'1':'0'); }catch(err){}
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
