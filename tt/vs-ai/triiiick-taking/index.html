@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triiiick Taking</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0e0e0e;
+  --surface:#1a1a1a;
+  --surface-raised:#2a2a2a;
+  --accent:#f0f0f0;
+  --accent-soft:rgba(255,255,255,0.14);
+  --text:#ececec;
+  --text-soft:#a6a6a6;
+  --danger:#ff6b61;
+  --success:#6ddc8b;
+  --border:rgba(255,255,255,0.22);
+  --radius:10px;
+  --k0:#c0392b; --k1:#2f6fb5; --k2:#2e8b57; --k3:#161616;
+  --cw:44px; --ch:64px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#2a2a2a 0%,#0a0a0a 100%) fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Libre Baskerville',serif;font-size:28px;font-weight:700;font-style:italic;line-height:1.1;flex:1;color:var(--accent);letter-spacing:0.02em}
+.badge{background:var(--accent);color:#111;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:1px solid var(--border);border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:#fff;cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.6)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd54a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.7)}
+.name-box h3{font-family:'Libre Baskerville',serif;font-size:16px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.08);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left;display:inline-flex;align-items:center;gap:8px}
+.opt:hover:not(:disabled){border-color:#fff;background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.opt .fc{box-shadow:none}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+.scroll-x{overflow-x:auto}
+
+.goal{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px}
+.tokn{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:44px;border-radius:50%;background:#fff;color:#111;font:800 24px 'Libre Baskerville',serif;box-shadow:0 0 0 3px #000,0 0 0 5px #fff}
+.tokn.rider{font-size:13px;letter-spacing:0.04em;border-radius:22px;padding:0 10px}
+.goal-t{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--text-soft);line-height:1.5}
+.goal-t b{color:var(--text);font-size:14px}
+
+.table{display:grid;grid-template-columns:1fr 1.15fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#2e2e2e 0%,#0d0d0d 95%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:520px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.06)}
+.seat.active{border-color:#ffb43a;background:rgba(255,180,58,0.14)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(255,255,255,0.13);border-radius:4px;padding:2px 6px}
+.tag b{color:#ffd54a}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:220px}
+.back{width:12px;height:18px;border-radius:3px;background:linear-gradient(135deg,#777,#222);border:1px solid #ddd}
+.seat.left .backs,.seat.right .backs{max-width:130px}
+.lbl2{font-size:10px;font-weight:700;color:var(--text-soft);letter-spacing:0.06em}
+.hrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding-top:6px;min-height:20px}
+.hgrp{display:flex;flex-direction:column;align-items:center;gap:2px}
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:6px}
+.tr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;min-height:70px;align-items:flex-end}
+.tcell{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600}
+.tcell.win .fc{box-shadow:0 0 0 3px #ffd54a}
+.tcell .who{padding:1px 7px;border-radius:9px;color:#111;font-weight:700}
+.mk{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Libre Baskerville',serif;font-weight:700;font-size:22px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.6);text-shadow:0 1px 2px rgba(0,0,0,0.5)}
+.fc i{font-size:19px}
+.fc.k0{background-color:var(--k0)} .fc.k1{background-color:var(--k1)} .fc.k2{background-color:var(--k2)} .fc.k3{background-color:var(--k3);border-color:#bbb}
+.fc.mini{width:34px;height:50px;font-size:16px}
+.fc.mini i{font-size:13px}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #000,0 0 0 6px #ffd54a}
+body.a11y .fc.k0,body.a11y .rchip.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .fc.k1,body.a11y .rchip.k1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k2,body.a11y .rchip.k2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.3) 0 3px,transparent 3px 8px)}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .rchip{vertical-align:middle}
+.rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,0.4);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
+.rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:44px}
+  .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
+  .fc i{font-size:12px}
+  .fc.mini{width:26px;height:38px;font-size:12px}
+  .fc.mini i{font-size:10px}
+  .table{padding:8px;gap:6px;min-height:0}
+  .back{width:9px;height:14px}
+  .hrow{gap:3px}
+  .tr{gap:5px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const SUITS = [
+  {n:'Rosso', icon:'circle'},
+  {n:'Blu',   icon:'square'},
+  {n:'Verde', icon:'triangle'},
+  {n:'Nero',  icon:'moon'}
+];
+const BLACK = 3;
+const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
+const NAMES = ['Tu','AI Corvo','AI Gufo','AI Merlo'];
+const SEATC = ['#ffd166','#ff8fb8','#6ee7b7','#8ecbff'];
+const HUM = 0;
+const HAND = 8;
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+function deckFor(n){ const d=[]; for(let s=0;s<4;s++){ if(n===3&&s===2) continue; for(let v=1;v<=8;v++) d.push({s,v}); } return d; }
+function tokensFor(n,rider){
+  const t=(n===3?[1,2,2,3,3,4]:[1,2,2,2,3,3]).slice();
+  if(rider){ t[t.indexOf(2)]='R'; }
+  return t;
+}
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('tk-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tk-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const cname = c => `${SUITS[c.s].n} ${c.v}`;
+const plu = (n,s,p) => `${n} ${n===1?s:p}`;
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
+const key = c => c.s+'-'+c.v;
+const cnt = p => G.S.priv[p].length+G.S.pub[p].length;
+const tokStr = t => t==='R'?'Rider':String(t);
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  if(p!==HUM) return ok[rnd(ok.length)].value;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+
+// ═════════════════════════ PRESE (funzioni pure) ═════════════════════════
+const ks = c => c.s===BLACK?100+c.v:c.v;
+// a batte b? (lead = seme di apertura)
+function beat(a,b,lead){
+  if(a.s===BLACK) return b.s!==BLACK||a.v>b.v;
+  if(b.s===BLACK) return false;
+  if(a.s===lead) return b.s!==lead||a.v>b.v;
+  return false;
+}
+function winIdx(tr){
+  const lead=tr[0].c.s; let bi=0;
+  for(let i=1;i<tr.length;i++) if(beat(tr[i].c,tr[bi].c,lead)) bi=i;
+  return bi;
+}
+function legalOf(hand,trick){
+  if(!trick.length) return hand.slice();
+  const f=hand.filter(c=>c.s===trick[0].c.s);
+  return f.length?f:hand.slice();
+}
+// stima della probabilità che una carta vinca una presa
+function pw(c,n){
+  if(c.s===BLACK) return 0.1+0.8*Math.pow((c.v-1)/7,1.5);
+  return (n===3?0.5:0.4)*Math.pow((c.v-1)/7,3);
+}
+const avgP = n => { const d=deckFor(n); return d.reduce((a,c)=>a+pw(c,n),0)/d.length; };
+const AVG = {3:avgP(3),4:avgP(4)};
+function estOf(cards,n){ return cards.reduce((a,c)=>a+pw(c,n),0)+(HAND-cards.length)*AVG[n]; }
+function scoreRound(tok,won){
+  const n=tok.length, pts=Array(n).fill(0);
+  let succ=0;
+  for(let p=0;p<n;p++) if(tok[p]!=='R'){ pts[p]=-Math.abs(tok[p]-won[p]); if(pts[p]===0) succ++; }
+  for(let p=0;p<n;p++) if(tok[p]==='R') pts[p]=-succ;
+  return pts;
+}
+
+// ═════════════════════════ AI: PRESE (determinizzazione + rollout) ═════════════════════════
+function pol(X,p){
+  const h=X.hands[p], L=legalOf(h,X.trick);
+  if(L.length===1) return L[0];
+  if(X.tg[p]==null) return L[rnd(L.length)];
+  const need=X.tg[p]-X.won[p], r=h.length;
+  const want=need>0&&(need>=r||Math.random()<need/r);
+  L.sort((a,b)=>ks(a)-ks(b));
+  if(!X.trick.length) return want?L[L.length-1]:L[0];
+  const lead=X.trick[0].c.s, best=X.trick[winIdx(X.trick)].c;
+  const wins=L.filter(c=>beat(c,best,lead)), loses=L.filter(c=>!beat(c,best,lead));
+  if(want) return wins.length?wins[0]:loses[0];
+  return loses.length?loses[loses.length-1]:wins[0];
+}
+function simRest(X){
+  for(;;){
+    while(X.trick.length<X.n){
+      const p=X.next, c=pol(X,p);
+      X.hands[p]=X.hands[p].filter(x=>x!==c);
+      X.trick.push({p,c}); X.next=(p+1)%X.n;
+    }
+    const w=X.trick[winIdx(X.trick)].p; X.won[w]++; X.trick=[]; X.next=w;
+    if(X.hands.every(h=>!h.length)) break;
+  }
+}
+function tokenPool(p){
+  const S=G.S, pool=tokensFor(G.n,G.rider);
+  const rm=t=>{ const i=pool.indexOf(t); if(i>=0) pool.splice(i,1); };
+  rm(S.tok[p]); S.removed.forEach(rm);
+  return pool;
+}
+function sampleWorld(p,pool){
+  const S=G.S, n=G.n;
+  const unknown=deckFor(n).filter(c=>{
+    if(S.priv[p].concat(S.pub[p]).some(x=>x.s===c.s&&x.v===c.v)) return false;
+    for(let q=0;q<n;q++) if(q!==p&&S.pub[q].some(x=>x.s===c.s&&x.v===c.v)) return false;
+    return !S.played.some(x=>x.s===c.s&&x.v===c.v);
+  });
+  const opp=[]; for(let q=0;q<n;q++) if(q!==p) opp.push(q);
+  let hands=null;
+  for(let att=0;att<40&&!hands;att++){
+    const U=shuffle(unknown.slice()), hs=[], strict=att<30;
+    shuffle(opp);
+    let ok=true;
+    for(const q of opp){
+      const need=S.priv[q].length, take=[];
+      for(let i=0;i<U.length&&take.length<need;i++) if(!strict||!S.void[q].has(U[i].s)) take.push(i);
+      if(take.length<need){ ok=false; break; }
+      hs[q]=take.map(i=>U[i]); take.slice().reverse().forEach(i=>U.splice(i,1));
+    }
+    if(ok) hands=hs;
+  }
+  const H=[]; for(let q=0;q<n;q++) H[q]=q===p?S.priv[p].concat(S.pub[p]):S.pub[q].concat(hands[q]);
+  const tg=Array(n).fill(null), tp=shuffle(pool.slice());
+  tg[p]=S.tok[p]==='R'?null:S.tok[p];
+  for(const q of opp){ const t=tp.pop(); tg[q]=t==='R'?null:t; }
+  return {H,tg};
+}
+function aiPlay(p){
+  const S=G.S, n=G.n, mine=S.priv[p].concat(S.pub[p]), L=legalOf(mine,S.trick);
+  if(L.length===1) return L[0];
+  const pool=tokenPool(p), NS=n===3?70:50, sums=L.map(()=>0);
+  for(let s=0;s<NS;s++){
+    const w=sampleWorld(p,pool);
+    L.forEach((c,i)=>{
+      const X={n,hands:w.H.map(h=>h.slice()),tg:w.tg,won:S.won.slice(),trick:S.trick.slice(),next:p};
+      X.hands[p]=X.hands[p].filter(x=>x!==c&&!(x.s===c.s&&x.v===c.v));
+      X.trick.push({p,c}); X.next=(p+1)%n;
+      simRest(X);
+      const pts=scoreRound(w.tg.map((t,q)=>q===p?S.tok[p]:(t===null?'R':t)),X.won);
+      sums[i]+=pts[p];
+    });
+  }
+  let bi=0; sums.forEach((v,i)=>{ if(v>sums[bi]+1e-9) bi=i; });
+  return L[bi];
+}
+
+// ═════════════════════════ AI: PIANIFICAZIONE ═════════════════════════
+function handAll(p){ return G.S.priv[p].concat(G.S.pub[p]); }
+function wantDir(p){ // +1 vuole carte forti, −1 vuole carte deboli
+  const S=G.S, t=S.tok[p];
+  if(t==='R') return 1;
+  return t>=estOf(handAll(p),G.n)?1:-1;
+}
+function aiKeep(p,c){
+  const d=wantDir(p), a=AVG[G.n], x=pw(c,G.n);
+  return d>0?x>=a:x<=a;
+}
+function aiDraftAct(p){
+  const S=G.S, n=G.n, d=wantDir(p), a=AVG[n];
+  let bi=-1, bg=-1e9;
+  S.market.forEach((c,i)=>{ const g=d*(pw(c,n)-a); if(g>bg){ bg=g; bi=i; } });
+  if(!S.deck.length) return {t:'B',i:bi};
+  if(bi>=0&&bg>0.07) return {t:'B',i:bi};
+  return {t:'A'};
+}
+function aiNeg(p){
+  const S=G.S, t=S.tok[p];
+  if(S.neg||t==='R'||!S.aside.length) return false;
+  const est=estOf(handAll(p),G.n);
+  const pool=tokenPool(p).filter(x=>x!=='R');
+  if(!pool.length) return false;
+  const cur=-Math.abs(t-est), exp=pool.reduce((a,x)=>a-Math.abs(x-est),0)/pool.length;
+  return exp-cur>0.4;
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
+function newMatch(n,rider){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,rider:!!rider,round:0,first0:rnd(n),first:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  run();
+}
+function deal(){
+  const n=G.n, d=shuffle(deckFor(n));
+  let t=shuffle(tokensFor(n,G.rider));
+  if(G.rider){ const ri=t.indexOf('R'); if(ri>=n){ const j=rnd(n); [t[ri],t[j]]=[t[j],t[ri]]; } }
+  const S={tok:t.slice(0,n),aside:t.slice(n),removed:[],neg:false,deck:d,market:[],
+    priv:Array.from({length:n},()=>[]),pub:Array.from({length:n},()=>[]),trick:[],lead:G.first,won:Array(n).fill(0),
+    void:Array.from({length:n},()=>new Set()),played:[],phase:'draft',started:false,done:0};
+  for(let p=0;p<n;p++) S.priv[p]=sortHand(d.splice(0,2));
+  G.S=S;
+}
+async function draftTurn(p){
+  const S=G.S, N=cnt(p), nm=P(p).name;
+  let act;
+  if(p===HUM) act=await humanDraft(); else { await sleep(750); act=aiDraftAct(p); }
+  if(act.t==='B'){
+    const c=S.market.splice(act.i,1)[0]; S.pub[p].push(c);
+    logMsg(`${nm} prende ${cname(c)} dal Mercato e lo mette nella Mano Pubblica.`);
+  }else{
+    const c=S.deck.shift();
+    const canRej=N<=6&&S.deck.length>=2;
+    let keep=true;
+    if(canRej) keep=p===HUM?await humanKeep(c):aiKeep(p,c);
+    if(keep){ S.priv[p].push(c); logMsg(p===HUM?`Peschi ${cname(c)} e lo tieni nella Mano Privata.`:`${nm} pesca una carta e la tiene nella Mano Privata.`); }
+    else{
+      S.market.push(c);
+      const a=S.deck.shift(), b=S.deck.shift();
+      let pv,pb;
+      if(p===HUM){ pv=await humanSplit(a,b); pb=pv===a?b:a; }
+      else{ const d=wantDir(p); pv=d*pw(a,G.n)>=d*pw(b,G.n)?a:b; pb=pv===a?b:a; }
+      S.priv[p].push(pv); S.pub[p].push(pb);
+      logMsg(p===HUM?`Scarti ${cname(c)} nel Mercato, pesci ${cname(pv)} (privata) e ${cname(pb)} (pubblica).`
+        :`${nm} scarta ${cname(c)} nel Mercato, pesca altre 2 carte: una nella Mano Privata e ${cname(pb)} nella Mano Pubblica.`);
+    }
+  }
+  sortHand(S.priv[p]); sortHand(S.pub[p]);
+  if(N<HAND&&cnt(p)===HAND) await negotiate(p);
+}
+async function negotiate(p){
+  const S=G.S;
+  if(S.neg||S.tok[p]==='R'||!S.aside.length) return;
+  let yes;
+  if(p===HUM) yes=await ask(HUM,`Hai raggiunto 8 carte: Negoziazione con i Dirigenti? (obiettivo attuale: ${tokStr(S.tok[HUM])} prese)`,[
+    {label:'Negozia: rivela il segnalino e pescane uno nuovo',value:true},{label:'Tieni la Direttiva',value:false}]);
+  else yes=aiNeg(p);
+  if(!yes) return;
+  S.neg=true;
+  const old=S.tok[p]; S.removed.push(old);
+  S.tok[p]=S.aside.splice(rnd(S.aside.length),1)[0];
+  logMsg(`${P(p).name} negozia: rivela il segnalino ${tokStr(old)} (rimosso dal gioco) e ne pesca uno nuovo${p===HUM?`: il tuo obiettivo è ora ${tokStr(S.tok[HUM])}`:''}.`);
+}
+async function draft(){
+  const S=G.S, n=G.n;
+  S.phase='draft';
+  while(P(0)&&Array.from({length:n},(_,p)=>cnt(p)).some(c=>c<HAND)){
+    for(let k=0;k<n;k++){
+      const p=(G.first+k)%n;
+      if(cnt(p)>=HAND) continue;
+      G.turn=p; status(p===HUM?'Tocca a te: pianificazione.':`Tocca a ${P(p).name}.`);
+      await draftTurn(p);
+    }
+  }
+  G.turn=-1;
+}
+function playCard(p,c){
+  const S=G.S;
+  let i=S.priv[p].findIndex(x=>x.s===c.s&&x.v===c.v);
+  if(i>=0) S.priv[p].splice(i,1); else { i=S.pub[p].findIndex(x=>x.s===c.s&&x.v===c.v); S.pub[p].splice(i,1); }
+  if(S.trick.length&&c.s!==S.trick[0].c.s) S.void[p].add(S.trick[0].c.s);
+  S.trick.push({p,c}); S.played.push(c);
+}
+async function playRound(){
+  const S=G.S, n=G.n;
+  S.phase='play'; S.started=true;
+  while(S.done<HAND){
+    S.trick=[]; S.lastWin=-1;
+    logMsg(`Presa ${S.done+1}: apre ${P(S.lead).name}.`);
+    for(let k=0;k<n;k++){
+      const p=(S.lead+k)%n; G.turn=p;
+      status(p===HUM?'Tocca a te: gioca una carta.':`Tocca a ${P(p).name}.`);
+      let c;
+      if(p===HUM) c=await humanPlay(); else { await sleep(800); c=aiPlay(p); }
+      playCard(p,c);
+      logMsg(`${P(p).name} gioca ${cname(c)}.`);
+    }
+    G.turn=-1;
+    const wi=winIdx(S.trick), w=S.trick[wi].p;
+    S.won[w]++; S.lastWin=wi;
+    logMsg(`${P(w).name} vince la presa ${S.done+1} con ${cname(S.trick[wi].c)}.`);
+    status(`${P(w).name} vince la presa e apre la prossima.`);
+    await sleep(1500);
+    S.done++; S.lead=w;
+  }
+  S.trick=[]; S.lastWin=-1;
+}
+async function scoring(){
+  const S=G.S, pts=scoreRound(S.tok,S.won);
+  const rows=pts.map((v,p)=>({p,tok:S.tok[p],won:S.won[p],pts:v}));
+  rows.forEach(r=>{ P(r.p).total+=r.pts; P(r.p).hist.push(r.pts); });
+  G.show={rows};
+  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} — Direttiva ${tokStr(r.tok)}${r.tok==='R'?'':`, prese ${r.won}`}: ${r.pts} punti.`));
+  status(`Round ${G.round+1} concluso: ecco i rapporti.`);
+  const last=G.round===G.n-1;
+  await ask(HUM,'Rapporto del round',[{label:last?'Vedi il risultato finale':'Avanti',value:1}]);
+  G.show=null;
+}
+async function run(){
+  const g=G;
+  try{
+    for(let r=0;r<g.n;r++){
+      g.round=r; g.first=(g.first0+r)%g.n;
+      deal();
+      logMsg(`— Round ${r+1}/${g.n}: primo giocatore ${P(g.first).name} —`);
+      const t=g.S.tok[HUM];
+      status(t==='R'?'Sei il RIDER: nessun obiettivo, sabota gli altri.':`La tua Direttiva: vincere ${t} ${t===1?'presa':'prese'}.`);
+      await ask(HUM,t==='R'?'Sei il Rider! Ottieni −1 per ogni avversario che completa la sua Direttiva':`Il tuo obiettivo: ${plu(t,'presa','prese')}. Primo giocatore: ${P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+      await draft();
+      await playRound();
+      await scoring();
+    }
+    const m=Math.max(...g.pl.map(p=>p.total));
+    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ MOSSE UMANE ═════════════════════════
+const mini = c => kface(c,'mini');
+function humanDraft(){
+  const S=G.S, N=cnt(HUM), opts=[];
+  opts.push({html:`${ico('stack')} Pesca dal mazzo (${S.deck.length})`,value:{t:'A'},disabled:!S.deck.length});
+  S.market.forEach((c,i)=>opts.push({html:`${mini(c)} Prendi dal Mercato (Mano Pubblica)`,value:{t:'B',i}}));
+  return ask(HUM,`Pianificazione (${N}/8 carte): pesca dal mazzo oppure prendi dal Mercato`,opts);
+}
+function humanKeep(c){
+  return ask(HUM,'Hai pescato questa carta',[
+    {html:`${mini(c)} Tienila nella Mano Privata`,value:true},
+    {html:`${mini(c)} Mettila nel Mercato e pesca altre 2 carte`,value:false}]);
+}
+function humanSplit(a,b){
+  return ask(HUM,'Hai pescato 2 carte: una va nella Mano Privata, l\'altra nella Mano Pubblica',[
+    {html:`${mini(a)} Privata (e ${cname(b)} pubblica)`,value:a},
+    {html:`${mini(b)} Privata (e ${cname(a)} pubblica)`,value:b}]);
+}
+function humanPlay(){
+  const S=G.S, g=G, L=legalOf(handAll(HUM),S.trick);
+  return new Promise((res,rej)=>{ PR={type:'play',legal:new Set(L.map(key)),sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function pickCard(k){
+  if(!PR||PR.type!=='play'||!PR.legal.has(k)) return;
+  if(!OPT.undo){ finishPlay(k); return; }
+  PR.sel=PR.sel===k?null:k; render();
+}
+function finishPlay(k){
+  if(!PR||PR.type!=='play'||!PR.legal.has(k)) return;
+  const c=handAll(HUM).find(x=>key(x)===k), r=PR.res; PR=null; render(); r(c);
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='')=>`<span class="fc k${c.s} ${cls}" title="${cname(c)}"><span>${c.v}</span>${ico(SUITS[c.s].icon)}</span>`;
+function cardBtn(c){
+  const k=key(c);
+  if(PR&&PR.type==='play'){
+    const ok=PR.legal.has(k), sel=PR.sel===k;
+    return `<button class="fc k${c.s} ${ok?'':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-k="${k}" title="${cname(c)}"><span>${c.v}</span>${ico(SUITS[c.s].icon)}</button>`;
+  }
+  return kface(c);
+}
+function flagHtml(p){
+  if(!G||G.over||!G.S) return '';
+  const S=G.S;
+  if(!S.started&&G.first===p) return '<span class="flag first">Primo giocatore</span>';
+  if(S.started&&S.done<HAND&&S.lead===p) return '<span class="flag lead">Di mano</span>';
+  return '';
+}
+function seatHtml(p,pos){
+  const S=G.S, pl=P(p), active=G.turn===p;
+  const prvN=S.priv[p].length;
+  let hand;
+  if(p===HUM){
+    hand=`<div class="hgrp"><span class="lbl2">MANO PRIVATA</span><div class="hrow">${S.priv[p].map(cardBtn).join('')||'<span class="hint">—</span>'}</div></div>
+          <div class="hgrp"><span class="lbl2">MANO PUBBLICA</span><div class="hrow">${S.pub[p].map(cardBtn).join('')||'<span class="hint">—</span>'}</div></div>`;
+  }else{
+    hand=`<div class="hgrp"><span class="lbl2">PRIVATA</span><div class="backs">${S.priv[p].map(()=>'<span class="back"></span>').join('')||'<span class="hint">—</span>'}</div></div>
+          <div class="hgrp"><span class="lbl2">PUBBLICA</span><div class="hrow">${S.pub[p].map(mini).join('')||'<span class="hint">—</span>'}</div></div>`;
+  }
+  const meta=`<div class="seat-meta">${S.phase==='draft'?`<span class="tag">carte <b>${cnt(p)}</b>/8</span>`:''}<span class="tag">prese vinte <b>${S.won[p]}</b></span><span class="tag">punti <b>${pl.total}</b></span></div>`;
+  const name=`<div class="seat-name" style="border-bottom:3px solid ${SEATC[p]}">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${name}${meta}${hand}`:`${hand}${name}${meta}`;
+  return `<div class="seat ${pos} ${S.started&&S.done<HAND&&S.lead===p?'leader':''} ${active?'active':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const S=G.S;
+  if(S.phase==='draft'){
+    return `<div class="center"><span class="lbl2">MERCATO (${S.market.length}) · MAZZO ${S.deck.length}</span><div class="mk">${S.market.map(mini).join('')||'<span class="hint">vuoto</span>'}</div></div>`;
+  }
+  return `<div class="center"><span class="lbl2">PRESA ${Math.min(S.done+1,HAND)}/${HAND}</span><div class="tr">${S.trick.map((e,i)=>`<div class="tcell ${S.lastWin===i?'win':''}">${kface(e.c)}<span class="who" style="background:${SEATC[e.p]}">${esc(P(e.p).name.replace(/^AI /,''))}</span></div>`).join('')||'<span class="hint">—</span>'}</div></div>`;
+}
+function goalHtml(){
+  const S=G.S, t=S.tok[HUM];
+  const rem=S.removed.length?`Segnalini rimossi: <b>${S.removed.map(tokStr).join(', ')}</b>`:'Nessun segnalino rimosso';
+  const neg=S.neg?'Negoziazione già usata in questo round':(S.phase==='draft'?'Negoziazione disponibile (solo al raggiungimento delle 8 carte)':'Negoziazione non usata');
+  return `<div class="goal"><span class="tokn ${t==='R'?'rider':''}">${t==='R'?'RIDER':t}</span>
+    <div class="goal-t">${t==='R'?'<b>Sei il Rider</b>Non hai un obiettivo: ottieni −1 per ogni avversario che completa la sua Direttiva.':`<b>Obiettivo: ${plu(t,'presa','prese')}</b>Vinte finora: ${S.won[HUM]}`}<span>${rem} · ${neg}</span></div></div>`;
+}
+function scoreTable(){
+  const R=G.n;
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:R},(_,i)=>i<p.hist.length?`<td>${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th></th>${Array.from({length:R},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Triiiick Taking contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts"><button class="opt" data-n="3">3 giocatori (tu + 2 AI)</button><button class="opt" data-n="4">4 giocatori (tu + 3 AI)</button><button class="opt" data-n="4" data-r="1" title="Mini-espansione: un segnalino «2» è sostituito dal Rider">4 giocatori + Rider</button></div>`;
+  if(G.over){
+    const nm=G.over.winners.map(i=>esc(P(i).name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (vince chi ha il totale più vicino a zero)</div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}" ${G.rider?'data-r="1"':''}>Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show) html+=`<div class="scroll-x"><table class="score"><tr><th></th><th>Direttiva</th><th>Prese</th><th>Punti</th></tr>${G.show.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td>${tokStr(r.tok)}</td><td>${r.tok==='R'?'–':r.won}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`;
+  if(PR&&PR.type==='choose') html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${o.html||esc(o.label)}</button>`).join('')}</div>`;
+  else if(PR&&PR.type==='play'){
+    if(PR.sel){ const c=handAll(HUM).find(x=>key(x)===PR.sel); html+=`<div class="opts"><button class="opt" data-ok="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-no="1">Annulla</button></div>`; }
+    else html+=`<div class="hint">${G.S.trick.length?`Devi rispondere a ${SUITS[G.S.trick[0].c.s].n} se puoi (Nero = briscola permanente).`:'Apri la presa con una carta qualsiasi.'} Puoi giocare dalla Mano Privata e dalla Pubblica.</div>`;
+  }
+  return html;
+}
+function recapHtml(){
+  const t=tokensFor(G.n,G.rider).map(tokStr).join(' · ');
+  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI${G.rider?' · CON RIDER':''}</h3>
+    <div class="recap-row"><span class="lbl">Carte</span>${SUITS.filter((s,i)=>!(G.n===3&&i===2)).map(s=>`<span class="rchip k${SUITS.indexOf(s)}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">valori 1–8 · ${G.n===3?'24':'32'} carte · 8 a testa · il <b>Nero è briscola permanente</b></span></div>
+    <div class="recap-row"><span class="lbl">Direttive</span><span class="rv">segnalini in gioco: ${t} · uno a testa, gli altri da parte per la Negoziazione</span></div>
+    <div class="recap-row"><span class="lbl">Pianificazione</span><span class="rv">2 carte private a testa, poi fino a 8: <b>A</b> pesca 1 (tienila in privato, oppure mettila nel Mercato e pesca altre 2: una privata, una pubblica) · <b>B</b> prendi 1 carta dal Mercato nella Mano Pubblica · mai più di 8 carte</span></div>
+    <div class="recap-row"><span class="lbl">Negoziazione</span><span class="rv">1 sola volta per round, solo quando raggiungi le 8 carte: riveli la Direttiva (rimossa dal gioco) e ne peschi una dai segnalini da parte${G.rider?' · il Rider non può negoziare':''}</span></div>
+    <div class="recap-row"><span class="lbl">Prese</span><span class="rv">8 prese · obbligo di seme · vince il Nero più alto, senza Nero la carta più alta del seme d'apertura · chi vince apre · giochi da Mano Privata e Pubblica</span></div>
+    <div class="recap-row"><span class="lbl">Punteggio</span><span class="rv">−1 per ogni presa di differenza dall'obiettivo (in più o in meno)${G.rider?' · Rider: −1 per ogni avversario che completa la sua Direttiva':''} · ${G.n} round · vince chi è più vicino a 0</span></div></div>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>La «POCKER» è un'organizzazione segreta. I giocatori ne sono membri e ricevono dai vertici delle Direttive che indicano il numero esatto di prese da vincere in un round. Solo chi esegue la missione alla perfezione scala i ranghi!</p>
+<h4>Componenti e preparazione</h4>
+<p>32 carte (4 semi: Rosso, Blu, Verde, Nero, valori 1–8) e 7 segnalini Direttiva: «1» ×1, «2» ×3, «3» ×2, «4» ×1, più il Rider per la mini-espansione.</p>
+<ul><li><b>3 giocatori:</b> 24 carte (senza Verde) e 6 segnalini (1×1, 2×2, 3×2, 4×1).</li><li><b>4 giocatori:</b> 32 carte e 6 segnalini (1×1, 2×3, 3×2).</li></ul>
+<p>Una partita dura tanti round quanti sono i giocatori; il primo giocatore passa a sinistra a ogni round.</p>
+<h4>Fase 1 · Direttiva</h4>
+<p>Ogni giocatore riceve un segnalino coperto: il numero è il suo obiettivo di prese. I segnalini rimasti restano coperti da parte per la Negoziazione.</p>
+<h4>Fase 2 · Schieramento iniziale</h4>
+<p>Ogni giocatore riceve 2 carte coperte: la sua Mano Privata iniziale.</p>
+<h4>Fase 3 · Pianificazione</h4>
+<p>Dal primo giocatore, in senso orario, si raccolgono carte fino ad averne esattamente 8. Le carte si dividono in <b>Mano Privata</b> (visibile solo a te) e <b>Mano Pubblica</b> (scoperte davanti a te); si giocano allo stesso modo. Nel tuo turno scegli un'azione, purché non ti porti a 9 o più carte:</p>
+<ul><li><b>A · Pesca dal mazzo:</b> pesca 1 carta e guardala. Se la vuoi, va nella Mano Privata. Altrimenti la metti scoperta vicino al mazzo (il <b>Mercato</b>), poi peschi altre 2 carte: una va nella Mano Privata e l'altra nella Mano Pubblica.</li>
+<li><b>B · Prendi dal Mercato:</b> prendi 1 carta a scelta dal Mercato nella tua Mano Pubblica.</li></ul>
+<p>Arrivato a 8 carte, nei turni successivi passi.</p>
+<h4>Negoziazione con i Dirigenti</h4>
+<p>Una volta per round, solo 1 giocatore (il primo che ci arriva), nel momento esatto in cui raggiunge 8 carte, può cambiare la sua Direttiva: rivela il segnalino attuale, lo rimuove dal gioco e ne pesca uno a caso tra quelli messi da parte.</p>
+<h4>Fase 4 · Esecuzione</h4>
+<p>Il primo giocatore apre la prima presa; chi vince la presa apre la successiva. Si può giocare da Mano Privata e Pubblica. Devi rispondere al seme di apertura se puoi, altrimenti giochi qualsiasi carta. Si giocano 8 prese. Se c'è almeno una carta Nera (<b>briscola permanente</b>) vince la Nera più alta; altrimenti vince la carta più alta del seme d'apertura. Le prese vinte formano pile coperte, visibili a tutti.</p>
+<h4>Fase 5 · Rapporto</h4>
+<p>Si rivelano i segnalini e si confrontano con le prese vinte: <b>−1 punto per ogni presa di differenza</b>, in più o in meno. Si continua finché ognuno è stato primo giocatore una volta. Vince chi ha il punteggio più vicino a 0; in caso di pareggio la vittoria è condivisa.</p>
+<h4>Mini-espansione: «I giocatori di prese vogliono essere dei Rider» (4 giocatori)</h4>
+<p>Un segnalino «2» è sostituito dal Rider. Chi lo riceve non può negoziare e non ha un obiettivo di prese: ottiene −1 punto per ogni avversario che completa con successo la sua Direttiva. Le sue prese non contano.</p>
+<p><i>Interpretazioni nell'app:</i> il segnalino Rider viene sempre assegnato a un giocatore (mai messo da parte). Le AI non vedono le tue carte private né la tua Direttiva; deducono i segnalini possibili da quelli rimossi con la Negoziazione e dai vuoti di seme.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">Triiiick Taking</div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${Math.min(G.round+1,G.n)}/${G.n}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G&&G.S){
+    const pos=POS[G.n];
+    body=`${goalHtml()}
+      <div class="table">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}</div>
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+function askName(n,rider){
+  try{ if(localStorage.getItem('nylo-skip-name')==='1'){ NAMES[0]=localStorage.getItem('nylo-player-name')||'Nylo'; newMatch(n,rider); return; } }catch(e){}
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n,rider);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n), r=!!b.dataset.r; if(G) newMatch(n,r); else askName(n,r); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.k!==undefined) pickCard(b.dataset.k);
+  else if(b.dataset.ok!==undefined){ if(PR&&PR.type==='play'&&PR.sel) finishPlay(PR.sel); }
+  else if(b.dataset.no!==undefined){ if(PR&&PR.type==='play'){ PR.sel=null; render(); } }
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('tk-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('tk-undo',OPT.undo?'1':'0'); }catch(err){}
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
