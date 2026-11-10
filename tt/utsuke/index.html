@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Utsuke</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#eee8f6;
+  --surface:#fbf8ff;
+  --surface-raised:#e4daf2;
+  --accent:#6b3fa0;
+  --accent-soft:rgba(107,63,160,0.15);
+  --text:#2a2038;
+  --text-soft:#6f6286;
+  --danger:#b3261e;
+  --success:#2c7a3c;
+  --border:rgba(80,50,120,0.3);
+  --radius:10px;
+  --k0:#d9578f; --k1:#7b55b5; --k2:#4c9a5a; --k3:#d8a521; --k4:#3b6cb8;
+  --cw:44px; --ch:64px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#f8f4ff 0%,#c9b9e4 100%) fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Libre Baskerville',serif;font-size:24px;font-weight:700;font-style:italic;line-height:1.1;flex:1;color:var(--accent)}
+.badge{background:var(--accent);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.3)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd54a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.flag.role{background:var(--accent);color:#fff}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Libre Baskerville',serif;font-size:16px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.8);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(50,25,90,0.3)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt.num{min-width:38px;text-align:center;padding:8px 6px}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+.infohand{display:flex;gap:4px;flex-wrap:wrap}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score tr.me td{background:var(--accent-soft)}
+.scroll-x{overflow-x:auto}
+
+.rolebox{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px}
+.rolebox p{font-size:12px;line-height:1.55;color:var(--text-soft)}
+.rolebox p b{color:var(--text)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#f1ebfb 0%,#b7a2d6 95%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:520px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(80,50,120,0.5);background:rgba(255,255,255,0.4)}
+.seat.active{border-color:#d08a1e;background:rgba(208,138,30,0.2)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(80,50,120,0.14);border-radius:4px;padding:2px 6px}
+.tag b{color:#4a2680}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:220px}
+.back{width:12px;height:18px;border-radius:3px;background:linear-gradient(135deg,#8d6ac4,#3d2270);border:1px solid #fff}
+.seat.top .backs,.seat.left .backs,.seat.right .backs{max-width:130px}
+.lbl2{font-size:10px;font-weight:700;color:var(--text-soft);letter-spacing:0.06em}
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:6px}
+.tr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;min-height:70px;align-items:flex-end}
+.tcell{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;max-width:96px;text-align:center}
+.tcell.win .fc{box-shadow:0 0 0 3px #ffd54a}
+.tcell .who{padding:1px 7px;border-radius:9px;color:#111;font-weight:700}
+.tcell .say{font-weight:500;font-style:italic;color:var(--text-soft);line-height:1.25}
+.hand{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding-top:8px}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Libre Baskerville',serif;font-weight:700;font-size:22px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
+.fc i{font-size:19px}
+.fc.k0{background-color:var(--k0)} .fc.k1{background-color:var(--k1)} .fc.k2{background-color:var(--k2)} .fc.k3{background-color:var(--k3)}
+.fc.hid{background:linear-gradient(135deg,#8d6ac4,#3d2270);color:#fff}
+.fc.mini{width:26px;height:38px;font-size:13px;gap:0}
+.fc.mini i{font-size:10px}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+body.a11y .fc.k1,body.a11y .rchip.k1{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .fc.k2,body.a11y .rchip.k2{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.3) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k0,body.a11y .rchip.k0{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.28) 0 3px,transparent 3px 8px)}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .rchip{vertical-align:middle}
+.rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(0,0,0,0.3);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
+.rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+.fc.k4{background-color:var(--k4)}
+.fc.k3{color:#3a2800;text-shadow:none}
+.rchip.k4{background-color:var(--k4)}
+.rchip.k3{color:#3a2800;text-shadow:none}
+body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(135deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
+.table.n5{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
+.table.n6{grid-template-areas:"tl top tr" "left center right" "bottom bottom bottom"}
+.seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
+.seat.npc{background:rgba(255,255,255,0.45);border-color:rgba(80,50,120,0.4)}
+.npchand{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:300px}
+.npchand .fc{position:relative}
+.fc.hasChip::after{content:'切';position:absolute;top:-7px;right:-7px;width:17px;height:17px;border-radius:50%;background:#fff;color:#4a2680;border:2px solid #4a2680;font-family:serif;font-size:10px;line-height:13px;text-align:center;font-weight:700}
+.npcnote{font-size:10px;color:var(--text-soft);font-weight:600;letter-spacing:0.04em}
+.tc-ind{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.6);border-radius:10px;padding:4px 10px;font-size:11px;font-weight:600}
+.opt.num{min-width:38px;text-align:center;padding:8px 6px}
+.tag.ok b{color:#2c7a3c}.tag.bad b{color:#b3261e}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:44px}
+  .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
+  .fc i{font-size:12px}
+  .fc.mini{width:22px;height:32px;font-size:11px}
+  .table{padding:8px;gap:6px;min-height:0}
+  .back{width:9px;height:14px}
+  .hand{gap:3px}
+  .tr{gap:5px}
+  .tcell{max-width:74px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const COLORS = [
+  {n:'Rosa',  icon:'flower'},
+  {n:'Viola', icon:'moon'},
+  {n:'Verde', icon:'leaf'},
+  {n:'Oro',   icon:'sun'},
+  {n:'Blu',   icon:'drop'}
+];
+const NAMES = ['Tu','AI Sakura','AI Fuji','AI Matsu','AI Take'];
+const SEATC = ['#ffd166','#ff8fb8','#6ee7b7','#8ecbff','#c4a7ff'];
+const HUM = 0;
+const PER = {2:15,3:15,4:12,5:10};      // carte (e prese) per mano
+const WIN_HOM = 3, EXEC = 2;
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+const DECK = []; for(let s=0;s<5;s++) for(let r=1;r<=12;r++) DECK.push({s,r});
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('ut-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ut-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const plu = (n,s,p) => `${n} ${n===1?s:p}`;
+const cname = c => `${COLORS[c.s].n} ${c.r}`;
+const ck = c => c.s*20+c.r;
+const LORD = () => G.n, PRINCE = () => G.n+1;
+const isNpc = id => id>=G.n;
+const mname = id => id<G.n?G.pl[id].name:id===G.n?'Il Signore':'Il Principe';
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+function choose(title,options,info){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,info:info||'',res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// i giocatori devono rispondere al colore d'apertura se possono
+function legalOf(hand,trick){
+  if(!trick.length) return hand.slice();
+  const f=hand.filter(c=>c.s===trick[0].c.s);
+  return f.length?f:hand.slice();
+}
+// carta giocata dal Signore/Principe: apre con la carta più a sinistra (prima presa) o più a destra (dopo aver vinto);
+// risponde con la carta più alta del colore, altrimenti con quella più a sinistra
+function npcPick(hand,trick,first){
+  if(!trick.length) return first?hand[0]:hand[hand.length-1];
+  const f=hand.filter(c=>c.s===trick[0].c.s);
+  return f.length?f.reduce((a,b)=>b.r>a.r?b:a):hand[0];
+}
+// vince la carta più alta del colore della briscola (quello della carta sotto il segnalino), altrimenti del colore d'apertura
+function trickWinner(trick,tc){
+  const lead=trick[0].c.s, tr=trick.some(e=>e.c.s===tc), suit=tr?tc:lead;
+  let b=-1;
+  trick.forEach((e,i)=>{ if(e.c.s===suit&&(b<0||e.c.r>trick[b].c.r)) b=i; });
+  return b;
+}
+// punti Onore: 2 a chi indovina esattamente (tutti); altrimenti 1 a chi è più vicino (a pari distanza, solo la previsione più alta)
+function judge(gs,L){
+  const pts=gs.map(()=>0);
+  const ex=gs.map((g,i)=>g===L?i:-1).filter(i=>i>=0);
+  if(ex.length){ ex.forEach(i=>pts[i]=2); return pts; }
+  const d=Math.min(...gs.map(g=>Math.abs(g-L)));
+  const near=gs.map((g,i)=>Math.abs(g-L)===d?i:-1).filter(i=>i>=0);
+  const hi=Math.max(...near.map(i=>gs[i]));
+  near.filter(i=>gs[i]===hi).forEach(i=>pts[i]=1);
+  return pts;
+}
+
+// ═════════════════════════ AI: SIMULAZIONE DEL ROUND ═════════════════════════
+const keyOf = (c,lead,tc) => c.s===tc?100+c.r:c.s===lead?c.r:-1;
+// X = {order, hands:{id:[]}, wins:{id}, lead:id, trick:[{id,c}], tc, first, L, tg:{id}, pf:{id}}
+function runX(X){
+  const order=X.order, m=order.length;
+  const any=()=>order.some(id=>X.hands[id].length);
+  while(any()||X.trick.length){
+    if(!X.trick.length){ const lh=X.hands[X.L]; X.tc=lh.length?lh[lh.length-1].s:-1; }
+    const si=order.indexOf(X.lead);
+    for(let k=X.trick.length;k<m;k++){
+      const id=order[(si+k)%m], h=X.hands[id];
+      const c=X.npc.has(id)?npcPick(h,X.trick,X.first):X.pf[id](X,id,legalOf(h,X.trick));
+      X.hands[id]=h.filter(x=>x!==c); X.trick.push({id,c});
+    }
+    const w=X.trick[trickWinner(X.trick,X.tc)].id; X.wins[w]++; X.lead=w; X.first=false; X.trick=[];
+  }
+}
+const polRand = (X,id,L) => L[rnd(L.length)];
+// punta a far chiudere il Signore sulla propria previsione: vuole che vinca (non lo si batte) se gli servono prese, altrimenti lo si batte
+function polSteer(X,id,L){
+  if(L.length===1) return L[0];
+  const need=X.tg[id]-X.wins[X.L], tr=X.trick;
+  if(!tr.length) return L.reduce((a,b)=>(need>0?b.r<a.r:b.r>a.r)?b:a);
+  const lead=tr[0].c.s;
+  let best=-1;
+  for(const e of tr){ const k=keyOf(e.c,lead,X.tc); if(k>best) best=k; }
+  // carta che giocherebbe il Signore se non ha ancora giocato
+  if(!tr.some(e=>e.id===X.L)){ const lc=npcPick(X.hands[X.L],tr,false); if(lc){ const k=keyOf(lc,lead,X.tc); if(k>best) best=k; } }
+  const W=L.filter(c=>keyOf(c,lead,X.tc)>best), N=L.filter(c=>keyOf(c,lead,X.tc)<=best);
+  if(need>0){ if(N.length) return N.reduce((a,b)=>b.r>a.r?b:a); return L.reduce((a,b)=>b.r<a.r?b:a); }
+  if(W.length) return W.reduce((a,b)=>b.r<a.r?b:a);
+  return L.reduce((a,b)=>b.r<a.r?b:a);
+}
+// distribuisce le carte non viste (vuoti di colore noti); NPC e mano di p sono noti
+function sampleWorld(p){
+  const S=G.S, seen=new Set(S.hands[p].map(ck));
+  S.played.forEach(c=>seen.add(ck(c)));
+  S.npcIds.forEach(id=>S.hands[id].forEach(c=>seen.add(ck(c))));
+  const U=shuffle(DECK.filter(c=>!seen.has(ck(c)))), used=new Set(), hands={};
+  hands[p]=S.hands[p].slice();
+  S.npcIds.forEach(id=>hands[id]=S.hands[id].slice());
+  for(const q of shuffle([...Array(G.n).keys()].filter(x=>x!==p))){
+    const need=S.hands[q].length, take=[];
+    for(let i=0;i<U.length&&take.length<need;i++) if(!used.has(i)&&!S.void[q].has(U[i].s)) take.push(i);
+    if(take.length<need) for(let i=0;i<U.length&&take.length<need;i++) if(!used.has(i)&&!take.includes(i)) take.push(i);
+    take.forEach(i=>used.add(i));
+    hands[q]=take.map(i=>U[i]);
+  }
+  return hands;
+}
+function mkX(hands,trick,lead,wins,first,tc,tg,pf){
+  const S=G.S, h2={}; Object.keys(hands).forEach(k=>h2[k]=hands[k].slice());
+  return {order:S.order,hands:h2,wins:Object.assign({},wins),lead,trick:trick.map(e=>({id:e.id,c:e.c})),tc,first,L:G.n,npc:new Set(S.npcIds),tg,pf};
+}
+// ═════════════════════════ AI: PREVISIONE E GIOCO ═════════════════════════
+function aiGuess(p){
+  const S=G.S, n=G.n, T=S.T, Ls=[];
+  const pf={}; S.order.forEach(id=>pf[id]=polRand);
+  for(let i=0;i<30;i++){
+    const hands=sampleWorld(p);
+    const X=mkX(hands,[],S.lead,S.wins,true,-1,{},pf);
+    runX(X); Ls.push(X.wins[G.n]);
+  }
+  const mean=Ls.reduce((a,b)=>a+b,0)/Ls.length;
+  const vs=[];
+  for(let g=0;g<=T;g++){
+    let v=0;
+    for(const L of Ls){
+      const gs=[g]; for(let q=1;q<n;q++) gs.push(Math.max(0,Math.min(T,Ls[rnd(Ls.length)]+rnd(3)-1)));
+      v+=judge(gs,L)[0];
+    }
+    vs.push(v/Ls.length);
+  }
+  // scelta pesata tra le previsioni migliori, per non essere sempre uguali
+  const mx=Math.max(...vs), w=vs.map(v=>Math.exp((v-mx)*7));
+  let r=Math.random()*w.reduce((a,b)=>a+b,0), best=0;
+  for(let g=0;g<=T;g++){ r-=w[g]; if(r<=0){ best=g; break; } }
+  return best;
+}
+function aiPlay(p){
+  const S=G.S, L0=legalOf(S.hands[p],S.trick);
+  if(L0.length===1) return L0[0];
+  const cand=L0.slice().sort((a,b)=>a.r-b.r);
+  let c=cand;
+  if(cand.length>6){ c=[cand[0],cand[1],cand[cand.length>>1],cand[cand.length-3],cand[cand.length-2],cand[cand.length-1]]; c=c.filter((x,i)=>c.indexOf(x)===i); }
+  const NS=S.done<3?8:10, tot=c.map(()=>0), n=G.n;
+  const chip=G.pl[p].chip;
+  for(let i=0;i<NS;i++){
+    const hands=sampleWorld(p);
+    // obiettivo stimato degli altri: chiusura "neutra" del Signore ± 1
+    const pfN={}; S.order.forEach(id=>pfN[id]=polRand);
+    const X0=mkX(hands,S.trick,S.lead,S.wins,S.firstFlag,S.tc,{},pfN);
+    X0.hands[p]=X0.hands[p].slice(); runX(X0);
+    const L0w=X0.wins[n];
+    const tg={}; for(let q=0;q<n;q++) tg[q]=q===p?S.guess[p]:Math.max(0,Math.min(S.T,L0w+rnd(3)-1));
+    const pf={}; S.order.forEach(id=>pf[id]=polSteer);
+    c.forEach((card,ci)=>{
+      const hs={}; Object.keys(hands).forEach(k=>hs[k]=hands[k].slice());
+      hs[p]=hs[p].filter(x=>x!==card);
+      const X=mkX(hs,S.trick.concat({id:p,c:card}),S.lead,S.wins,S.firstFlag,S.tc,tg,pf);
+      runX(X);
+      const L=X.wins[n], gs=[]; for(let q=0;q<n;q++) gs.push(tg[q]);
+      let u=judge(gs,L)[p]*1.0;
+      if(X.wins[p]>L) u-=chip>=1?8:1.8;
+      tot[ci]+=u;
+    });
+  }
+  let bi=0; tot.forEach((v,i)=>{ if(v>tot[bi]+1e-9||(Math.abs(v-tot[bi])<1e-9&&Math.random()<0.3)) bi=i; });
+  return c[bi];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,round:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hom:0,chip:0}))};
+  run();
+}
+function deal(){
+  const n=G.n, r=G.round, per=PER[n];
+  let order;
+  if(n===2) order=r%2===0?[0,n,1,n+1]:[0,n+1,1,n];
+  else{ order=[...Array(n).keys()]; order.splice(r%n,0,n); }
+  const npcIds=n===2?[n,n+1]:[n];
+  const members=order.slice();
+  const d=shuffle(DECK.map(c=>({s:c.s,r:c.r})));
+  const hands={};
+  members.forEach((id,i)=>{ hands[id]=d.slice(i*per,(i+1)*per); });
+  // le mani dei giocatori sono ordinate; quelle di Signore e Principe restano nell'ordine di distribuzione (sinistra → destra)
+  for(let i=0;i<n;i++) hands[i].sort((a,b)=>a.s-b.s||a.r-b.r);
+  const wins={}; members.forEach(id=>wins[id]=0);
+  G.S={order,npcIds,hands,wins,T:per,trick:[],lead:n,res:null,done:0,tc:-1,firstFlag:true,phase:'guess',
+       played:[],guess:Array(n).fill(null),guessed:Array(n).fill(false),void:Array.from({length:n},()=>new Set())};
+}
+async function guessPhase(){
+  const S=G.S, n=G.n;
+  logMsg(`Il Signore siede ${n===2?'tra i due giocatori (e il Principe dall\'altra parte)':'tra '+mname(S.order[(S.order.indexOf(n)+S.order.length-1)%S.order.length])+' e '+mname(S.order[(S.order.indexOf(n)+1)%S.order.length])}. Le sue carte sono scoperte; il segnalino briscola è sulla carta più a destra (${cname(S.hands[n][S.hands[n].length-1])}).`);
+  status(`Quante prese vincerà il Signore in questo round (0–${S.T})? Le previsioni restano coperte fino alla fine.`);
+  const lord=S.hands[n];
+  for(let p=0;p<n;p++){
+    let g;
+    if(p===HUM) g=await choose(`Quante prese vincerà il Signore? (0–${S.T})`,Array.from({length:S.T+1},(_,i)=>({label:String(i),value:i,num:true})),
+      `<div class="hint">Le carte previsione valgono 0, 1, 2, 4, 8: la somma è la tua previsione (es. 7 = 1+2+4). Il Signore (a sinistra → destra): ${lord.map(c=>cname(c)).join(', ')}.</div>`);
+    else { await sleep(350); g=aiGuess(p); }
+    S.guess[p]=g; S.guessed[p]=true;
+    logMsg(`${G.pl[p].name} ha fatto la sua previsione (coperta).`);
+  }
+  S.phase='play';
+}
+async function playRound(){
+  const S=G.S, n=G.n, m=S.order.length;
+  logMsg(`Apre il Signore con la carta più a sinistra.`);
+  while(S.done<S.T){
+    S.trick=[]; S.res=null;
+    const lh=S.hands[n]; S.tc=lh[lh.length-1].s;
+    const si=S.order.indexOf(S.lead);
+    for(let k=0;k<m;k++){
+      const id=S.order[(si+k)%m]; G.turn=id;
+      status(id===HUM?'Tocca a te: gioca una carta.':`Tocca a ${mname(id)}.`);
+      let c;
+      if(isNpc(id)){ await sleep(750); c=npcPick(S.hands[id],S.trick,S.firstFlag); }
+      else if(id===HUM) c=await humanPlay();
+      else { await sleep(650); c=aiPlay(id); }
+      S.hands[id]=S.hands[id].filter(x=>x!==c);
+      if(S.trick.length&&c.s!==S.trick[0].c.s&&!isNpc(id)) S.void[id].add(S.trick[0].c.s);
+      S.trick.push({id,c}); S.played.push(c);
+      logMsg(`${mname(id)} gioca ${cname(c)}.`);
+    }
+    G.turn=-1;
+    const wi=trickWinner(S.trick,S.tc), w=S.trick[wi].id;
+    S.res=wi; S.wins[w]++;
+    logMsg(`${mname(w)} vince la presa n° ${S.done+1} con ${cname(S.trick[wi].c)}${S.trick.some(e=>e.c.s===S.tc)?` (briscola ${COLORS[S.tc].n})`:''}.`);
+    status(`${mname(w)} vince la presa.`);
+    await sleep(1300);
+    S.done++; S.lead=w; S.firstFlag=false; S.trick=[]; S.res=null;
+  }
+  G.turn=-1; S.phase='end';
+}
+async function scoring(){
+  const S=G.S, n=G.n, L=S.wins[n];
+  const pts=judge(S.guess,L);
+  const rows=G.pl.map((pl,p)=>{
+    const over=S.wins[p]>L;
+    pl.hom+=pts[p]; if(over) pl.chip++;
+    return {p,guess:S.guess[p],wins:S.wins[p],pts:pts[p],over};
+  });
+  G.show={rows,L};
+  logMsg(`Round ${G.round+1}: il Signore ha vinto ${plu(L,'presa','prese')}.`);
+  rows.forEach(r=>logMsg(`${G.pl[r.p].name}: previsione ${r.guess}, ${plu(r.wins,'presa','prese')}${r.pts?` → +${r.pts} Onore`:''}${r.over?' → ha messo a disagio il Signore: riceve un Uchikubi':''}.`));
+  status(`Round ${G.round+1} concluso.`);
+  await choose('Risultato del round',[{label:'Continua',value:1}]);
+  G.show=null;
+}
+function checkEnd(){
+  const g=G;
+  const exe=g.pl.filter(p=>p.chip>=EXEC).map(p=>p.id);
+  let win=g.pl.filter(p=>p.hom>=WIN_HOM&&!exe.includes(p.id)).map(p=>p.id);
+  if(!exe.length&&!win.length) return null;
+  if(!win.length){
+    const alive=g.pl.filter(p=>!exe.includes(p.id)), m=Math.max(...alive.map(p=>p.hom));
+    win=alive.filter(p=>p.hom===m).map(p=>p.id);
+  }
+  return {winners:win,executed:exe};
+}
+async function run(){
+  const g=G;
+  try{
+    for(let r=0;;r++){
+      g.round=r; deal();
+      logMsg(`— Round ${r+1} —`);
+      await guessPhase();
+      await playRound();
+      await scoring();
+      const e=checkEnd();
+      if(e){ g.over=e; break; }
+    }
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ MOSSE UMANE ═════════════════════════
+function humanPlay(){
+  const S=G.S, g=G, L=legalOf(S.hands[HUM],S.trick);
+  return new Promise((res,rej)=>{ PR={type:'play',legal:new Set(L.map(ck)),sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function pickCard(k){
+  if(!PR||PR.type!=='play'||!PR.legal.has(k)) return;
+  if(!OPT.undo){ finishPlay(k); return; }
+  PR.sel=PR.sel===k?null:k; render();
+}
+function finishPlay(k){
+  if(!PR||PR.type!=='play'||!PR.legal.has(k)) return;
+  const c=G.S.hands[HUM].find(x=>ck(x)===k), r=PR.res; PR=null; render(); r(c);
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='')=>`<span class="fc k${c.s} ${cls}" title="${cname(c)}"><span>${c.r}</span>${ico(COLORS[c.s].icon)}</span>`;
+function handBtn(c){
+  const k=ck(c);
+  if(PR&&PR.type==='play'){
+    const ok=PR.legal.has(k), sel=PR.sel===k;
+    return `<button class="fc k${c.s} ${ok?'':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-k="${k}" title="${cname(c)}"><span>${c.r}</span>${ico(COLORS[c.s].icon)}</button>`;
+  }
+  return kface(c);
+}
+function flagHtml(id){
+  if(!G||G.over||!G.S) return '';
+  const S=G.S; let f='';
+  if(S.phase==='play'&&S.done<S.T&&S.lead===id) f+='<span class="flag lead">Di mano</span>';
+  return f;
+}
+function seatHtml(id,pos){
+  const S=G.S, active=G.turn===id;
+  if(isNpc(id)){
+    const h=S.hands[id], isL=id===G.n;
+    const cards=h.map((c,i)=>kface(c,(isL&&i===h.length-1&&S.phase!=='end'?'hasChip':'')+' mini')).join('')||'<span class="hint">—</span>';
+    const name=`<div class="seat-name" style="border-bottom:3px solid #b89be0">${isL?'Il Signore':'Il Principe'}${flagHtml(id)}</div>`;
+    return `<div class="seat npc ${pos} ${S.phase==='play'&&S.done<S.T&&S.lead===id?'leader':''} ${active?'active':''}">${name}
+      <div class="seat-meta"><span class="tag">prese vinte <b>${S.wins[id]}</b></span></div>
+      <div class="npcnote">← sinistra · destra →${isL?' · 切 = segnalino briscola':''}</div>
+      <div class="npchand">${cards}</div></div>`;
+  }
+  const pl=G.pl[id];
+  const hand=id===HUM?`<div class="hand">${S.hands[HUM].map(handBtn).join('')||'<span class="hint">—</span>'}</div>`
+    :`<div class="backs">${S.hands[id].map(()=>'<span class="back"></span>').join('')||'<span class="hint">—</span>'}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag">Onore <b>${pl.hom}</b></span><span class="tag ${pl.chip?'bad':''}">Uchikubi <b>${pl.chip}</b></span><span class="tag">prese vinte <b>${S.wins[id]}</b></span><span class="tag">previsione <b>${id===HUM&&S.guess[id]!=null?S.guess[id]:S.guessed[id]?'coperta':'—'}</b></span></div>`;
+  const name=`<div class="seat-name" style="border-bottom:3px solid ${SEATC[id]}">${esc(pl.name)}${flagHtml(id)}</div>`;
+  const inner=pos==='bottom'?`${name}${meta}${hand}`:`${hand}${name}${meta}`;
+  return `<div class="seat ${pos} ${S.phase==='play'&&S.done<S.T&&S.lead===id?'leader':''} ${active?'active':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const S=G.S;
+  const cells=S.trick.map((e,i)=>`<div class="tcell ${S.res===i?'win':''}">${kface(e.c)}<span class="who" style="background:${e.id<G.n?SEATC[e.id]:'#b89be0'}">${esc(mname(e.id).replace(/^AI /,'').replace(/^Il /,''))}</span>${S.res===i?'vince':''}</div>`);
+  const lh=S.hands[G.n], tc=S.phase==='play'&&S.trick.length?S.tc:(lh.length?lh[lh.length-1].s:-1);
+  const tcInd=tc>=0&&S.phase!=='end'?`<span class="tc-ind">切 Briscola: <span class="rchip k${tc}">${ico(COLORS[tc].icon)} ${COLORS[tc].n}</span></span>`:'';
+  return `<div class="center"><span class="lbl2">${S.phase==='play'?`PRESA ${Math.min(S.done+1,S.T)}/${S.T}`:'PREVISIONI'}${S.trick.length?` · COLORE ${COLORS[S.trick[0].c.s].n.toUpperCase()}`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div>${tcInd}</div>`;
+}
+function scoreTable(){
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.hom}</td><td>${p.chip}</td></tr>`).join('');
+  return `<table class="score"><tr><th></th><th>Onore (Homare)</th><th>Uchikubi</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Utsuke contro l'AI. Quanti giocatori in tutto? (il Signore è un personaggio non giocante)</div>
+    <div class="opts">${[2,3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)${n===2?' · con il Principe':''}</button>`).join('')}</div>`;
+  if(G.over){
+    const nm=G.over.winners.map(i=>esc(G.pl[i].name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
+    const ex=G.over.executed.map(i=>esc(G.pl[i].name)).join(', ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b>${ex?` (${ex} è stato giustiziato)`:''}</div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show) html+=`<div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Previsione</th><th>Prese</th><th>Onore</th><th class="l">Esito</th></tr>${G.show.rows.map(r=>`<tr class="${r.p===HUM?'me':''}"><td>${esc(G.pl[r.p].name)}</td><td>${r.guess}</td><td>${r.wins}</td><td>${r.pts?'+'+r.pts:'—'}</td><td class="l">${r.over?'<b>Uchikubi!</b> (più prese del Signore)':''}</td></tr>`).join('')}</table></div><div class="hint">Il Signore ha vinto ${plu(G.show.L,'presa','prese')}.</div>`;
+  if(PR&&PR.type==='choose') html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div>${PR.info||''}<div class="opts">${PR.options.map((o,i)=>`<button class="opt ${o.num?'num':''}" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  else if(PR&&PR.type==='play'){
+    if(PR.sel!=null){ const c=G.S.hands[HUM].find(x=>ck(x)===PR.sel); html+=`<div class="opts"><button class="opt" data-ok="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-no="1">Annulla</button></div>`; }
+    else{
+      const S=G.S, L=S.wins[G.n];
+      html+=`<div class="hint">${S.trick.length?`Devi rispondere a ${COLORS[S.trick[0].c.s].n} se puoi.`:'Apri la presa con una carta qualsiasi.'} Previsione: ${S.guess[HUM]} · il Signore ha vinto ${L} · tu ${S.wins[HUM]} (non vincerne più del Signore!). Briscola: ${S.hands[G.n].length?COLORS[S.tc>=0?S.tc:S.hands[G.n][S.hands[G.n].length-1].s].n:'—'}.</div>`;
+    }
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n, per=PER[n];
+  return `<details class="recap"><summary>RIEPILOGO · ${n} GIOCATORI + ${n===2?'SIGNORE E PRINCIPE':'IL SIGNORE'}</summary>
+    <div class="recap-row"><span class="lbl">Carte</span>${COLORS.map((x,i)=>`<span class="rchip k${i}">${ico(x.icon)} ${x.n}</span>`).join('')}<span class="rv">60 carte (1–12 in 5 colori) · ${per} a testa, anche al Signore${n===2?' e al Principe':''}: ${per} prese</span></div>
+    <div class="recap-row"><span class="lbl">Signore</span><span class="rv">mano scoperta · apre con la carta più a sinistra, poi (se ha vinto) con quella più a destra · risponde con la carta più alta del colore, altrimenti la più a sinistra${n===2?' · il Principe fa lo stesso, ma non si prevedono le sue prese':''}</span></div>
+    <div class="recap-row"><span class="lbl">Briscola</span><span class="rv">il colore della carta più a destra del Signore (il segnalino resta fino a fine presa)</span></div>
+    <div class="recap-row"><span class="lbl">Previsione</span><span class="rv">quante prese vincerà il Signore (carte 0·1·2·4·8) · esatta: 2 Onore; se nessuno la indovina, 1 Onore al più vicino (a pari distanza, a quella più alta)</span></div>
+    <div class="recap-row"><span class="lbl">Uchikubi</span><span class="rv">chi vince più prese del Signore riceve un segnalino; il secondo ti fa perdere · vince chi arriva a 3 Onore</span></div></details>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>«Utsuke» è un gioco di prese per 2–5 giocatori in cui bisogna prevedere quante prese vincerà il Signore (un personaggio non giocante) e fare in modo di compiacerlo: se vinci più prese di lui lo metti a disagio e ricevi un segnalino Uchikubi (esecuzione). Chi per primo guadagna 3 punti Onore (Homare) vince.</p>
+<h4>Componenti e preparazione</h4>
+<p>60 carte (numeri 1–12, in 5 colori), 25 carte previsione (0, 1, 2, 4, 8 per ogni giocatore), 6 segnalini Onore (1 punto da un lato, 2 dall'altro), 5 segnalini Uchikubi e un segnalino briscola. Si distribuiscono tutte le carte coperte tra i giocatori e il Signore (15 a testa in 2–3 giocatori, 12 in 4, 10 in 5). Le carte del Signore si scoprono in fila: sono la sua mano. Il segnalino briscola va sulla carta più a destra del Signore. Ogni giocatore riceve le carte previsione 0, 1, 2, 4, 8.</p>
+<h4>Azioni del Signore</h4>
+<ul><li>Quando apre la presa (la prima del round) gioca la carta più a sinistra.</li>
+<li>Quando risponde: se può seguire il colore gioca il numero più alto di quel colore, altrimenti la carta più a sinistra.</li>
+<li>Subito dopo aver vinto una presa, apre con la carta più a destra.</li></ul>
+<h4>Previsione</h4>
+<p>A inizio round si vedono la mano del Signore e la propria: ognuno prevede quante prese vincerà il Signore nel round, componendo il numero con le carte previsione (somma dei valori) e mettendole coperte. Le previsioni si rivelano a fine round.</p>
+<h4>Le prese</h4>
+<p>Il Signore apre il round; poi in senso orario ognuno gioca una carta dello stesso colore della prima se può (anche di valore più basso), altrimenti una qualsiasi. Vince il numero più alto del colore della briscola, se ne è stata giocata una, altrimenti il più alto del colore d'apertura. Il vincitore prende le carte e apre la presa successiva. Il segnalino briscola resta sulla carta finché la presa non finisce; poi passa alla carta più a destra tra quelle rimaste al Signore (la briscola può quindi cambiare colore).</p>
+<h4>Fine del round</h4>
+<ol><li>Chi ha indovinato il numero di prese del Signore prende 2 Onore.</li>
+<li>Se nessuno lo ha indovinato, chi si è avvicinato di più prende 1 Onore.</li>
+<li>Se più giocatori sono ugualmente vicini, solo chi ha la previsione più alta prende il punto (a parità tra loro, tutti).</li>
+<li>Chi ha vinto più prese del Signore riceve un segnalino Uchikubi.</li></ol>
+<h4>Fine della partita</h4>
+<p>Se un giocatore arriva a 3 Onore vince subito (vittoria condivisa se più giocatori). Se hai già un Uchikubi e ne ricevi un altro vieni giustiziato e perdi, senza possibilità di scelta. Se non finisce nessuno si rimescola e il Signore si sposta di un posto in senso orario.</p>
+<h4>Variante a 2 giocatori</h4>
+<p>Si aggiunge il Principe, un secondo personaggio non giocante che si comporta come il Signore (la sua mano è scoperta, ma non si prevedono le sue prese). Signore e Principe stanno ai due lati dei giocatori e a ogni round si scambiano di posto; il segnalino briscola sta sul Signore.</p>
+<p><i>Interpretazioni nell'app:</i> le carte previsione sono sostituite da una scelta numerica (0–numero di prese) e rimangono coperte fino a fine round. «Più prese del Signore» è confrontato con le prese del solo Signore (anche a 2 giocatori). Con un solo giocatore che raggiunge 3 Onore e l'esecuzione di un altro, chi è giustiziato perde sempre; se la partita finisce per esecuzione senza vincitori a 3 Onore, vince tra i non giustiziati chi ha più Onore. I segnalini Onore non sono limitati a 6. Le carte del Signore sono nell'ordine di distribuzione.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function posFor(m){ return m===4?['bottom','left','top','right']:m===5?['bottom','left','tl','tr','right']:['bottom','left','tl','top','tr','right']; }
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">Utsuke</div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G&&G.S){
+    const S=G.S, m=S.order.length, h=S.order.indexOf(HUM);
+    const rot=S.order.map((_,i)=>S.order[(h+i)%m]), pos=posFor(m);
+    body=`<div class="table n${m}">${centerHtml()}${rot.map((id,i)=>seatHtml(id,pos[i])).join('')}</div>
+      <div class="dock" style="position:static">${scoreTable()}</div>
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  try{ if(localStorage.getItem('nylo-skip-name')==='1'){ NAMES[0]=localStorage.getItem('nylo-player-name')||'Nylo'; newMatch(n); return; } }catch(e){}
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.k!==undefined) pickCard(Number(b.dataset.k));
+  else if(b.dataset.ok!==undefined){ if(PR&&PR.type==='play'&&PR.sel!=null) finishPlay(PR.sel); }
+  else if(b.dataset.no!==undefined){ if(PR&&PR.type==='play'){ PR.sel=null; render(); } }
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('ut-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('ut-undo',OPT.undo?'1':'0'); }catch(err){}
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
