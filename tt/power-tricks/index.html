@@ -105,6 +105,9 @@ table.score tr.me td{background:var(--accent-soft)}
 
 .fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Libre Baskerville',serif;font-weight:700;font-size:22px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
 .fc i{font-size:19px}
+svg.gi{width:1.1em;height:1.1em;flex-shrink:0;vertical-align:-0.15em}
+.fc svg.gi{width:19px;height:19px}
+.gem svg.gi{width:11px;height:11px;vertical-align:-1px;margin-right:3px}
 .fc.k0{background-color:var(--k0)} .fc.k1{background-color:var(--k1)} .fc.k2{background-color:var(--k2)} .fc.k3{background-color:var(--k3)}
 .fc.hid{background:linear-gradient(135deg,#8d5cc8,#2c1070);color:#fff}
 .fc.mini{width:26px;height:38px;font-size:13px;gap:0}
@@ -168,14 +171,13 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 .recap.mine .draft{margin-top:2px}
 .rc.ok b.l{opacity:1}
 .fc.k0,.fc.k1,.fc.k2,.fc.k3{color:#fff}
-.gem{display:inline-flex;flex-direction:column;gap:2px;border-radius:7px;padding:4px 8px;font-size:11px;font-weight:500;line-height:1.3;max-width:230px;color:#fff;border:1px solid rgba(0,0,0,0.3);text-align:left;text-shadow:0 1px 1px rgba(0,0,0,0.35)}
-.gem b{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.9}
+.gem{display:inline-block;border-radius:7px;padding:4px 8px;font-size:11px;font-weight:500;line-height:1.3;max-width:230px;color:#fff;border:1px solid rgba(0,0,0,0.3);text-align:left;text-shadow:0 1px 1px rgba(0,0,0,0.35)}
 .gem.G{background:#3f8f4f}.gem.P{background:#8a3fa8}.gem.O{background:#d9822b}.gem.B{background:#2f8fc4}.gem.R{background:#c9363c}.gem.Y{background:#b8960e}
 .gem.used{opacity:0.45;text-decoration:line-through}
 .gemlist{display:flex;gap:6px;flex-wrap:wrap}
 .gemrow{display:flex;justify-content:center}
 .pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
-.pcard{background:rgba(255,255,255,0.7);border:1px solid var(--border);border-radius:9px;padding:7px 10px;font-size:12px;line-height:1.4}
+.pcard{background:#efefef;border:1px solid var(--border);border-radius:9px;padding:7px 10px;font-size:12px;line-height:1.4}
 .pcard .pt{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;letter-spacing:0.07em;color:var(--text-soft);margin-bottom:2px}
 .pcard .pt b.pl{color:#fff;border-radius:6px;padding:1px 8px;font-size:13px;letter-spacing:0}
 table.pbt{border-collapse:collapse;font-size:12px;width:100%;text-align:center}
@@ -196,6 +198,7 @@ body.a11y .fc.k0,body.a11y .rchip.k0{background-image:repeating-linear-gradient(
   :root{--cw:30px;--ch:44px}
   .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
   .fc i{font-size:12px}
+  .fc svg.gi{width:12px;height:12px}
   .fc.mini{width:22px;height:32px;font-size:11px}
   .table{padding:8px;gap:6px;min-height:0}
   .back{width:9px;height:14px}
@@ -211,7 +214,7 @@ body.a11y .fc.k0,body.a11y .rchip.k0{background-image:repeating-linear-gradient(
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const SUITS = [
-  {n:'Mazza',       ab:'Maz', icon:'hockey', lo:1, hi:9},
+  {n:'Mazza',       ab:'Maz', icon:'gi:mace', lo:1, hi:9},
   {n:'Martelli',    ab:'Mar', icon:'hammer', lo:1, hi:11},
   {n:'Asce',        ab:'Asc', icon:'axe',    lo:2, hi:13},
   {n:'Spade',       ab:'Spa', icon:'sword',  lo:3, hi:15}
@@ -220,7 +223,12 @@ const NAMES = ['Tu','AI Conan','AI Valka','AI Thorg','AI Brenna'];
 const SEATC = ['#ffd166','#ff8fb8','#6ee7b7','#8ecbff','#c9a6ff'];
 const HUM = 0, ROUNDS = 3;
 const CFGN = {3:{hand:11,pos:['bottom','left','right']}, 4:{hand:11,pos:['bottom','left','top','right']}, 5:{hand:9,pos:['bottom','left','tl','tr','right']}};
-const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+// icone da game-icons.net (CC BY 3.0: Lorc), inline e colorate col testo
+const GI = {
+ mace: "<path d=\"m246.47 16.29 43.774 85.93 40.65-42.927L246.47 16.29zm179.84 23.823-13.472 13.47 46.807 46.808 13.48-13.46-46.816-46.817zm-52.42.95L113.88 315.656l81.65 81.653L471.808 138.98 373.89 41.06zm-3.097 50.57c12.955 0 25.912 4.916 35.742 14.746 19.66 19.66 19.66 51.82 0 71.48-19.66 19.662-51.822 19.662-71.482 0-19.66-19.66-19.66-51.82 0-71.48 9.83-9.83 22.785-14.747 35.74-14.747zM167.367 104.97l42.176 82.48 38.86-41.044-81.036-41.437zm203.426 5.235c-8.134 0-16.266 3.13-22.525 9.39-12.52 12.518-12.52 32.533 0 45.05 12.518 12.52 32.534 12.52 45.052 0 12.52-12.517 12.52-32.532 0-45.05-6.26-6.26-14.394-9.39-22.527-9.39zM286.88 177.14c12.524.03 25.056 4.813 34.57 14.327 19.026 19.027 19.13 50.124.146 69.107-18.983 18.983-50.08 18.88-69.108-.148-19.027-19.027-19.13-50.124-.146-69.108 9.49-9.49 22.01-14.21 34.537-14.18zm166.58 4.58-43.43 40.608 86.58 44.102-43.15-84.71zM88.927 194.88l39.957 77.75 36.445-38.487-76.402-39.264zm197.926.83c-7.704-.02-15.394 2.922-21.295 8.823-11.804 11.803-11.776 30.756.146 42.678 11.923 11.923 30.875 11.953 42.678.15 11.804-11.804 11.777-30.756-.146-42.678-5.96-5.962-13.68-8.95-21.382-8.97zm-84.237 67.6c12.01.068 24.032 4.693 33.164 13.825 18.263 18.264 18.496 48.085.324 66.258-18.173 18.172-47.994 17.94-66.258-.325-18.264-18.264-18.497-48.085-.325-66.257 9.088-9.086 21.085-13.57 33.095-13.5zm163.38.194-41.893 39.17 83.843 42.873-41.95-82.043zM202.55 281.88a27.65 27.65 0 0 0-19.814 8.145c-10.942 10.943-10.884 28.62.325 39.83 11.21 11.207 28.886 11.265 39.83.323 10.94-10.943 10.883-28.62-.326-39.828-5.604-5.605-12.825-8.42-20.013-8.47zm75.343 64.003-39.666 37.088 79.8 41.01-40.134-78.097zm-158.784 1.43L18.93 447.493V494.9h45.648l101.13-100.988-46.6-46.6z\"/>",
+ gem: "<path d=\"m92.906 94.813 60.438 79.75 78.125-79.75H92.905zm189.25 0L359.25 173.5l58.688-78.688H282.155zm-25.344.843-84.718 86.47H341.53l-84.717-86.47zm177.907 7.906-58.626 78.563H494.53l-59.81-78.563zm-358.064.75-57.78 77.813h116.78l-59-77.813zm-58.5 96.5L226.562 429.22l-83.218-228.41H18.156zm145.063 0 93.593 256.844 93.593-256.844H163.22zm207.06 0L287.064 429.22l208.405-228.41H370.28z\"/>"
+};
+const ico = n => n.startsWith('gi:')?`<svg class="gi" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true">${GI[n.slice(3)]}</svg>`:`<i class="ph-fill ph-${n}"></i>`;
 const DECK = []; SUITS.forEach((s,i)=>{ for(let r=s.lo;r<=s.hi;r++) DECK.push({s:i,r}); });
 
 // Carte "Bonus potere": bonus[v-1] per potere +v
@@ -903,7 +911,7 @@ function handBtn(c){
   }
   return kface(c);
 }
-const gemHtml=(g,cls='')=>`<span class="gem ${g.c} ${cls}" title="${esc(gemLabel(g))}"><b>${GCOL[g.c]}</b>${esc(g.txt)}</span>`;
+const gemHtml=(g,cls='')=>`<span class="gem ${g.c} ${cls}" title="${esc(gemLabel(g))}">${ico('gi:gem')}${esc(g.txt)}</span>`;
 function trumpTxt(S){
   if(S.trump.type==='high') return 'carta più alta';
   if(S.trump.type==='suit') return `${ico(SUITS[S.trump.suit].icon)} ${SUITS[S.trump.suit].n}`;
@@ -1036,6 +1044,7 @@ const RULES_HTML = `
 <h4>Fine della partita</h4>
 <p>Dopo 3 round vince chi ha più punti. In caso di parità vince chi ha preso il potere più alto nell'ultimo round.</p>
 <p><i>Interpretazioni nell'app:</i> il valore di una carta è il suo numero più il potere del giocatore (e gli effetti delle gemme). Se nessun potere è stato afferrato non c'è bonus anche se rispetti la puntata. Le gemme prese sono visibili a tutti. Le gemme azzurre ±1 si usano a fine round solo se convengono; «pesca tre gemme» scarta la carta e ti fa tenere una delle tre pescate (non un'altra «pesca tre»). «Scarta: seme a scelta» cambia il seme della carta per quella presa (l'obbligo di seme si controlla sul seme vero); chi apre con quella carta fissa il seme d'apertura. «Sempre per ultimo» vale dalla presa successiva a quella in cui prendi la gemma. «Presa vinta dalla più bassa» usa gli stessi gruppi di una presa normale (briscola, poi seme d'apertura) ma vince il valore più basso, con le stesse regole di parità. «Cambia briscola» vale da subito fino a fine round. La presa che conta 2 prese vale 2 anche per puntata e punti presa (se più giocatori la usano nella stessa presa si sommano). La puntata del round dipende dal numero di giocatori (carta Puntata A/B).</p>
+<p><i>Icone:</i> mazza e gemma da game-icons.net (licenza CC BY 3.0; autore Lorc).</p>
 </div></details>`;
 
 let LOGOPEN=false;
