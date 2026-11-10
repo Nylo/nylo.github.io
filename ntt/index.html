@@ -75,6 +75,40 @@
                         if (i >= 0) f.splice(i, 1); else f.push(name);
                         try { localStorage.setItem(favKey(), JSON.stringify(f)); } catch (e) {}
                 }
+
+                // statistiche personali (scritte da /home-btn.js nelle pagine di gioco): chiave nylo-stats:<nome>, per gioco e modalità
+                function loadStats(g) {
+                        try { var d = JSON.parse(localStorage.getItem(favKey().replace('nylo-tt-fav:', 'nylo-stats:')) || '{}'); return d[g.ai] || {}; } catch (e) { return {}; }
+                }
+                function statsBtn(g) {
+                        return '<button type="button" data-stats="' + esc(g.name) + '" title="Statistiche" aria-label="Statistiche: ' + esc(g.name) + '" class="inline-flex h-8 w-8 items-center justify-center rounded-md text-lg text-slate-500 transition-colors hover:bg-white/10 hover:text-slate-200"><i class="ph ph-chart-bar" aria-hidden="true"></i></button>';
+                }
+                function pct(n, tot) { return tot ? Math.round(n * 100 / tot) : 0; }
+                function statSection(label, s) {
+                        s = s || { p: 0, a: 0, w: 0, l: 0 };
+                        var pw = pct(s.w, s.p), pl = pct(s.l, s.p);
+                        function row(k, v) { return '<div class="flex justify-between py-1"><dt class="text-slate-400">' + k + '</dt><dd class="font-semibold tabular-nums">' + v + '</dd></div>'; }
+                        function bar(k, v, color) { return '<div class="py-1"><div class="flex justify-between"><span class="text-slate-400">' + k + '</span><span class="font-semibold tabular-nums">' + v + '%</span></div><div class="mt-1 h-1.5 overflow-hidden rounded bg-white/10"><div class="h-full rounded ' + color + '" style="width:' + v + '%"></div></div></div>'; }
+                        return '<section class="mt-4"><h3 class="text-xs font-semibold uppercase tracking-wide text-slate-400">' + label + '</h3><dl class="mt-1 divide-y divide-slate-800 text-sm">' +
+                                row('Partite giocate', s.p) + row('Partite abbandonate', s.a) + row('Vinte', s.w) + row('Perse', s.l) + '</dl>' +
+                                '<div class="text-sm">' + bar('% vinte', pw, 'bg-emerald-500') + bar('% perse', pl, 'bg-rose-500') + '</div></section>';
+                }
+                function openStats(name) {
+                        var g = GAMES.filter(function (x) { return x.name === name; })[0]; if (!g) return;
+                        var st = loadStats(g), n = '';
+                        try { n = localStorage.getItem('nylo-player-name') || ''; } catch (e) {}
+                        var ov = document.getElementById('statsModal');
+                        if (!ov) { ov = document.createElement('div'); ov.id = 'statsModal'; document.body.appendChild(ov); }
+                        ov.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4';
+                        ov.innerHTML = '<div role="dialog" aria-modal="true" aria-label="Statistiche" class="max-h-full w-full max-w-sm overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 p-5 text-slate-100 shadow-2xl">' +
+                                '<div class="flex items-start justify-between gap-3"><div><div class="text-lg font-bold">' + esc(g.name) + '</div><div class="text-xs text-slate-400">Statistiche di ' + esc(n || 'ospite') + '</div></div>' +
+                                '<button type="button" data-close="1" aria-label="Chiudi" class="rounded-md p-1 text-slate-400 hover:bg-white/10 hover:text-slate-100"><i class="ph ph-x text-lg" aria-hidden="true"></i></button></div>' +
+                                statSection('Contro l\'AI', st.ai) + (st.friends ? statSection('Contro gli amici', st.friends) : '') +
+                                '<p class="mt-4 text-[11px] leading-snug text-slate-500">Vinte e perse contano le partite concluse (una vittoria condivisa vale come vinta). Le statistiche sono salvate su questo browser dall\'ultimo aggiornamento.</p></div>';
+                        ov.onclick = function (e) { if (e.target === ov || e.target.closest('[data-close]')) ov.remove(); };
+                        document.onkeydown = function (e) { if (e.key === 'Escape' && document.getElementById('statsModal')) document.getElementById('statsModal').remove(); };
+                        ov.querySelector('[data-close]').focus();
+                }
                 function favBtn(g, on) {
                         return '<button type="button" data-fav="' + esc(g.name) + '" aria-pressed="' + on + '" title="' + (on ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti') + '" aria-label="' + (on ? 'Rimuovi dai preferiti: ' : 'Aggiungi ai preferiti: ') + esc(g.name) + '" class="inline-flex h-8 w-8 items-center justify-center rounded-md text-lg transition-colors hover:bg-white/10 ' + (on ? 'text-amber-300' : 'text-slate-500 hover:text-slate-200') + '"><i class="' + (on ? 'ph-fill' : 'ph') + ' ph-bookmark-simple" aria-hidden="true"></i></button>';
                 }
@@ -88,11 +122,13 @@
                                 '<td class="w-px whitespace-nowrap px-3 py-3 text-slate-300">' + esc(g.players) + '</td>' +
                                 '<td class="w-px whitespace-nowrap pl-3 pr-1 py-3 text-right">' + stateBadge(g) + '</td>' +
                                 '<td class="w-px whitespace-nowrap pl-1 pr-2 py-3 text-right">' + betaBadge(g) + '</td>' +
-                                '<td class="w-px whitespace-nowrap pl-1 pr-3 py-2 text-right">' + favBtn(g, on) + '</td></tr>';
+                                '<td class="w-px whitespace-nowrap pl-1 pr-3 py-2 text-right">' + statsBtn(g) + favBtn(g, on) + '</td></tr>';
         }).join('');
                 }
                 show();
                 games.addEventListener('click', function (e) {
+                        var sb = e.target.closest('button[data-stats]');
+                        if (sb) { openStats(sb.getAttribute('data-stats')); return; }
                         var fb = e.target.closest('button[data-fav]');
                         if (fb) { toggleFav(fb.getAttribute('data-fav')); show(); return; }
                         var row = e.target.closest('tr[data-href]');

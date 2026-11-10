@@ -181,5 +181,46 @@
     warn.textContent = noWarn ? ' ' : 'La partita in corso andrà persa.';
     ov.style.display = 'flex'; ov.querySelector('[data-no]').focus();
   });
+  // statistiche personali per gioco: partite concluse / abbandonate / vinte / perse, salvate nel browser per nome giocatore
+  // (chiave nylo-stats:<nome>; per gioco e modalità ai|friends). Si legge lo stato globale G delle pagine di gioco (indice 0 = giocatore umano)
+  (function stats() {
+    if (inFrame) return;
+    var m = location.pathname.match(/^\/(n?tt)\/([^/]+)\//);
+    if (!m) return;
+    var mode = /\/online\//.test(location.pathname) ? 'friends' : 'ai';
+    var gkey = '/' + m[1] + '/' + m[2] + '/';
+    function skey() {
+      var n = ''; try { n = localStorage.getItem('nylo-player-name') || ''; } catch (e) {}
+      return 'nylo-stats:' + (n.trim().toLowerCase() || 'ospite');
+    }
+    function rec(kind) {
+      try {
+        var d = JSON.parse(localStorage.getItem(skey()) || '{}');
+        var g = d[gkey] || (d[gkey] = {});
+        var s = g[mode] || (g[mode] = { p: 0, a: 0, w: 0, l: 0 });
+        if (kind === 'a') s.a++; else { s.p++; if (kind === 'w') s.w++; else if (kind === 'l') s.l++; }
+        localStorage.setItem(skey(), JSON.stringify(d));
+      } catch (e) {}
+    }
+    function getG() { try { return typeof G !== 'undefined' ? G : null; } catch (e) { return null; } }
+    function ended(g) { return g.phase === 'gameEnd' || !!(g.over && typeof g.over === 'object'); }
+    function result(g) {
+      var o = g.over;
+      if (typeof o === 'number') return o === 0 ? 'w' : 'l';
+      if (!o || typeof o !== 'object') return 'x';
+      var w = o.winners; if (w === undefined) w = o.winner;
+      if (w === undefined) return 'x';
+      return (Array.isArray(w) ? w.indexOf(0) >= 0 : w === 0) ? 'w' : 'l';
+    }
+    var cur = null, done = false;
+    function tick() {
+      var g = getG();
+      if (g !== cur) { if (cur && !done) rec('a'); cur = g; done = false; }
+      if (cur && !done && ended(cur)) { done = true; rec(result(cur)); }
+    }
+    setInterval(tick, 400);
+    window.addEventListener('pagehide', function () { tick(); if (cur && !done) { done = true; rec('a'); } });
+  })();
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();
 })();
