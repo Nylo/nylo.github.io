@@ -68,9 +68,9 @@
             return b;
           };
           var items = [];
+          if (topbar.querySelector(':scope > [data-home]')) items.push(mk('Home', { 'data-home': '1' }));
           var back = topbar.querySelector(':scope > [data-back]');
           if (back) items.push(mk('Indietro', { 'data-back': back.getAttribute('data-back'), 'data-back-what': back.getAttribute('data-back-what') || '' }));
-          if (topbar.querySelector(':scope > [data-home]')) items.push(mk('Home', { 'data-home': '1' }));
           if (topbar.querySelector(':scope > [data-new]')) items.push(mk('Nuova partita', { 'data-new': '1' }));
           if (items.length) {
             var sep = document.createElement('div'); sep.className = 'nylo-sep';
