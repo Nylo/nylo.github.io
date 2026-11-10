@@ -247,9 +247,16 @@ function pickCentre(mode){
 }
 function draftPick(v){
   if(!PR||PR.type!=='draft') return;
-  const S=G.S, r=PR.res;
+  const S=G.S;
   const val=v==='z'?'zero':S.centre[Number(v)];
   if(val==null||(val==='zero'&&(PR.mode!=='take'||S.zc<=0||S.zero[HUM]))) return;
+  if(!OPT.undo){ draftDo(v); return; }
+  PR.sel=PR.sel===v?null:v; render();
+}
+function draftDo(v){
+  if(!PR||PR.type!=='draft') return;
+  const val=v==='z'?'zero':G.S.centre[Number(v)], r=PR.res;
+  if(val==null) return;
   PR=null; render(); r(val);
 }
 function answer(i){
@@ -618,9 +625,9 @@ function centerHtml(){
   let mid='';
   if(S.phase==='draw'){
     const dr=PR&&PR.type==='draft', canZ=dr&&PR.mode==='take'&&S.zc>0&&!S.zero[HUM];
-    const dieB=e=>{ const d=e.d, i=e.i; return dr?`<button class="die big k${d.s} pickable" data-dr="${i}" title="${iname(d)}">${ico(DICE_ICO[d.r-1])}</button>`:dieFace(d,'big'); };
+    const dieB=e=>{ const d=e.d, i=e.i; return dr?`<button class="die big k${d.s} pickable ${PR.sel===String(i)?'sel':''}" data-dr="${i}" title="${iname(d)}">${ico(DICE_ICO[d.r-1])}</button>`:dieFace(d,'big'); };
     const sorted=S.centre.map((d,i)=>({d,i})).sort((a,b)=>SORTC==='n'?(a.d.r-b.d.r||a.d.s-b.d.s):(a.d.s-b.d.s||a.d.r-b.d.r));
-    const zB=()=>canZ?`<button class="die big z pickable" data-dz="1" title="Dado «Zero prese»: puoi prenderlo al posto di un dado colorato (devi rimettere un dado nel sacchetto)">0</button>`:zeroFace('big');
+    const zB=()=>canZ?`<button class="die big z pickable ${PR.sel==='z'?'sel':''}" data-dz="1" title="Dado «Zero prese»: puoi prenderlo al posto di un dado colorato (devi rimettere un dado nel sacchetto)">0</button>`:zeroFace('big');
     mid=`<span class="lbl2">DADI DISPONIBILI</span><button class="btn btn-sm" data-sort="1">${SORTC==='n'?'Ordina per numero &gt; colore':'Ordina per colore &gt; numero'}</button><div class="pool">${sorted.map(dieB).join('')}${Array.from({length:S.zc},zB).join('')}</div>${dr?`<span class="hint pickhint">${PR.mode==='take'?'Tocca il dado che vuoi prendere':'Tocca il dado da rimettere nel sacchetto'}</span>`:''}`;
   }
   else mid=`<span class="lbl2">PRESA ${Math.min(S.done+1,S.tot)}/${S.tot}${S.trick.length?` · COLORE ${COLORS[S.trick[0].it.s].n.toUpperCase()}${S.trick[0].it.tc?' (BRISCOLA)':''}`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div>`;
@@ -642,7 +649,9 @@ function dockHtml(){
   }
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
   if(G.show) html+=`<div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Prese</th><th>Dado finale</th><th class="l">Bonus</th><th>Punti</th></tr>${G.show.rows.map(r=>`<tr class="${r.p===HUM?'me':''}"><td>${esc(P(r.p).name)}</td><td>${r.won}</td><td>${r.zero?'Zero':r.fin}${r.match?' ✓':''}</td><td class="l">${r.match?`+${r.bonus}${r.zb?` +${r.zb} (Zero)`:''}`:'—'}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`;
-  if(PR&&PR.type==='draft') html+='';
+  if(PR&&PR.type==='draft'){
+    if(PR.sel!=null){ const lb=PR.sel==='z'?'il dado «Zero prese»':iname(G.S.centre[Number(PR.sel)]); html+=`<div class="opts"><button class="opt" data-dok="1">Conferma: ${PR.mode==='take'?'prendi':'rimetti nel sacchetto'} ${esc(lb)}</button><button class="opt" data-dno="1">Annulla</button></div>`; }
+  }
   else if(PR&&PR.type==='choose') html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div>${PR.info||''}<div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${o.die?dieFace(o.die,'mini'):''}${esc(o.label)}</button>`).join('')}</div>`;
   else if(PR&&PR.type==='play'){
     if(PR.sel){ html+=`<div class="opts"><button class="opt" data-ok="1">Conferma: gioca ${iname(PR.sel)}</button><button class="opt" data-no="1">Annulla</button></div>`; }
@@ -743,6 +752,8 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.it!==undefined) pickItem(Number(b.dataset.it));
+  else if(b.dataset.dok!==undefined){ if(PR&&PR.type==='draft'&&PR.sel!=null) draftDo(PR.sel); }
+  else if(b.dataset.dno!==undefined){ if(PR&&PR.type==='draft'){ PR.sel=null; render(); } }
   else if(b.dataset.sort!==undefined){ SORTC=SORTC==='n'?'c':'n'; try{ localStorage.setItem('nd-sort',SORTC); }catch(x){} render(); }
   else if(b.dataset.dr!==undefined) draftPick(b.dataset.dr);
   else if(b.dataset.dz!==undefined) draftPick('z');
