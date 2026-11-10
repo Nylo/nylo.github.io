@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gomimushi Trick</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#ebe7d2;
+  --surface:#fbf9ee;
+  --surface-raised:#e6e1c4;
+  --accent:#5d6b1c;
+  --accent-soft:rgba(93,107,28,0.16);
+  --text:#2b2a18;
+  --text-soft:#6b684a;
+  --danger:#b3261e;
+  --success:#2c7a3c;
+  --border:rgba(70,68,25,0.3);
+  --radius:10px;
+  --k0:#2a2a30; --k1:#c9372c; --k2:#2f6aa6; --k3:#4f8f3a;
+  --cw:44px; --ch:64px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#f6f3df 0%,#cfc9a0 100%) fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Libre Baskerville',serif;font-size:24px;font-weight:700;font-style:italic;line-height:1.1;flex:1;color:var(--accent)}
+.badge{background:var(--accent);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.3)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd54a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.flag.role{background:var(--accent);color:#fff}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Libre Baskerville',serif;font-size:16px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.8);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(60,55,20,0.3)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt.num{min-width:38px;text-align:center;padding:8px 6px}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+.infohand{display:flex;gap:4px;flex-wrap:wrap}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score tr.me td{background:var(--accent-soft)}
+.scroll-x{overflow-x:auto}
+
+.rolebox{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px}
+.rolebox p{font-size:12px;line-height:1.55;color:var(--text-soft)}
+.rolebox p b{color:var(--text)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#f5f1d6 0%,#c7c18d 95%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:520px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(70,68,25,0.5);background:rgba(255,255,255,0.4)}
+.seat.active{border-color:#d08a1e;background:rgba(208,138,30,0.2)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(70,68,25,0.14);border-radius:4px;padding:2px 6px}
+.tag b{color:#3f4a0c}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:220px}
+.back{width:12px;height:18px;border-radius:3px;background:linear-gradient(135deg,#8a9a3a,#3b4510);border:1px solid #fff}
+.seat.left .backs,.seat.right .backs{max-width:130px}
+.lbl2{font-size:10px;font-weight:700;color:var(--text-soft);letter-spacing:0.06em}
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:6px}
+.tr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;min-height:70px;align-items:flex-end}
+.tcell{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;max-width:96px;text-align:center}
+.tcell.win .fc{box-shadow:0 0 0 3px #ffd54a}
+.tcell .who{padding:1px 7px;border-radius:9px;color:#111;font-weight:700}
+.tcell .say{font-weight:500;font-style:italic;color:var(--text-soft);line-height:1.25}
+.hand{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding-top:8px}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Libre Baskerville',serif;font-weight:700;font-size:22px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
+.fc i{font-size:19px}
+.fc.k0{background-color:var(--k0)} .fc.k1{background-color:var(--k1)} .fc.k2{background-color:var(--k2)} .fc.k3{background-color:var(--k3)}
+.fc.hid{background:linear-gradient(135deg,#8a9a3a,#3b4510);color:#fff}
+.fc.mini{width:26px;height:38px;font-size:13px;gap:0}
+.fc.mini i{font-size:10px}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+body.a11y .fc.k1,body.a11y .rchip.k1{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .fc.k2,body.a11y .rchip.k2{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.3) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k0,body.a11y .rchip.k0{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.28) 0 3px,transparent 3px 8px)}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .rchip{vertical-align:middle}
+.rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(0,0,0,0.3);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
+.rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:44px}
+  .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
+  .fc i{font-size:12px}
+  .fc.mini{width:22px;height:32px;font-size:11px}
+  .table{padding:8px;gap:6px;min-height:0}
+  .back{width:9px;height:14px}
+  .hand{gap:3px}
+  .tr{gap:5px}
+  .tcell{max-width:74px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const SUITS = [
+  {n:'Nero',  icon:'bug-beetle'},
+  {n:'Rosso', icon:'flame'},
+  {n:'Blu',   icon:'drop'},
+  {n:'Verde', icon:'leaf'}
+];
+const ROLES = ['Sasaki','Nakagawa','Kigami','Haruta'];
+const SA=0, NA=1, KI=2, HA=3;
+const POS = ['bottom','left','top','right'];
+const NAMES = ['Tu','AI Kabuto','AI Kuwagata','AI Hotaru'];
+const SEATC = ['#ffd166','#ff8fb8','#6ee7b7','#8ecbff'];
+const HUM = 0, ROUNDS = 4, NT = 15;
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+const DECK = []; for(let s=0;s<4;s++) for(let r=1;r<=15;r++) DECK.push({s,r});
+const ROLE_TXT = [
+  'Dichiari per primo. <b>+3</b> se rispetti la tua dichiarazione (anche se Kigami te l\'ha alzata di 1); <b>+1</b> se Nakagawa fallisce la sua; <b>+2</b> se alla Frenesia indovini le prese di Haruta. Una tua carta che non risponde al seme conta come del seme d\'apertura (ma perdi i pareggi).',
+  'Vedi la mano di Haruta, dichiari per lui e per te e poi giochi senza guardare il tavolo. <b>+4</b> se rispetti la tua dichiarazione; <b>+2</b> se Haruta rispetta la sua. Puoi sempre controllare prese vinte e dichiarazioni.',
+  'Nessuna dichiarazione. <b>+2</b> se le tue prese sono diverse da quelle di Haruta; <b>+2</b> se sono diverse da quelle di Nakagawa. Alla Frenesia di Sasaki puoi proporgli +1 alla dichiarazione: <b>+2</b> se grazie a questo la rispetta.',
+  'Nakagawa dichiara al posto tuo. <b>+3</b> se rispetti la dichiarazione imposta; <b>+2</b> se Nakagawa rispetta la propria; <b>+1</b> se la tua dichiarazione fallisce ma hai sventato la previsione di Sasaki sulle tue prese.'
+];
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('gm-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('gm-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+// spoken = ciò che si dice ad alta voce (visibile anche a Nakagawa che non guarda il tavolo); null = non detto
+function logMsg(full,spoken){ G.log.unshift({f:full,s:spoken===undefined?full:spoken,r:G.round}); if(G.log.length>900) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const cname = c => `${SUITS[c.s].n} ${c.r}`;
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.r-b.r);
+const key = c => c.s*20+c.r;
+const plu = (n,s,p) => `${n} ${n===1?s:p}`;
+const roleOf = p => (p-G.round%4+4)%4;
+const seatOfRole = r => (r+G.round)%4;
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+function choose(title,options,info){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,info:info||'',res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+const numOpts = (skip) => Array.from({length:NT+1},(_,i)=>({label:String(i),value:i,disabled:i===skip,num:true}));
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+function legalOf(hand,trick){
+  if(!trick.length) return hand.slice();
+  const f=hand.filter(c=>c.s===trick[0].c.s);
+  return f.length?f:hand.slice();
+}
+// seme "efficace": la carta di Sasaki conta sempre come del seme d'apertura
+const effS = (e,lead,sas) => e.p===sas?lead:e.c.s;
+function winIdx(tr,sas){
+  const lead=tr[0].c.s;
+  const suit=tr.some(e=>effS(e,lead,sas)===0)?0:lead;
+  let b=-1;
+  tr.forEach((e,i)=>{
+    if(effS(e,lead,sas)!==suit) return;
+    if(b<0||e.c.r>tr[b].c.r||(e.c.r===tr[b].c.r&&tr[b].p===sas)) b=i;
+  });
+  return b;
+}
+const winsNow = (tr,c,p,sas) => tr.length===0 || winIdx(tr.concat({p,c}),sas)===tr.length;
+
+// ═════════════════════════ AI: SIMULAZIONI ═════════════════════════
+// distribuisce le carte ignote agli altri rispettando i vuoti di seme noti; known = mani già note (es. Haruta per Nakagawa)
+function sampleWorld(p,known){
+  const S=G.S, seen=new Set(S.hands[p].map(key));
+  S.played.forEach(c=>seen.add(key(c)));
+  const hands=[]; hands[p]=S.hands[p].slice();
+  const kn=known||{};
+  Object.keys(kn).forEach(q=>{ hands[q]=kn[q].slice(); kn[q].forEach(c=>seen.add(key(c))); });
+  const U=shuffle(DECK.filter(c=>!seen.has(key(c))).map(c=>({s:c.s,r:c.r})));
+  const used=new Set();
+  const order=shuffle([0,1,2,3].filter(q=>q!==p&&!kn[q]));
+  for(const q of order){
+    const need=S.hands[q].length, take=[];
+    for(let i=0;i<U.length&&take.length<need;i++) if(!used.has(i)&&!S.void[q].has(U[i].s)) take.push(i);
+    if(take.length<need) for(let i=0;i<U.length&&take.length<need;i++) if(!used.has(i)&&!take.includes(i)) take.push(i);
+    take.forEach(i=>used.add(i));
+    hands[q]=take.map(i=>U[i]);
+  }
+  return hands;
+}
+const BIDSHIFT = 0.8;
+const vv = c => c.r+(c.s===0?20:0);
+const lg = (h,lead) => { if(lead<0) return h; const f=h.filter(c=>c.s===lead); return f.length?f:h; };
+// politiche per le simulazioni: (X, seat, seme d'apertura|-1, wins(c) = la carta batte la migliore attuale)
+const polRand = (X,q,lead) => { const L=lg(X.hands[q],lead); return L[rnd(L.length)]; };
+function polGreedy(X,q,lead,wins){
+  const L=lg(X.hands[q],lead); if(L.length===1) return L[0];
+  if(lead<0) return L.reduce((a,b)=>b.r>a.r?b:a);
+  const W=L.filter(wins), A=W.length?W:L;
+  return A.reduce((a,b)=>b.r<a.r?b:a);
+}
+// punta all'obiettivo X.tg[q]: vince la presa con una probabilità pari a (prese mancanti / prese rimaste)
+function polT(X,q,lead,wins){
+  const L=lg(X.hands[q],lead); if(L.length===1) return L[0];
+  const need=X.tg[q]-X.won[q], rem=X.hands[q].length;
+  const win=need>0&&(need>=rem||Math.random()<need/rem);
+  if(lead<0) return L.reduce((a,b)=>(win?vv(b)>vv(a):vv(b)<vv(a))?b:a);
+  const W=L.filter(wins), N=L.filter(c=>!wins(c));
+  if(win){ const A=W.length?W:L; return A.reduce((a,b)=>vv(b)<vv(a)?b:a); }
+  if(N.length) return N.reduce((a,b)=>vv(b)>vv(a)?b:a);
+  return L.reduce((a,b)=>vv(b)<vv(a)?b:a);
+}
+// gioca fino alla fine partendo da X (anche a presa iniziata)
+function simGen(X){
+  const sas=X.sas;
+  while(X.trick.length||X.hands.some(h=>h.length)){
+    const tr=X.trick;
+    let lead=tr.length?tr[0].c.s:-1, bes=-1, br=0, bp=-1;
+    const bt=(es,r,p)=>bp<0||(es===0&&bes!==0)||(es===bes&&(r>br||(r===br&&bp===sas)));
+    for(const e of tr){ const es=e.p===sas?lead:e.c.s; if(bt(es,e.c.r,e.p)){ bes=es; br=e.c.r; bp=e.p; } }
+    while(tr.length<4){
+      const q=(X.lead+tr.length)%4;
+      const wins=c=>bt(q===sas?(lead<0?c.s:lead):c.s,c.r,q);
+      const c=X.pf[q](X,q,lead,wins);
+      if(lead<0) lead=c.s;
+      X.hands[q]=X.hands[q].filter(x=>x!==c);
+      const es=q===sas?lead:c.s;
+      if(bt(es,c.r,q)){ bes=es; br=c.r; bp=q; }
+      tr.push({p:q,c});
+    }
+    X.won[bp]++; X.trick=[]; X.lead=bp;
+  }
+}
+function worldX(p,known,pf,tg){
+  const S=G.S;
+  return {hands:sampleWorld(p,known),trick:S.trick.map(e=>({p:e.p,c:e.c})),lead:S.lead,won:S.won.slice(),sas:S.sas,pf,tg};
+}
+// risultati finali (prese per giocatore) di ns partite simulate dallo stato corrente; gs = giocatori "greedy", gli altri a caso
+function estimate(p,ns,known,gs){
+  const out=[], pf=[0,1,2,3].map(q=>gs.includes(q)?polGreedy:polRand);
+  for(let i=0;i<ns;i++){ const X=worldX(p,known,pf); simGen(X); out.push(X.won); }
+  return out;
+}
+// quanto spesso p riesce a chiudere esattamente a v prese se ci punta (gli altri giocano a caso)
+function hitProb(p,seat,v,known,ns){
+  const pf=[0,1,2,3].map(q=>q===seat?polT:polRand); let h=0;
+  for(let i=0;i<ns;i++){ const tg=[0,0,0,0]; tg[seat]=v; const X=worldX(p,known,pf,tg); simGen(X); if(X.won[seat]===v) h++; }
+  return h/ns;
+}
+function bestBid(p,seat,known,gs){
+  const e=estimate(p,24,known,gs).map(w=>w[seat]), m=e.reduce((a,b)=>a+b,0)/e.length+BIDSHIFT;
+  let best=-1,bv=-1;
+  for(let v=Math.max(0,Math.round(m)-3);v<=Math.min(NT,Math.round(m)+3);v++){
+    const h=hitProb(p,seat,v,known,12)-Math.abs(v-m)*0.004;
+    if(h>bv){ bv=h; best=v; }
+  }
+  return best;
+}
+function modeOf(vals,lo,hi){
+  const cnt=Array(NT+1).fill(0); vals.forEach(v=>cnt[v]++);
+  const mean=vals.reduce((a,b)=>a+b,0)/vals.length;
+  let best=-1;
+  for(let v=0;v<=NT;v++){ if(lo!=null&&v<lo) continue; if(hi!=null&&v>hi) continue;
+    if(best<0||cnt[v]>cnt[best]||(cnt[v]===cnt[best]&&Math.abs(v-mean)<Math.abs(best-mean))) best=v; }
+  return best<0?0:best;
+}
+
+// ═════════════════════════ AI: DICHIARAZIONI E DECISIONI ═════════════════════════
+function aiBidSasaki(p){ return bestBid(p,p,null,[p]); }
+function aiBidNakagawa(n,ha){
+  const known={[ha]:G.S.hands[ha]};
+  return {ha:bestBid(n,ha,known,[n,ha]), na:bestBid(n,n,known,[n,ha])};
+}
+function aiPredict(){
+  const S=G.S, hb=S.bid.ha, wh=S.won[S.seatOf[HA]];
+  if(wh>hb) return Math.min(NT,wh);
+  if(hb===0) return 1;
+  if(hb===NT) return NT-1;
+  return Math.random()<0.5?hb+1:hb-1;
+}
+function aiPropose(){
+  const S=G.S, w=S.won[S.sas], b=S.bid.sa;
+  if(b>=NT) return false;
+  if(w>b) return true;
+  return Math.random()<(w===b?0.15:0.3);
+}
+function aiAccept(){
+  const S=G.S, w=S.won[S.sas], b=S.bid.sa;
+  if(w>b) return true;
+  if(w===b) return false;
+  const out=estimate(S.sas,24,null,[S.sas]).map(x=>x[S.sas]);
+  const mean=out.reduce((a,c)=>a+c,0)/out.length;
+  return Math.abs(mean-(b+1))<Math.abs(mean-b)-0.15;
+}
+function targetOf(p){
+  const S=G.S, r=roleOf(p);
+  if(r===SA) return S.bid.sa;
+  if(r===NA) return S.bid.na;
+  if(r===HA) return S.bid.ha;
+  const w=S.won[p], rem=NT-S.done;
+  let best=-1;
+  for(let t=w;t<=w+rem;t++){
+    if(t===S.bid.ha||t===S.bid.na) continue;
+    if(best<0||Math.abs(t-S.kMu)<Math.abs(best-S.kMu)) best=t;
+  }
+  return best<0?w:best;
+}
+
+// ═════════════════════════ AI: GIOCO DELLE CARTE ═════════════════════════
+const pAny = (m,h,U) => m<=0||U<=0?0:1-Math.pow(1-Math.min(1,h/U),m);
+// probabilità che la carta c, giocata da p ora, vinca la presa (stima, carte ignote = tutte le altre)
+function safety(p,c,U){
+  const S=G.S, tr=S.trick, full=tr.concat({p,c});
+  const wi=winIdx(full,S.sas); if(full[wi].p!==p) return 0;
+  const lead=full[0].c.s, best=full[wi], bs=effS(best,lead,S.sas), br=best.c.r;
+  const Ut=U.length||1;
+  const leadUn=U.filter(x=>x.s===lead).length;
+  const hiLead=U.filter(x=>x.s===lead&&x.r>br).length;
+  const blackUn=U.filter(x=>x.s===0).length;
+  const hiBlack=U.filter(x=>x.s===0&&x.r>br).length;
+  const anyHi=U.filter(x=>x.r>br).length;
+  let safe=1;
+  for(let k=full.length;k<4;k++){
+    const q=(S.lead+k)%4, hq=S.hands[q].length;
+    const pVoid=S.void[q].has(lead)?1:Math.pow(1-leadUn/Ut,hq);
+    let pb;
+    if(q===S.sas){
+      if(bs===0&&lead!==0) pb=0;
+      else if(lead===0) pb=(1-pVoid)*pAny(hiBlack,hq,Ut)+pVoid*pAny(anyHi,hq,Ut);
+      else pb=(1-pVoid)*pAny(hiLead,hq,Ut)+pVoid*pAny(anyHi,hq,Ut);
+    }else if(lead===0) pb=pAny(hiBlack,hq,Ut);
+    else if(bs===0) pb=pVoid*pAny(hiBlack,hq,Ut);
+    else pb=Math.min(1,(1-pVoid)*pAny(hiLead,hq,Ut)+pVoid*pAny(blackUn,hq,Ut));
+    safe*=1-Math.min(1,pb);
+  }
+  return safe;
+}
+// Nakagawa non guarda il tavolo: conosce solo i colori annunciati, non i numeri
+function blindSafety(p,c){
+  const S=G.S, tr=S.trick, m=3-tr.length, before=tr.length;
+  const lead=tr.length?tr[0].c.s:c.s;
+  if(p===S.sas) return Math.pow(c.r/15,m+before)*0.8;
+  if(c.s!==lead&&c.s!==0) return 0;
+  if(c.s!==lead&&c.s===0) return Math.pow(c.r/15,m)*0.8;
+  return Math.pow(c.r/15,m+before)*(c.s===0?1:0.8);
+}
+function heurPlay(p){
+  const S=G.S, role=roleOf(p), blind=role===NA, L=legalOf(S.hands[p],S.trick);
+  if(L.length===1) return L[0];
+  const rem=NT-S.done, need=targetOf(p)-S.won[p];
+  const seen=new Set(S.hands[p].map(key)); if(!blind) S.played.forEach(c=>seen.add(key(c)));
+  const U=DECK.filter(c=>!seen.has(key(c)));
+  const sf=L.map(c=>blind?blindSafety(p,c):safety(p,c,U));
+  const idx=L.map((_,i)=>i), val=c=>c.r+(c.s===0?20:0);
+  const best=Math.max(...sf);
+  const thr=Math.min(0.9,Math.max(0.35,0.9-0.5*(need/rem)));
+  const win=need<=0?false:need>=rem?true:best>=thr;
+  if(win){
+    const ok=idx.filter(i=>sf[i]>=thr);
+    if(ok.length) return L[ok.reduce((a,b)=>val(L[b])<val(L[a])?b:a)];
+    if(best>0.05) return L[idx.reduce((a,b)=>sf[b]>sf[a]?b:a)];
+    return L[idx.reduce((a,b)=>val(L[b])<val(L[a])?b:a)];
+  }
+  const mn=Math.min(...sf), cand=idx.filter(i=>sf[i]<=mn+0.12);
+  return L[cand.reduce((a,b)=>val(L[b])>val(L[a])?b:a)];
+}
+
+// utilità di un round concluso per il ruolo r (punti che gli darebbe il punteggio), dato l'esito w delle prese
+function utility(r,w){
+  const S=G.S, b=S.bid, [sa,na,ki,ha]=S.seatOf;
+  if(r===SA) return 3*(w[sa]===b.sa)+(w[na]!==b.na)+(S.frenzy&&w[ha]===S.pred?2:0);
+  if(r===NA) return 4*(w[na]===b.na)+2*(w[ha]===b.ha);
+  if(r===KI) return 2*(w[ki]!==w[ha])+2*(w[ki]!==w[na])+(S.kHelp&&w[sa]===b.sa?2:0);
+  return 3*(w[ha]===b.ha)+2*(w[na]===b.na)+(w[ha]!==b.ha&&S.frenzy&&w[ha]!==S.pred?1:0);
+}
+// Monte-Carlo: per ogni carta lecita simula il resto del round con tutti che puntano ai propri obiettivi
+function aiPlay(p){
+  const S=G.S, role=roleOf(p), L=legalOf(S.hands[p],S.trick);
+  if(L.length===1) return L[0];
+  if(role===NA) return heurPlay(p);
+  let cand=L;
+  if(L.length>7){
+    cand=[];
+    for(let s=0;s<4;s++){ const h=L.filter(c=>c.s===s); if(!h.length) continue; cand.push(h[0]); if(h.length>2) cand.push(h[h.length>>1]); if(h.length>1) cand.push(h[h.length-1]); }
+  }
+  const tg=[0,0,0,0]; for(let q=0;q<4;q++) tg[q]=targetOf(q);
+  const pf=[polT,polT,polT,polT], NS=S.done<4?14:20, tot=cand.map(()=>0);
+  for(let i=0;i<NS;i++){
+    const hands=sampleWorld(p,null);
+    cand.forEach((c,ci)=>{
+      const X={hands:hands.map(h=>h.slice()),trick:S.trick.map(e=>({p:e.p,c:e.c})).concat({p,c}),lead:S.lead,won:S.won.slice(),sas:S.sas,pf,tg};
+      X.hands[p]=X.hands[p].filter(x=>!(x.s===c.s&&x.r===c.r));
+      simGen(X);
+      tot[ci]+=utility(role,X.won);
+    });
+  }
+  let bi=0; tot.forEach((v,i)=>{ if(v>tot[bi]+1e-9||(Math.abs(v-tot[bi])<1e-9&&Math.random()<0.3)) bi=i; });
+  return cand[bi];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
+function newMatch(){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={round:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,
+     pl:Array.from({length:4},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  run();
+}
+function deal(){
+  const d=shuffle(DECK.map(c=>({s:c.s,r:c.r})));
+  const hands=Array.from({length:4},(_,i)=>sortHand(d.slice(i*NT,(i+1)*NT)));
+  const so=[SA,NA,KI,HA].map(seatOfRole);
+  G.S={hands,sas:so[SA],seatOf:so,bid:{sa:null,na:null,ha:null},bid0:null,won:[0,0,0,0],trick:[],lead:so[SA],done:0,
+    void:Array.from({length:4},()=>new Set()),played:[],res:null,phase:'bid',frenzy:false,pred:null,kHelp:false,kMu:7,humNak:so[NA]===HUM};
+}
+const who = r => P(G.S.seatOf[r]).name;
+async function bidPhase(){
+  const S=G.S, sa=S.seatOf[SA], na=S.seatOf[NA], ha=S.seatOf[HA], ki=S.seatOf[KI];
+  logMsg(`Ruoli: ${ROLES.map((r,i)=>`${r} = ${P(S.seatOf[i]).name}`).join(' · ')}.`);
+  // 1) Sasaki
+  status(sa===HUM?'Sei Sasaki: dichiara quante prese vincerai.':`${P(sa).name} (Sasaki) sta dichiarando…`);
+  let v;
+  if(sa===HUM) v=await choose('Sasaki: «Io… vincerò [X] prese.»',numOpts(),`<div class="hint">La tua mano:</div><div class="infohand">${S.hands[HUM].map(c=>kface(c,'mini')).join('')}</div>`);
+  else { await sleep(500); v=aiBidSasaki(sa); }
+  S.bid.sa=S.bid0=v;
+  logMsg(`Sasaki (${P(sa).name}) dichiara: «Vincerò ${plu(v,'presa','prese')}».`);
+  // 2) Nakagawa vede la mano di Haruta e dichiara per entrambi
+  if(na===HUM){
+    const hhand=`<div class="hint">Mano di ${esc(P(ha).name)} (Haruta) — la vedi solo ora:</div><div class="infohand">${S.hands[ha].map(c=>kface(c,'mini')).join('')}</div><div class="hint">La tua mano:</div><div class="infohand">${S.hands[HUM].map(c=>kface(c,'mini')).join('')}</div>`;
+    S.bid.ha=await choose(`Nakagawa: «Fai in modo di vincere [X] prese, ${P(ha).name}.»`,numOpts(),hhand);
+    S.bid.na=await choose('Nakagawa: «Vincerò [X] prese.»',numOpts(),hhand);
+  }else{
+    status(`${P(na).name} (Nakagawa) guarda la mano di ${P(ha).name} e dichiara…`);
+    await sleep(700);
+    const r=aiBidNakagawa(na,ha); S.bid.ha=r.ha; S.bid.na=r.na;
+  }
+  logMsg(`Nakagawa (${P(na).name}) guarda la mano di Haruta e gli impone: «Fai in modo di vincere ${plu(S.bid.ha,'presa','prese')}».`);
+  logMsg(`Haruta (${P(ha).name}) risponde: «Vincerò ${plu(S.bid.ha,'presa','prese')}». Nakagawa dichiara: «Vincerò ${plu(S.bid.na,'presa','prese')}».`);
+  if(ki!==HUM){ const e=estimate(ki,24,null,[ki]).map(w=>w[ki]); S.kMu=e.reduce((a,b)=>a+b,0)/e.length; }
+  S.phase='play';
+  const rows=ROLES.map((r,i)=>{ const q=S.seatOf[i]; return `<tr class="${q===HUM?'me':''}"><td>${r}</td><td class="l">${esc(P(q).name)}</td><td>${i===SA?S.bid.sa:i===NA?S.bid.na:i===HA?S.bid.ha+' (imposta)':'—'}</td></tr>`; }).join('');
+  status(`Round ${G.round+1}: dichiarazioni fatte.${na===HUM?' Ora giochi senza guardare il tavolo: ascolta gli annunci.':''}`);
+  await choose('Dichiarazioni del round',[{label:'Inizia il round',value:1}],`<table class="score"><tr><th>Ruolo</th><th class="l">Giocatore</th><th>Dichiarazione</th></tr>${rows}</table>`);
+}
+async function frenzy(p){
+  const S=G.S, ha=S.seatOf[HA], ki=S.seatOf[KI];
+  S.frenzy=true;
+  logMsg(`FRENESIA! Sasaki (${P(p).name}) non ha risposto al seme per la prima volta.`);
+  status('Frenesia di Sasaki!');
+  let pred;
+  if(p===HUM) pred=await choose(`Frenesia: «Cerca di vincere [X] prese, ${P(ha).name}.» (non ${S.bid.ha})`,numOpts(S.bid.ha));
+  else { await sleep(800); pred=aiPredict(); }
+  S.pred=pred;
+  logMsg(`Sasaki prevede per Haruta: «Cerca di vincere ${plu(pred,'presa','prese')}, ${P(ha).name}».`);
+  if(S.bid.sa<NT){
+    let prop;
+    if(ki===HUM) prop=await choose(`Vuoi proporre a Sasaki di alzare la dichiarazione da ${S.bid.sa} a ${S.bid.sa+1}?`,[{label:`Sì, proponi +1`,value:true},{label:'No',value:false}],`<div class="hint">Sasaki ha vinto finora ${S.won[S.sas]} prese (dichiarazione ${S.bid.sa}).</div>`);
+    else { await sleep(600); prop=aiPropose(); }
+    if(prop){
+      logMsg(`Kigami (${P(ki).name}) propone a Sasaki di alzare la dichiarazione a ${S.bid.sa+1}.`);
+      let acc;
+      if(p===HUM) acc=await choose(`Kigami propone di alzare la tua dichiarazione a ${S.bid.sa+1}. Accetti?`,[{label:'Accetto',value:true},{label:'Rifiuto',value:false}],`<div class="hint">Hai vinto finora ${S.won[S.sas]} prese.</div>`);
+      else { await sleep(600); acc=aiAccept(); }
+      if(acc){ S.bid.sa++; S.kHelp=true; logMsg(`Sasaki accetta: la sua dichiarazione diventa ${S.bid.sa}.`); }
+      else logMsg('Sasaki rifiuta: la dichiarazione resta invariata.');
+    }else logMsg('Kigami non propone nulla.');
+  }
+}
+async function playRound(){
+  const S=G.S;
+  S.started=true;
+  logMsg(`Apre Sasaki (${P(S.sas).name}).`);
+  while(S.done<NT){
+    S.trick=[]; S.res=null;
+    for(let k=0;k<4;k++){
+      const p=(S.lead+k)%4, role=roleOf(p); G.turn=p;
+      status(p===HUM?'Tocca a te: gioca una carta.':`Tocca a ${P(p).name}.`);
+      let c;
+      if(p===HUM) c=await humanPlay();
+      else { await sleep(650); c=aiPlay(p); }
+      S.hands[p]=S.hands[p].filter(x=>x!==c);
+      let say=null;
+      if(k===0) say=`«${SUITS[c.s].n}»`;
+      else if(c.s!==S.trick[0].c.s){ S.void[p].add(S.trick[0].c.s); say=`«Non ho il colore ${SUITS[S.trick[0].c.s].n}»`; }
+      S.trick.push({p,c,say}); S.played.push(c);
+      logMsg(`${P(p).name} gioca ${cname(c)}${say?` e dice ${say}`:''}.`,say?`${P(p).name}: ${say}`:null);
+      if(role===SA&&say&&k>0&&!S.frenzy) await frenzy(p);
+    }
+    G.turn=-1;
+    const wi=winIdx(S.trick,S.sas), w=S.trick[wi].p, wc=S.trick[wi].c;
+    S.res=wi; S.won[w]++;
+    logMsg(`${P(w).name} vince la presa n° ${S.done+1} con ${cname(wc)}${S.trick[wi].p===S.sas&&wc.s!==S.trick[0].c.s?' (carta di Sasaki conta come '+SUITS[S.trick[0].c.s].n+')':''}: «Ho vinto io» (prese: ${S.won[w]}).`,`${P(w).name}: «Ho vinto io» (prese: ${S.won[w]}).`);
+    status(`${P(w).name} vince la presa.`);
+    await sleep(1300);
+    S.done++; S.lead=w; S.trick=[]; S.res=null;
+  }
+  S.phase='end';
+}
+function scoreRound(){
+  const S=G.S, w=S.won, b=S.bid, sa=S.seatOf[SA], na=S.seatOf[NA], ki=S.seatOf[KI], ha=S.seatOf[HA];
+  const rows=[];
+  const mk=(p,role,list)=>{ const pts=list.reduce((a,x)=>a+x[0],0); rows[p]={p,role,won:w[p],pts,parts:list.filter(x=>x[0]).map(x=>`${x[1]} +${x[0]}`)}; };
+  mk(sa,SA,[[w[sa]===b.sa?3:0,'dichiarazione rispettata'],[w[na]!==b.na?1:0,'Nakagawa ha fallito'],[S.frenzy&&w[ha]===S.pred?2:0,'previsione su Haruta esatta']]);
+  mk(na,NA,[[w[na]===b.na?4:0,'dichiarazione rispettata'],[w[ha]===b.ha?2:0,'Haruta ha rispettato la sua']]);
+  mk(ki,KI,[[w[ki]!==w[ha]?2:0,'diverse da Haruta'],[w[ki]!==w[na]?2:0,'diverse da Nakagawa'],[S.kHelp&&w[sa]===b.sa?2:0,'Sasaki ce l\'ha fatta grazie a te']]);
+  mk(ha,HA,[[w[ha]===b.ha?3:0,'dichiarazione rispettata'],[w[na]===b.na?2:0,'Nakagawa ha rispettato la sua'],[w[ha]!==b.ha&&S.frenzy&&w[ha]!==S.pred?1:0,'previsione di Sasaki sventata']]);
+  return rows;
+}
+async function scoring(){
+  const rows=scoreRound();
+  rows.forEach(r=>{ P(r.p).total+=r.pts; P(r.p).hist.push(r.pts); });
+  G.show={rows};
+  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} (${ROLES[r.role]}) ha vinto ${plu(r.won,'presa','prese')} → ${r.pts} punti${r.parts.length?` (${r.parts.join(', ')})`:''}.`));
+  status(`Round ${G.round+1} concluso.`);
+  await choose('Punti del round',[{label:G.round<ROUNDS-1?'Round successivo':'Vedi il risultato',value:1}]);
+  G.show=null;
+}
+async function run(){
+  const g=G;
+  try{
+    for(let r=0;r<ROUNDS;r++){
+      g.round=r; deal();
+      logMsg(`— Round ${r+1}/${ROUNDS} —`);
+      await bidPhase();
+      await playRound();
+      await scoring();
+    }
+    const m=Math.max(...g.pl.map(p=>p.total));
+    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    g.S=g.S; render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift({f:'Errore: '+e.message,s:'Errore: '+e.message,r:G.round}); render();
+  }
+}
+
+// ═════════════════════════ MOSSE UMANE ═════════════════════════
+function humanPlay(){
+  const S=G.S, g=G, L=legalOf(S.hands[HUM],S.trick);
+  return new Promise((res,rej)=>{ PR={type:'play',legal:new Set(L.map(key)),sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function pickCard(k){
+  if(!PR||PR.type!=='play'||!PR.legal.has(k)) return;
+  if(!OPT.undo){ finishPlay(k); return; }
+  PR.sel=PR.sel===k?null:k; render();
+}
+function finishPlay(k){
+  if(!PR||PR.type!=='play'||!PR.legal.has(k)) return;
+  const c=G.S.hands[HUM].find(x=>key(x)===k), r=PR.res; PR=null; render(); r(c);
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='')=>`<span class="fc k${c.s} ${cls}" title="${cname(c)}"><span>${c.r}</span>${ico(SUITS[c.s].icon)}</span>`;
+function handBtn(c){
+  const k=key(c);
+  if(PR&&PR.type==='play'){
+    const ok=PR.legal.has(k), sel=PR.sel===k;
+    return `<button class="fc k${c.s} ${ok?'':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-k="${k}" title="${cname(c)}"><span>${c.r}</span>${ico(SUITS[c.s].icon)}</button>`;
+  }
+  return kface(c);
+}
+const blindNow = () => !!(G.S&&G.S.humNak&&G.S.phase==='play');
+function flagHtml(p){
+  if(!G||G.over||!G.S) return '';
+  const S=G.S, f=`<span class="flag role">${ROLES[roleOf(p)]}</span>`;
+  if(S.phase==='play'&&S.done<NT&&S.lead===p) return f+'<span class="flag lead">Di mano</span>';
+  return f;
+}
+function bidOf(p){
+  const S=G.S, r=roleOf(p), b=S.bid;
+  if(r===SA) return b.sa==null?'—':b.sa+(S.kHelp?' (+1)':'');
+  if(r===NA) return b.na==null?'—':b.na;
+  if(r===HA) return b.ha==null?'—':b.ha;
+  return '—';
+}
+function seatHtml(p,pos){
+  const S=G.S, pl=P(p), active=G.turn===p;
+  const hand=p===HUM?`<div class="hand">${S.hands[HUM].map(handBtn).join('')||'<span class="hint">—</span>'}</div>`
+    :`<div class="backs">${S.hands[p].map(()=>'<span class="back"></span>').join('')||'<span class="hint">—</span>'}</div>`;
+  const r=roleOf(p);
+  const meta=`<div class="seat-meta">${r===KI?'<span class="tag">senza dichiarazione</span>':`<span class="tag">${r===HA?'imposta':'dichiara'} <b>${bidOf(p)}</b></span>`}<span class="tag">prese <b>${S.won[p]}</b></span>${r===SA&&S.frenzy?`<span class="tag" title="Previsione di Sasaki sulle prese di Haruta">previsione H <b>${S.pred}</b></span>`:''}<span class="tag">totale <b>${pl.total}</b></span></div>`;
+  const name=`<div class="seat-name" style="border-bottom:3px solid ${SEATC[p]}">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${name}${meta}${hand}`:`${hand}${name}${meta}`;
+  return `<div class="seat ${pos} ${S.phase==='play'&&S.done<NT&&S.lead===p?'leader':''} ${active?'active':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const S=G.S, blind=blindNow();
+  const cells=S.trick.map((e,i)=>`<div class="tcell ${S.res===i?'win':''}">${blind?'<span class="fc hid">?</span>':kface(e.c)}<span class="who" style="background:${SEATC[e.p]}">${esc(P(e.p).name.replace(/^AI /,''))}</span>${e.say?`<span class="say">${esc(e.say)}</span>`:''}${S.res===i?'«Ho vinto io»':''}</div>`);
+  return `<div class="center"><span class="lbl2">${S.phase==='play'?`PRESA ${Math.min(S.done+1,NT)}/${NT}`:'DICHIARAZIONI'}${S.trick.length?` · COLORE ${SUITS[S.trick[0].c.s].n.toUpperCase()}`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div>${blind?'<span class="lbl2">NON GUARDI IL TAVOLO: ASCOLTA GLI ANNUNCI</span>':''}</div>`;
+}
+function roleBox(){
+  const S=G.S, r=roleOf(HUM);
+  const rows=ROLES.map((n,i)=>{ const q=S.seatOf[i]; return `<tr class="${q===HUM?'me':''}"><td>${n}</td><td class="l">${esc(P(q).name)}</td><td>${i===KI?'—':bidOf(q)}</td><td>${S.won[q]}</td></tr>`; }).join('');
+  return `<div class="rolebox"><table class="score"><tr><th>Ruolo</th><th class="l">Giocatore</th><th>Dichiarazione</th><th>Prese vinte</th></tr>${rows}</table>
+    <p><b>Il tuo ruolo: ${ROLES[r]}.</b> ${ROLE_TXT[r]}</p></div>`;
+}
+function scoreTable(){
+  const R=ROUNDS;
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:R},(_,i)=>i<p.hist.length?`<td>${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th></th>${Array.from({length:R},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Gomimushi Trick (Il trucco dello scarabeo) contro l'AI. Gioco per 4 giocatori: tu + 3 AI, con ruoli che ruotano a ogni round.</div>
+    <div class="opts"><button class="opt" data-n="4">Inizia la partita (tu + 3 AI)</button></div>`;
+  if(G.over){
+    const nm=G.over.winners.map(i=>esc(P(i).name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (più punti vittoria)</div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="4">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show) html+=`<div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th class="l">Ruolo</th><th>Prese</th><th class="l">Punti</th></tr>${G.show.rows.map(r=>`<tr class="${r.p===HUM?'me':''}"><td>${esc(P(r.p).name)}</td><td class="l">${ROLES[r.role]}</td><td>${r.won}</td><td class="l"><b>${r.pts}</b>${r.parts.length?` <span class="hint">(${esc(r.parts.join(', '))})</span>`:''}</td></tr>`).join('')}</table></div>`;
+  if(PR&&PR.type==='choose') html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div>${PR.info||''}<div class="opts">${PR.options.map((o,i)=>`<button class="opt ${o.num?'num':''}" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  else if(PR&&PR.type==='play'){
+    if(PR.sel!=null){ const c=G.S.hands[HUM].find(x=>key(x)===PR.sel); html+=`<div class="opts"><button class="opt" data-ok="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-no="1">Annulla</button></div>`; }
+    else{
+      const S=G.S, r=roleOf(HUM);
+      const tgt=r===KI?`Obiettivo: prese diverse da Haruta (${S.bid.ha}) e da Nakagawa (${S.bid.na}).`:`Obiettivo: ${bidOf(HUM)} prese (ne hai ${S.won[HUM]}).`;
+      html+=`<div class="hint">${S.trick.length?`Devi rispondere a ${SUITS[S.trick[0].c.s].n} se puoi.`:'Apri la presa con una carta qualsiasi.'} ${tgt}${r===NA?' Dichiarazioni e prese di tutti sono nella tabella sopra.':''}</div>`;
+    }
+  }
+  return html;
+}
+function recapHtml(){
+  return `<details class="recap"><summary>RIEPILOGO · 4 GIOCATORI AL TAVOLO · ${ROUNDS} ROUND</summary>
+    <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">60 carte (1–15), 15 a testa · il Nero è sempre briscola · obbligo di seme</span></div>
+    <div class="recap-row"><span class="lbl">Ruoli</span><span class="rv">Sasaki, Nakagawa, Kigami, Haruta in senso orario; a ogni round le carte ruolo passano al giocatore alla sinistra, così ognuno li ricopre tutti</span></div>
+    <div class="recap-row"><span class="lbl">Dichiarazioni</span><span class="rv">Sasaki per primo · Nakagawa vede la mano di Haruta, dichiara per lui («imposto») e per sé · Kigami non dichiara</span></div>
+    <div class="recap-row"><span class="lbl">Nakagawa</span><span class="rv">gioca le 15 prese senza guardare il tavolo: sente solo il colore di chi apre, «Non ho il colore X» di chi non risponde e «Ho vinto io»; può sempre controllare prese e dichiarazioni</span></div>
+    <div class="recap-row"><span class="lbl">Sasaki</span><span class="rv">una sua carta che non risponde al seme conta come del seme d'apertura (anche se è Nero), ma perde i pareggi · la prima volta che non risponde c'è la <b>Frenesia</b>: prevede le prese di Haruta (≠ la sua dichiarazione) e Kigami può proporgli +1</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">per ruolo (vedi il tuo ruolo sopra al tavolo) · vince chi ha più punti dopo ${ROUNDS} round</span></div></details>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>«Gomimushi Trick» (Il trucco dello scarabeo) è un gioco di prese esclusivo per 4 giocatori, con ruoli asimmetrici, dichiarazioni esatte e un giocatore, Nakagawa, che deve giocare tutte le prese senza guardare il tavolo.</p>
+<h4>Componenti e preparazione</h4>
+<p>4 carte ruolo e 60 carte «Gomimushi» in 4 colori (Nero, Rosso, Blu, Verde) numerate da 1 a 15. Le carte ruolo vanno scoperte, in senso orario, nell'ordine Sasaki, Nakagawa, Kigami, Haruta. Ogni giocatore riceve 15 carte.</p>
+<h4>Dichiarazioni</h4>
+<ul><li><b>Sasaki</b> dichiara per primo: «Vincerò [X] prese».</li>
+<li><b>Haruta</b> mostra la sua mano solo a Nakagawa, che dichiara per lui («Fai in modo di vincere [X] prese») e poi per sé. Haruta si riprende le carte.</li>
+<li><b>Kigami</b> non dichiara.</li></ul>
+<h4>Le prese</h4>
+<p>Apre Sasaki; chi vince apre la presa successiva. Obbligo di seme e il Nero è briscola. Chi apre dice solo il <b>colore</b> della carta; chi non risponde al seme dice «Non ho il colore X» (senza rivelare cosa ha giocato); chi vince dice «Ho vinto io». Nakagawa gioca senza guardare: può solo ascoltare, guardare la sua mano e chiedere prese vinte e dichiarazioni attuali di tutti.</p>
+<p><b>Sasaki:</b> se non risponde al seme, la sua carta conta comunque come del seme d'apertura, anche se è Nera (non taglia). In caso di pareggio di valore con un'altra carta dello stesso seme, Sasaki perde.</p>
+<h4>Frenesia di Sasaki</h4>
+<p>La prima volta in assoluto che Sasaki non risponde al seme: prevede le prese finali di Haruta («Cerca di vincere [X] prese, Haruta») con un numero diverso da quello imposto da Nakagawa. Poi Kigami può proporgli di alzare la sua dichiarazione di 1; Sasaki può accettare o rifiutare.</p>
+<h4>Punteggio (a fine round, dopo 15 prese)</h4>
+<ul><li><b>Sasaki:</b> +3 se rispetta la dichiarazione (eventualmente alzata); +1 se Nakagawa fallisce; +2 se indovina le prese di Haruta alla Frenesia.</li>
+<li><b>Nakagawa:</b> +4 se rispetta la sua dichiarazione; +2 se Haruta rispetta la sua.</li>
+<li><b>Kigami:</b> +2 se le sue prese sono diverse da quelle di Haruta; +2 se diverse da quelle di Nakagawa; +2 se Sasaki rispetta la dichiarazione alzata grazie alla sua proposta.</li>
+<li><b>Haruta:</b> +3 se rispetta la dichiarazione imposta; +2 se Nakagawa rispetta la sua; +1 se la sua dichiarazione fallisce ma ha sventato la previsione di Sasaki.</li></ul>
+<h4>Fine della partita</h4>
+<p>Le carte ruolo passano in senso orario, si rimescola e si rigioca: 4 round in tutto. Vince chi ha più punti.</p>
+<p><i>Interpretazioni nell'app:</i> la previsione di Sasaki non può essere uguale alla dichiarazione imposta ad Haruta; la proposta di Kigami è possibile solo se la dichiarazione di Sasaki è inferiore a 15; «diverse da Haruta/Nakagawa» si confronta con le prese effettive finali; il bonus di Kigami vale solo se Sasaki ha accettato e le sue prese finali coincidono con la nuova dichiarazione. A Nakagawa (umano) le carte sul tavolo sono nascoste e il log mostra solo gli annunci; le AI vedono le carte giocate, tranne Nakagawa AI che ragiona solo sui colori annunciati.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  const hide=blindNow();
+  const lines=G.log.filter(l=>!(hide&&l.r===G.round&&l.s===null)).map(l=>hide&&l.r===G.round?l.s:l.f);
+  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${lines.length})</summary><div class="logbody">${lines.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">Gomimushi Trick</div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${ROUNDS}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G&&G.S){
+    body=`${G.over?'':roleBox()}
+      <div class="table">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,POS[i])).join('')}</div>
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  try{ if(localStorage.getItem('nylo-skip-name')==='1'){ NAMES[0]=localStorage.getItem('nylo-player-name')||'Nylo'; newMatch(n); return; } }catch(e){}
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.k!==undefined) pickCard(Number(b.dataset.k));
+  else if(b.dataset.ok!==undefined){ if(PR&&PR.type==='play'&&PR.sel!=null) finishPlay(PR.sel); }
+  else if(b.dataset.no!==undefined){ if(PR&&PR.type==='play'){ PR.sel=null; render(); } }
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('gm-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('gm-undo',OPT.undo?'1':'0'); }catch(err){}
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
