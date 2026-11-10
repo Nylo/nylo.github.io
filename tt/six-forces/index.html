@@ -74,7 +74,7 @@ table.score .neg{color:var(--danger)}
 .chip.flex{background:#f4f4f8;border-color:#bbb}
 .backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:210px}
 .back{width:16px;height:24px;border-radius:3px;background:linear-gradient(135deg,#8d7bd6,#5b4aa0);border:1px solid #fff}
-.seat.left .backs,.seat.right .backs{max-width:150px}
+.seat.top .backs,.seat.left .backs,.seat.right .backs{max-width:150px}
 
 /* carte */
 .pc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Libre Baskerville',serif;font-weight:700;font-size:24px;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.3);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
@@ -288,7 +288,7 @@ async function confirmChoice(p,text){
   if(p!==HUM||!OPT.undo) return true;
   return ask(p,text,[{label:'Conferma',value:true},{label:'Annulla e riscegli',value:false}]);
 }
-const BACK={label:'← Indietro (cambia azione)',value:'back'};
+const BACK={label:'Indietro (cambia azione)',value:'back'};
 
 async function doPredict(p,canBack){
   const pl=P(p), max=Math.min(G.chips,TRICKS);
@@ -302,7 +302,7 @@ async function doPredict(p,canBack){
   while(true){
     const opts=[];
     for(let n=0;n<=max;n++) opts.push({label:String(n),value:n,w:n===0?0.6:(n<=5?1:0.2)});
-    if(canBack&&p===HUM&&OPT.undo) opts.push(BACK);
+    if(canBack&&p===HUM) opts.push(BACK);
     const n=await ask(p,'Pronostica quante prese vincerai (prendi altrettanti segnalini previsione)',opts,{pause:350});
     if(n==='back') return 'back';
     let flex=false;
@@ -333,7 +333,7 @@ async function doTrump(p,canBack){
   }
   while(true){
     const opts=TRUMPS.map(t=>({label:t.label,html:`${tico(t)} ${esc(t.label)}`,value:t.id,disabled:!trumpLegal(p,t.id)}));
-    if(canBack&&p===HUM&&OPT.undo) opts.push(BACK);
+    if(canBack&&p===HUM) opts.push(BACK);
     const id=await ask(p,'Scegli la tua Briscola Personale (vale quando sei il giocatore di mano)',opts,{pause:350});
     if(id==='back') return 'back';
     if(!(await confirmChoice(p,`Confermi la Briscola Personale: ${TR(id).label}?`))) continue;
