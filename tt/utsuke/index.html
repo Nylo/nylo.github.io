@@ -145,7 +145,18 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(135deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
 .table.n5{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
-.table.n6{grid-template-areas:"tl top tr" "left center right" "bottom bottom bottom"}
+.table.n2{grid-template-columns:1fr;grid-template-areas:"top" "center" "bottom";min-height:0}
+.table.n3{grid-template-areas:"left center right" "bottom bottom bottom";min-height:0}
+.table.n5{min-height:0}
+.npcpanel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:12px}
+.npcrow{display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:10px;border:1px solid transparent}
+.npcrow.leader{border-color:rgba(80,50,120,0.5);background:rgba(255,255,255,0.4)}
+.npcrow.active{border-color:#d08a1e;background:rgba(208,138,30,0.2)}
+.npchead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.npcrow .npchand{max-width:none;width:100%;flex-wrap:nowrap;gap:5px;justify-content:center;overflow-x:auto;padding:10px 4px 4px}
+.npcrow .npchand .fc{flex:1 1 0;min-width:30px;max-width:64px;width:auto;height:auto;aspect-ratio:11/16;font-size:clamp(13px,2.6vw,26px)}
+.npcrow .npchand .fc i{font-size:clamp(11px,2.2vw,22px)}
+.npcrow .npchand .fc.hasChip::after{top:-8px;right:-6px}
 .seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
 .seat.npc{background:rgba(255,255,255,0.45);border-color:rgba(80,50,120,0.4)}
 .npchand{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:300px}
@@ -509,15 +520,6 @@ function flagHtml(id){
 }
 function seatHtml(id,pos){
   const S=G.S, active=G.turn===id;
-  if(isNpc(id)){
-    const h=S.hands[id], isL=id===G.n;
-    const cards=h.map((c,i)=>kface(c,(isL&&i===h.length-1&&S.phase!=='end'?'hasChip':'')+' mini')).join('')||'<span class="hint">—</span>';
-    const name=`<div class="seat-name" style="border-bottom:3px solid #b89be0">${isL?'Il Signore':'Il Principe'}${flagHtml(id)}</div>`;
-    return `<div class="seat npc ${pos} ${S.phase==='play'&&S.done<S.T&&S.lead===id?'leader':''} ${active?'active':''}">${name}
-      <div class="seat-meta"><span class="tag">prese vinte <b>${S.wins[id]}</b></span></div>
-      <div class="npcnote">← sinistra · destra →${isL?' · 切 = segnalino briscola':''}</div>
-      <div class="npchand">${cards}</div></div>`;
-  }
   const pl=G.pl[id];
   const hand=id===HUM?`<div class="hand">${S.hands[HUM].map(handBtn).join('')||'<span class="hint">—</span>'}</div>`
     :`<div class="backs">${S.hands[id].map(()=>'<span class="back"></span>').join('')||'<span class="hint">—</span>'}</div>`;
@@ -532,6 +534,16 @@ function centerHtml(){
   const lh=S.hands[G.n], tc=S.phase==='play'&&S.trick.length?S.tc:(lh.length?lh[lh.length-1].s:-1);
   const tcInd=tc>=0&&S.phase!=='end'?`<span class="tc-ind">切 Briscola: <span class="rchip k${tc}">${ico(COLORS[tc].icon)} ${COLORS[tc].n}</span></span>`:'';
   return `<div class="center"><span class="lbl2">${S.phase==='play'?`PRESA ${Math.min(S.done+1,S.T)}/${S.T}`:'PREVISIONI'}${S.trick.length?` · COLORE ${COLORS[S.trick[0].c.s].n.toUpperCase()}`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div>${tcInd}</div>`;
+}
+function npcPanelHtml(){
+  const S=G.S;
+  return `<div class="npcpanel">${S.npcIds.map(id=>{
+    const h=S.hands[id], isL=id===G.n;
+    const cards=h.map((c,i)=>kface(c,isL&&i===h.length-1&&S.phase!=='end'?'hasChip':'')).join('')||'<span class="hint">—</span>';
+    return `<div class="npcrow ${S.phase==='play'&&S.done<S.T&&S.lead===id?'leader':''} ${G.turn===id?'active':''}">
+      <div class="npchead"><span class="seat-name" style="border-bottom:3px solid #b89be0">${isL?'Il Signore':'Il Principe'}${flagHtml(id)}</span><span class="tag">prese vinte <b>${S.wins[id]}</b></span><span class="npcnote">← sinistra · destra →${isL?' · 切 = segnalino briscola':''}</span></div>
+      <div class="npchand">${cards}</div></div>`;
+  }).join('')}</div>`;
 }
 function scoreTable(){
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.hom}</td><td>${p.chip}</td></tr>`).join('');
@@ -607,7 +619,7 @@ function menuHtml(){
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
     </div>`:''}</div>`;
 }
-function posFor(m){ return m===4?['bottom','left','top','right']:m===5?['bottom','left','tl','tr','right']:['bottom','left','tl','top','tr','right']; }
+function posFor(m){ return m===2?['bottom','top']:m===3?['bottom','left','right']:m===4?['bottom','left','top','right']:['bottom','left','tl','tr','right']; }
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
@@ -619,8 +631,8 @@ function render(){
   let body='';
   if(G&&G.S){
     const S=G.S, m=S.order.length, h=S.order.indexOf(HUM);
-    const rot=S.order.map((_,i)=>S.order[(h+i)%m]), pos=posFor(m);
-    body=`<div class="table n${m}">${centerHtml()}${rot.map((id,i)=>seatHtml(id,pos[i])).join('')}</div>
+    const rot=S.order.map((_,i)=>S.order[(h+i)%m]).filter(id=>!isNpc(id)), pos=posFor(rot.length);
+    body=`${npcPanelHtml()}<div class="table n${rot.length}">${centerHtml()}${rot.map((id,i)=>seatHtml(id,pos[i])).join('')}</div>
       <div class="dock" style="position:static">${scoreTable()}</div>
       ${logHtml()}
       ${recapHtml()}
