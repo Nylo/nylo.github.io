@@ -175,7 +175,8 @@ button.die.pickable{cursor:pointer;animation:pk 1.2s ease-in-out infinite}
 button.die.pickable:hover{transform:translateY(-6px) scale(1.06);animation:none}
 @keyframes pk{50%{transform:translateY(-3px)}}
 .pickhint{font-weight:600;color:var(--text)}
-.pool .die.big{margin:2px}
+.pool{gap:8px;max-width:340px}
+.pool .die.big{width:3rem;height:3rem;font-size:2.2rem;border:0;border-radius:10px;margin:0}
 @media(max-width:600px){
   :root{--cw:30px;--ch:44px}
   .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
@@ -222,6 +223,8 @@ function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const ABORT = {abort:true};
 let G = null, PR = null;
+let SORTC = 'n';
+try{ if(localStorage.getItem('nd-sort')==='c') SORTC='c'; }catch(e){}
 const OPT = {undo:true,a11y:false};
 try{ const s=localStorage.getItem('nd-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('nd-a11y')==='1'; }catch(e){}
 const delay = ms => new Promise(r=>setTimeout(r,ms));
@@ -615,9 +618,10 @@ function centerHtml(){
   let mid='';
   if(S.phase==='draw'){
     const dr=PR&&PR.type==='draft', canZ=dr&&PR.mode==='take'&&S.zc>0&&!S.zero[HUM];
-    const dieB=(d,i)=>dr?`<button class="die big k${d.s} pickable" data-dr="${i}" title="${iname(d)}">${ico(DICE_ICO[d.r-1])}</button>`:dieFace(d,'big');
+    const dieB=e=>{ const d=e.d, i=e.i; return dr?`<button class="die big k${d.s} pickable" data-dr="${i}" title="${iname(d)}">${ico(DICE_ICO[d.r-1])}</button>`:dieFace(d,'big'); };
+    const sorted=S.centre.map((d,i)=>({d,i})).sort((a,b)=>SORTC==='n'?(a.d.r-b.d.r||a.d.s-b.d.s):(a.d.s-b.d.s||a.d.r-b.d.r));
     const zB=()=>canZ?`<button class="die big z pickable" data-dz="1" title="Dado «Zero prese»: puoi prenderlo al posto di un dado colorato (devi rimettere un dado nel sacchetto)">0</button>`:zeroFace('big');
-    mid=`<span class="lbl2">DADI AL CENTRO${S.zc?` · ${S.zc} ZERO`:''}</span><div class="pool">${S.centre.map(dieB).join('')}${Array.from({length:S.zc},zB).join('')}</div>${dr?`<span class="hint pickhint">${PR.mode==='take'?'Tocca il dado che vuoi prendere':'Tocca il dado da rimettere nel sacchetto'}</span>`:''}`;
+    mid=`<span class="lbl2">DADI DISPONIBILI</span><button class="btn btn-sm" data-sort="1">${SORTC==='n'?'Ordina per numero &gt; colore':'Ordina per colore &gt; numero'}</button><div class="pool">${sorted.map(dieB).join('')}${Array.from({length:S.zc},zB).join('')}</div>${dr?`<span class="hint pickhint">${PR.mode==='take'?'Tocca il dado che vuoi prendere':'Tocca il dado da rimettere nel sacchetto'}</span>`:''}`;
   }
   else mid=`<span class="lbl2">PRESA ${Math.min(S.done+1,S.tot)}/${S.tot}${S.trick.length?` · COLORE ${COLORS[S.trick[0].it.s].n.toUpperCase()}${S.trick[0].it.tc?' (BRISCOLA)':''}`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div>`;
   const tb=S.trump?`<div class="trumpbox">DADO BRISCOLA${dieFace(S.trump,'big')}<span>numero ${S.trump.r} o colore ${COLORS[S.trump.s].n}</span></div>`:'';
@@ -739,6 +743,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.it!==undefined) pickItem(Number(b.dataset.it));
+  else if(b.dataset.sort!==undefined){ SORTC=SORTC==='n'?'c':'n'; try{ localStorage.setItem('nd-sort',SORTC); }catch(x){} render(); }
   else if(b.dataset.dr!==undefined) draftPick(b.dataset.dr);
   else if(b.dataset.dz!==undefined) draftPick('z');
   else if(b.dataset.ok!==undefined){ if(PR&&PR.type==='play'&&PR.sel) finishPlay(PR.sel); }
