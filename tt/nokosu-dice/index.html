@@ -82,7 +82,7 @@ table.score tr.me td{background:var(--accent-soft)}
 .rolebox p{font-size:12px;line-height:1.55;color:var(--text-soft)}
 .rolebox p b{color:var(--text)}
 
-.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#7d99e8 0%,#3158c8 40%,#0d2078 100%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:520px}
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#a9ddff 0%,#5fa0ee 42%,#2147b8 100%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:520px}
 .seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
 .seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
 .seat.bottom{grid-area:bottom}
@@ -150,9 +150,10 @@ body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(
 .seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
 .die{width:3rem;height:3rem;border-radius:10px;border:0;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:2.5rem;box-shadow:0 2px 5px rgba(0,0,20,0.55);flex-shrink:0;padding:0;position:relative;background-color:#888}
 .die.k0{background-color:var(--k0)} .die.k1{background-color:var(--k1)} .die.k2{background-color:var(--k2);color:#3a2800} .die.k3{background-color:var(--k3)} .die.k4{background-color:var(--k4)}
-.die.z{background:#22252e;font-family:'Libre Baskerville',serif;font-weight:700;font-size:1.6rem}
-.die.mini{width:3rem;height:3rem;font-size:2.5rem;border-radius:10px}
-.die.big{width:56px;height:56px;font-size:40px;border-radius:13px;border:0}
+.die.z{background:#000}
+.die.mini{width:3rem;height:3rem;font-size:3rem;border-radius:10px}
+.die i{display:flex;align-items:center;justify-content:center;line-height:1}
+.die.big{width:48px !important;height:48px !important;font-size:48px !important;border-radius:13px;border:0}
 button.die{cursor:pointer;transition:transform 0.12s}
 button.die:hover:not(:disabled){transform:translateY(-4px)}
 button.die:disabled{cursor:default}
@@ -177,7 +178,6 @@ button.die.pickable:hover{transform:translateY(-6px) scale(1.06);animation:none}
 .pickhint{font-weight:600;color:var(--text)}
 .pool{gap:8px;max-width:340px}
 .pool .die.big{width:3rem;height:3rem;font-size:2.5rem;border:0;border-radius:10px;margin:0}
-.pool .die.big.z{font-size:1.9rem}
 @media(max-width:600px){
   :root{--cw:30px;--ch:44px}
   .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
@@ -189,6 +189,7 @@ button.die.pickable:hover{transform:translateY(-6px) scale(1.06);animation:none}
   .tr{gap:5px}
   .tcell{max-width:74px}
   .die,.die.mini{width:2.5rem;height:2.5rem;font-size:2.05rem}
+  .die.mini{font-size:2.5rem}
   .die.big{width:46px;height:46px;font-size:32px}
 }
 </style>
@@ -586,7 +587,7 @@ function cardFace(c,cls2=''){
 function dieFace(d,cls2=''){
   return `<span class="die k${d.s} ${G&&G.S&&G.S.trump&&d.tc?'tc'+d.tc:''} ${cls2}" title="${iname(d)}">${ico(DICE_ICO[d.r-1])}</span>`;
 }
-const zeroFace = (cls2='') => `<span class="die z ${cls2}" title="Dado Zero prese (devi tenerlo come ultimo dado)">0</span>`;
+const zeroFace = (cls2='') => `<span class="die z ${cls2}" title="Dado Zero prese (devi tenerlo come ultimo dado)"></span>`;
 function diceRow(p){
   const S=G.S;
   return S.dice[p].map(d=>dieFace(d,'mini')).join('')+(S.zero[p]?zeroFace('mini'):'')||'<span class="hint">—</span>';
@@ -628,7 +629,7 @@ function centerHtml(){
     const dr=PR&&PR.type==='draft', canZ=dr&&PR.mode==='take'&&S.zc>0&&!S.zero[HUM];
     const dieB=e=>{ const d=e.d, i=e.i; return dr?`<button class="die big k${d.s} pickable ${PR.sel===String(i)?'sel':''}" data-dr="${i}" title="${iname(d)}">${ico(DICE_ICO[d.r-1])}</button>`:dieFace(d,'big'); };
     const sorted=S.centre.map((d,i)=>({d,i})).sort((a,b)=>SORTC==='n'?(a.d.r-b.d.r||a.d.s-b.d.s):(a.d.s-b.d.s||a.d.r-b.d.r));
-    const zB=()=>canZ?`<button class="die big z pickable ${PR.sel==='z'?'sel':''}" data-dz="1" title="Dado «Zero prese»: puoi prenderlo al posto di un dado colorato (devi rimettere un dado nel sacchetto)">0</button>`:zeroFace('big');
+    const zB=()=>canZ?`<button class="die big z pickable ${PR.sel==='z'?'sel':''}" data-dz="1" title="Dado «Zero prese»: puoi prenderlo al posto di un dado colorato (devi rimettere un dado nel sacchetto)"></button>`:zeroFace('big');
     mid=`<span class="lbl2">DADI DISPONIBILI</span><button class="btn btn-sm" data-sort="1">${SORTC==='n'?'Ordina per numero &gt; colore':'Ordina per colore &gt; numero'}</button><div class="pool">${sorted.map(dieB).join('')}${Array.from({length:S.zc},zB).join('')}</div>${dr?`<span class="hint pickhint">${PR.mode==='take'?'Tocca il dado che vuoi prendere':'Tocca il dado da rimettere nel sacchetto'}</span>`:''}`;
   }
   else mid=`<span class="lbl2">PRESA ${Math.min(S.done+1,S.tot)}/${S.tot}${S.trick.length?` · COLORE ${COLORS[S.trick[0].it.s].n.toUpperCase()}${S.trick[0].it.tc?' (BRISCOLA)':''}`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div>`;
