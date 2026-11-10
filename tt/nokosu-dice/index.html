@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nokosu Dice</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#e3eaf6;
+  --surface:#f7f9fe;
+  --surface-raised:#d9e3f4;
+  --accent:#1f46a3;
+  --accent-soft:rgba(31,70,163,0.14);
+  --text:#16213a;
+  --text-soft:#55618a;
+  --danger:#b3261e;
+  --success:#2c7a3c;
+  --border:rgba(30,50,110,0.28);
+  --radius:10px;
+  --k0:#d4491f; --k1:#2f6fd0; --k2:#e0b020; --k3:#3f9a4a; --k4:#7a4bb0;
+  --cw:44px; --ch:64px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#f3f6fd 0%,#b9c8e6 100%) fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Libre Baskerville',serif;font-size:24px;font-weight:700;font-style:italic;line-height:1.1;flex:1;color:var(--accent)}
+.badge{background:var(--accent);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.3)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd54a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.flag.role{background:var(--accent);color:#fff}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Libre Baskerville',serif;font-size:16px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.8);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(20,35,90,0.3)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt.num{min-width:38px;text-align:center;padding:8px 6px}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+.infohand{display:flex;gap:4px;flex-wrap:wrap}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score tr.me td{background:var(--accent-soft)}
+.scroll-x{overflow-x:auto}
+
+.rolebox{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px}
+.rolebox p{font-size:12px;line-height:1.55;color:var(--text-soft)}
+.rolebox p b{color:var(--text)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#e9f0fc 0%,#9db4de 95%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:520px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(30,50,110,0.5);background:rgba(255,255,255,0.4)}
+.seat.active{border-color:#d08a1e;background:rgba(208,138,30,0.2)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(30,50,110,0.14);border-radius:4px;padding:2px 6px}
+.tag b{color:#12307a}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:220px}
+.back{width:12px;height:18px;border-radius:3px;background:linear-gradient(135deg,#3f6fd0,#14286a);border:1px solid #fff}
+.seat.left .backs,.seat.right .backs{max-width:130px}
+.lbl2{font-size:10px;font-weight:700;color:var(--text-soft);letter-spacing:0.06em}
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:6px}
+.tr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;min-height:70px;align-items:flex-end}
+.tcell{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;max-width:96px;text-align:center}
+.tcell.win .fc{box-shadow:0 0 0 3px #ffd54a}
+.tcell .who{padding:1px 7px;border-radius:9px;color:#111;font-weight:700}
+.tcell .say{font-weight:500;font-style:italic;color:var(--text-soft);line-height:1.25}
+.hand{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding-top:8px}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Libre Baskerville',serif;font-weight:700;font-size:22px;line-height:1;color:#fff;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
+.fc i{font-size:19px}
+.fc.k0{background-color:var(--k0)} .fc.k1{background-color:var(--k1)} .fc.k2{background-color:var(--k2)} .fc.k3{background-color:var(--k3)}
+.fc.hid{background:linear-gradient(135deg,#3f6fd0,#14286a);color:#fff}
+.fc.mini{width:26px;height:38px;font-size:13px;gap:0}
+.fc.mini i{font-size:10px}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+body.a11y .fc.k1,body.a11y .rchip.k1{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .fc.k2,body.a11y .rchip.k2{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.3) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k0,body.a11y .rchip.k0{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.28) 0 3px,transparent 3px 8px)}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .rchip{vertical-align:middle}
+.rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(0,0,0,0.3);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
+.rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+.fc.k4{background-color:var(--k4)}
+.fc.k2{color:#3a2800;text-shadow:none}
+.rchip.k4{background-color:var(--k4)}
+.rchip.k2{color:#3a2800;text-shadow:none}
+body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+.table.n5{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
+.table.n3{grid-template-areas:". . ." "left center right" "bottom bottom bottom"}
+.seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
+.die{width:34px;height:34px;border-radius:9px;border:2px solid #fff;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:24px;box-shadow:0 2px 4px rgba(0,0,0,0.4);flex-shrink:0;padding:0;position:relative;background-color:#888}
+.die.k0{background-color:var(--k0)} .die.k1{background-color:var(--k1)} .die.k2{background-color:var(--k2);color:#3a2800} .die.k3{background-color:var(--k3)} .die.k4{background-color:var(--k4)}
+.die.z{background:#22252e;font-family:'Libre Baskerville',serif;font-weight:700;font-size:18px}
+.die.mini{width:24px;height:24px;font-size:17px;border-radius:6px;border-width:1px}
+.die.big{width:56px;height:56px;font-size:40px;border-radius:13px}
+button.die{cursor:pointer;transition:transform 0.12s}
+button.die:hover:not(:disabled){transform:translateY(-4px)}
+button.die:disabled{cursor:default}
+.die.dim,.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.die.sel{transform:translateY(-8px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+body.a11y .die.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .die.k1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.3) 0 3px,transparent 3px 8px)}
+body.a11y .die.k2{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
+body.a11y .die.k3{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .die.k4{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+.fc.tc1,.die.tc1{outline:2px dashed #f2b705;outline-offset:2px}
+.fc.tc2,.die.tc2{outline:3px solid #f2b705;outline-offset:2px}
+.fc.tc3,.die.tc3{outline:3px solid #f2b705;outline-offset:2px;box-shadow:0 0 0 6px #fff,0 0 12px 6px rgba(242,183,5,0.8)}
+.dicerow{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:26px}
+.trumpbox{display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(255,255,255,0.55);border-radius:10px;padding:6px 10px;font-size:11px;font-weight:600;text-align:center}
+.pool{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;max-width:300px}
+.opt .die{margin-right:6px;vertical-align:middle}
+
+@media(max-width:600px){
+  :root{--cw:30px;--ch:44px}
+  .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
+  .fc i{font-size:12px}
+  .fc.mini{width:22px;height:32px;font-size:11px}
+  .table{padding:8px;gap:6px;min-height:0}
+  .back{width:9px;height:14px}
+  .hand{gap:3px}
+  .tr{gap:5px}
+  .tcell{max-width:74px}
+  .die{width:28px;height:28px;font-size:19px}
+  .die.big{width:46px;height:46px;font-size:32px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const COLORS = [
+  {n:'Rosso', icon:'flame'},
+  {n:'Blu',   icon:'drop'},
+  {n:'Giallo',icon:'sun'},
+  {n:'Verde', icon:'leaf'},
+  {n:'Viola', icon:'moon'}
+];
+const DICE_ICO = ['dice-one','dice-two','dice-three','dice-four','dice-five','dice-six'];
+// per numero di giocatori: colori, carta più alta, carte a testa, dadi pescati dal sacchetto, dadi al centro, dadi totali a testa
+const CFG = {
+  3:{nc:4,maxC:6,per:9, draw:1,centre:10,each:4},
+  4:{nc:5,maxC:7,per:10,draw:2,centre:13,each:5},
+  5:{nc:5,maxC:7,per:8, draw:1,centre:16,each:4}
+};
+const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right'], 5:['bottom','left','tl','tr','right']};
+const NAMES = ['Tu','AI Hoshi','AI Kaze','AI Umi','AI Sora'];
+const SEATC = ['#ffd166','#ff8fb8','#6ee7b7','#8ecbff','#c4a7ff'];
+const HUM = 0;
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const ABORT = {abort:true};
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('nd-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('nd-a11y')==='1'; }catch(e){}
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
+const P = i => G.pl[i];
+function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
+function status(t){ G.msg=t; render(); }
+const plu = (n,s,p) => `${n} ${n===1?s:p}`;
+const iname = it => it.t==='c'?`${COLORS[it.s].n} ${it.r}`:`dado ${COLORS[it.s].n} ${it.r}`;
+const ck = c => c.s*10+c.r;
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+function choose(title,options,info){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,info:info||'',res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// classe di briscola: 3 = stesso numero e colore del dado al centro, 2 = stesso numero, 1 = stesso colore, 0 = non è briscola
+const cls = (it,T) => it.r===T.r&&it.s===T.s?3:it.r===T.r?2:it.s===T.s?1:0;
+function setPower(items,T){ for(const it of items){ const c=cls(it,T); it.tc=c; it.pw=c?c*20+(c===1?it.r:0):it.r; } }
+// carte e dadi giocabili: l'ultimo dado resta sempre in mano (lo Zero non si gioca mai)
+function playable(cards,dice,zero){ return (dice.length>1||(zero&&dice.length>=1))?cards.concat(dice):cards.slice(); }
+function legalOf(cards,dice,zero,trick){
+  const pl=playable(cards,dice,zero);
+  if(!trick.length) return pl;
+  const L=trick[0].it;
+  if(L.tc>0){ const t=pl.filter(x=>x.tc>0); return t.length?t:pl; }
+  const f=pl.filter(x=>x.s===L.s&&x.tc===0);
+  return f.length?f:pl;
+}
+// vince la carta/dado più forte tra le briscole, altrimenti il più alto del colore d'apertura; a parità vince l'ultimo giocato
+function trickWinner(tr){
+  const L=tr[0].it; let best=-1, bi=0;
+  tr.forEach((e,i)=>{
+    const k=e.it.tc>0?1000+e.it.pw:(e.it.s===L.s&&L.tc===0?e.it.r:-1);
+    if(k>=0&&k>=best){ best=k; bi=i; }
+  });
+  return bi;
+}
+// punti del round: 1 per presa + bonus se le prese vinte coincidono con il dado finale (+10 per ogni non corrispondente) + 10 se avevi lo Zero
+function roundScore(n,won,fin,zero){
+  const m=won.map((w,i)=>w===fin[i]), nm=m.filter(Boolean).length, u=n-nm;
+  return won.map((w,i)=>{
+    const bonus=m[i]?10*u:0, zb=m[i]&&zero[i]?10:0;
+    return {won:w,fin:fin[i],match:m[i],bonus,zb,pts:w+bonus+zb};
+  });
+}
+
+// ═════════════════════════ AI: SIMULAZIONE DEL GIOCO ═════════════════════════
+const strOf = it => it.tc===3?0.95:it.tc===2?0.7:it.tc===1?0.3+0.5*it.r/7:Math.pow(it.r/7,2)*0.35;
+// sceglie il dado da tenere (= prese obiettivo): quello il cui numero è più vicino alle prese attese
+function pickTarget(X,q){
+  const items=X.cards[q].concat(X.dice[q]);
+  let est=X.won[q]; for(const it of items) est+=strOf(it);
+  const vals=X.dice[q].map(d=>d.r); if(X.zero[q]) { X.tg[q]=0; X.keep[q]=null; return; }
+  let best=null;
+  for(const d of X.dice[q]) if(!best||Math.abs(d.r-est)<Math.abs(best.r-est)-1e-9||(Math.abs(d.r-est)===Math.abs(best.r-est)&&Math.random()<0.5)) best=d;
+  X.tg[q]=best?best.r:0; X.keep[q]=best;
+}
+function retarget(X,q){
+  if(X.zero[q]) return;
+  let best=null; const old=X.tg[q];
+  for(const d of X.dice[q]) if(!best||Math.abs(d.r-old)<Math.abs(best.r-old)) best=d;
+  X.keep[q]=best; if(best) X.tg[q]=best.r;
+}
+function polD(X,q,tr,L){
+  const need=X.tg[q]-X.won[q], rem=X.rem;
+  const win=need>0&&(need>=rem||Math.random()<need/rem);
+  if(!tr.length) return L.reduce((a,b)=>(win?b.pw>a.pw:b.pw<a.pw)?b:a);
+  const Ld=tr[0].it; let best=-1;
+  for(const e of tr){ const k=e.it.tc>0?1000+e.it.pw:(e.it.s===Ld.s&&Ld.tc===0?e.it.r:-1); if(k>=best) best=k; }
+  const W=[], N=[];
+  for(const x of L){ const k=x.tc>0?1000+x.pw:(x.s===Ld.s&&Ld.tc===0?x.r:-1); (k>=0&&k>=best?W:N).push(x); }
+  if(win){ const A=W.length?W:L; return A.reduce((a,b)=>b.pw<a.pw?b:a); }
+  if(N.length) return N.reduce((a,b)=>b.pw>a.pw?b:a);
+  return L.reduce((a,b)=>b.pw<a.pw?b:a);
+}
+function runX(X){
+  const n=X.n;
+  while(X.rem>0){
+    const tr=X.trick;
+    while(tr.length<n){
+      const q=(X.lead+tr.length)%n;
+      let L=legalOf(X.cards[q],X.dice[q],X.zero[q],tr);
+      const kd=X.keep[q];
+      if(kd){ const L2=L.filter(x=>x!==kd); if(L2.length) L=L2; }
+      const it=L.length===1?L[0]:polD(X,q,tr,L);
+      if(it.t==='c') X.cards[q]=X.cards[q].filter(x=>x!==it); else X.dice[q]=X.dice[q].filter(x=>x!==it);
+      if(it===kd) retarget(X,q);
+      tr.push({p:q,it});
+    }
+    const w=tr[trickWinner(tr)].p; X.won[w]++; X.lead=w; X.trick=[]; X.rem--;
+  }
+}
+function scoreX(X){
+  const fin=X.dice.map((d,q)=>X.zero[q]?0:(d[0]?d[0].r:0));
+  return roundScore(X.n,X.won,fin,X.zero).map(r=>r.pts);
+}
+// distribuisce le carte non viste agli avversari (vuoti di colore/briscola noti); hands[p] = mano di p
+function dealUnseen(p,useVoid){
+  const S=G.S, n=G.n, seen=new Set(S.cards[p].map(ck));
+  S.playedC.forEach(c=>seen.add(ck(c)));
+  const U=shuffle(S.deck.filter(c=>!seen.has(ck(c)))), used=new Set(), hands=[];
+  hands[p]=S.cards[p].slice();
+  const ok=(q,c)=>!useVoid||!((S.voidC[q].has(c.s)&&c.tc===0)||(S.voidT[q]&&c.tc>0));
+  for(const q of shuffle([...Array(n).keys()].filter(x=>x!==p))){
+    const need=S.cards[q].length, take=[];
+    for(let i=0;i<U.length&&take.length<need;i++) if(!used.has(i)&&ok(q,U[i])) take.push(i);
+    if(take.length<need) for(let i=0;i<U.length&&take.length<need;i++) if(!used.has(i)&&!take.includes(i)) take.push(i);
+    take.forEach(i=>used.add(i));
+    hands[q]=take.map(i=>U[i]);
+  }
+  return hands;
+}
+function mkX(cards,dice,zero,trick,lead,won,rem){
+  const n=G.n, X={n,cards,dice,zero,trick,lead,won,rem,tg:Array(n).fill(0),keep:Array(n).fill(null)};
+  for(let q=0;q<n;q++) pickTarget(X,q);
+  return X;
+}
+
+// ═════════════════════════ AI: SCELTA DEI DADI ═════════════════════════
+function aiDraft(p){
+  const S=G.S, n=G.n, cfg=G.cfg;
+  const mine=S.cards[p];
+  const seenKey=new Set(), cands=[];
+  for(const d of S.centre){ const k=ck(d); if(!seenKey.has(k)){ seenKey.add(k); cands.push(d); } }
+  const h=d=>mine.filter(c=>c.s===d.s).length*0.5+mine.filter(c=>c.r===d.r).length*0.5+d.r*0.2+S.dice[p].filter(x=>x.s===d.s).length*0.3+Math.random()*0.6;
+  let list=cands.sort((a,b)=>h(b)-h(a)).slice(0,7);
+  const canZero=S.zc>0&&!S.zero[p];
+  const opts=list.map(d=>({ch:d})); if(canZero) opts.push({ch:'zero'});
+  if(opts.length===1) return opts[0].ch;
+  const tot=opts.map(()=>0), NS=6;
+  for(let i=0;i<NS;i++){
+    const hands0=dealUnseen(p,false);
+    opts.forEach((o,oi)=>{
+      const dice=S.dice.map(d=>d.slice()), zero=S.zero.slice(), centre=S.centre.slice(); let zc=S.zc;
+      const take=(q,ch)=>{
+        if(ch==='zero'){ zero[q]=true; zc--; centre.splice(rnd(centre.length),1); }
+        else{ const k=centre.findIndex(x=>x===ch); if(k<0) return false; centre.splice(k,1); dice[q].push(ch); }
+        return true;
+      };
+      take(p,o.ch);
+      for(let j=S.pickIdx+1;j<S.pickOrder.length&&centre.length>1;j++){
+        const q=S.pickOrder[j];
+        if(zc>0&&!zero[q]&&Math.random()<0.08) take(q,'zero'); else take(q,centre[rnd(centre.length)]);
+      }
+      const T=centre[0]; if(!T) return;
+      const allItems=[]; hands0.forEach(h=>allItems.push(...h)); dice.forEach(d=>allItems.push(...d)); setPower(allItems,T);
+      const X=mkX(hands0.map(h=>h.slice()),dice,zero,[],(S.dealer+1)%n,Array(n).fill(0),cfg.per+cfg.each-1);
+      runX(X); tot[oi]+=scoreX(X)[p];
+    });
+  }
+  let bi=0; tot.forEach((v,i)=>{ if(v>tot[bi]) bi=i; });
+  return opts[bi].ch;
+}
+
+// ═════════════════════════ AI: GIOCO DELLE CARTE ═════════════════════════
+function aiPlay(p){
+  const S=G.S, n=G.n, L=legalOf(S.cards[p],S.dice[p],S.zero[p],S.trick);
+  if(L.length===1) return L[0];
+  // candidati distinti, al massimo 7
+  const seen=new Set(), c0=[];
+  for(const x of L){ const k=x.t+ck(x); if(!seen.has(k)){ seen.add(k); c0.push(x); } }
+  c0.sort((a,b)=>a.pw-b.pw);
+  let cand=c0;
+  if(c0.length>7){ cand=[c0[0],c0[1],c0[2],c0[c0.length>>1],c0[c0.length-3],c0[c0.length-2],c0[c0.length-1]]; cand=cand.filter((x,i)=>cand.indexOf(x)===i); }
+  const rem=S.tot-S.done, tot=cand.map(()=>0), NS=S.done<3?7:9;
+  for(let i=0;i<NS;i++){
+    const hands=dealUnseen(p,true);
+    cand.forEach((c,ci)=>{
+      const cards=hands.map(h=>h.slice()), dice=S.dice.map(d=>d.slice());
+      if(c.t==='c') cards[p]=cards[p].filter(x=>x!==c); else dice[p]=dice[p].filter(x=>x!==c);
+      const trick=S.trick.map(e=>({p:e.p,it:e.it})).concat({p,it:c});
+      const X=mkX(cards,dice,S.zero.slice(),trick,S.lead,S.won.slice(),rem);
+      runX(X); tot[ci]+=scoreX(X)[p];
+    });
+  }
+  let bi=0; tot.forEach((v,i)=>{ if(v>tot[bi]+1e-9||(Math.abs(v-tot[bi])<1e-9&&Math.random()<0.3)) bi=i; });
+  return cand[bi];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,cfg:CFG[n],round:0,dealer:rnd(n),msg:'',log:[],over:null,show:null,turn:-1,S:null,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[],last:0}))};
+  run();
+}
+function deal(){
+  const n=G.n, cfg=G.cfg;
+  const deck=[]; for(let s=0;s<cfg.nc;s++) for(let r=0;r<=cfg.maxC;r++) deck.push({t:'c',s,r,tc:0,pw:r});
+  const d=shuffle(deck.slice());
+  const cards=Array.from({length:n},(_,i)=>d.slice(i*cfg.per,(i+1)*cfg.per).sort((a,b)=>a.s-b.s||a.r-b.r));
+  const bag=[]; for(let s=0;s<cfg.nc;s++) for(let i=0;i<(n===3?4:5);i++) bag.push({t:'d',s,r:0,tc:0,pw:0});
+  shuffle(bag);
+  const order=[]; for(let k=1;k<=n;k++) order.push((G.dealer+k)%n);
+  const picks=(cfg.each-cfg.draw)*n, pickOrder=[]; for(let i=0;i<picks;i++) pickOrder.push(order[i%n]);
+  G.S={deck,cards,dice:Array.from({length:n},()=>[]),zero:Array(n).fill(false),bag,centre:[],zc:0,trump:null,pickOrder,pickIdx:-1,
+    trick:[],lead:(G.dealer+1)%n,won:Array(n).fill(0),res:null,done:0,tot:cfg.per+cfg.each-1,phase:'draw',playedC:[],
+    void:null,voidC:Array.from({length:n},()=>new Set()),voidT:Array(n).fill(false),dealer:G.dealer};
+}
+const roll = () => 1+rnd(6);
+async function drawPhase(){
+  const S=G.S, n=G.n, cfg=G.cfg;
+  logMsg(`Mazziere: ${P(G.dealer).name}. Ognuno pesca ${plu(cfg.draw,'dado','dadi')} dal sacchetto e li tira.`);
+  for(let k=1;k<=n;k++){
+    const p=(G.dealer+k)%n;
+    for(let i=0;i<cfg.draw;i++){ const d=S.bag.pop(); d.r=roll(); S.dice[p].push(d); }
+    logMsg(`${P(p).name} tira: ${S.dice[p].map(iname).join(', ')}.`);
+    await sleep(250);
+  }
+  for(let i=0;i<cfg.centre;i++){ const d=S.bag.pop(); d.r=roll(); S.centre.push(d); }
+  S.zc=2;
+  logMsg(`Il mazziere tira ${cfg.centre} dadi al centro, più i 2 dadi «Zero prese».`);
+  status('Fase dadi: ognuno prende un dado dal centro. L\'ultimo dado rimasto sarà la briscola.');
+  await sleep(500);
+  while(S.centre.length>1){
+    S.pickIdx++;
+    const p=S.pickOrder[S.pickIdx]; G.turn=p;
+    status(p===HUM?'Tocca a te: prendi un dado dal centro.':`Tocca a ${P(p).name}: sceglie un dado.`);
+    let ch;
+    if(p===HUM){
+      const opts=S.centre.map((d,i)=>({label:`${COLORS[d.s].n} ${d.r}`,value:d,die:d}));
+      if(S.zc>0&&!S.zero[HUM]) opts.push({label:'Dado «Zero prese» (punti a vincere 0 prese)',value:'zero'});
+      ch=await choose('Prendi un dado dal centro',opts,`<div class="hint">La tua mano:</div><div class="infohand">${S.cards[HUM].map(c=>cardFace(c,'mini')).join('')}</div><div class="hint">I tuoi dadi:</div><div class="dicerow" style="justify-content:flex-start">${diceRow(HUM)}</div>`);
+    }else{ await sleep(500); ch=aiDraft(p); }
+    if(ch==='zero'){
+      let rem;
+      if(p===HUM) rem=await choose('Dado Zero: quale dado rimetti nel sacchetto?',S.centre.map(d=>({label:`${COLORS[d.s].n} ${d.r}`,value:d,die:d})));
+      else rem=S.centre[rnd(S.centre.length)];
+      S.centre=S.centre.filter(x=>x!==rem); S.zero[p]=true; S.zc--;
+      logMsg(`${P(p).name} prende un dado Zero prese e rimette nel sacchetto ${iname(rem)}.`);
+    }else{
+      S.centre=S.centre.filter(x=>x!==ch); S.dice[p].push(ch);
+      logMsg(`${P(p).name} prende ${iname(ch)}.`);
+    }
+    await sleep(300);
+  }
+  G.turn=-1;
+  S.trump=S.centre[0];
+  const all=[]; S.deck.forEach(c=>all.push(c)); S.dice.forEach(d=>d.forEach(x=>all.push(x))); setPower(all,S.trump);
+  logMsg(`Dado rimasto al centro = briscola: ${iname(S.trump)}. Sono briscola: stesso numero e colore (la più forte), stesso numero, stesso colore.`);
+  S.phase='play';
+  await choose('Fase dadi conclusa',[{label:'Inizia le prese',value:1}],`<div class="hint">Dado briscola:</div><div class="dicerow" style="justify-content:flex-start">${dieFace(S.trump,'big')}</div>`);
+}
+async function playRound(){
+  const S=G.S, n=G.n;
+  logMsg(`Apre ${P(S.lead).name}.`);
+  while(S.done<S.tot){
+    S.trick=[]; S.res=null;
+    for(let k=0;k<n;k++){
+      const p=(S.lead+k)%n; G.turn=p;
+      status(p===HUM?'Tocca a te: gioca una carta o un dado.':`Tocca a ${P(p).name}.`);
+      let it;
+      if(p===HUM) it=await humanPlay();
+      else { await sleep(650); it=aiPlay(p); }
+      if(it.t==='c'){ S.cards[p]=S.cards[p].filter(x=>x!==it); S.playedC.push(it); }
+      else S.dice[p]=S.dice[p].filter(x=>x!==it);
+      if(S.trick.length){
+        const L=S.trick[0].it;
+        if(L.tc>0){ if(it.tc===0) S.voidT[p]=true; }
+        else if(it.s!==L.s||it.tc>0) S.voidC[p].add(L.s);
+      }
+      S.trick.push({p,it});
+      logMsg(`${P(p).name} gioca ${iname(it)}.`);
+    }
+    G.turn=-1;
+    const wi=trickWinner(S.trick), w=S.trick[wi].p;
+    S.res=wi; S.won[w]++;
+    logMsg(`${P(w).name} vince la presa n° ${S.done+1} con ${iname(S.trick[wi].it)}.`);
+    status(`${P(w).name} vince la presa.`);
+    await sleep(1300);
+    S.done++; S.lead=w; S.trick=[]; S.res=null;
+  }
+  S.phase='end';
+}
+async function scoring(){
+  const S=G.S, n=G.n;
+  const fin=S.dice.map((d,q)=>S.zero[q]?0:d[0].r);
+  const rows=roundScore(n,S.won,fin,S.zero);
+  rows.forEach((r,p)=>{ P(p).total+=r.pts; P(p).hist.push(r.pts); P(p).last=r.fin; r.p=p; r.zero=S.zero[p]; });
+  G.show={rows};
+  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ha vinto ${plu(r.won,'presa','prese')} e tiene ${r.zero?'il dado Zero':'il dado '+r.fin} → ${r.pts} punti${r.match?` (bonus ${r.bonus}${r.zb?` + ${r.zb} Zero`:''})`:''}.`));
+  status(`Round ${G.round+1} concluso.`);
+  await choose('Punti del round',[{label:G.round<n-1?'Round successivo':'Vedi il risultato',value:1}]);
+  G.show=null;
+}
+async function run(){
+  const g=G;
+  try{
+    for(let r=0;r<g.n;r++){
+      g.round=r; g.dealer=(g.dealer+(r?1:0))%g.n; deal();
+      logMsg(`— Round ${r+1}/${g.n} —`);
+      await drawPhase();
+      await playRound();
+      await scoring();
+    }
+    const m=Math.max(...g.pl.map(p=>p.total));
+    let ws=g.pl.filter(p=>p.total===m), tie=false;
+    if(ws.length>1){ const l=Math.max(...ws.map(p=>p.last)); const w2=ws.filter(p=>p.last===l); tie=true; ws=w2; }
+    g.over={winners:ws.map(p=>p.id),tie};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ MOSSE UMANE ═════════════════════════
+function humanPlay(){
+  const S=G.S, g=G, L=legalOf(S.cards[HUM],S.dice[HUM],S.zero[HUM],S.trick);
+  return new Promise((res,rej)=>{ PR={type:'play',legal:new Set(L),sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function findItem(id){
+  const S=G.S;
+  return S.cards[HUM].concat(S.dice[HUM]).find(x=>x.uid===id);
+}
+function pickItem(id){
+  if(!PR||PR.type!=='play') return;
+  const it=findItem(id); if(!it||!PR.legal.has(it)) return;
+  if(!OPT.undo){ finishPlay(it); return; }
+  PR.sel=PR.sel===it?null:it; render();
+}
+function finishPlay(it){
+  if(!PR||PR.type!=='play'||!PR.legal.has(it)) return;
+  const r=PR.res; PR=null; render(); r(it);
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+let UID=1;
+function uidOf(it){ if(!it.uid) it.uid=UID++; return it.uid; }
+function cardFace(c,cls2=''){
+  return `<span class="fc k${c.s} ${c.tc?'tc'+c.tc:''} ${cls2}" title="${iname(c)}"><span>${c.r}</span>${ico(COLORS[c.s].icon)}</span>`;
+}
+function dieFace(d,cls2=''){
+  return `<span class="die k${d.s} ${G&&G.S&&G.S.trump&&d.tc?'tc'+d.tc:''} ${cls2}" title="${iname(d)}">${ico(DICE_ICO[d.r-1])}</span>`;
+}
+const zeroFace = (cls2='') => `<span class="die z ${cls2}" title="Dado Zero prese (devi tenerlo come ultimo dado)">0</span>`;
+function diceRow(p){
+  const S=G.S;
+  return S.dice[p].map(d=>dieFace(d,'mini')).join('')+(S.zero[p]?zeroFace('mini'):'')||'<span class="hint">—</span>';
+}
+function itemBtn(it){
+  const id=uidOf(it), ok=PR&&PR.type==='play'&&PR.legal.has(it), sel=PR&&PR.type==='play'&&PR.sel===it;
+  const cl=`${ok||!PR||PR.type!=='play'?'':'dim'} ${sel?'sel':''}`;
+  if(!PR||PR.type!=='play') return it.t==='c'?cardFace(it):dieFace(it);
+  if(it.t==='c') return `<button class="fc k${it.s} ${it.tc?'tc'+it.tc:''} ${cl}" ${ok?'':'disabled'} data-it="${id}" title="${iname(it)}"><span>${it.r}</span>${ico(COLORS[it.s].icon)}</button>`;
+  return `<button class="die k${it.s} ${it.tc?'tc'+it.tc:''} ${cl}" ${ok?'':'disabled'} data-it="${id}" title="${iname(it)}">${ico(DICE_ICO[it.r-1])}</button>`;
+}
+function flagHtml(p){
+  if(!G||G.over||!G.S) return '';
+  const S=G.S; let f='';
+  if(G.dealer===p) f+='<span class="flag first">Mazziere</span>';
+  if(S.phase==='play'&&S.done<S.tot&&S.lead===p) f+='<span class="flag lead">Di mano</span>';
+  return f;
+}
+function seatHtml(p,pos){
+  const S=G.S, pl=P(p), active=G.turn===p;
+  let hand, dice;
+  if(p===HUM){
+    hand=`<div class="hand">${S.cards[HUM].map(itemBtn).join('')||'<span class="hint">—</span>'}</div>`;
+    dice=`<div class="dicerow">${S.dice[HUM].map(itemBtn).join('')+(S.zero[HUM]?zeroFace():'')||'<span class="hint">nessun dado</span>'}</div>`;
+  }else{
+    hand=`<div class="backs">${S.cards[p].map(()=>'<span class="back"></span>').join('')||'<span class="hint">—</span>'}</div>`;
+    dice=`<div class="dicerow">${diceRow(p)}</div>`;
+  }
+  const meta=`<div class="seat-meta"><span class="tag">prese vinte <b>${S.won[p]}</b></span><span class="tag">totale <b>${pl.total}</b></span></div>`;
+  const name=`<div class="seat-name" style="border-bottom:3px solid ${SEATC[p]}">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${name}${meta}${dice}${hand}`:`${hand}${dice}${name}${meta}`;
+  return `<div class="seat ${pos} ${S.phase==='play'&&S.done<S.tot&&S.lead===p?'leader':''} ${active?'active':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const S=G.S;
+  const cells=S.trick.map((e,i)=>`<div class="tcell ${S.res===i?'win':''}">${e.it.t==='c'?cardFace(e.it):dieFace(e.it)}<span class="who" style="background:${SEATC[e.p]}">${esc(P(e.p).name.replace(/^AI /,''))}</span>${S.res===i?'vince':''}</div>`);
+  let mid='';
+  if(S.phase==='draw') mid=`<span class="lbl2">DADI AL CENTRO${S.zc?` · ${S.zc} ZERO`:''}</span><div class="pool">${S.centre.map(d=>dieFace(d)).join('')}${Array.from({length:S.zc},()=>zeroFace()).join('')||''}</div>`;
+  else mid=`<span class="lbl2">PRESA ${Math.min(S.done+1,S.tot)}/${S.tot}${S.trick.length?` · COLORE ${COLORS[S.trick[0].it.s].n.toUpperCase()}${S.trick[0].it.tc?' (BRISCOLA)':''}`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div>`;
+  const tb=S.trump?`<div class="trumpbox">DADO BRISCOLA${dieFace(S.trump,'big')}<span>numero ${S.trump.r} o colore ${COLORS[S.trump.s].n}</span></div>`:'';
+  return `<div class="center">${mid}${tb}</div>`;
+}
+function scoreTable(){
+  const R=G.n;
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:R},(_,i)=>i<p.hist.length?`<td>${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th></th>${Array.from({length:R},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Nokosu Dice contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const nm=G.over.winners.map(i=>esc(P(i).name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (più punti${G.over.tie?'; a parità vince il dado finale più alto dell\'ultimo round':''})</div>${scoreTable()}
+      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show) html+=`<div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Prese</th><th>Dado finale</th><th class="l">Bonus</th><th>Punti</th></tr>${G.show.rows.map(r=>`<tr class="${r.p===HUM?'me':''}"><td>${esc(P(r.p).name)}</td><td>${r.won}</td><td>${r.zero?'Zero':r.fin}${r.match?' ✓':''}</td><td class="l">${r.match?`+${r.bonus}${r.zb?` +${r.zb} (Zero)`:''}`:'—'}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`;
+  if(PR&&PR.type==='choose') html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div>${PR.info||''}<div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${o.die?dieFace(o.die,'mini'):''}${esc(o.label)}</button>`).join('')}</div>`;
+  else if(PR&&PR.type==='play'){
+    if(PR.sel){ html+=`<div class="opts"><button class="opt" data-ok="1">Conferma: gioca ${iname(PR.sel)}</button><button class="opt" data-no="1">Annulla</button></div>`; }
+    else{
+      const S=G.S, L=S.trick.length?S.trick[0].it:null;
+      const must=!L?'Apri la presa con una carta o un dado qualsiasi.':L.tc>0?'Il primo è briscola: devi giocare una briscola se ne hai.':`Devi rispondere con ${COLORS[L.s].n} (non briscola) se puoi.`;
+      html+=`<div class="hint">${must} Dado finale: all'ultima presa ti resta un dado; se le prese vinte ne uguagliano il numero prendi un bonus. Hai vinto ${plu(S.won[HUM],'presa','prese')}.</div>`;
+    }
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n, c=G.cfg;
+  return `<details class="recap"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO · ${n} ROUND</summary>
+    <div class="recap-row"><span class="lbl">Colori</span>${COLORS.slice(0,c.nc).map((x,i)=>`<span class="rchip k${i}">${ico(x.icon)} ${x.n}</span>`).join('')}<span class="rv">carte 0–${c.maxC} · ${c.per} a testa${n===3?' (1 da parte)':''}</span></div>
+    <div class="recap-row"><span class="lbl">Dadi</span><span class="rv">${c.each} a testa: ${c.draw} dal sacchetto + il resto scelto dal centro · puoi prendere un dado «Zero prese» (devi finire con 0 prese)</span></div>
+    <div class="recap-row"><span class="lbl">Briscola</span><span class="rv">l'ultimo dado al centro: stesso numero e colore (più forte) &gt; stesso numero &gt; stesso colore (più alto vince) · una briscola perde il suo colore</span></div>
+    <div class="recap-row"><span class="lbl">Prese</span><span class="rv">${c.per+c.each-1} prese: carte e dadi; obbligo di colore (o di briscola se si apre con una briscola) · l'ultimo dado non si gioca</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">1 per presa + bonus se le prese coincidono con il dado finale: 10 per ogni giocatore che non coincide (+10 con lo Zero) · vince chi ha più punti dopo ${n} round</span></div></details>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>«Nokosu Dice» è un gioco di prese per 3–5 giocatori in cui conta l'ultimo dado che lasci in mano alla fine. A inizio round combini carte e dadi presi dal centro; poi si giocano le prese con carte o dadi. Se le prese vinte coincidono con il valore del tuo ultimo dado ottieni un bonus. La partita dura tanti round quanti sono i giocatori (ognuno è mazziere una volta).</p>
+<h4>Componenti e preparazione</h4>
+<p>40 carte numerate da 0 a 7 in 5 colori (rosso, blu, giallo, verde, viola), 25 dadi (5 per colore), 2 dadi «Zero prese». <b>3 giocatori:</b> si tolgono i dadi viola e un dado per ognuno degli altri 4 colori (restano 16 dadi) e le carte viola e tutti i 7 (restano 28 carte, da 0 a 6).</p>
+<h4>1. Carte</h4>
+<p>Il mazziere distribuisce le carte: 9 a testa in 3 giocatori (1 da parte), 10 in 4, 8 in 5.</p>
+<h4>2. Dadi</h4>
+<p>A partire dal giocatore a sinistra del mazziere, ognuno pesca dal sacchetto 1 dado (2 in 4 giocatori), lo tira e lo mette davanti a sé senza cambiarne il valore. Poi il mazziere tira al centro 10 dadi (13 in 4 giocatori, 16 in 5). Ai dadi del centro si aggiungono i 2 dadi «Zero prese». Sempre dalla sinistra del mazziere e in senso orario, ognuno prende un dado dal centro (puoi guardare le tue carte per decidere) finché non resta un solo dado normale: avrai 4 dadi (5 in 4 giocatori) davanti a te. Chi prende un dado Zero (solo uno a testa) punta a vincere 0 prese e deve rimettere nel sacchetto un dado normale dal centro. L'ultimo dado rimasto al centro è la <b>briscola</b>.</p>
+<h4>3. Le prese</h4>
+<p>Mano = carte + dadi; la forza dipende dal numero. Apre il giocatore a sinistra del mazziere (poi chi vince la presa). Il colore della prima carta/dado è il colore d'apertura e si deve rispondere con una carta o un dado di quel colore se si può; se si apre con una briscola, si deve giocare una briscola se si ha. Altrimenti si gioca ciò che si vuole. I dadi si giocano senza cambiarne il valore; i dadi Zero non si giocano mai.</p>
+<p><b>Briscola:</b> ogni carta o dado con lo stesso numero, lo stesso colore o entrambi del dado rimasto al centro è briscola, e perde il suo colore originale. Ordine: stesso numero e colore &gt; stesso numero &gt; stesso colore (vince il numero più alto). A pari forza vince l'ultimo giocato. Senza briscole vince il numero più alto del colore d'apertura. Il vincitore prende carte e dadi e apre la presa successiva.</p>
+<p>Si gioca finché ogni giocatore ha in mano un solo dado: l'ultimo dado non può essere giocato, nemmeno se è l'unico del colore richiesto; chi ha preso uno Zero deve tenerlo come ultimo dado.</p>
+<h4>4. Punteggio</h4>
+<p>1 punto per ogni presa vinta. <b>Bonus:</b> chi ha vinto un numero di prese pari al valore del suo ultimo dado (lo Zero vale 0) guadagna 10 punti per ogni giocatore che <i>non</i> coincide (es. in 4 giocatori: 3 coincidono → 10 ciascuno; 2 → 20; solo 1 → 30; tutti → nessun bonus). Chi ha dichiarato Zero e ha vinto 0 prese prende altri 10 punti.</p>
+<h4>Fine della partita</h4>
+<p>Dopo tanti round quanti sono i giocatori vince il punteggio più alto. A parità vince chi ha il dado finale più alto dell'ultimo round; se ancora pari, vittoria condivisa.</p>
+<p><i>Interpretazioni nell'app:</i> con un dado finale non obbligato a coincidere, puoi decidere quale dado tenere fino all'ultima presa: le AI scelgono man mano il dado più vicino alle prese che prevedono di vincere. Se il colore d'apertura è un colore con solo carte di briscola, vale la regola della briscola. I dadi Zero scartati vengono rimessi nel sacchetto senza essere mostrati.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+function logHtml(){
+  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+    </div>`:''}</div>`;
+}
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">Nokosu Dice</div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${G.n}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G&&G.S){
+    const pos=POS[G.n];
+    body=`<div class="table n${G.n}">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}</div>
+      ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+function askName(n){
+  try{ if(localStorage.getItem('nylo-skip-name')==='1'){ NAMES[0]=localStorage.getItem('nylo-player-name')||'Nylo'; newMatch(n); return; } }catch(e){}
+  let ov=document.getElementById('nameModal');
+  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
+  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
+  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
+  ov.style.display='flex';
+  const closeName=()=>{ ov.style.display='none'; };
+  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
+  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
+  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v=inp.value.trim().slice(0,16)||'Tu';
+    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
+    NAMES[0]=v; ov.style.display='none'; newMatch(n);
+  };
+}
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.it!==undefined) pickItem(Number(b.dataset.it));
+  else if(b.dataset.ok!==undefined){ if(PR&&PR.type==='play'&&PR.sel) finishPlay(PR.sel); }
+  else if(b.dataset.no!==undefined){ if(PR&&PR.type==='play'){ PR.sel=null; render(); } }
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('nd-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('nd-undo',OPT.undo?'1':'0'); }catch(err){}
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
