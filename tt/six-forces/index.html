@@ -67,7 +67,7 @@ table.score .neg{color:var(--danger)}
 .seat.winner{border-color:#6ee7a3;background:rgba(110,231,163,0.18)}
 .seat-name{font-weight:600;font-size:13px}
 .seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
-.tag{background:rgba(255,255,255,0.16);border-radius:4px;padding:2px 6px}
+.tag{background:rgba(255,255,255,0.16);border-radius:4px;padding:2px 6px;display:inline-flex;align-items:center;gap:4px}
 .ind{display:inline-flex;align-items:center;gap:4px;background:#e8e6ee;color:#2b2540;border-radius:5px;padding:2px 6px;font-size:11px;font-weight:600}
 .ind.cur{outline:2px solid #ffd54a}
 .chip{display:inline-block;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#a58cf0,#4b2f9e);border:1px solid #fff}
@@ -301,17 +301,17 @@ async function doPredict(p,canBack){
   }
   while(true){
     const opts=[];
-    for(let n=0;n<=max;n++) opts.push({label:n===0?'0 prese (nessun segnalino)':`${n} ${n===1?'presa':'prese'}`,value:n,w:n===0?0.6:(n<=5?1:0.2)});
+    for(let n=0;n<=max;n++) opts.push({label:String(n),value:n,w:n===0?0.6:(n<=5?1:0.2)});
     if(canBack&&p===HUM&&OPT.undo) opts.push(BACK);
     const n=await ask(p,'Pronostica quante prese vincerai (prendi altrettanti segnalini previsione)',opts,{pause:350});
     if(n==='back') return 'back';
     let flex=false;
     if(n>=1){
       const fo=[
-        {label:`No: esattamente ${n}`,value:false,w:1.5},
-        {label:`Sì: ${n-1} oppure ${n} (vale 2 punti invece di 4)`,value:true,w:1}];
+        {label:`No: vincerò esattamente ${n} ${n===1?'presa':'prese'} (4 punti)`,value:false,w:1.5},
+        {label:`Sì: vincerò ${n-1} oppure ${n} prese (2 punti)`,value:true,w:1}];
       if(p===HUM&&OPT.undo) fo.push({label:'Annulla',value:'undo'});
-      flex=await ask(p,`Vuoi usare un segnalino con il pallino? Prevedi ${n-1} oppure ${n} prese`,fo,{pause:200});
+      flex=await ask(p,'Vuoi usare un segnalino con il pallino?',fo,{pause:200});
       if(flex==='undo') continue;
     }
     const txt=n===0?'0 prese':flex?`${n-1}–${n} prese (con il pallino)`:`${n} prese`;
@@ -543,7 +543,8 @@ function recapHtml(){
     :'<span class="rv">ognuno sceglie la propria Briscola Personale; vale quella del giocatore di mano</span>';
   return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Colori</span>${COLORS.map((c,i)=>`<span class="rchip c${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rv">${max} carte per colore (${max*4})</span></div>
-    <div class="recap-row"><span class="lbl">Valori</span>${Array.from({length:max-1+1},(_,i)=>`<span class="nchip">${i+1}</span>`).join('')}<span class="rv">12 carte a testa · ${TRICKS} prese</span></div>
+    <div class="recap-row"><span class="lbl">Valori</span>${Array.from({length:max},(_,i)=>`<span class="nchip">${i+1}</span>`).join('')}</div>
+    <div class="recap-row"><span class="lbl">Carte</span><span class="rv">${TRICKS} a testa (${TRICKS} prese)</span></div>
     <div class="recap-row"><span class="lbl">Briscola</span>${tr}</div></details>`;
 }
 
@@ -602,7 +603,7 @@ function seatHtml(p,pos){
   const meta=`<div class="seat-meta">
       ${t?`<span class="ind ${isLeader&&G.leader===p?'cur':''}" title="${esc(t.label)}">${tico(t)} ${t.short}</span>`:'<span class="tag">briscola: —</span>'}
       <span class="tag">${chipsHtml(pl.pred)||''} ${predText(pl.pred)}</span>
-      <span class="tag">prese ${pl.won}</span><span class="tag">tot ${pl.total}</span></div>`;
+      <span class="tag">prese vinte ${pl.won}</span></div>`;
   return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">
     <div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>${pos==='bottom'?body+meta:meta+body}</div>`;
 }
