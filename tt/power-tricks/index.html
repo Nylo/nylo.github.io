@@ -176,7 +176,8 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 .gemrow{display:flex;justify-content:center}
 .pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
 .pcard{background:rgba(255,255,255,0.7);border:1px solid var(--border);border-radius:9px;padding:7px 10px;font-size:12px;line-height:1.4}
-.pcard .pt{font-size:10px;font-weight:700;letter-spacing:0.07em;color:var(--text-soft);margin-bottom:2px}
+.pcard .pt{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;letter-spacing:0.07em;color:var(--text-soft);margin-bottom:2px}
+.pcard .pt b.pl{color:#fff;border-radius:6px;padding:1px 8px;font-size:13px;letter-spacing:0}
 table.pbt{border-collapse:collapse;font-size:12px;width:100%;text-align:center}
 table.pbt th{font-size:10px;letter-spacing:0.05em;color:var(--text-soft);text-align:left;padding:3px 6px 3px 0;white-space:nowrap}
 table.pbt td{padding:3px 4px;border:1px solid var(--border);min-width:30px}
@@ -210,7 +211,7 @@ body.a11y .fc.k0,body.a11y .rchip.k0{background-image:repeating-linear-gradient(
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const SUITS = [
-  {n:'Mazzafrusti', ab:'Maz', icon:'bomb',   lo:1, hi:9},
+  {n:'Mazza',       ab:'Maz', icon:'hockey', lo:1, hi:9},
   {n:'Martelli',    ab:'Mar', icon:'hammer', lo:1, hi:11},
   {n:'Asce',        ab:'Asc', icon:'axe',    lo:2, hi:13},
   {n:'Spade',       ab:'Spa', icon:'sword',  lo:3, hi:15}
@@ -237,7 +238,7 @@ const TR = {
   B:{t:'suit', suit:3, txt:'Briscola: Spade', sh:'Spade'},
   C:{t:'suit', suit:2, txt:'Briscola: Asce', sh:'Asce'},
   D:{t:'suit', suit:1, txt:'Briscola: Martelli', sh:'Martelli'},
-  E:{t:'suit', suit:0, txt:'Briscola: Mazzafrusti', sh:'Mazzafrusti'},
+  E:{t:'suit', suit:0, txt:'Briscola: Mazza', sh:'Mazza'},
   F:{t:'none', txt:'Senza briscola (vince sempre il seme d\'apertura)', sh:'Senza briscola'}
 };
 // Punti presa
@@ -252,7 +253,7 @@ const TP = {
 // Puntata
 const BID = {A:{3:4,4:3,5:2}, B:{3:5,4:4,5:3}, C:1, D:2, E:3, F:4};
 const bidOf = (L,N) => { const b=BID[L]; return typeof b==='number'?b:b[N]; };
-const bidTxt = L => typeof BID[L]==='number' ? `Tutti puntano ${BID[L]}` : `3 giocatori: ${BID[L][3]} · 4 giocatori: ${BID[L][4]} · 5 giocatori: ${BID[L][5]}`;
+const bidTxt = (L,N) => { const b=bidOf(L,N); return `Tutti puntano ${b} ${b===1?'presa':'prese'}`; };
 const CHAPTERS = [
   null,
   {n:'Il potere si raduna',                 pb:'A', tr:'A', tp:'C', bid:'B'},
@@ -723,8 +724,8 @@ function startRound(){
 }
 function humanPick6(types,cfg){
   const opts=[];
-  types.forEach(t=>LETTERS.forEach(L=>opts.push({label:`${t.n} ${L}: ${t.k==='pb'?PB[L].n:t.k==='bid'?bidTxt(L):t.set[L].sh}`,value:{k:t.k,L}})));
-  const info=`<div class="hint">${types.map(t=>`<b>${t.n}</b>: ${t.k==='pb'?LETTERS.map(L=>`${L} = ${PB[L].t.join('·')}`).join(' | '):LETTERS.map(L=>`${L} = ${t.k==='bid'?bidTxt(L):t.set[L].sh}`).join(' | ')}`).join('<br>')}</div>`;
+  types.forEach(t=>LETTERS.forEach(L=>opts.push({label:`${t.n} ${L}: ${t.k==='pb'?PB[L].n:t.k==='bid'?bidTxt(L,G.S.N):t.set[L].sh}`,value:{k:t.k,L}})));
+  const info=`<div class="hint">${types.map(t=>`<b>${t.n}</b>: ${t.k==='pb'?LETTERS.map(L=>`${L} = ${PB[L].t.join('·')}`).join(' | '):LETTERS.map(L=>`${L} = ${t.k==='bid'?bidTxt(L,G.S.N):t.set[L].sh}`).join(' | ')}`).join('<br>')}</div>`;
   return choose('Capitolo 6: scegli una carta (un tipo non ancora scelto)',opts,info);
 }
 async function pickPhase(){
@@ -935,21 +936,22 @@ function powerTable(S){
     let st;
     if(lg&&lg.by>=0) st=`<span class="pw-by" style="background:${SEATC[lg.by]}" title="Preso da ${esc(who(lg.by))}">${esc(who(lg.by).replace(/^AI /,'').slice(0,3))}</span>`;
     else if(lg) st='<span class="pw-x" title="Scartato">✗</span>';
-    else if(cur) st='<span class="pw-now" title="Disponibile ora">▲</span>';
-    else st='·';
+        else st='·';
     const cls=cur?'cur':'';
     r1.push(`<td class="${cls}"><b>+${v}</b></td>`); r2.push(`<td class="${cls}">${t[v-1]}</td>`); r3.push(`<td class="${cls}">${st}</td>`);
   }
   return `<div class="scroll-x"><table class="pbt"><tr><th>Potere</th>${r1.join('')}</tr><tr><th>Bonus</th>${r2.join('')}</tr><tr><th>Preso da</th>${r3.join('')}</tr></table></div>`;
 }
+const LCOLS={A:'#3f8f4f',B:'#2f8fc4',C:'#d9822b',D:'#8a3fa8',E:'#c9363c',F:'#6b7280'};
+const pcard=(t,L,body)=>`<div class="pcard"><div class="pt"><span>${t}</span>${L?`<b class="pl" style="background:${LCOLS[L]}">${L}</b>`:''}</div><div class="pb">${L?body:'—'}</div></div>`;
 function roundInfo(){
   const S=G.S, c=S.cfg;
   const ch=S.chNo===6?'Capitolo 6 · La battaglia finale':`Capitolo ${S.chNo} · ${CHAPTERS[S.chNo].n}`;
   const cards=`<div class="pcards">
-    <div class="pcard"><div class="pt">BRISCOLA</div><div class="pb">${c.tr?`${c.tr} · ${esc(TR[c.tr].txt)}`:'—'}</div></div>
-    <div class="pcard"><div class="pt">PUNTI PRESA</div><div class="pb">${c.tp?`${c.tp} · ${esc(TP[c.tp].txt)}`:'—'}</div></div>
-    <div class="pcard"><div class="pt">PUNTATA</div><div class="pb">${c.bid?`${c.bid} · ${esc(bidTxt(c.bid))}<br><b>Qui: ${bidOf(c.bid,S.N)} ${bidOf(c.bid,S.N)===1?'presa':'prese'}</b>`:'—'}</div></div>
-    <div class="pcard"><div class="pt">BONUS POTERE</div><div class="pb">${c.pb?`${c.pb} · ${esc(PB[c.pb].n)}`:'—'}</div></div></div>`;
+    ${pcard('BRISCOLA',c.tr,c.tr&&esc(TR[c.tr].txt))}
+    ${pcard('PUNTI PRESA',c.tp,c.tp&&esc(TP[c.tp].txt))}
+    ${pcard('PUNTATA',c.bid,c.bid&&esc(bidTxt(c.bid,S.N)))}
+    ${pcard('BONUS POTERE',c.pb,c.pb&&`<b>${esc(PB[c.pb].n)}</b><br>vedi tabella sottostante`)}</div>`;
   const gems=S.avail.length?`<div class="gemlist">${S.avail.map(g=>gemHtml(g)).join('')}</div>`:'<span class="hint">nessuna gemma disponibile</span>';
   return `<details class="recap info" open><summary>ROUND ${G.round+1}/${ROUNDS} · ${esc(ch).toUpperCase()}</summary>${cards}
     <div class="lbl2">POTERE: ogni presa ha la sua carta (+1, +2, …). Se la afferri, la sommi a ogni tua carta e alla fine, se vinci esattamente la puntata, prendi il bonus della riga «Bonus».</div>${powerTable(S)}
@@ -1010,7 +1012,7 @@ const RULES_HTML = `
 <h4>Panoramica</h4>
 <p>«Power Tricks» (di Jon Barron) è un gioco di prese per 3–5 giocatori che spinge le prese al massimo livello di potere: i barbari del Castello del Teschio del Potere si sfidano per stabilire chi avrà il potere assoluto.</p>
 <h4>Componenti e preparazione</h4>
-<ul><li><b>45 carte</b> in 4 semi asimmetrici: Mazzafrusti 1–9, Martelli 1–11, Asce 2–13, Spade 3–15. A 3 giocatori si tolgono le Asce.</li>
+<ul><li><b>45 carte</b> in 4 semi asimmetrici: Mazza 1–9, Martelli 1–11, Asce 2–13, Spade 3–15. A 3 giocatori si tolgono le Asce.</li>
 <li><b>Carte potere</b> da +1 a +11 (a 5 giocatori si usano solo +1…+9, una per presa).</li>
 <li>Si scoprono tante <b>gemme</b> quanti sono i giocatori più uno.</li>
 <li>Carte distribuite: 11 a testa con 3 o 4 giocatori (a 4 ne avanza una), 9 a testa con 5.</li>
