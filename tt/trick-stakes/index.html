@@ -139,6 +139,10 @@ table.rsvt th,table.rsvt td{border:1px solid var(--border);padding:4px 8px;text-
 table.rsvt th{background:var(--surface-raised);font-weight:600;color:var(--text-soft)}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -648,12 +652,12 @@ function dockHtml(){
 }
 function recapHtml(){
   const n=G.n;
-  return `<div class="recap"><h3>RIEPILOGO · ${n} GIOCATORI${n===3?' + FANTINO DUMMY':''} · ${n} GARE</h3>
+  return `<details class="recap"><summary>RIEPILOGO · ${n} GIOCATORI${n===3?' + FANTINO DUMMY':''} · ${n} GARE</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${COLS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">48 carte gara 1–12 · 4 mazzetti da 12 legati ai 4 cavalli (passano a sinistra dopo ogni gara) · simboli di avanzamento: 1 = 4, 2–6 = 3, 7–9 = 2, 10–12 = 1</span></div>
     <div class="recap-row"><span class="lbl">Paddock</span><span class="rv">si scopre la prima carta del mazzetto (inutilizzabile), poi si scarta coperta una delle 11 restanti: restano 10 carte</span></div>
     <div class="recap-row"><span class="lbl">Scommesse</span><span class="rv">una carta scoperta (in ordine di turno, tipi tutti diversi) + una coperta: <b>Vincitore semplice</b> + cavallo = vinci 2 × quota se vince · <b>Coppia vincente</b> = due cavalli, la quota di ognuno che arriva 1° o 2°</span></div>
     <div class="recap-row"><span class="lbl">Gara</span><span class="rv">prese con obbligo di colore · vince la carta più alta del colore di apertura · <b>Frusta</b> (1 a gara, 1 a presa): il colore della tua carta decide la presa · chi vince fa avanzare il proprio cavallo dei simboli della carta · fine con 2 cavalli al traguardo (casella 8) o carte finite</span></div>
-    <div class="recap-row"><span class="lbl">Premi</span><span class="rv">1° cavallo: 4 punti · 2° cavallo: 2 punti · scommesse con la quota attuale · quote dopo ogni gara: 1° +0, 2° +1, 3° +2, 4° +3</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Premi</span><span class="rv">1° cavallo: 4 punti · 2° cavallo: 2 punti · scommesse con la quota attuale · quote dopo ogni gara: 1° +0, 2° +1, 3° +2, 4° +3</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules"><summary>REGOLAMENTO</summary>

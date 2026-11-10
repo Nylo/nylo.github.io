@@ -139,6 +139,10 @@ body.a11y .fc.k5,body.a11y .rchip.k5{background-image:repeating-linear-gradient(
 .rchip.io{background:linear-gradient(135deg,#ffe45a,#ff9d1a);color:#7a1a00;text-shadow:none}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -629,13 +633,13 @@ function dockHtml(){
 }
 function recapHtml(){
   const m=MINTRASH[G.n];
-  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
+  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Mazzo</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rchip io">${ico('sparkle')} Offerta Irresistibile ×2</span><span class="rv">108 oggetti (1–9, due copie per colore) + 2 Offerte</span></div>
     <div class="recap-row"><span class="lbl">Round</span><span class="rv">${G.rounds} round · 8 carte a testa (nel primo 7 prese: prima si sceglie l'Affare) · si gioca in senso orario, apre il giocatore a sinistra del mazziere</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">segui il colore di mano; senza quel colore giochi ciò che vuoi e dichiari se è briscola (una sola per presa, mai il colore di mano) · carta doppia: dichiari se è più alta o più bassa · l'Offerta batte tutto</span></div>
     <div class="recap-row"><span class="lbl">Carte vinte</span><span class="rv">chi vince la presa mette all'Affare (visibile, +1) le carte con il suo oggetto, tutte le altre nelle Cianfrusaglie (coperte, −1)</span></div>
     <div class="recap-row"><span class="lbl">Pulizie</span><span class="rv">a fine round ripulisci un oggetto dalle Cianfrusaglie: ${m} carte nel cestino, le altre vanno all'Affare e diventano il tuo nuovo oggetto · nell'ultimo round due oggetti</span></div>
-    <div class="recap-row"><span class="lbl">Fine</span><span class="rv">carte nell'Affare − carte nelle Cianfrusaglie (Offerte comprese) · a pari punti vince chi ha meno Cianfrusaglie</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Fine</span><span class="rv">carte nell'Affare − carte nelle Cianfrusaglie (Offerte comprese) · a pari punti vince chi ha meno Cianfrusaglie</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules"><summary>REGOLAMENTO</summary>

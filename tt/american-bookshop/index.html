@@ -118,6 +118,10 @@ body.a11y .pc.s3,body.a11y .pile.s3{background-image:repeating-linear-gradient(9
 
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 
@@ -559,11 +563,11 @@ function dockHtml(){
 
 function recapHtml(){
   const ks=[0,1,2,3].filter(k=>G.n!==3||k!==RED), per=Math.floor(fullDeck(G.n).length/G.n);
-  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
+  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Colori</span>${ks.map(k=>`<span class="rchip s${k}">${ico(SUITS[k].icon)} ${SUITS[k].n}</span>`).join('')}<span class="rv">${G.n===3?'Mulino (rosso) tolto · ':''}13 carte per colore</span></div>
     <div class="recap-row"><span class="lbl">Valori</span><span class="nchip">0</span><span class="nchip">0</span>${Array.from({length:11-1+1},(_,i)=>`<span class="nchip">${i+1}</span>`).join('')}<span class="rv">due 0, poi 1–11</span></div>
     <div class="recap-row"><span class="lbl">Briscola</span><span class="rv" style="margin-left:0">nessuna: vince la carta più alta del colore di mano</span></div>
-    <div class="recap-row"><span class="lbl">Limite</span><span class="nchip">${G.limit}</span><span class="rv">${per} carte a testa${G.aside?` · ${G.aside} da parte`:''}</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Limite</span><span class="nchip">${G.limit}</span><span class="rv">${per} carte a testa${G.aside?` · ${G.aside} da parte`:''}</span></div></details>`;
 }
 
 const RULES_HTML = `

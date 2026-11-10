@@ -128,6 +128,10 @@ body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(
 .rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -584,13 +588,13 @@ function dockHtml(){
 }
 function recapHtml(){
   const t=tokensFor(G.n,G.rider).map(tokStr).join(' · ');
-  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI${G.rider?' · CON RIDER':''}</h3>
+  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI${G.rider?' · CON RIDER':''}</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${SUITS.filter((s,i)=>!(G.n===3&&i===2)).map(s=>`<span class="rchip k${SUITS.indexOf(s)}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">valori 1–8 · ${G.n===3?'24':'32'} carte · 8 a testa · il <b>Nero è briscola permanente</b></span></div>
     <div class="recap-row"><span class="lbl">Direttive</span><span class="rv">segnalini in gioco: ${t} · uno a testa, gli altri da parte per la Negoziazione</span></div>
     <div class="recap-row"><span class="lbl">Pianificazione</span><span class="rv">2 carte private a testa, poi fino a 8: <b>A</b> pesca 1 (tienila in privato, oppure mettila nel Mercato e pesca altre 2: una privata, una pubblica) · <b>B</b> prendi 1 carta dal Mercato nella Mano Pubblica · mai più di 8 carte</span></div>
     <div class="recap-row"><span class="lbl">Negoziazione</span><span class="rv">1 sola volta per round, solo quando raggiungi le 8 carte: riveli la Direttiva (rimossa dal gioco) e ne peschi una dai segnalini da parte${G.rider?' · il Rider non può negoziare':''}</span></div>
     <div class="recap-row"><span class="lbl">Prese</span><span class="rv">8 prese · obbligo di seme · vince il Nero più alto, senza Nero la carta più alta del seme d'apertura · chi vince apre · giochi da Mano Privata e Pubblica</span></div>
-    <div class="recap-row"><span class="lbl">Punteggio</span><span class="rv">−1 per ogni presa di differenza dall'obiettivo (in più o in meno)${G.rider?' · Rider: −1 per ogni avversario che completa la sua Direttiva':''} · ${G.n} round · vince chi è più vicino a 0</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Punteggio</span><span class="rv">−1 per ogni presa di differenza dall'obiettivo (in più o in meno)${G.rider?' · Rider: −1 per ogni avversario che completa la sua Direttiva':''} · ${G.n} round · vince chi è più vicino a 0</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules"><summary>REGOLAMENTO</summary>

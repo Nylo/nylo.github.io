@@ -140,6 +140,10 @@ body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(
 .rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)} .rchip.k4{background-color:var(--k4)}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -594,13 +598,13 @@ function dockHtml(){
   return html;
 }
 function recapHtml(){
-  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO · ${G.expert?'GIOCO ESPERTO':'GIOCO STANDARD'}</h3>
+  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO · ${G.expert?'GIOCO ESPERTO':'GIOCO STANDARD'}</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">30 carte (1–6 in 5 semi) · 10 carte a testa${G.n===2?' · le altre 10 formano il mazzo':''}</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">${G.n===2?'si scopre una carta dal mazzo, poi giocano i due giocatori · ':''}ogni carta giocata deve essere <b>più forte</b> di tutte quelle già nella presa · nessun obbligo di seme · 9 prese per round · apre chi ha giocato per ultimo</span></div>
     <div class="recap-row"><span class="lbl">Forza</span><span class="rv">${G.expert?'briscola seme+valore › briscola valore (vince l\'ultima) › ':''}briscola seme › seme della prima carta · a pari seme conta l'ordine dei valori (maggiore o minore)</span></div>
     <div class="recap-row"><span class="lbl">Regole</span><span class="rv">giocando una carta puoi cambiare ${G.expert?'ordine dei valori, briscola seme e briscola valore':'ordine dei valori e briscola seme'}, ma lo storico di <b>tutte</b> le prese (ogni carta più forte delle precedenti) deve restare coerente</span></div>
     <div class="recap-row"><span class="lbl">Ritirare</span><span class="rv">per cambiare le regole puoi ritirare carte dallo storico: ${G.expert?'una alla volta, mai quelle della presa in corso':'dichiari valori e semi e ritiri tutte le carte corrispondenti, anche quelle della presa in corso'} · ogni carta ritirata = −1 punto</span></div>
-    <div class="recap-row"><span class="lbl">Partita</span><span class="rv">${G.n} round, il primo giocatore passa a sinistra · vince chi ha il totale più vicino a zero (meno carte ritirate)</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Partita</span><span class="rv">${G.n} round, il primo giocatore passa a sinistra · vince chi ha il totale più vicino a zero (meno carte ritirate)</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules"><summary>REGOLAMENTO</summary>

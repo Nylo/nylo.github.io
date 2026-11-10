@@ -128,6 +128,10 @@ table.rsvt th,table.rsvt td{border:1px solid var(--border);padding:4px 8px;text-
 table.rsvt th{background:var(--surface-raised);font-weight:600;color:var(--text-soft)}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -583,12 +587,12 @@ function dockHtml(){
 }
 function recapHtml(){
   const n=G.n, k=predK(n);
-  return `<div class="recap"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO · ${roundsOf(n)} ROUND</h3>
+  return `<details class="recap"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO · ${roundsOf(n)} ROUND</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}${i===0?' (briscola)':''}</span>`).join('')}<span class="rv">60 carte, valori 0–14 · ${n===5?'12 carte a testa':n===2?'15 carte a testa (le altre due pile servono al round 2)':'15 carte a testa'}${n===3?' · la quarta pila resta da parte e ogni presa ne scopre una':''}</span></div>
     <div class="recap-row"><span class="lbl">Previsione</span><span class="rv">scegli segretamente ${k} carte dalla mano: la somma è i punti presa che vuoi ottenere · quelle carte non si giocano (${G.S?G.S.tot:''} prese)</span></div>
     <div class="recap-row"><span class="lbl">Prese</span><span class="rv">obbligo di seme · vince il Rosso più alto, altrimenti la carta più alta del seme d'apertura · chi vince sceglie una delle carte giocate${n===3?' (anche quella scoperta dal mazzo)':''}: il suo valore sono i punti presa</span></div>
     <div class="recap-row"><span class="lbl">Esperienza</span><span class="rv">uguale alla previsione: ×3 · zero punti presa: ×2 · sopra: previsione + punti presa · sotto: solo i punti presa · se hai più punti presa di tutti (e ≠ previsione): ${n===2?'5':'3'} carte più alte − il resto</span></div>
-    <div class="recap-row"><span class="lbl">Partita</span><span class="rv">vince chi ha più punti esperienza dopo ${roundsOf(n)} round (parità: vittoria condivisa)</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Partita</span><span class="rv">vince chi ha più punti esperienza dopo ${roundsOf(n)} round (parità: vittoria condivisa)</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules"><summary>REGOLAMENTO</summary>

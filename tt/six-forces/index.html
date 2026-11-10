@@ -112,6 +112,10 @@ body.a11y .pc.c3{background-image:repeating-linear-gradient(45deg,rgba(255,255,2
 
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 details.rules ul{margin:10px 0 0 18px;font-size:12px;line-height:1.6;color:var(--text-soft)}
@@ -537,10 +541,10 @@ function recapHtml(){
   const lp=G.turn>=0?P(G.leader):null, t=lp&&lp.trump?TR(lp.trump):null;
   const tr=t?`<span class="rchip ${t.color!==undefined?'c'+t.color:''}">${ico(t.icon)} ${esc(t.short)}</span><span class="rv">Briscola Personale di ${esc(lp.name)} (di mano)</span>`
     :'<span class="rv">ognuno sceglie la propria Briscola Personale; vale quella del giocatore di mano</span>';
-  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
+  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Colori</span>${COLORS.map((c,i)=>`<span class="rchip c${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rv">${max} carte per colore (${max*4})</span></div>
     <div class="recap-row"><span class="lbl">Valori</span>${Array.from({length:max-1+1},(_,i)=>`<span class="nchip">${i+1}</span>`).join('')}<span class="rv">12 carte a testa · ${TRICKS} prese</span></div>
-    <div class="recap-row"><span class="lbl">Briscola</span>${tr}</div></div>`;
+    <div class="recap-row"><span class="lbl">Briscola</span>${tr}</div></details>`;
 }
 
 const RULES_HTML = `

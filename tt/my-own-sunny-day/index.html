@@ -131,6 +131,10 @@ body.a11y .fc.k3,body.a11y .umb.k3,body.a11y .rchip.k3{background-image:repeatin
 .rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -520,10 +524,10 @@ function dockHtml(){
   return html;
 }
 function recapHtml(){
-  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
+  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n} 1–${c.max}</span>`).join('')}<span class="rv">52 carte pioggia · 13 a testa${G.n===3?' (13 scartate)':''}</span></div>
     <div class="recap-row"><span class="lbl">Briscola</span><span class="rv" style="margin-left:0">nessuna: chi ha un ombrello è «Soleggiato» se gioca una carta del colore del suo ombrello (briscola personale)</span></div>
-    <div class="recap-row"><span class="lbl">Punti</span><span class="rv" style="margin-left:0">prese vinte prima = dopo l'ombrello (≠ 0): 0 punti · nessuna presa: 1 punto · altrimenti 10 punti per ogni presa di differenza</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv" style="margin-left:0">prese vinte prima = dopo l'ombrello (≠ 0): 0 punti · nessuna presa: 1 punto · altrimenti 10 punti per ogni presa di differenza</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules"><summary>REGOLAMENTO</summary>

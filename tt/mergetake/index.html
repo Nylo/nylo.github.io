@@ -148,6 +148,10 @@ body.a11y .k6.fc,body.a11y .k6.cc{background-image:radial-gradient(rgba(255,255,
 .recap-row .cc{vertical-align:middle}
 details.rules{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--ink);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Fredoka',sans-serif;font-size:15px;color:var(--coral);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -571,12 +575,12 @@ function scoreTable(){
 function recapHtml(){
   const n=G.n;
   const deck=n===4?'tutte le 46 carte (due Blu 19)':'35 carte (senza Rosa, Neri e un Blu 19)';
-  return `<div class="recap paper"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
+  return `<details class="recap paper"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${COLS.map(c=>`<span class="cc k${COLS.indexOf(c)}">${c.lo}–${c.hi}${ico(c.icon)}</span>`).join('')}<span class="rv">${deck} · 11 carte a testa</span></div>
     <div class="recap-row"><span class="lbl">Scambio</span><span class="rv">prima di giocare ognuno passa 3 carte coperte al giocatore a sinistra</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">si segue il colore di mano se si può · vince la briscola più alta (colore della carta scoperta al centro), altrimenti il numero più alto del colore di mano · a parità vince chi ha giocato prima · il vincitore raccoglie tutte le carte</span></div>
     <div class="recap-row"><span class="lbl">Gruppi</span><span class="rv">carte con lo stesso numero o numeri consecutivi (anche di colori diversi) si uniscono in un gruppo · se raccogli carte che entrano in un gruppo da 4+ guida chi ti sta a sinistra</span></div>
-    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">+1 per ogni gruppo da 4 carte o meno, −1 per ogni carta nei gruppi da 5+ · chi vince l'ultima presa prende anche la carta briscola · ognuno aggiunge la carta traccia, copia della carta coperta al centro</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">+1 per ogni gruppo da 4 carte o meno, −1 per ogni carta nei gruppi da 5+ · chi vince l'ultima presa prende anche la carta briscola · ognuno aggiunge la carta traccia, copia della carta coperta al centro</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules paper"><summary>REGOLAMENTO</summary>

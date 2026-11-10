@@ -143,6 +143,10 @@ body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(
 .rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)} .rchip.k4{background-color:var(--k4)}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -622,14 +626,14 @@ function dockHtml(){
   return html;
 }
 function recapHtml(){
-  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
+  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Allievi</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rv">60 carte (1–12 per colore)${G.n===3?' · con 3 giocatori se ne usano 45':''} · ${HANDN[G.n]} carte a testa</span></div>
     <div class="recap-row"><span class="lbl">Templi</span><span class="rv">Grande (4 partecipanti, 2 Tecniche da 3 punti) · Medio (3 partecipanti, 3 Tecniche da 1 punto) · Piccolo (2 partecipanti)</span></div>
     <div class="recap-row"><span class="lbl">Scambio</span><span class="rv">una carta coperta al Discepolo (destra), poi una al Maestro (sinistra) · inizia chi ha il Blu 5</span></div>
     <div class="recap-row"><span class="lbl">Turno</span><span class="rv">gioca un Allievo a destra di un Tempio (il primo decide la scuola ospite) o in fondo alla fila · stesso colore della scuola ospite, altrimenti solo se tutti i Templi sono occupati e non ne hai</span></div>
     <div class="recap-row"><span class="lbl">Vince</span><span class="rv">a competizione completa vince l'Allievo più alto della scuola ospite (il segnalino): una Tessera Vittoria; con carta da 1 a 9 anche una Tecnica Segreta (Grande e Medio)</span></div>
     <div class="recap-row"><span class="lbl">Punti</span><span class="rv">Tecniche Segrete + relazioni: Maestro (meno vittorie +3, pari +1) e Discepolo (più vittorie +3, pari +1) · chi ha 0 vittorie prende 5 e il suo Discepolo 3, e basta</span></div>
-    <div class="recap-row"><span class="lbl">Partita</span><span class="rv">${G.seasons} stagioni · a fine stagione chi ha meno punti riorganizza i posti · vince chi ha più punti</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Partita</span><span class="rv">${G.seasons} stagioni · a fine stagione chi ha meno punti riorganizza i posti · vince chi ha più punti</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules"><summary>REGOLAMENTO</summary>

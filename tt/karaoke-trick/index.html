@@ -138,6 +138,10 @@ table.rsvt tr.cur td{background:var(--accent-soft);font-weight:700;color:var(--t
 .rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)} .rchip.k4{background-color:var(--k4)}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -580,14 +584,14 @@ function rsvTable(cur){
   }).join('')}</table>`;
 }
 function recapHtml(){
-  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
+  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${G.suits.map(s=>`<span class="rchip k${s}">${ico(COL[s].icon)} ${COL[s].n}</span>`).join('')}<span class="rv">${12*G.n} carte (1–12) · 12 carte a testa</span></div>
     <div class="recap-row"><span class="lbl">Canzoni</span><span class="rv">prenotate all'inizio (al massimo 2 per giocatore · solo con una canzone si può aprire una presa)</span>${rsvTable(G.n)}</div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">il Leader gioca la 1ª canzone (fissa il seme) · gli altri, in senso orario: giocano una carta (seme obbligatorio se ce l'hanno) oppure prenotano una canzone</span></div>
     <div class="recap-row"><span class="lbl">Vince</span><span class="rv">la carta più alta del seme di apertura raccoglie tutte le carte giocate · apre la presa dopo (o il primo con canzoni, in senso orario)</span></div>
     <div class="recap-row"><span class="lbl">Round</span><span class="rv">finisce quando nessuno ha canzoni, o un giocatore (non il Leader) non ha più carte in mano</span></div>
     <div class="recap-row"><span class="lbl">Punti</span><span class="rv">chi ha vinto più prese: 1 punto per presa (a pari prese conta chi ha più carte) · tutti gli altri: 1 punto per carta vinta</span></div>
-    <div class="recap-row"><span class="lbl">Partita</span><span class="rv">${G.n} round, il Leader passa a sinistra · a pari punti vince chi ha aperto l'ultima presa</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Partita</span><span class="rv">${G.n} round, il Leader passa a sinistra · a pari punti vince chi ha aperto l'ultima presa</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules"><summary>REGOLAMENTO</summary>

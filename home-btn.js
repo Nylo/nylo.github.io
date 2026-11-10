@@ -4,7 +4,7 @@
 (function () {
   var inFrame = window.self !== window.top;
   if (inFrame) { window.nyloHomeBtn = function () { return ''; }; window.nyloBackBtn = function () { return ''; }; }
-  var ONLINE_GAMES = { '/tt/vs-ai/spy-team/': '/tt/online/spy-team/' };
+  var ONLINE_GAMES = { '/tt/spy-team/': '/tt/spy-team/online/' };
   var SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>';
   window.nyloHomeBtn = function () {
     return '<button type="button" class="nylo-home" data-home="1" title="Torna alla home" aria-label="Torna alla home">' + SVG + '<span>Home</span></button>';
@@ -19,15 +19,34 @@
   var st = document.createElement('style');
   st.textContent = '.nylo-home{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:7px;border:1px solid var(--border,rgba(255,255,255,.35));background:transparent;color:var(--text-soft,#cbd5e1);font:500 12px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}' +
     '.nylo-home:hover{background:var(--surface-raised,rgba(255,255,255,.1));color:var(--text,#fff)}' +
-    '@media(max-width:760px){.nylo-home span{display:none}.nylo-home{padding:5px 8px}}' +
     '.menu-pop .opt-toggle.nylo-menu-action{display:block;width:100%;padding:9px 10px;border:0;border-radius:6px;text-align:left;white-space:normal;font:500 13px Inter,system-ui,sans-serif;cursor:pointer;background:transparent;color:inherit}' +
     '.menu-pop .opt-toggle.nylo-menu-action:hover{background:var(--accent-soft,rgba(255,255,255,.1))}' +
     '.nylo-menu-action input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}' +
     '.nylo-home-float{position:fixed;left:12px;bottom:12px;z-index:2147483000;width:42px;height:42px;justify-content:center;border-radius:50%;background:rgba(15,23,42,.88);color:#f1f5f9;border-color:rgba(255,255,255,.45);box-shadow:0 4px 14px rgba(0,0,0,.4)}' +
     '.nylo-home-float span{display:none}' +
-    '@media(max-width:760px){html.nylo-mobile-menu-game-controls .topbar>[data-new]{display:none!important}.nylo-mobile-menu-game-controls .menu-pop>[data-new]{display:block!important;width:100%;text-align:left;padding:9px 10px;border:0!important;border-radius:6px;background:transparent!important;font-size:13px;color:inherit}.nylo-mobile-menu-game-controls .menu-pop>[data-new]:hover{background:var(--accent-soft,rgba(255,255,255,.1))!important}}';
+    '.topbar>.nylo-home,.topbar>[data-new]{display:none!important}' +
+    '.menu-pop .nylo-nav{display:block;width:100%;padding:9px 10px;border:0;border-radius:6px;text-align:left;white-space:nowrap;font:500 13px Inter,system-ui,sans-serif;cursor:pointer;background:transparent;color:var(--text,inherit)}' +
+    '.menu-pop .nylo-nav:hover{background:var(--accent-soft,rgba(255,255,255,.1))}' +
+    '.menu-pop .nylo-sep{height:1px;margin:2px 0;background:var(--border,rgba(255,255,255,.2))}';
   document.head.appendChild(st);
 
+  // accordion: lo stato aperto/chiuso resta mentre la pagina si ridisegna (si azzera solo cambiando o ricaricando la pagina)
+  var ACC = {};
+  function accKey(d) {
+    var sm = d.querySelector(':scope > summary');
+    return sm ? sm.textContent.trim().split(/[\s·(]/)[0].toUpperCase() : null;
+  }
+  document.addEventListener('toggle', function (e) {
+    var d = e.target;
+    if (!d || !d.matches || !d.matches('details')) return;
+    var k = accKey(d); if (k) ACC[k] = d.open;
+  }, true);
+  function restoreAcc() {
+    Array.prototype.forEach.call(document.querySelectorAll('details'), function (d) {
+      var k = accKey(d);
+      if (k && Object.prototype.hasOwnProperty.call(ACC, k) && d.open !== ACC[k]) d.open = ACC[k];
+    });
+  }
   var ov;
   function build() {
     if (!document.documentElement.hasAttribute('data-home-inline')) {
@@ -38,15 +57,28 @@
         document.body.appendChild(f);
       }
     } else {
-      if (document.querySelector('.menu-wrap')) document.documentElement.classList.add('nylo-mobile-menu-game-controls');
       var updateGameMenu = function () {
-        var mobile = window.matchMedia && window.matchMedia('(max-width:760px)').matches;
         var topbar = document.querySelector('.topbar');
         var menu = document.querySelector('.menu-wrap .menu-pop');
-        var newInMenu = document.querySelector('.menu-pop>[data-new]');
-        var newInBar = topbar && topbar.querySelector(':scope > [data-new]');
-        if (mobile && menu && newInBar) menu.appendChild(newInBar);
-        else if (!mobile && topbar && newInMenu) topbar.insertBefore(newInMenu, document.querySelector('.menu-wrap'));
+        // Indietro / Home / Nuova partita stanno sempre nel menu hamburger (senza icone)
+        if (topbar && menu && !menu.querySelector('.nylo-nav')) {
+          var mk = function (label, attrs) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'nylo-nav'; b.textContent = label;
+            Object.keys(attrs).forEach(function (k) { b.setAttribute(k, attrs[k]); });
+            return b;
+          };
+          var items = [];
+          var back = topbar.querySelector(':scope > [data-back]');
+          if (back) items.push(mk('Indietro', { 'data-back': back.getAttribute('data-back'), 'data-back-what': back.getAttribute('data-back-what') || '' }));
+          if (topbar.querySelector(':scope > [data-home]')) items.push(mk('Home', { 'data-home': '1' }));
+          if (topbar.querySelector(':scope > [data-new]')) items.push(mk('Nuova partita', { 'data-new': '1' }));
+          if (items.length) {
+            var sep = document.createElement('div'); sep.className = 'nylo-sep';
+            var first = menu.firstChild;
+            items.forEach(function (it) { menu.insertBefore(it, first); });
+            menu.insertBefore(sep, first);
+          }
+        }
 
         Array.prototype.forEach.call(document.querySelectorAll('.menu-pop .opt-toggle input#optA11y, .menu-pop .opt-toggle input#optUndo'), function (input) {
           var label = input.parentElement;
@@ -99,8 +131,8 @@
           }
         }
       };
-      updateGameMenu();
-      new MutationObserver(updateGameMenu).observe(document.body, { childList: true, subtree: true });
+      updateGameMenu(); restoreAcc();
+      new MutationObserver(function () { updateGameMenu(); restoreAcc(); }).observe(document.body, { childList: true, subtree: true });
       window.addEventListener('resize', updateGameMenu);
       document.addEventListener('keydown', function (e) {
         var label = e.target.closest && e.target.closest('.nylo-menu-action');

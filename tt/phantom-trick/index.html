@@ -148,6 +148,10 @@ body.a11y .s4.pc,body.a11y .s4.sw{background-image:repeating-linear-gradient(90d
 .recap-row .sw{vertical-align:middle}
 details.rules{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Anton',sans-serif;font-weight:400;font-size:16px;margin:14px 0 4px;letter-spacing:0.02em;background:linear-gradient(90deg,#7a3fc4,#c9962b);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -659,13 +663,13 @@ function dockHtml(){
 function recapHtml(){
   const n=G.n;
   const deck=n===3?'1–10 in 4 colori (senza Bianco)':(n===4?'1–10 in 5 colori':'0–11 in 5 colori');
-  return `<div class="recap paper"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
+  return `<details class="recap paper"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Mazzo</span>${deck} (${makeDeck(n).length} carte) · 12 carte a testa, 11 prese · ${Array.from({length:n===3?4:5},(_,s)=>swHtml(s)).join('')}</div>
     <div class="recap-row"><span class="lbl">Carta a destra</span>Ognuno mette a faccia in giù una carta a destra del riassunto, poi si rivelano; inizia chi ha il valore più basso non ripetuto.</div>
     <div class="recap-row"><span class="lbl">Presa</span>Si segue il seme di mano se si può; due carte con lo stesso valore si annullano (a faccia in giù). Vince il valore più alto del seme di mano tra le carte ancora scoperte.</div>
     <div class="recap-row"><span class="lbl">Acquisizione</span>Il vincitore prende una carta scoperta a destra; se ha il valore di una carta già a destra, le due vanno nella pila sinistra.</div>
     <div class="recap-row"><span class="lbl">Punteggio</span>Pila sinistra: 1 punto ogni 2 carte. Carte a destra: ${ico('flame')} −2 per i valori 4–7, −4 per tutti gli altri.</div>
-    <div class="recap-row"><span class="lbl">Fine</span>Si parte da ${START} punti; la partita termina dopo 3 round o appena qualcuno arriva a 0 o meno. Vince il punteggio più alto.</div></div>`;
+    <div class="recap-row"><span class="lbl">Fine</span>Si parte da ${START} punti; la partita termina dopo 3 round o appena qualcuno arriva a 0 o meno. Vince il punteggio più alto.</div></details>`;
 }
 const RULES_HTML = `
 <details class="rules paper"><summary>REGOLAMENTO</summary>

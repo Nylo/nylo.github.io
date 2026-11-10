@@ -106,6 +106,10 @@ body.a11y .pc.s3{background-image:repeating-linear-gradient(90deg,rgba(255,255,2
 
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 
@@ -558,10 +562,10 @@ function dockHtml(){
 
 function recapHtml(){
   const tr=G.trump>=0?`<span class="rchip s${G.trump}">${ico(SUITS[G.trump].icon)} ${SUITS[G.trump].n}</span>`:'<span class="rv">si scopre a inizio round</span>';
-  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
+  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Semi</span>${SUITS.map((s,i)=>`<span class="rchip s${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">8 carte per seme</span></div>
     <div class="recap-row"><span class="lbl">Numeri</span>${Array.from({length:8-1+1},(_,i)=>`<span class="nchip">${i+1}</span>`).join('')}<span class="rv">4 copie per numero</span></div>
-    <div class="recap-row"><span class="lbl">Briscola</span>${tr}<span class="rv">${HAND} carte a testa · ${TRICKS} prese · vince il numero più alto</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Briscola</span>${tr}<span class="rv">${HAND} carte a testa · ${TRICKS} prese · vince il numero più alto</span></div></details>`;
 }
 
 const RULES_HTML = `

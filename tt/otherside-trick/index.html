@@ -151,6 +151,10 @@ body.a11y .k3.fc,body.a11y .k3.sw,body.a11y .k3.ch{background-image:repeating-li
 .recap-row .sw{vertical-align:middle}
 details.rules{border:2px solid #cfc9b8;border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Anton',sans-serif;font-weight:400;font-size:15px;color:#3c7a14;margin:14px 0 4px;letter-spacing:0.03em}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -502,12 +506,12 @@ function dockHtml(){
 }
 function recapHtml(){
   const n=G.n;
-  return `<div class="recap paper hud"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
+  return `<details class="recap paper hud"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>`<span class="sw k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">52 carte (4 semi, 1–13) · ${n===4?'12 carte a testa, 4 carte tolte':'10 carte a testa, 2 carte tolte'} · 12 carte Kaii</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">il seme della prima carta è il lato vicino, il primo seme diverso è il lato opposto · al massimo due semi: dopo il lato opposto devi giocare uno dei due semi, se ne hai (non c'è preferenza per il lato vicino) · con nessuno dei due giochi altro, ma non puoi vincere</span></div>
     <div class="recap-row"><span class="lbl">Vincitori</span><span class="rv">carta più alta del lato vicino: prende la presa come struttura e guida · carta più alta del lato opposto: prende un Kaii · un Kaii e una struttura si contengono subito a coppie</span></div>
     <div class="recap-row"><span class="lbl">Round</span><span class="rv">più Kaii che strutture = muori (−2) · altrimenti +1 per Kaii contenuto, −1 per struttura inutilizzata, più bonus sopravvivenza (+1, +2, +3 nei tre round)</span></div>
-    <div class="recap-row"><span class="lbl">Fine</span><span class="rv">dopo il 3° round, o appena qualcuno muore la seconda volta (eliminato) · vince chi ha più punti tra i non eliminati</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Fine</span><span class="rv">dopo il 3° round, o appena qualcuno muore la seconda volta (eliminato) · vince chi ha più punti tra i non eliminati</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules paper hud"><summary>REGOLAMENTO</summary>

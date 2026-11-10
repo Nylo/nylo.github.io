@@ -137,6 +137,10 @@ body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(
 .nchip{display:inline-flex;min-width:24px;justify-content:center;padding:2px 6px;border-radius:5px;background:rgba(127,127,127,0.25);font-weight:700;font-size:12px}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -556,12 +560,12 @@ function dockHtml(){
   return html;
 }
 function recapHtml(){
-  return `<div class="recap"><h3>RIEPILOGO</h3>
+  return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>`<span class="rchip k${i}">${suitIcon(i)} ${s.n}</span>`).join('')}<span class="rv">24 carte: Pesca, Banana, Anguria e Soda, da 1 a 6 · 10 carte a testa, 4 da parte (la prima scoperta fa la briscola)</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">chi risponde deve rispondere al colore · stesso colore: vince il valore più alto · altrimenti vince solo una briscola giocata da chi risponde</span></div>
     <div class="recap-row"><span class="lbl">Premio</span><span class="rv" style="margin-left:0">il vincitore mette davanti a sé la carta del perdente (gonfia il pallone) · il perdente prende in mano la carta del vincitore e scarta una carta coperta</span></div>
     <div class="recap-row"><span class="lbl">POP!</span><span class="rv" style="margin-left:0">se il totale delle carte davanti a te supera ${LIMIT} il pallone scoppia e le perdi tutte</span></div>
-    <div class="recap-row"><span class="lbl">Round</span><span class="rv" style="margin-left:0">dopo 10 prese vince il totale più alto (a parità più carte, altrimenti entrambi) · il primo a vincere 2 round vince la partita</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Round</span><span class="rv" style="margin-left:0">dopo 10 prese vince il totale più alto (a parità più carte, altrimenti entrambi) · il primo a vincere 2 round vince la partita</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules"><summary>REGOLAMENTO</summary>

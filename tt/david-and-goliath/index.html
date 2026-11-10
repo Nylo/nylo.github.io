@@ -147,6 +147,10 @@ body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(
 .nchip{display:inline-flex;min-width:24px;justify-content:center;padding:2px 6px;border-radius:5px;background:rgba(127,127,127,0.25);font-weight:700;font-size:12px}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -458,12 +462,12 @@ function dockHtml(){
 }
 function recapHtml(){
   const mx=MAXN[G.n];
-  return `<div class="recap"><h3>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</h3>
+  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Colori</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rv">${5*mx} carte in gioco</span></div>
     <div class="recap-row"><span class="lbl">Numeri</span>${Array.from({length:mx},(_,i)=>`<span class="nchip">${i+1}</span>`).join('')}<span class="rv">da 1 a ${mx} per ogni colore</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">carta più ALTA (numero, qualunque colore) → prende tutte le carte tranne la più alta · carta più BASSA → riceve la carta più alta · a parità vale l'ultima giocata</span></div>
     <div class="recap-row"><span class="lbl">Punti</span><span class="rv" style="margin-left:0">per colore: 1–2 carte = somma dei valori · 3 o più carte = 1 punto ciascuna</span></div>
-    <div class="recap-row"><span class="lbl">Partita</span><span class="rv" style="margin-left:0">15 carte a testa · ${G.n} round, un primo giocatore a testa · vince chi ha più punti</span></div></div>`;
+    <div class="recap-row"><span class="lbl">Partita</span><span class="rv" style="margin-left:0">15 carte a testa · ${G.n} round, un primo giocatore a testa · vince chi ha più punti</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules"><summary>REGOLAMENTO</summary>

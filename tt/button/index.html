@@ -149,6 +149,10 @@ button.otr.can:hover{background:rgba(255,209,102,0.35)}
 .recap-row .sw{vertical-align:middle}
 details.rules{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Fredoka',sans-serif;font-weight:600;font-size:17px;margin:14px 0 4px;letter-spacing:0.02em;background:linear-gradient(90deg,#d6368a,#6b3fb0);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -738,13 +742,13 @@ function dockHtml(){
 }
 function recapHtml(){
   const n=G.n, cfg=G.cfg;
-  return `<div class="recap paper"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO${G.team?' · A SQUADRE':''}</h3>
+  return `<details class="recap paper"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO${G.team?' · A SQUADRE':''}</summary>
     <div class="recap-row"><span class="lbl">Mazzo</span>${[0,1,2,3].map(swHtml).join('')} carte da 1 a ${cfg.maxV} (${4*cfg.maxV} carte). Si distribuiscono ${cfg.hand} carte a testa; ${cfg.open} carte scoperte aprono le prese, il resto è il mazzo di pesca.</div>
     <div class="recap-row"><span class="lbl">Scommesse</span>Dal giocatore a sinistra del mazziere, a turno: prendi quanti bottoni vuoi (${cfg.tokens} in tutto) oppure passa; chi passa non può più prenderne. Nessun bottone = scommetti di vincere 0 prese.</div>
     <div class="recap-row"><span class="lbl">Prese</span>A turno giochi una carta in una presa aperta (al massimo ${cfg.maxPlays} volte per presa). Con 5 carte la presa si risolve subito e si apre una nuova presa dal mazzo. Dopo ${PLAYS} carte a testa il round finisce.</div>
     <div class="recap-row"><span class="lbl">Vince</span>Se un seme ha la maggioranza netta, vince la sua carta più alta. Se due semi pareggiano, vince la carta più bassa tra i due (poi la seconda carta). Se la carta iniziale vince, o il pareggio resta, la presa si scarta.</div>
     <div class="recap-row"><span class="lbl">Punti</span>1 punto per carta vinta. Scommessa centrata (prese vinte = bottoni): 5 punti per bottone; 0 bottoni e 0 prese: 30 punti. Dopo ${G.rounds} round vince chi ha più punti.</div>
-    ${G.team?`<div class="recap-row"><span class="lbl">Squadre</span>Compagni di fronte; prima delle scommesse si passano una carta coperta. La scommessa è la somma dei bottoni dei due; uno 0 riuscito fa vincere subito la partita.</div>`:''}</div>`;
+    ${G.team?`<div class="recap-row"><span class="lbl">Squadre</span>Compagni di fronte; prima delle scommesse si passano una carta coperta. La scommessa è la somma dei bottoni dei due; uno 0 riuscito fa vincere subito la partita.</div>`:''}</details>`;
 }
 const RULES_HTML = `
 <details class="rules paper"><summary>REGOLAMENTO</summary>

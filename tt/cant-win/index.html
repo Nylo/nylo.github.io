@@ -164,6 +164,10 @@ body.a11y .s3.pc,body.a11y .s3.sw{background-image:repeating-linear-gradient(90d
 .recap-row .sw,.recap-row .tile{vertical-align:middle}
 details.rules{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Pixelify Sans',sans-serif;font-weight:700;font-size:17px;margin:14px 0 4px;letter-spacing:0.02em;color:#4a3f8a}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul,.rtext ol{padding-left:18px}
@@ -750,12 +754,12 @@ function dockHtml(){
 }
 function recapHtml(){
   const n=G.n;
-  return `<div class="recap paper"><h3>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</h3>
+  return `<details class="recap paper"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</summary>
     <div class="recap-row"><span class="lbl">Mazzo</span>${[0,1,2,3].map(swHtml).join('')} carte 1–${n===3?9:12} (${n*HAND} carte), ${HAND} a testa · ${n} round</div>
     <div class="recap-row"><span class="lbl">Vincolo e puntata</span>Dal mazziere in senso orario ognuno sceglie prima il vincolo o la puntata, poi completa l'altra. Il primo che punta prende il segnalino Start e apre la prima presa.</div>
     <div class="recap-row"><span class="lbl">Vincoli</span>${TILES.map((t,i)=>`<span class="tile t${i}">${ico(t.ico)} ${t.name}</span> ${t.desc}`).join(' · ')}</div>
     <div class="recap-row"><span class="lbl">Presa</span>Si segue il colore se si può. Le carte vietate dal proprio vincolo vanno di traverso (Can't win!). Vince la briscola (Turchese) dritta più alta, poi il colore di mano dritto, poi qualsiasi carta dritta, infine la più alta di traverso (a parità, l'ultima giocata).</div>
-    <div class="recap-row"><span class="lbl">Punti</span>Puntata centrata 1 punto, Zero centrato 2 punti${G.beg?'; regole per principianti: ogni gettone Aiuto sposta la puntata di ±1':''}. Finale = Σ prese × Σ punti; a pari merito vince chi ha più punti.</div></div>`;
+    <div class="recap-row"><span class="lbl">Punti</span>Puntata centrata 1 punto, Zero centrato 2 punti${G.beg?'; regole per principianti: ogni gettone Aiuto sposta la puntata di ±1':''}. Finale = Σ prese × Σ punti; a pari merito vince chi ha più punti.</div></details>`;
 }
 const RULES_HTML = `
 <details class="rules paper"><summary>REGOLAMENTO</summary>
