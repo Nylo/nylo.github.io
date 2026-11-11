@@ -1151,7 +1151,7 @@ render();
 if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosenCount;if(NYLO_START.name)playerName=NYLO_START.name.slice(0,18);if(NYLO_START.action==='join'){joinVal=NYLO_START.code||'';joinRoom()}else createRoom();}
 </script>
 <style id="sx-css">
-.sx-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:12px;color:var(--text);max-width:560px}
+.sx-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:12px;color:var(--text)}
 .sx-label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text-soft);margin-top:2px}
 .sx-row{display:flex;gap:8px;flex-wrap:wrap}
 .sx-opt{padding:10px 16px;border-radius:7px;border:1px solid var(--border);background:var(--surface-raised);color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;transition:border-color .12s,background .12s}
@@ -1173,15 +1173,17 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
   window.addEventListener('hashchange',function(){location.reload()});
   var app=document.getElementById('app');
   var st={n:P.counts[0],mode:location.hash==='#stanze'?'room':(location.hash==='#ai'?'ai':''),sub:'',code:'',name:''};
+  var needName=false;
   try{
     st.name=localStorage.getItem('nylo-player-name')||'';
     var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
   }catch(e){}
+  needName=!st.name;   // il nome arriva dalla sessione; il campo compare solo se manca
   function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
   function draw(){
     var h='<div class="topbar"><div class="logo">'+P.logo+'</div>'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div>';
     h+='<div class="sx-card">';
-    h+='<label class="sx-label" for="sxName">IL TUO NOME</label><input class="sx-in" id="sxName" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(st.name)+'">';
+    if(needName)h+='<label class="sx-label" for="sxName">IL TUO NOME</label><input class="sx-in" id="sxName" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(st.name)+'">';
     if(P.counts.length>1){
       h+='<div class="sx-label">GIOCATORI</div><div class="sx-row">'+P.counts.map(function(n){return btn('data-n="'+n+'"','',n+' giocatori',st.n===n)}).join('')+'</div>';
     }
@@ -1189,9 +1191,9 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
     if(st.mode==='ai'){
       h+='<div class="sx-sub"><div class="sx-row">'+btn('data-go="ai"','sx-go','Inizia',false)+'</div></div>';
     }else if(st.mode==='room'){
-      h+='<div class="sx-sub"><div class="sx-row">'+btn('data-sub="create"','','Crea una stanza',st.sub==='create')+btn('data-sub="join"','','Unisciti a una stanza',st.sub==='join')+'</div>';
+      h+='<div class="sx-label">OPZIONI STANZA</div><div class="sx-sub"><div class="sx-row">'+btn('data-sub="create"','','Crea nuova',st.sub==='create')+btn('data-sub="join"','','Unisciti',st.sub==='join')+'</div>';
       if(st.sub==='create')h+='<div class="sx-row">'+btn('data-go="create"','sx-go','Inizia',false)+'</div>';
-      if(st.sub==='join')h+='<input class="sx-in code" id="sxCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(st.code)+'"><div class="sx-row"><button type="button" class="sx-opt sx-go" id="sxJoin" data-go="join" '+(st.code.length===12?'':'disabled')+'>Vai</button></div>';
+      if(st.sub==='join')h+='<input class="sx-in code" id="sxCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(st.code)+'"><div class="sx-row"><button type="button" class="sx-opt sx-go" id="sxJoin" data-go="join" '+(st.code.length===12?'':'disabled')+'>Inizia</button></div>';
       h+='</div>';
     }
     h+='</div>';
