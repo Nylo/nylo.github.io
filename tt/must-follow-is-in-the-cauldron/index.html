@@ -485,13 +485,14 @@ async function scoreRound(){
   logMsg(`Round ${G.round+1} concluso: `+rows.map(r=>`${P(r.p).name} ${r.won} prese, +${r.d} (${r.score})`).join(' · ')+'.');
   const ended=G.pl.some(p=>p.score>=WINSCORE);
   status(ended?'Round concluso: qualcuno ha raggiunto 3 punti.':'Round concluso: ecco i punteggi.');
-  await askChoose('Risultato del round',[{label:ended?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await askChoose('Risultato del round',[{label:ended?'Mostra risultato finale':'Round successivo',value:1}]);
   if(!ended) G.show=null;
   return ended;
 }
 async function run(){
   const g=G;
   try{
+    await askChoose(`Buona partita a Must-Follow is in the Cauldron, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let r=0;;r++){
       g.round=r; g.first=g.leader;
       deal();

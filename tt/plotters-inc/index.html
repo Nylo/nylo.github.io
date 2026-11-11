@@ -448,12 +448,13 @@ async function scoreRound(){
   logMsg(`Round ${G.round+1} concluso${G.ended>=0?' in anticipo':''}.`);
   rows.forEach(x=>logMsg(`${P(x.p).name}: ${x.sc} punti (totale ${x.tot}).`));
   status('Round concluso.');
-  await ask(HUM,'Risultato del round',[{label:G.round>=G.n-1?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await ask(HUM,'Risultato del round',[{label:G.round>=G.n-1?'Mostra risultato finale':'Round successivo',value:1}]);
   G.show=null;
 }
 async function run(){
   const g=G;
   try{
+    G.welcome=true; await ask(HUM,`Buona partita a Plotters, Inc., ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
     for(let r=0;r<g.n;r++){
       g.round=r;
       if(r>0) g.start=(g.start+1)%g.n;
@@ -619,7 +620,7 @@ function render(){
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
     ${menuHtml()}</div>`;
   let body='';
-  if(G){
+  if(G&&!G.welcome){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
       ${G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}

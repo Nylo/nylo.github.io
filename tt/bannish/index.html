@@ -567,13 +567,14 @@ async function scoreRound(){
   logMsg(`Round ${G.round+1} concluso: `+G.pl.map((p,i)=>`${p.name} ${R.tot[i]}`).join(' · ')+'.');
   logMsg(second.length?`Secondo posto: ${second.join(' e ')} ottiene 1 PV.`:'Nessun secondo posto valido: nessuno ottiene PV.');
   status(last?'Round concluso: c\'è un vincitore.':'Round concluso: ecco i punteggi.');
-  await ask(HUM,'Risultato del round',[{label:last?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await ask(HUM,'Risultato del round',[{label:last?'Mostra risultato finale':'Round successivo',value:1}]);
   if(!last) G.show=null;
   return last;
 }
 async function run(){
   const g=G;
   try{
+    await ask(HUM,`Buona partita a Bannish, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(;;){
       deal();
       logMsg(`— Round ${g.round+1}: ${g.n*HAND} carte (${g.cols.map(s=>COLS[s]).join(', ')}), ${HAND} a testa. Segnalino a ${P(g.chip).name} —`);

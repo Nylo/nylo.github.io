@@ -218,6 +218,10 @@ const liveScore = p => p.bags.reduce((a,b)=>a+bagPts(b),0)+4*p.amber;
 const cardName = c => c.amber?'ambra':`${c.n} uova`;
 
 // ═════════════════════════ INTERAZIONE ═════════════════════════
+function askWelcome(title){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'welcome',title,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
 function askClaim(legal,hint){
   const g=G;
   return new Promise((res,rej)=>{ PR={type:'claim',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
@@ -480,6 +484,7 @@ async function run(){
   const g=G;
   try{
     deal();
+    await askWelcome(`Buona partita a Eggs of Ostrich, ${P(HUM).name}!`);
     logMsg(`Partita di 3 giocatori: ${EGGS.length+AMBERS} carte uovo, ${REMOVED} tolte a caso senza guardarle: si giocano ${g.total} round.`);
     for(let r=1;r<=g.total;r++){
       if(g.pl.every(p=>p.out)){ logMsg('Nessun giocatore ha più sacchi utilizzabili: la partita finisce qui.'); break; }
@@ -565,7 +570,9 @@ function dockHtml(){
     return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (vince il totale più alto)</div>${finalLines()}`;
   }
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
-  if(PR&&PR.type==='claim'){
+  if(PR&&PR.type==='welcome'){
+    html=`<div class="dock-msg"><b>${esc(PR.title)}</b></div><div class="opts"><button class="opt" data-wl="1">Ok, si parte</button></div>`;
+  }else if(PR&&PR.type==='claim'){
     html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
     if(PR.sel!=null) html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${claimName(PR.sel)}</button><button class="opt" data-cf="0">Annulla</button></div>`;
   }else if(P(HUM).out){
@@ -667,6 +674,7 @@ document.getElementById('app').addEventListener('click',e=>{
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
   if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
   else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  else if(b.dataset.wl!==undefined){ if(PR&&PR.type==='welcome'){ const r=PR.res; PR=null; render(); r(1); } }
   else if(b.dataset.c!==undefined) pickClaim(Number(b.dataset.c));
   else if(b.dataset.cf!==undefined) confirmClaim(b.dataset.cf==='1');
 });

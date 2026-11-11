@@ -561,7 +561,7 @@ async function scoring(){
   rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ha vinto ${r.wins} prese · ${txt[r.res]}${r.gone.length?` · scarta ${r.gone.sort((a,b)=>b-a).join(' + ')}`:''}${r.taken?` · prende ${r.taken} BiD COIN da 1`:''} · valore rimasto ${r.hold}.`));
   status(`Round ${G.round+1} concluso.`);
   const last=G.round===G.n-1||G.pl.some(p=>!p.cards.length);
-  await ask(HUM,'Risultato del round',[{label:last?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await ask(HUM,'Risultato del round',[{label:last?'Mostra risultato finale':'Round successivo',value:1}]);
   G.show=null;
 }
 // vince chi ha il valore residuo più basso; a pari merito chi ha scartato un 7, poi 5, 3, 2; se hanno scartato tutto vincono insieme
@@ -579,6 +579,7 @@ function winners(){
 async function run(){
   const g=G;
   try{
+    G.welcome=true; await ask(HUM,`Buona partita a Bid COIN, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
     for(let k=0;k<g.n;k++){
       g.round=k; g.start=(g.start+(k?1:0))%g.n;
       deal();
@@ -733,7 +734,7 @@ function render(){
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
     ${menuHtml()}</div>`;
   let body='';
-  if(G){
+  if(G&&!G.welcome){
     const pos=POS[G.n];
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}

@@ -477,12 +477,13 @@ async function scoreRound(){
   logMsg(`Round ${G.round+1} concluso.`);
   rows.forEach(x=>logMsg(`${P(x.p).name}: ${x.tricks} prese, valori ${x.bv.join(',')} ${x.hit?'(puntata riuscita'+(x.clear?', Mente Chiara +3':'')+')':'(puntata mancata)'}, ${x.pts} punti (totale ${x.tot}).`));
   status('Round concluso.');
-  await ask(HUM,'Risultato del round',[{label:G.round>=ROUNDS-1?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await ask(HUM,'Risultato del round',[{label:G.round>=ROUNDS-1?'Mostra risultato finale':'Round successivo',value:1}]);
   G.show=null;
 }
 async function run(){
   const g=G;
   try{
+    await ask(HUM,`Buona partita a Yokai Fuwafuwa, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let r=0;r<ROUNDS;r++){
       g.round=r;
       if(r>0) g.start=(g.start+1)%g.n;

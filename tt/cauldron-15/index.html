@@ -516,6 +516,7 @@ async function endGame(){
 async function run(){
   const g=G;
   try{
+    G.welcome=true; await ask(HUM,`Buona partita a Cauldron 15, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
     dealRound(1); await playRound();
     // fine del primo round
     status('Primo round concluso.'); logMsg('Fine del primo round: si rimescolano gli scarti con il mazzo e si danno 8 carte a testa.');
@@ -674,7 +675,7 @@ function render(){
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
     ${menuHtml()}</div>`;
   let body='';
-  if(G&&G.S){
+  if(G&&G.S&&!G.welcome){
     const pos=POS[G.n];
     body=`<div class="table ${G.n===5?'n5':''}">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}</div>
       ${logHtml()}

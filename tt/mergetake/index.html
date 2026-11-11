@@ -487,6 +487,7 @@ async function scoreGame(){
 async function run(){
   const g=G;
   try{
+    G.welcome=true; await ask(HUM,`Buona partita a MergeTake, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
     deal();
     logMsg(`— Briscola: ${cname(g.ind)} (${COLS[g.trump].n}). Primo giocatore: ${P(g.start).name}. —`);
     status(`Colore briscola: ${COLS[g.trump].n}. Primo giocatore: ${P(g.start).name}.${g.peek?' Chiaroveggenza: vedi la carta coperta al centro.':''}`);
@@ -640,7 +641,7 @@ function render(){
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
     ${menuHtml()}</div>`;
   let body='';
-  if(G){
+  if(G&&!G.welcome){
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
       ${logHtml()}
       ${recapHtml()}

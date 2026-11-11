@@ -574,12 +574,13 @@ async function scoring(){
   G.show={rows};
   rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} (${ROLES[r.role]}) ha vinto ${plu(r.won,'presa','prese')} → ${r.pts} punti${r.parts.length?` (${r.parts.join(', ')})`:''}.`));
   status(`Round ${G.round+1} concluso.`);
-  await choose('Punti del round',[{label:G.round<ROUNDS-1?'Round successivo':'Vedi il risultato',value:1}]);
+  await choose('Punti del round',[{label:G.round<ROUNDS-1?'Round successivo':'Mostra risultato finale',value:1}]);
   G.show=null;
 }
 async function run(){
   const g=G;
   try{
+    await choose(`Buona partita a Gomimushi Trick, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let r=0;r<ROUNDS;r++){
       g.round=r; deal();
       logMsg(`— Round ${r+1}/${ROUNDS} —`);

@@ -544,12 +544,13 @@ async function scoring(){
   G.show={rows};
   rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ha vinto ${plu(r.won,'presa','prese')} e tiene ${r.zero?'il dado Zero':'il dado '+r.fin} → ${r.pts} punti${r.match?` (bonus ${r.bonus}${r.zb?` + ${r.zb} Zero`:''})`:''}.`));
   status(`Round ${G.round+1} concluso.`);
-  await choose('Punti del round',[{label:G.round<n-1?'Round successivo':'Vedi il risultato',value:1}]);
+  await choose('Punti del round',[{label:G.round<n-1?'Round successivo':'Mostra risultato finale',value:1}]);
   G.show=null;
 }
 async function run(){
   const g=G;
   try{
+    await choose(`Buona partita a Nokosu Dice, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let r=0;r<g.n;r++){
       g.round=r; g.dealer=(g.dealer+(r?1:0))%g.n; deal();
       logMsg(`— Round ${r+1}/${g.n} —`);

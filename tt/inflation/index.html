@@ -435,12 +435,13 @@ async function scoreRound(){
   logMsg(`Round ${G.round+1} concluso: `+rows.map(r=>`${P(r.p).name} +${r.d} (${r.score})`).join(' · ')+'.');
   const last=G.round>=G.n-1;
   status(last?'Ultimo round concluso.':'Round concluso: ecco i punteggi.');
-  await askChoose('Risultato del round',[{label:last?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await askChoose('Risultato del round',[{label:last?'Mostra risultato finale':'Round successivo',value:1}]);
   if(!last) G.show=null;
 }
 async function run(){
   const g=G;
   try{
+    await askChoose(`Buona partita a Inflation, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let r=0;r<g.n;r++){
       g.round=r; g.dealer=(g.dealer0+r)%g.n;
       deal();

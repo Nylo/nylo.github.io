@@ -463,7 +463,7 @@ async function scoring(){
   G.show={rows};
   rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ha ${r.grims.map(sg).join(' ')} · ${r.cr} cristalli${r.conv.length?` (convertiti: ${r.conv.map(v=>sg(v)).join(' ')})`:''} → ${sg(r.score)} punti (totale ${r.total}).`));
   status(`Round ${G.round+1} concluso.`);
-  await ask(HUM,'Risultato del round',[{label:G.round===G.n-1?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await ask(HUM,'Risultato del round',[{label:G.round===G.n-1?'Mostra risultato finale':'Round successivo',value:1}]);
   G.show=null;
 }
 function winners(){
@@ -473,6 +473,7 @@ function winners(){
 async function run(){
   const g=G;
   try{
+    await ask(HUM,`Buona partita a Chimera Tricks, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let k=0;k<g.n;k++){
       g.round=k;
       setupRound(k);

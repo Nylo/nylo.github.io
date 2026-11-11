@@ -395,7 +395,7 @@ async function scoreRound(){
   rows.forEach(x=>logMsg(`${P(x.p).name}: ${x.fac} strutture, ${x.kaii} Kaii → ${x.dead?'MUORE':'sopravvive'} ${sg(x.pts)} (totale ${x.tot})${x.elim?' · eliminato (2ª morte)':''}.`));
   status(`Round ${rd+1} concluso.`);
   const end=rd>=2||G.pl.some(p=>p.elim);
-  await ask(HUM,'Risultato del round',[{label:end?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await ask(HUM,'Risultato del round',[{label:end?'Mostra risultato finale':'Round successivo',value:1}]);
   G.show=null;
   return end;
 }
@@ -408,6 +408,7 @@ function winners(){
 async function run(){
   const g=G;
   try{
+    G.welcome=true; await ask(HUM,`Buona partita a Otherside Trick, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
     for(let r=0;r<3;r++){
       g.round=r;
       if(r>0) g.leader=g.lastNear;
@@ -573,7 +574,7 @@ function render(){
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
     ${menuHtml()}</div>`;
   let body='';
-  if(G){
+  if(G&&!G.welcome){
     body=`<div class="table hud n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
       ${G.pl.some(p=>p.hist.length)?`<div class="dock paper hud" style="position:relative">${scoreTable()}</div>`:''}
       ${logHtml()}

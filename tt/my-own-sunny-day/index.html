@@ -421,12 +421,13 @@ async function scoring(){
   G.show={rows};
   rows.forEach(r=>logMsg(`${PHASE[G.phase]}: ${P(r.p).name} prese ${r.pre} | ${r.post} → ${r.s} punti.`));
   status(`${PHASE[G.phase]} concluso.`);
-  await ask(HUM,'Punteggio della fase',[{label:G.phase==='out'?'Passa al Ritorno a casa':'Vedi il risultato finale',value:1}]);
+  await ask(HUM,'Punteggio della fase',[{label:G.phase==='out'?'Passa al Ritorno a casa':'Mostra risultato finale',value:1}]);
   G.show=null;
 }
 async function run(){
   const g=G;
   try{
+    await ask(HUM,`Buona partita a My Own Sunny Day, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(const ph of ['out','ret']){
       g.phase=ph;
       g.first=ph==='out'?g.first0:g.lastWinner;

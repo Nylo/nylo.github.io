@@ -535,13 +535,14 @@ async function scoreRound(){
   logMsg(`Round ${G.round+1} concluso: `+rows.map(r=>`${P(r.p).name} ${r.d>=0?'+':''}${r.d} (${r.score})`).join(' · ')+'.');
   const last=G.round>=ROUNDS-1||G.pl.some(p=>p.score<=0);
   status(last?'Ultimo round concluso.':'Round concluso: ecco i punteggi.');
-  await ask(HUM,'Risultato del round',[{label:last?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await ask(HUM,'Risultato del round',[{label:last?'Mostra risultato finale':'Round successivo',value:1}]);
   if(!last) G.show=null;
   return last;
 }
 async function run(){
   const g=G;
   try{
+    await ask(HUM,`Buona partita a Phantom Trick, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let r=0;r<ROUNDS;r++){
       g.round=r;
       deal();

@@ -458,13 +458,14 @@ async function scoring(){
   status(msg);
   const [s0,s1]=[P(0).stars,P(1).stars];
   const done=(s0>=WINS||s1>=WINS)&&s0!==s1;
-  await ask(HUM,'Fine del round',[{label:done?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await ask(HUM,'Fine del round',[{label:done?'Mostra risultato finale':'Round successivo',value:1}]);
   G.show=null;
   return done;
 }
 async function run(){
   const g=G;
   try{
+    G.welcome=true; await ask(HUM,`Buona partita a Bubble Gum, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
     for(let k=0;;k++){
       g.round=k;
       if(k>0) g.lead=1-g.lead;                           // a ogni round si cambia il giocatore di mano
@@ -617,7 +618,7 @@ function render(){
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
     ${menuHtml()}</div>`;
   let body='';
-  if(G){
+  if(G&&!G.welcome){
     body=`<div class="table n2">${seatHtml(1,'top')}${centerHtml()}${seatHtml(0,'bottom')}</div>
       ${histHtml()}
       ${logHtml()}

@@ -547,12 +547,13 @@ async function scoreRound(){
   logMsg(`Round ${G.round+1} concluso${G.ended?' in anticipo':''}: ${win.length>1?'vittoria condivisa di ':'vince '}${win.map(i=>P(i).name).join(' e ')}.`);
   status(`${win.length>1?'Vittoria condivisa: ':'Vince '}${win.map(i=>P(i).name).join(' e ')}.`);
   const last=G.round>=G.rounds-1;
-  await ask(HUM,'Risultato del round',[{label:last?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await ask(HUM,'Risultato del round',[{label:last?'Mostra risultato finale':'Round successivo',value:1}]);
   if(!last) G.show=null;
 }
 async function run(){
   const g=G;
   try{
+    await ask(HUM,`Buona partita a Oboro, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let r=0;r<g.rounds;r++){
       g.round=r;
       if(r>0) g.start=(g.start+1)%g.n;

@@ -478,7 +478,7 @@ async function scoring(overage){
   rows.forEach(x=>logMsg(`${P(x.p).name}: ${x.mins}′${x.over?' (SUPERAMENTO)':''}${x.exact?' (esatto: +1 SIM)':''}${x.fewest?' · meno minuti':''} → SIM ${sg(x.d)} (ora ${x.sim}).`));
   status('Round concluso.');
   const end=G.pl.some(p=>p.sim<=0);
-  await ask(HUM,'Risultato del round',[{label:end?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await ask(HUM,'Risultato del round',[{label:end?'Mostra risultato finale':'Round successivo',value:1}]);
   G.show=null;
   return r;
 }
@@ -497,6 +497,7 @@ async function choosePlan(chooser){
 async function run(){
   const g=G;
   try{
+    await ask(HUM,`Buona partita a Daytime Minutes, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     G.u=(G.start+2)%G.n;                                  // 3 giocatori: il mazzo del chiamante ignoto sta a destra del primo giocatore
     let chooser=null;
     for(let h=0;;h++){

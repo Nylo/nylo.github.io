@@ -612,6 +612,7 @@ async function scoreRound(){
 async function run(){
   const g=G;
   try{
+    G.welcome=true; await ask(HUM,`Buona partita a Button, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
     for(let r=0;r<g.rounds;r++){
       g.round=r; deal();
       logMsg(`— Round ${r+1}/${g.rounds}: mazziere ${P(g.dealer).name}; ${g.cfg.hand} carte a testa, ${g.cfg.open} prese aperte, ${g.S.draw.length} carte nel mazzo di pesca —`);
@@ -807,7 +808,7 @@ function render(){
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
     ${menuHtml()}</div>`;
   let body='';
-  if(G){
+  if(G&&!G.welcome){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
       <div class="dock paper" style="position:static">${scoreTable()}</div>
       ${logHtml()}

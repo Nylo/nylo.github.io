@@ -512,7 +512,7 @@ async function scoring(){
   G.show={rows};
   rows.forEach(r=>logMsg(`${HALF(G.round)}: ${P(r.p).name} rivela ${cname(r.bid)} come puntata (valori ${r.bid.r}/${r.bid.s+1}${isEye(r.bid)?'/0':''}) con ${r.won} prese: puntata ${r.ok?'corretta (+3)':'sbagliata'} · previsione +${r.pred} · prese +${r.won} → ${r.pts} punti (totale ${r.total}).`));
   status(`Round ${G.round+1} concluso.`);
-  await ask(HUM,'Risultato del round',[{label:G.round===ROUNDS-1?'Vedi il risultato finale':'Round successivo',value:1}]);
+  await ask(HUM,'Risultato del round',[{label:G.round===ROUNDS-1?'Mostra risultato finale':'Round successivo',value:1}]);
   G.show=null;
 }
 const HALF = k => `Round ${k+1}`;
@@ -523,6 +523,7 @@ function winners(){
 async function run(){
   const g=G;
   try{
+    await ask(HUM,`Buona partita a ESP, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let k=0;k<ROUNDS;k++){
       g.round=k;
       if(k) g.start=(g.start+1)%g.n;
