@@ -145,8 +145,9 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 .rugbox{display:flex;justify-content:center;margin-bottom:12px}
 .rug{display:grid;grid-template-columns:minmax(70px,1fr) 78px minmax(70px,1fr);grid-auto-rows:46px;gap:4px;background:#d8423a;border:4px double #f4c9a8;border-radius:10px;padding:8px;width:min(420px,100%);box-shadow:0 6px 16px rgba(60,20,10,0.35)}
 .rnum{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;background:#f6d3b0;border:1px solid #f4c9a8;border-radius:8px;color:#c4122f;font-family:'Libre Baskerville',serif;font-weight:700;font-size:20px;position:relative}
+.cubes0{display:flex;gap:6px;min-height:15px;align-items:center;justify-content:center}
 .rnum small{font-size:11px;font-weight:400;opacity:0.85}
-.rnum.start{background:transparent;color:#fff;border-style:dashed;font-size:11px;font-family:Inter,sans-serif;font-weight:600}
+.rnum.start{flex-direction:column;gap:3px;background:transparent;color:#fff;border-style:dashed;font-size:11px;font-family:Inter,sans-serif;font-weight:600}
 .shp{display:inline-block;width:15px;height:15px;flex-shrink:0;vertical-align:middle;filter:drop-shadow(0 0 1px #000) drop-shadow(0 0 1px rgba(0,0,0,0.8))}
 .shp i{display:block;width:100%;height:100%}
 .shp.s0 i{border-radius:50%}
@@ -403,11 +404,14 @@ async function betPhase(){
     if(p===HUM){
       const okSet=new Set(opts);
       const owner=o=>{ const q=S.bets.findIndex(x=>x&&betKey(x.sp)===betKey(o.sp)); return q>=0?q:-1; };
-      b=await ask(HUM,'La tua puntata',all.map(o=>{
+      const opts2=all.map(o=>{
         const dis=!okSet.has(o), q=dis?owner(o):-1;
         const why=!dis?'':q>=0?`Posto occupato da ${P(q).name}`:"Non c'è posto sul tappeto";
-        return {label:`${betName(o)}${why?` (${why})`:''}`,value:o,disabled:dis,group:o.sp.length===1?'Puntate più rischiose (4 punti)':'Puntate più semplici (2 punti)'};
-      }));
+        return {label:`${betName(o)}${why?` (${why})`:''}`,value:o,disabled:dis,group:o.sp.length===1?'Puntate più rischiose (4 punti)':'Puntate più semplici (2 punti)',gi:o.sp.length===1?0:1};
+      });
+      // prima le disponibili, poi le non disponibili, sempre in ordine di valore (ordinamento stabile)
+      opts2.sort((x,y)=>x.gi-y.gi||(x.disabled?1:0)-(y.disabled?1:0));
+      b=await ask(HUM,'La tua puntata',opts2);
     }
     else { await sleep(600); b=aiBet(p,opts); }
     S.bets[p]=b; b.sp.forEach(x=>{ S.slots[x+b.side]=p; });
@@ -559,7 +563,7 @@ function rugHtml(){
     for(const side of ['L','R']) if(S.slots[n+side]===undefined) h+=`<div class="rslot" style="grid-row:${5-n};grid-column:${side==='L'?1:3}"></div>`;
   }
   const c0=G.pl.map((p,i)=>posOf(S.t[i])===0?shape(i,p.name):'').join('');
-  h+=`<div class="rnum start" style="grid-row:5;grid-column:2">0 prese ${c0}</div>`;
+  h+=`<div class="rnum start" style="grid-row:5;grid-column:2"><span>0 prese</span><span class="cubes0">${c0}</span></div>`;
   S.bets.forEach((b,p)=>{ if(!b) return;
     const top=Math.max(...b.sp);
     h+=`<div class="rbet" style="grid-column:${b.side==='L'?1:3};grid-row:${5-top} / span ${b.sp.length};background:${SEATC[p]}">${esc(P(p).name.replace(/^AI /,''))}<span>${b.pts} pt</span></div>`;
