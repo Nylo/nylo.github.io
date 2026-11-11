@@ -20,13 +20,13 @@
 }
 html,body{min-height:100%}
 body{font-family:'Inter',sans-serif;font-size:15px;color:var(--text);background:radial-gradient(ellipse at 50% 0%,#1d2740 0%,#0e1118 70%) fixed;background-color:var(--bg)}
-.app{max-width:800px;margin:0 auto;padding:6px 12px 36px}
+.app{max-width:1040px;margin:0 auto;padding:6px 12px 36px}
 .topbar{display:flex;align-items:center;gap:10px;padding:10px 0 4px}
 .title{font-family:'Orbitron',sans-serif;font-weight:800;font-size:22px;letter-spacing:.06em;flex:1}
 .title span{color:var(--accent)}
 .nylo-home{color:#fff}
 .sub{font-size:12px;color:var(--soft);margin:0 0 8px}
-details.filters{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin:6px auto 8px;max-width:600px}
+details.filters{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin:6px 0 8px}
 details.filters>summary{cursor:pointer;list-style:none;padding:9px 14px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px}
 details.filters>summary::-webkit-details-marker{display:none}
 details.filters>summary .cnt{margin-left:auto;color:var(--soft);font-weight:500}
@@ -34,9 +34,8 @@ details.filters>summary .cnt{margin-left:auto;color:var(--soft);font-weight:500}
 .filter-bar label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--soft);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
 .filter-bar select,.filter-bar input{min-width:140px;max-width:200px;background:#171d2b;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:8px 10px;font:inherit;font-size:14px;text-transform:none;letter-spacing:0}
 .filter-bar .reset{align-self:flex-end;background:transparent;color:var(--accent);border:1px solid var(--line);border-radius:7px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer}
-.alpha-wrap{position:relative;max-width:600px;margin:0 auto 8px}
-.alpha{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;padding:2px 4px}
-.alpha::-webkit-scrollbar{display:none}
+.alpha-wrap{position:relative;padding:0 8px 10px}
+.alpha{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;padding:2px 4px}
 .alpha button{flex-shrink:0;min-width:32px;height:32px;border:0;border-radius:6px;background:transparent;color:var(--text);font:inherit;font-weight:700;font-size:13px;cursor:pointer}
 .alpha button:hover{background:var(--panel2)}
 .alpha button.on{background:var(--accent);color:#0b1020}
@@ -46,7 +45,7 @@ details.filters>summary .cnt{margin-left:auto;color:var(--soft);font-weight:500}
 .navb:hover{background:var(--panel2)}
 .mobile-nav{display:none}
 .cardimg{width:200px;height:313px;background:url(cards.webp) no-repeat;background-size:2400px 2817px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.5);flex-shrink:0;touch-action:pan-y}
-.details{flex:1;min-width:0;max-width:300px;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;border-left:6px solid var(--pc,#888)}
+.details{flex:1;min-width:0;max-width:440px;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;border-left:6px solid var(--pc,#888)}
 .cname{font-size:20px;font-weight:800;margin-bottom:6px}
 .stats{display:flex;flex-wrap:wrap;gap:6px 12px;margin-bottom:8px;font-size:13px}
 .stat{display:inline-flex;align-items:center;gap:5px;color:var(--soft)}
@@ -78,8 +77,7 @@ details.filters>summary .cnt{margin-left:auto;color:var(--soft);font-weight:500}
 <body>
 <div class="app">
   <div class="topbar"><div class="title">ZENITH<span>DEX</span> IT</div></div>
-  <p class="sub" style="text-align:center">Sfoglia le carte di Zenith in italiano. Immagini e testi delle carte in sola consultazione.</p>
-  <details class="filters" id="fdet">
+  <details class="filters" id="fdet" open>
     <summary><i class="ph ph-funnel"></i> Filtri <span class="cnt" id="cnt"></span></summary>
     <div class="filter-bar">
       <label>Pianeta<select id="fPl"><option value="">Tutti</option></select></label>
@@ -88,8 +86,8 @@ details.filters>summary .cnt{margin-left:auto;color:var(--soft);font-weight:500}
       <label>Cerca<input id="fQ" type="search" placeholder="Nome o testo"></label>
       <button class="reset" id="fReset" type="button">Azzera</button>
     </div>
-  </details>
   <div class="alpha-wrap"><div class="alpha" id="alpha"></div></div>
+  </details>
   <div id="main"></div>
   <div class="viewbar">
     <button id="vCard" class="on" type="button"><i class="ph ph-cards"></i> Carta</button>
@@ -132,7 +130,6 @@ function renderAlpha(){
   const cur=list[idx]&&list[idx].L;
   const letters=[...new Set(list.map(c=>c.L))];
   $('alpha').innerHTML=letters.map(l=>`<button type="button" data-l="${l}" class="${l===cur?'on':''}">${l}</button>`).join('');
-  const on=$('alpha').querySelector('.on'); if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest',inline:'center'});
 }
 function render(){
   $('cnt').textContent=list.length+' / '+CARDS.length+' carte';
