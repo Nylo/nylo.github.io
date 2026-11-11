@@ -4,7 +4,8 @@
 (function () {
   var inFrame = window.self !== window.top;
   if (inFrame) { window.nyloHomeBtn = function () { return ''; }; window.nyloBackBtn = function () { return ''; }; }
-  var ONLINE_GAMES = { '/tt/spy-team/': '/tt/spy-team/online/' };
+  // valore con # = stanze nella stessa pagina del gioco (si ricarica con #stanze); altrimenti pagina separata
+  var ONLINE_GAMES = { '/tt/spy-team/': '#stanze', '/tt/six-forces/': '#stanze', '/tt/9-lives/': '#stanze' };
   var SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>';
   window.nyloHomeBtn = function () {
     return '<button type="button" class="nylo-home" data-home="1" title="Torna alla home" aria-label="Torna alla home">' + SVG + '<span>Home</span></button>';

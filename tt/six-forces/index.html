@@ -158,12 +158,33 @@ body.a11y .rchip.c1{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,t
 body.a11y .rchip.c2{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 body.a11y .rchip.c3{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 .rchip.c0{background-color:var(--c0)} .rchip.c1{background-color:var(--c1)} .rchip.c2{background-color:var(--c2)} .rchip.c3{background-color:var(--c3)}
+
+[hidden]{display:none!important}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;color:var(--text)}
+.panel h2{font-size:16px;font-weight:700}
+.muted{color:var(--text-soft);font-size:12px;line-height:1.5}
+body .app>section>p.muted{color:var(--topc,var(--text-soft));margin-bottom:10px}
+.status{font-size:13px;min-height:20px;line-height:1.5;color:var(--topc,var(--text))}
+.panel input[type=text]{background:#fff;border:1px solid var(--border);color:#222;border-radius:6px;padding:9px 11px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none;letter-spacing:1px}
+.panel input[type=text]:focus{border-color:var(--accent)}
+.radios{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.radios label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.roster{list-style:none;display:flex;flex-direction:column;gap:8px}
+.roster li{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-raised);border:1px solid var(--border);border-radius:8px;font-size:13px}
+.roster .seat-n{width:20px;color:var(--text-soft)}
+.roster .grow{flex:1}
+.roster .soft{color:var(--text-soft)}
+.room-code{padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:Consolas,monospace;letter-spacing:1px;font-size:12px;color:var(--topc,var(--text));border-color:var(--topc,var(--border))}
+.conn{font-size:11px;color:var(--topc,var(--text-soft))}
+.err{position:fixed;left:12px;right:12px;bottom:12px;max-width:680px;margin:0 auto;padding:12px 14px;border:1px solid rgba(217,107,107,0.6);border-radius:8px;background:#3a1d22;color:#fff;font-size:13px;line-height:1.4;z-index:200}
+.opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.opt.on:disabled{opacity:1}
+.hint+.hint{margin-top:4px}
 </style>
 </head>
 <body>
 <div class="app" id="app"></div>
-
-<script>
+<script type="text/plain" id="src-ai">
 // ═════════════════════════ COSTANTI ═════════════════════════
 const COLORS = [
   {n:'Rosso',  icon:'fire'},
@@ -735,6 +756,606 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+</script>
+<script type="text/plain" id="src-room">
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Preparazione</h4>
+<p>Il gioco ha 48 carte numerate da 1 a 12 in quattro colori. In 3 giocatori si usano solo le carte da 1 a 9 (le 10–12 tornano nella scatola, restano 36 carte); in 4 giocatori si usano tutte le 48. Ogni giocatore riceve 12 carte e un set di tre carte Briscola Personale (le sei briscole, fronte e retro). I 15 segnalini previsione stanno al centro del tavolo.</p>
+<h4>Introduzione</h4>
+<p>Una partita a 6 Forces è divisa in round ed ogni round si compone di tre fasi: previsione, prese e punteggio, in questo ordine.</p>
+<p>Nella fase di previsione, il giocatore iniziale pronostica quante prese vincerà (prendendo i relativi segnalini dal centro) oppure sceglie quale sarà la sua Briscola Personale. Una volta scelta una delle due opzioni, i giocatori successivi, in senso orario, faranno la stessa cosa. Dopo che tutti i giocatori hanno effettuato un giro di scelte, sempre in senso orario e a partire dal giocatore iniziale, si dovrà scegliere l'opzione non scelta in precedenza.</p>
+<h4>Fase Previsione: numero di prese vinte</h4>
+<p>I giocatori fanno una previsione su quante prese pensano di vincere con le carte che hanno in mano e prendono quel numero di segnalini previsione dal centro del tavolo. È consentito prendere zero segnalini. È possibile inoltre prendere un segnalino dal lato con il pallino per fare una previsione con un margine di errore.</p>
+<p>Ad esempio, se davanti a te hai 3 segnalini previsione normali ed un singolo segnalino con il pallino vuol dire che pensi di vincere 3 oppure 4 prese. Se ne hai uno solo col pallino davanti a te, vuol dire che pensi di vincere zero o una presa.</p>
+<p>Se vinci un numero di prese pari alla tua previsione, ottieni punti: 4 se non hai usato un gettone col pallino, sennò 2 punti.</p>
+<p>Se non ci fossero segnalini sufficienti per formare la tua offerta, puoi fare previsioni di valore solo pari al numero di segnalini disponibili. Se non ci sono segnalini, devi fare una previsione da 0 prese (il numero di gettoni è finito).</p>
+<h4>Fase Previsione: determinare la propria Briscola Personale</h4>
+<p>Il giocatore sceglie una delle sei carte Briscola Personale e la posiziona davanti a sé. Questa carta determina, quando si è il giocatore iniziale, quale carta Briscola è la più forte.</p>
+<p>N.B: in 3 giocatori, tutte le carte Briscola Personale devono essere diverse. In 4 giocatori, al massimo due giocatori possono scegliere lo stesso tipo, ma devono esserci almeno 3 tipi diversi in gioco: quando due giocatori hanno scelto lo stesso tipo, gli altri devono scegliere tra i tipi non ancora scelti.</p>
+<p><b>Briscola Personale - Colore:</b> se un giocatore sceglie una carta Briscola Personale che sia rossa/gialla/verde/blu, la carta di quel colore diventa la più forte quando il giocatore che la sceglie è il giocatore iniziale.</p>
+<p><b>Briscola Personale - Numeri:</b> la carta con il numero più alto è la più forte quando il giocatore che sceglie "il numero più alto è la carta di briscola" è il giocatore iniziale. La carta con il numero più basso è la più forte quando il giocatore che sceglie "il numero più basso è la carta di briscola" è il giocatore iniziale.</p>
+<p>Una volta che tutti hanno previsto e determinato la carta di briscola, la presa è pronta per essere giocata.</p>
+<h4>Fase Prese</h4>
+<p>La presa inizia con il giocatore iniziale che gioca qualsiasi carta desideri dalla sua mano. I giocatori successivi devono giocare una carta dello stesso colore della carta giocata dal giocatore iniziale. Se non ne hanno, possono giocare qualsiasi carta desiderino. Una volta che tutti hanno giocato una carta, si determina il vincitore, in base alla carta di Briscola Personale del giocatore iniziale.</p>
+<p><b>Se la Briscola Personale del giocatore iniziale è un Colore.</b> Se il colore della briscola è presente, vince chi gioca la carta più alta tra quelle del colore di briscola. Se NON è presente, vince chi gioca la carta più alta tra quelle dello stesso colore della carta giocata dal giocatore iniziale.</p>
+<p><b>Se è un Numero.</b> Con "i numeri alti sono la carta vincente" vince il numero più alto, indipendentemente dal colore; in caso di pareggio vince l'ultimo giocatore che ha giocato la carta più alta. Con "i numeri bassi sono la carta vincente" vince il numero più basso, indipendentemente dal colore; in caso di pareggio vince l'ultimo giocatore che ha giocato la carta più bassa.</p>
+<p>Il vincitore della presa prende tutte le carte giocate, crea un mazzetto e lo pone a faccia in giù davanti a sé, e diventa il giocatore iniziale nella presa successiva. Si ripete fino a quando i giocatori non hanno più carte in mano: si giocano 12 prese.</p>
+<h4>Fase Punteggio</h4>
+<p>Chi indovina la propria previsione senza usare un segnalino con il pallino riceve 4 punti, chi la indovina con l'aiuto del segnalino con il pallino ne riceve 2. Se si sbaglia, la differenza tra le prese vinte e la previsione dà al giocatore quel numero di punti negativi. Se un giocatore ha usato un segnalino con il pallino e sbaglia, la penalità si calcola con la differenza minore (cioè la distanza dall'intervallo previsto, es. 2 +1 con pallino e 5 prese vinte: −2).</p>
+<ul>
+<li>Previsione 2, prese vinte 2 → 4 punti</li>
+<li>Previsione 3, prese vinte 1 → −2 punti</li>
+<li>Previsione 2 +1 (con pallino), prese vinte 3 → 2 punti</li>
+<li>Previsione 1 +1 (con pallino), prese vinte 0 → −1 punto</li>
+</ul>
+<h4>Fine di un round e fine del gioco</h4>
+<p>Rimetti i segnalini previsione al centro, riprendi tutte le carte, mischiale e distribuiscine 12 a ciascun giocatore. Il giocatore a sinistra del primo giocatore iniziale del round precedente è il primo giocatore iniziale del round successivo. Si gioca un numero di round pari al numero dei giocatori. Vince il punteggio più alto, in caso di pareggio la vittoria è condivisa.</p>
+</div></details>`;
+// ═════════════════════════ 6 FORCES · ONLINE ═════════════════════════
+var GAME={id:'six-forces',logo:'<b>6</b> Forces · Online',counts:[3,4],
+  lobbyNote:'Servono 3 o 4 giocatori. Quando la stanza è piena, i posti al tavolo vengono assegnati a caso.'};
+var COLORS=[{n:'Rosso',icon:'fire'},{n:'Giallo',icon:'lightning'},{n:'Blu',icon:'snowflake'},{n:'Verde',icon:'leaf'}];
+var TRUMPS=[
+  {id:'c0',label:'Fuoco (rosso)',short:'Fuoco',icon:'fire',color:0},
+  {id:'c1',label:'Fulmine (giallo)',short:'Fulmine',icon:'lightning',color:1},
+  {id:'c2',label:'Ghiaccio (blu)',short:'Ghiaccio',icon:'snowflake',color:2},
+  {id:'c3',label:'Natura (verde)',short:'Natura',icon:'leaf',color:3},
+  {id:'hi',label:'Numeri alti: il numero più alto è la carta vincente',short:'Numeri alti',icon:'arrow-fat-up'},
+  {id:'lo',label:'Numeri bassi: il numero più basso è la carta vincente',short:'Numeri bassi',icon:'arrow-fat-down'}
+];
+var TR=function(id){return TRUMPS.filter(function(t){return t.id===id})[0]};
+var ico=function(n){return '<i class="ph-fill ph-'+n+'"></i>'};
+var tico=function(t){return '<i class="ph-fill ph-'+t.icon+'"'+(t.color!==undefined?' style="color:var(--c'+t.color+')"':'')+'></i>'};
+var CHIPS=15,TRICKS=12;
+var POS={3:['bottom','left','right'],4:['bottom','left','top','right']};
+var OPT={undo:true,a11y:false};
+try{var _s=localStorage.getItem('six-forces-undo');if(_s!==null)OPT.undo=_s==='1';OPT.a11y=localStorage.getItem('six-forces-a11y')==='1'}catch(e){}
+var ui={key:'',mode:null,n:null,flex:null,trump:null,sel:null};
+
+// ─────────────── REGOLE (funzioni pure, usate dentro le transazioni) ───────────────
+function maxN(n){return n===3?9:12}
+function newDeck(n){var d=[];for(var c=0;c<4;c++)for(var k=0;k<maxN(n);k++)d.push(c*12+k);return shuffle(d)}
+function validDeck(d,n){
+  var m=maxN(n);if(!Array.isArray(d)||d.length!==4*m)return false;
+  var seen={};
+  for(var i=0;i<d.length;i++){var x=d[i];if(x!==(x|0)||x<0||x>47||x%12>=m||seen[x])return false;seen[x]=1}
+  return true;
+}
+function mkCard(x){return {c:Math.floor(x/12),n:x%12+1}}
+function dealInto(S,deck){
+  var n=S.n;
+  S.hands=[];for(var i=0;i<n;i++)S.hands.push(deck.slice(i*12,i*12+12).map(mkCard).sort(function(a,b){return a.c-b.c||a.n-b.n}));
+  S.pred=[];S.trump=[];S.won=[];for(var j=0;j<n;j++){S.pred.push(null);S.trump.push('');S.won.push(0)}
+  S.chips=CHIPS;S.trick=[];S.winner=-1;S.result=null;S.phase='plan';S.pstep=0;S.leader=S.start;S.turn=S.start;
+  S.msg='Round '+(S.round+1)+'/'+n+': primo giocatore '+S.names[S.start]+'. Ognuno pronostica le prese e sceglie la Briscola Personale, nell\'ordine che preferisce.';
+}
+function gameInitial(players){
+  var n=players.length;
+  var S={v:0,game:GAME.id,n:n,names:players.map(function(p){return p.name}),uids:players.map(function(p){return p.uid}),
+    round:0,start:rnd(n),total:[],hist:[],over:null};
+  for(var i=0;i<n;i++){S.total.push(0);S.hist.push([])}
+  dealInto(S,newDeck(n));
+  return S;
+}
+function trumpFeasible(counts,remaining){
+  if(remaining===0)return Object.keys(counts).filter(function(k){return counts[k]>0}).length>=3;
+  for(var i=0;i<TRUMPS.length;i++){
+    var id=TRUMPS[i].id;
+    if((counts[id]||0)>=2)continue;
+    counts[id]=(counts[id]||0)+1;
+    var ok=trumpFeasible(counts,remaining-1);
+    counts[id]--;
+    if(ok)return true;
+  }
+  return false;
+}
+function trumpLegal(S,p,id){
+  var counts={};
+  for(var q=0;q<S.n;q++)if(q!==p&&S.trump[q])counts[S.trump[q]]=(counts[S.trump[q]]||0)+1;
+  if(S.n===3)return !counts[id];
+  if((counts[id]||0)>=2)return false;
+  counts[id]=(counts[id]||0)+1;
+  var remaining=0;for(var r=0;r<S.n;r++)if(!S.trump[r]&&r!==p)remaining++;
+  return trumpFeasible(counts,remaining);
+}
+function trickWinner(trick,ind){
+  var lead=trick[0].card.c,best,i,x;
+  if(ind.id==='hi'||ind.id==='lo'){
+    best=trick[0];
+    for(i=1;i<trick.length;i++){x=trick[i];if(ind.id==='hi'?x.card.n>=best.card.n:x.card.n<=best.card.n)best=x}   // a parità vince chi ha giocato dopo
+    return best.p;
+  }
+  var trumps=trick.filter(function(t){return t.card.c===ind.color});
+  var cands=trumps.length?trumps:trick.filter(function(t){return t.card.c===lead});
+  return cands.reduce(function(b,t){return t.card.n>b.card.n?t:b}).p;
+}
+function points(pred,won){
+  var lo=pred.flex?pred.n-1:pred.n,hi=pred.n;
+  if(won>=lo&&won<=hi)return pred.flex?2:4;
+  return -(won<lo?lo-won:won-hi);
+}
+var predText=function(pr){return !pr?'—':pr.n===0?'0 prese':pr.flex?(pr.n-1)+'–'+pr.n+' prese':pr.n+' prese'};
+function scoreRound(S){
+  var rows=[];
+  for(var p=0;p<S.n;p++){var pt=points(S.pred[p],S.won[p]);S.total[p]+=pt;S.hist[p].push(pt);rows.push({p:p,pred:S.pred[p],won:S.won[p],pt:pt})}
+  S.result={rows:rows,round:S.round};S.phase='roundEnd';
+  S.msg='Round '+(S.round+1)+' concluso.';
+}
+function planActor(S){return (S.start+S.pstep%S.n)%S.n}
+
+function gameReduce(S,seat,a){
+  if(!S||seat<0||seat>=S.n||!a)return null;
+  var n=S.n,i;
+  switch(a.type){
+  case 'predict':{
+    if(S.phase!=='plan'||planActor(S)!==seat||S.pred[seat]!==null)return null;
+    var k=a.n,max=Math.min(S.chips,TRICKS);
+    if(k!==(k|0)||k<0||k>max)return null;
+    var flex=k>=1&&a.flex===true;
+    S.chips-=k;S.pred[seat]={n:k,flex:flex};
+    S.msg=S.names[seat]+' prevede '+predText(S.pred[seat])+(flex?' (con un segnalino col pallino)':'')+'.';
+    S.pstep++;break;}
+  case 'trump':{
+    if(S.phase!=='plan'||planActor(S)!==seat||S.trump[seat])return null;
+    if(!TR(a.id)||!trumpLegal(S,seat,a.id))return null;
+    S.trump[seat]=a.id;
+    S.msg=S.names[seat]+' sceglie la Briscola Personale: '+TR(a.id).label+'.';
+    S.pstep++;break;}
+  case 'play':{
+    if(S.phase!=='play'||S.turn!==seat)return null;
+    var hand=S.hands[seat],idx=a.idx;
+    if(idx!==(idx|0)||idx<0||idx>=hand.length)return null;
+    if(S.trick.length===n){S.trick=[];S.winner=-1}
+    if(S.trick.length){
+      var lead=S.trick[0].card.c;
+      if(hand[idx].c!==lead&&hand.some(function(x){return x.c===lead}))return null;
+    }
+    var card=hand.splice(idx,1)[0];
+    S.trick.push({p:seat,card:card});
+    if(S.trick.length<n){S.turn=(seat+1)%n;S.msg='Tocca a '+S.names[S.turn]+'.'}
+    else{
+      var ind=TR(S.trump[S.leader]),w=trickWinner(S.trick,ind);
+      S.won[w]++;S.winner=w;S.leader=w;S.turn=w;
+      if(S.hands.every(function(h){return !h.length}))scoreRound(S);
+      else S.msg=S.names[w]+' vince la presa e apre la prossima.';
+    }
+    break;}
+  case 'next':{
+    if(S.phase!=='roundEnd'||!validDeck(a.deck,n))return null;
+    if(S.round+1>=n){
+      var m=Math.max.apply(null,S.total);
+      S.over={winners:S.total.map(function(t,q){return t===m?q:-1}).filter(function(q){return q>=0})};
+      S.phase='gameEnd';S.msg='Partita conclusa.';break;
+    }
+    S.round++;S.start=(S.start+1)%n;dealInto(S,a.deck);break;}
+  case 'rematch':{
+    if(S.phase!=='gameEnd'||!validDeck(a.deck,n))return null;
+    S.round=0;S.start=rnd(n);S.over=null;
+    for(i=0;i<n;i++){S.total[i]=0;S.hist[i]=[]}
+    dealInto(S,a.deck);break;}
+  default:return null;
+  }
+  // a fine fase di previsione si passa alle prese
+  if(S.phase==='plan'&&S.pstep===2*n){
+    S.phase='play';S.leader=S.start;S.turn=S.start;S.trick=[];S.winner=-1;
+    S.msg='Si gioca: apre '+S.names[S.start]+' (briscola: '+TR(S.trump[S.start]).short+').';
+  }
+  return S;
+}
+
+// ─────────────── RENDER ───────────────
+var cardFace=function(c,cls){return '<span class="pc c'+c.c+' '+(cls||'')+'"><small>'+c.n+'</small>'+c.n+ico(COLORS[c.c].icon)+'</span>'};
+var chipsHtml=function(pr){return !pr||pr.n===0?'':Array.apply(null,Array(pr.n)).map(function(_,i){return '<span class="chip '+(pr.flex&&i===pr.n-1?'flex':'')+'"></span>'}).join('')};
+function gameBadge(){return S.phase==='gameEnd'?'Partita conclusa':'Round '+(S.round+1)+'/'+S.n}
+function flagHtml(p){
+  if(S.phase==='play'&&S.leader===p)return '<span class="flag lead">Di mano</span>';
+  if(S.phase==='plan'&&S.start===p)return '<span class="flag first">Primo giocatore</span>';
+  return '';
+}
+function seatHtml(p,pos){
+  var t=S.trump[p]?TR(S.trump[p]):null;
+  var isLeader=S.phase==='play'&&S.leader===p,active=(S.phase==='play'&&S.turn===p&&S.trick.length<S.n)||(S.phase==='plan'&&planActor(S)===p),winner=S.winner===p&&S.trick.length===S.n;
+  var body='';
+  if(p===me){
+    var canPlay=S.phase==='play'&&S.turn===me;
+    var lead=canPlay&&S.trick.length&&S.trick.length<S.n?S.trick[0].card.c:null;
+    var hasLead=lead!==null&&S.hands[me].some(function(x){return x.c===lead});
+    body='<div class="hand">'+S.hands[me].map(function(c,i){
+      if(canPlay){
+        var ok=!hasLead||c.c===lead;
+        return '<button class="pc c'+c.c+' '+(ok?'legal':'dim')+' '+(ui.sel===i?'sel':'')+'" '+(ok?'':'disabled')+' data-p="'+i+'" title="'+c.n+' '+COLORS[c.c].n+'"><small>'+c.n+'</small>'+c.n+ico(COLORS[c.c].icon)+'</button>';
+      }
+      return cardFace(c);
+    }).join('')+'</div>';
+  }else body='<div class="backs">'+S.hands[p].map(function(){return '<span class="back"></span>'}).join('')+'</div>';
+  var meta='<div class="seat-meta">'+
+    (t?'<span class="ind '+(isLeader?'cur':'')+'" title="'+esc(t.label)+'">'+tico(t)+' '+t.short+'</span>':'<span class="tag">briscola: —</span>')+
+    '<span class="tag">'+chipsHtml(S.pred[p])+' '+predText(S.pred[p])+'</span>'+
+    '<span class="tag">prese vinte '+S.won[p]+'</span></div>';
+  return '<div class="seat '+pos+' '+(isLeader?'leader':'')+' '+(active?'active':'')+' '+(winner?'winner':'')+'">'+
+    '<div class="seat-name">'+esc(S.names[p])+(p===me?' (tu)':'')+flagHtml(p)+'</div>'+(pos==='bottom'?body+meta:meta+body)+'</div>';
+}
+function centerHtml(){
+  var n=S.n,slots='';
+  for(var r=0;r<n;r++){
+    var p=(me+r)%n,x=S.trick.filter(function(t){return t.p===p})[0];
+    slots+='<div class="slot '+POS[n][r]+'">'+(x?cardFace(x.card,S.winner===p&&S.trick.length===n?'win':''):'')+'</div>';
+  }
+  var ready=S.pred.every(function(q){return q})&&S.trump.every(function(q){return q}),note;
+  if(ready){var ind=TR(S.trump[S.leader]);note='Briscola in uso<br><b>'+tico(ind)+' '+ind.short+'</b><br>('+esc(S.names[S.leader])+')'}
+  else note='Segnalini previsione rimasti: <b>'+S.chips+'</b>';
+  return '<div class="center">'+slots+'<div class="center-note">'+note+'</div></div>';
+}
+function scoreTable(){
+  var n=S.n,hd='';for(var i=0;i<n;i++)hd+='<th>R'+(i+1)+'</th>';
+  var rows=S.names.map(function(nm,p){
+    var cells='';for(var i=0;i<n;i++)cells+=i<S.hist[p].length?'<td class="'+(S.hist[p][i]<0?'neg':'')+'">'+S.hist[p][i]+'</td>':'<td>–</td>';
+    return '<tr><td>'+esc(nm)+(p===me?' (tu)':'')+'</td>'+cells+'<td><b>'+S.total[p]+'</b></td></tr>';
+  }).join('');
+  return '<table class="score"><tr><th></th>'+hd+'<th>Totale</th></tr>'+rows+'</table>';
+}
+function planForm(){
+  var need=[];if(S.pred[me]===null)need.push('predict');if(!S.trump[me])need.push('trump');
+  var pass=Math.floor(S.pstep/S.n),key=S.round+':'+S.pstep;
+  if(ui.key!==key)ui={key:key,mode:null,n:null,flex:null,trump:null,sel:null};
+  var mode=pass===1?need[0]:(need.indexOf(ui.mode)>=0?ui.mode:null);
+  if(!mode){
+    return '<div class="dock-title">COSA FAI ORA? L\'ALTRA AZIONE LA FARAI NEL SECONDO GIRO</div><div class="opts">'+
+      '<button class="opt" data-mode="predict">Pronosticare le prese (segnalini rimasti: '+S.chips+')</button>'+
+      '<button class="opt" data-mode="trump">Scegliere la Briscola Personale</button></div>';
+  }
+  var back=pass===0?'<button class="opt" data-pback="1">Indietro (cambia azione)</button>':'';
+  if(mode==='predict'){
+    var max=Math.min(S.chips,TRICKS),btns='';
+    for(var k=0;k<=max;k++)btns+='<button class="opt '+(ui.n===k?'on':'')+'" data-pn="'+k+'">'+k+'</button>';
+    var h='<div class="dock-title">PRONOSTICA QUANTE PRESE VINCERAI (PRENDI ALTRETTANTI SEGNALINI)</div><div class="opts">'+btns+'</div>';
+    if(ui.n!==null&&ui.n>=1){
+      h+='<div class="dock-title">VUOI USARE UN SEGNALINO CON IL PALLINO?</div><div class="opts">'+
+        '<button class="opt '+(ui.flex===false?'on':'')+'" data-pf="0">No: vincerò esattamente '+ui.n+' '+(ui.n===1?'presa':'prese')+' (4 punti)</button>'+
+        '<button class="opt '+(ui.flex===true?'on':'')+'" data-pf="1">Sì: vincerò '+(ui.n-1)+' oppure '+ui.n+' prese (2 punti)</button></div>';
+    }
+    var ready=ui.n!==null&&(ui.n===0||ui.flex!==null);
+    return h+'<div class="opts"><button class="opt" data-pconfirm="predict" '+(ready?'':'disabled')+'>Conferma previsione</button>'+back+'</div>';
+  }
+  var tb=TRUMPS.map(function(t){
+    return '<button class="opt '+(ui.trump===t.id?'on':'')+'" data-ptrump="'+t.id+'" '+(trumpLegal(S,me,t.id)?'':'disabled')+'>'+tico(t)+' '+esc(t.label)+'</button>';
+  }).join('');
+  return '<div class="dock-title">SCEGLI LA TUA BRISCOLA PERSONALE (VALE QUANDO SEI IL GIOCATORE DI MANO)</div><div class="opts">'+tb+'</div>'+
+    '<div class="opts"><button class="opt" data-pconfirm="trump" '+(ui.trump?'':'disabled')+'>Conferma briscola</button>'+back+'</div>';
+}
+function dockHtml(){
+  var msg='<div class="dock-msg">'+esc(S.msg)+'</div>';
+  if(S.phase==='gameEnd'){
+    var nm=S.over.winners.map(function(i){return esc(S.names[i])}),w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
+    return '<div class="dock-msg"><b>'+(S.over.winners.length>1?'Vittoria condivisa: ':'Vince ')+w+'!</b></div>'+scoreTable()+
+      '<div class="opts"><button class="opt" data-rematch="1">Rivincita</button></div>';
+  }
+  if(S.phase==='roundEnd'){
+    var rows=S.result.rows.map(function(r){return '<tr><td>'+esc(S.names[r.p])+(r.p===me?' (tu)':'')+'</td><td>'+predText(r.pred)+'</td><td>'+r.won+'</td><td class="'+(r.pt<0?'neg':'')+'"><b>'+(r.pt>0?'+':'')+r.pt+'</b></td></tr>'}).join('');
+    return msg+'<table class="score"><tr><th></th><th>Previsione</th><th>Prese</th><th>Punti</th></tr>'+rows+'</table>'+
+      '<div class="opts"><button class="opt" data-next="1">'+(S.round+1>=S.n?'Mostra risultato finale':'Prossimo round')+'</button></div>';
+  }
+  if(S.phase==='plan'){
+    var actor=planActor(S);
+    if(actor!==me)return msg+'<div class="hint">'+esc(S.names[actor])+' sta scegliendo…</div>';
+    return msg+planForm();
+  }
+  // prese
+  if(S.turn!==me){ui.sel=null;return msg+'<div class="hint">Tocca a '+esc(S.names[S.turn])+'.</div>'}
+  var h=msg+'<div class="hint">Tocca a te: gioca una carta evidenziata'+(S.trick.length&&S.trick.length<S.n?' (devi rispondere al colore '+COLORS[S.trick[0].card.c].n.toLowerCase()+' se puoi)':' (sei il giocatore di mano: puoi giocare qualsiasi carta)')+'.</div>';
+  if(ui.sel!==null&&S.hands[me][ui.sel]){var c=S.hands[me][ui.sel];h+='<div class="opts"><button class="opt" data-cf="1">Conferma: gioca '+c.n+' '+COLORS[c.c].n.toLowerCase()+'</button><button class="opt" data-cf="0">Annulla</button></div>'}
+  return h;
+}
+function gameRender(){
+  if(S.phase!=='play'||S.turn!==me)ui.sel=null;
+  var pos=POS[S.n],seats='';
+  for(var r=0;r<S.n;r++)seats+=seatHtml((me+r)%S.n,pos[r]);
+  return '<div class="dock">'+dockHtml()+'</div><div class="table">'+seats+centerHtml()+'</div>'+
+    (S.hist.some(function(h){return h.length})?'<div class="dock" style="position:static">'+scoreTable()+'</div>':'')+RULES_HTML;
+}
+function gameMenu(){
+  return '<label class="opt-toggle" title="Chiede conferma prima di giocare una carta"><input type="checkbox" id="optUndo" '+(OPT.undo?'checked':'')+'> Conferma prima di giocare</label>'+
+    '<label class="opt-toggle" title="Aggiunge una filigrana alle carte (righe, puntini, diagonali) per distinguere i colori"><input type="checkbox" id="optA11y" '+(OPT.a11y?'checked':'')+'> Modalità accessibile</label>';
+}
+function gameChange(e){
+  if(e.target.id==='optA11y'){OPT.a11y=e.target.checked;try{localStorage.setItem('six-forces-a11y',OPT.a11y?'1':'0')}catch(x){}render()}
+  else if(e.target.id==='optUndo'){OPT.undo=e.target.checked;try{localStorage.setItem('six-forces-undo',OPT.undo?'1':'0')}catch(x){}ui.sel=null;render()}
+}
+function gameClick(b){
+  var d=b.dataset;
+  if(d.mode){ui.mode=d.mode;render()}
+  else if(d.pback){ui.mode=null;ui.n=null;ui.flex=null;ui.trump=null;render()}
+  else if(d.pn!==undefined){ui.n=Number(d.pn);ui.flex=ui.n===0?false:null;render()}
+  else if(d.pf!==undefined){ui.flex=d.pf==='1';render()}
+  else if(d.ptrump){ui.trump=d.ptrump;render()}
+  else if(d.pconfirm==='predict'){if(ui.n!==null&&(ui.n===0||ui.flex!==null))act({type:'predict',n:ui.n,flex:ui.n>=1&&ui.flex===true})}
+  else if(d.pconfirm==='trump'){if(ui.trump)act({type:'trump',id:ui.trump})}
+  else if(d.p!==undefined){
+    var i=Number(d.p);
+    if(OPT.undo){ui.sel=i;render()}else act({type:'play',idx:i});
+  }
+  else if(d.cf!==undefined){
+    if(d.cf==='1'&&ui.sel!==null){var idx=ui.sel;ui.sel=null;act({type:'play',idx:idx})}
+    else{ui.sel=null;render()}
+  }
+  else if(d.next)act({type:'next',deck:newDeck(S.n)});
+  else if(d.rematch)act({type:'rematch',deck:newDeck(S.n)});
+}
+
+// ═════════════════════════ KIT STANZE (Firebase RTDB) ═════════════════════════
+// Stesso schema di tt/spy-team/online: rooms/$room con hostUid, members, lobby, state (le regole già pubblicate bastano).
+// Lo stato di gioco è un unico oggetto JSON salvato come stringa in state.s (+ contatore state.v); ogni azione è una
+// transazione che applica gameReduce() all'ultima versione. Le mani stanno nello stato (nascoste solo dall'interfaccia).
+var FIREBASE_CONFIG={
+  apiKey:"AIzaSyAoOMLytOqFY9GRXpi2kUGEyzLK-r00nvQ",
+  authDomain:"gachapon-trick.firebaseapp.com",
+  databaseURL:"https://gachapon-trick-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"gachapon-trick",
+  storageBucket:"gachapon-trick.firebasestorage.app",
+  messagingSenderId:"869677835302",
+  appId:"1:869677835302:web:85768d5a6ac0d94f8372e7"
+};
+var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+var SAVE_KEY=GAME.id+'-online-last';
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var rnd=function(n){return Math.floor(Math.random()*n)};
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+function getPlayerName(){
+  var name='';
+  try{
+    name=localStorage.getItem('nylo-player-name')||'';
+    if(!name){var last=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');name=last&&last.name||''}
+  }catch(e){}
+  return String(name||'Giocatore').trim().slice(0,18)||'Giocatore';
+}
+var playerName=getPlayerName();
+var db=null,user=null,roomRef=null,roomCode='',lobbyData=null,S=null,me=-1,listeners=[],startingGame=false;
+var statusText='',connText='',joinVal='',chosenCount=GAME.counts[0],MENUOPEN=false;
+try{var lastRoom=JSON.parse(localStorage.getItem(SAVE_KEY));if(lastRoom)joinVal=lastRoom.code||''}catch(e){}
+
+function setStatus(t){statusText=t;render()}
+function setConn(t){connText=t;var c=document.getElementById('conn');if(c)c.textContent=t}
+function showErr(t){
+  var e=document.getElementById('err');
+  if(!e){e=document.createElement('div');e.id='err';e.className='err';e.setAttribute('role','alert');document.body.appendChild(e)}
+  e.textContent=t;e.hidden=false;setConn('Errore');clearTimeout(showErr.t);showErr.t=setTimeout(function(){e.hidden=true},8000);
+}
+function genCode(){var b=new Uint8Array(12);crypto.getRandomValues(b);return Array.from(b,function(x){return ALPHABET[x%ALPHABET.length]}).join('')}
+function withTimeout(p,ms,msg){
+  return new Promise(function(res,rej){var t=setTimeout(function(){rej(new Error(msg))},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})});
+}
+function authMsg(e){
+  if(e.code==='auth/operation-not-allowed')return 'Attiva il provider Anonimo in Firebase Authentication.';
+  if(e.code==='auth/unauthorized-domain')return 'Dominio non autorizzato: aggiungilo in Authentication > Impostazioni > Domini autorizzati.';
+  if(e.code==='auth/network-request-failed')return 'Firebase non raggiungibile: controlla la connessione e che il sito sia in HTTPS.';
+  return e.message||'Errore di autenticazione Firebase.';
+}
+async function connect(){
+  if(!window.firebase)throw new Error('Firebase non caricato. Controlla la connessione.');
+  if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+  db=firebase.database();
+  if(user)return;
+  try{user=(await withTimeout(firebase.auth().signInAnonymously(),15000,'Autenticazione scaduta dopo 15 secondi.')).user}
+  catch(e){throw new Error(authMsg(e))}
+}
+function saveLast(name){try{localStorage.setItem(SAVE_KEY,JSON.stringify({code:roomCode,name:name}))}catch(e){}}
+
+// ─────────────── LOBBY ───────────────
+async function createRoom(){
+  try{
+    setStatus('Connessione a Firebase...');await connect();
+    var created=false,lastErr=null;
+    for(var i=0;i<5&&!created;i++){
+      roomCode=genCode();roomRef=db.ref('rooms/'+roomCode);
+      try{
+        await roomRef.child('hostUid').set(user.uid);
+        await roomRef.child('members/'+user.uid).set(true);
+        await roomRef.child('lobby').set({game:GAME.id,hostUid:user.uid,playerCount:chosenCount,started:false,closed:false,players:{}});
+        created=true;
+      }catch(e){lastErr=e;roomRef=null}
+    }
+    if(!created)throw lastErr||new Error('Impossibile creare la stanza. Verifica le regole del database.');
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;setStatus(e.message||'Errore durante la creazione della stanza.')}
+}
+async function joinRoom(){
+  try{
+    roomCode=joinVal.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(roomCode.length!==12)throw new Error('Il codice stanza è di 12 caratteri.');
+    setStatus('Connessione...');await connect();
+    roomRef=db.ref('rooms/'+roomCode);
+    await roomRef.child('members/'+user.uid).set(true);
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;setStatus(e.code==='PERMISSION_DENIED'?'Stanza non trovata o non accessibile.':(e.message||'Errore durante l\'accesso alla stanza.'))}
+}
+function reserveSeat(name){
+  var lobbyRef=roomRef.child('lobby');
+  return lobbyRef.once('value').then(function(snap){
+    if(!snap.exists())throw new Error('Lobby non trovata: controlla il codice.');
+    var initial=snap.val();
+    if(initial.game!==GAME.id)throw new Error('Questo codice appartiene a un altro gioco.');
+    return new Promise(function(resolve,reject){
+      lobbyRef.transaction(function(cur){
+        if(cur===null)cur=initial;
+        if(!cur||!cur.playerCount||cur.closed)return;
+        cur.players=cur.players||{};
+        if(cur.players[user.uid])return cur;            // rientro: il posto è già tuo
+        if(cur.started)return;
+        var occ={};Object.keys(cur.players).forEach(function(u){occ[cur.players[u].seat]=true});
+        var seat=1;while(seat<=cur.playerCount&&occ[seat])seat++;
+        if(seat>cur.playerCount)return;
+        cur.players[user.uid]={uid:user.uid,name:name,seat:seat};
+        return cur;
+      },function(err,committed,snap2){
+        if(err){reject(err);return}
+        var cur=snap2&&snap2.val();
+        if(!cur||!cur.players||!cur.players[user.uid]){
+          reject(new Error(cur&&cur.started?'La partita è già iniziata.':'La stanza è piena o non disponibile.'));return;
+        }
+        lobbyData=cur;saveLast(name);enterRoom();resolve();
+      },false);
+    });
+  });
+}
+function orderedPlayers(d){
+  return Object.keys(d.players||{}).map(function(u){return d.players[u]}).sort(function(a,b){return a.seat-b.seat});
+}
+function maybeStart(){
+  if(!lobbyData||S||startingGame||lobbyData.started||lobbyData.hostUid!==user.uid)return;
+  if(orderedPlayers(lobbyData).length===lobbyData.playerCount)startGame();
+}
+function startGame(){
+  startingGame=true;
+  var seated=orderedPlayers(lobbyData);   // i posti si assegnano a caso all'avvio
+  shuffle(seated);
+  var init=gameInitial(seated.map(function(p){return {uid:p.uid,name:p.name}}));
+  init.v=0;
+  roomRef.child('state').transaction(function(cur){if(cur!==null)return;return {v:0,s:JSON.stringify(init)}},function(err){
+    if(err){startingGame=false;showErr('Errore durante l\'avvio: '+err.message);return}
+    roomRef.child('lobby/started').set(true).catch(function(e){startingGame=false;showErr(e.message)});
+  },false);
+}
+
+// ─────────────── STANZA ───────────────
+function enterRoom(){
+  setConn('Lobby');
+  var lobbyRef=roomRef.child('lobby');
+  var lh=function(snap){if(!snap.exists())return;lobbyData=snap.val();if(!S){render();maybeStart()}};
+  lobbyRef.on('value',lh,function(e){showErr(e.message)});listeners.push({ref:lobbyRef,h:lh});
+  var stateRef=roomRef.child('state');
+  var sh=function(snap){
+    if(!snap.exists())return;
+    var raw=snap.val();
+    try{S=JSON.parse(raw.s)}catch(e){showErr('Stato della stanza non leggibile.');return}
+    me=S.uids.indexOf(user.uid);
+    if(me<0){showErr('Non risulti tra i giocatori di questa partita.');return}
+    setConn('Connesso');
+    render();
+  };
+  stateRef.on('value',sh,function(e){showErr('Connessione persa: '+e.message)});listeners.push({ref:stateRef,h:sh});
+  render();
+}
+function leave(){
+  listeners.forEach(function(l){l.ref.off('value',l.h)});
+  if(!roomRef||S||!user){window.location.reload();return}
+  // prima dell'inizio libera il posto; a partita avviata si può rientrare con lo stesso codice
+  roomRef.child('lobby').transaction(function(cur){
+    if(!cur||cur.started)return;
+    cur.players=cur.players||{};delete cur.players[user.uid];
+    var rest=orderedPlayers(cur);
+    if(cur.hostUid===user.uid&&rest.length)cur.hostUid=rest[0].uid;
+    return cur;
+  },function(){
+    roomRef.child('members/'+user.uid).remove().catch(function(){}).then(function(){window.location.reload()});
+  },false);
+}
+
+// azioni: ogni azione è una transazione sullo stato, validata da gameReduce() sull'ultima versione
+function act(a){
+  if(!roomRef||me<0)return;
+  var seat=me;
+  roomRef.child('state').transaction(function(cur){
+    if(!cur||!cur.s)return;
+    var st;try{st=JSON.parse(cur.s)}catch(e){return}
+    var r=gameReduce(st,seat,a);
+    if(!r)return;
+    r.v=(st.v||0)+1;
+    return {v:r.v,s:JSON.stringify(r)};
+  },function(err,committed){
+    if(err)showErr('Errore di sincronizzazione: '+err.message);
+    else if(!committed)setConn('Azione non più valida');
+  },false);
+}
+
+// ─────────────── RENDER ───────────────
+function lobbyHtml(){
+  var radios=GAME.counts.map(function(n){
+    return '<label><input type="radio" name="pc" value="'+n+'" '+(chosenCount===n?'checked':'')+'> '+n+' giocatori'+(GAME.countNote&&GAME.countNote[n]?' · '+GAME.countNote[n]:'')+'</label>';
+  }).join('');
+  return '<section><p class="muted">Sei connesso come <b>'+esc(playerName)+'</b>.</p>'+
+    '<div class="panel"><h2>Crea una stanza</h2><p class="muted">'+GAME.lobbyNote+'</p>'+
+    '<div class="radios" role="radiogroup" aria-label="Numero di giocatori">'+radios+'</div>'+
+    '<button class="opt" id="createRoom" type="button" data-create="1">Crea stanza</button></div>'+
+    '<div class="panel"><h2>Unisciti a una stanza</h2>'+
+    '<input type="text" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(joinVal)+'">'+
+    '<button class="opt" type="button" data-join="1">Unisciti</button></div>'+
+    '<p class="status" role="status" aria-live="polite">'+esc(statusText)+'</p>'+
+    '<button class="btn btn-sm" type="button" data-ai="1">← Cambia modalità (contro l’AI)</button></section>';
+}
+function waitingHtml(){
+  var d=lobbyData||{players:{},playerCount:GAME.counts[0]};
+  var players=orderedPlayers(d),full=players.length===d.playerCount,html='';
+  for(var seat=1;seat<=d.playerCount;seat++){
+    var p=players[seat-1];
+    html+='<li><span class="seat-n">'+seat+'.</span>'+
+      (p?'<span class="grow">'+esc(p.name)+(p.uid===user.uid?' (tu)':'')+'</span>':'<span class="grow soft">In attesa di un giocatore</span>')+
+      (p&&p.uid===d.hostUid?'<span class="flag first">HOST</span>':'')+'</li>';
+  }
+  return '<section><div class="panel"><h2>Stanza '+roomCode+'</h2><p class="muted">'+
+    (d.started?'La partita si sta caricando...':players.length+' / '+d.playerCount+' giocatori'+(full?' · avvio in corso':' · condividi il codice con gli altri'))+
+    '</p><ul class="roster">'+html+'</ul></div></section>';
+}
+function kitMenuHtml(){
+  var extra=typeof gameMenu==='function'?gameMenu():'';
+  return '<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="'+MENUOPEN+'"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>'+
+    (MENUOPEN?'<div class="menu-pop">'+extra+'</div>':'')+'</div>';
+}
+function render(){
+  document.body.classList.toggle('a11y',!!(typeof OPT!=='undefined'&&OPT.a11y));
+  var focus=document.activeElement&&document.activeElement.id==='joinCode';
+  var badge=S&&typeof gameBadge==='function'?gameBadge():'';
+  var top='<div class="topbar"><div class="logo">'+GAME.logo+'</div>'+
+    (window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+
+    (badge?'<span class="badge">'+badge+'</span>':'')+
+    (roomRef?'<span class="room-code">'+roomCode+'</span><button class="btn btn-sm" type="button" data-copy="1">Copia codice</button><button class="btn btn-sm" type="button" data-leave="1">Esci</button>':'')+
+    '<span class="conn" id="conn">'+esc(connText)+'</span>'+kitMenuHtml()+'</div>';
+  var body=!roomRef?lobbyHtml():(!S?waitingHtml():gameRender());
+  document.getElementById('app').innerHTML=top+body;
+  if(focus){var j=document.getElementById('joinCode');if(j){j.focus();j.setSelectionRange(j.value.length,j.value.length)}}
+}
+var APP=document.getElementById('app');
+APP.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b||b.disabled)return;
+  var d=b.dataset;
+  if(d.menu){MENUOPEN=!MENUOPEN;render();return}
+  if(d.ai!==undefined){location.hash='ai';return}
+  if(d.create!==undefined){createRoom();return}
+  if(d.join!==undefined){joinRoom();return}
+  if(d.leave!==undefined){if(!S||confirm('Uscire dalla stanza? Potrai rientrare con lo stesso codice.'))leave();return}
+  if(d.copy!==undefined){
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(roomCode).then(function(){setConn('Codice copiato')});
+    else window.prompt('Copia il codice stanza:',roomCode);
+    return;
+  }
+  if(S&&typeof gameClick==='function')gameClick(b);
+});
+APP.addEventListener('input',function(e){if(e.target.id==='joinCode'){joinVal=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=joinVal}});
+APP.addEventListener('keydown',function(e){if(e.target.id==='joinCode'&&e.key==='Enter')joinRoom()});
+APP.addEventListener('change',function(e){
+  if(e.target.name==='pc'){chosenCount=Number(e.target.value);return}
+  if(typeof gameChange==='function')gameChange(e);
+});
+document.addEventListener('click',function(e){if(MENUOPEN&&!e.target.closest('.menu-wrap')){MENUOPEN=false;render()}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&MENUOPEN){MENUOPEN=false;render()}});
+render();
+
+</script>
+<script>
+(function(){
+  function run(id){var s=document.createElement('script');s.textContent=document.getElementById(id).textContent;document.body.appendChild(s)}
+  window.addEventListener('hashchange',function(){location.reload()});
+  if(location.hash==='#stanze'){
+    var libs=['app','auth','database'].map(function(n){return 'https://www.gstatic.com/firebasejs/10.12.2/firebase-'+n+'-compat.js'});
+    (function next(i){
+      if(i===libs.length){run('src-room');return}
+      var s=document.createElement('script');s.src=libs[i];s.onload=function(){next(i+1)};
+      s.onerror=function(){document.getElementById('app').innerHTML='<p style="padding:20px;color:#c00">Firebase non raggiungibile: controlla la connessione.</p>'};
+      document.head.appendChild(s);
+    })(0);
+  }else run('src-ai');
+})();
 </script>
 </body>
 </html>
