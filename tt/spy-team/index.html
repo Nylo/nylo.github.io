@@ -604,6 +604,7 @@ document.getElementById('app').addEventListener('click',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+if(window.NYLO_START&&NYLO_START.mode==='ai'){NAMES[0]=NYLO_START.name||'Tu';newGame();}
 </script>
 <script type="text/plain" id="src-room">
 
@@ -1088,7 +1089,7 @@ function lobbyHtml(){
     '<input type="text" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(joinVal)+'">'+
     '<button class="opt" type="button" data-join="1">Unisciti</button></div>'+
     '<p class="status" role="status" aria-live="polite">'+esc(statusText)+'</p>'+
-    '<button class="btn btn-sm" type="button" data-ai="1">← Cambia modalità (contro l’AI)</button></section>';
+    '<button class="btn btn-sm" type="button" data-ai="1">← Torna alla scelta</button></section>';
 }
 function waitingHtml(){
   var d=lobbyData||{players:{},playerCount:GAME.counts[0]};
@@ -1127,7 +1128,7 @@ APP.addEventListener('click',function(e){
   var b=e.target.closest('button');if(!b||b.disabled)return;
   var d=b.dataset;
   if(d.menu){MENUOPEN=!MENUOPEN;render();return}
-  if(d.ai!==undefined){location.hash='ai';return}
+  if(d.ai!==undefined){location.href=location.pathname;return}
   if(d.create!==undefined){createRoom();return}
   if(d.join!==undefined){joinRoom();return}
   if(d.leave!==undefined){if(!S||confirm('Uscire dalla stanza? Potrai rientrare con lo stesso codice.'))leave();return}
@@ -1147,21 +1148,89 @@ APP.addEventListener('change',function(e){
 document.addEventListener('click',function(e){if(MENUOPEN&&!e.target.closest('.menu-wrap')){MENUOPEN=false;render()}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&MENUOPEN){MENUOPEN=false;render()}});
 render();
-
+if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosenCount;if(NYLO_START.name)playerName=NYLO_START.name.slice(0,18);if(NYLO_START.action==='join'){joinVal=NYLO_START.code||'';joinRoom()}else createRoom();}
 </script>
+<style id="sx-css">
+.sx-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:12px;color:var(--text);max-width:560px}
+.sx-label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text-soft);margin-top:2px}
+.sx-row{display:flex;gap:8px;flex-wrap:wrap}
+.sx-opt{padding:10px 16px;border-radius:7px;border:1px solid var(--border);background:var(--surface-raised);color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;transition:border-color .12s,background .12s}
+.sx-opt:hover:not(:disabled){border-color:var(--accent)}
+.sx-opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.sx-opt:disabled{opacity:.4;cursor:not-allowed}
+.sx-go{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;padding:10px 26px}
+.sx-go:hover:not(:disabled){filter:brightness(1.1);border-color:var(--accent)}
+.sx-in{background:#fff;border:1px solid var(--border);color:#222;border-radius:6px;padding:10px 12px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none}
+.sx-in:focus{border-color:var(--accent)}
+.sx-in.code{letter-spacing:2px;text-transform:uppercase;font-family:Consolas,monospace}
+.sx-sub{display:flex;flex-direction:column;gap:10px;padding-top:2px}
+</style>
 <script>
 (function(){
+  var P=window.NYLO_SETUP={id:'spy-team',logo:'Spy <span>Team</span>',counts:[4]};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
   function run(id){var s=document.createElement('script');s.textContent=document.getElementById(id).textContent;document.body.appendChild(s)}
   window.addEventListener('hashchange',function(){location.reload()});
-  if(location.hash==='#stanze'){
+  var app=document.getElementById('app');
+  var st={n:P.counts[0],mode:location.hash==='#stanze'?'room':(location.hash==='#ai'?'ai':''),sub:'',code:'',name:''};
+  try{
+    st.name=localStorage.getItem('nylo-player-name')||'';
+    var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
+  }catch(e){}
+  function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
+  function draw(){
+    var h='<div class="topbar"><div class="logo">'+P.logo+'</div>'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div>';
+    h+='<div class="sx-card">';
+    h+='<label class="sx-label" for="sxName">IL TUO NOME</label><input class="sx-in" id="sxName" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(st.name)+'">';
+    if(P.counts.length>1){
+      h+='<div class="sx-label">GIOCATORI</div><div class="sx-row">'+P.counts.map(function(n){return btn('data-n="'+n+'"','',n+' giocatori',st.n===n)}).join('')+'</div>';
+    }
+    h+='<div class="sx-label">MODALITÀ</div><div class="sx-row">'+btn('data-mode="ai"','','Contro l’AI',st.mode==='ai')+btn('data-mode="room"','','A stanze',st.mode==='room')+'</div>';
+    if(st.mode==='ai'){
+      h+='<div class="sx-sub"><div class="sx-row">'+btn('data-go="ai"','sx-go','Inizia',false)+'</div></div>';
+    }else if(st.mode==='room'){
+      h+='<div class="sx-sub"><div class="sx-row">'+btn('data-sub="create"','','Crea una stanza',st.sub==='create')+btn('data-sub="join"','','Unisciti a una stanza',st.sub==='join')+'</div>';
+      if(st.sub==='create')h+='<div class="sx-row">'+btn('data-go="create"','sx-go','Inizia',false)+'</div>';
+      if(st.sub==='join')h+='<input class="sx-in code" id="sxCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(st.code)+'"><div class="sx-row"><button type="button" class="sx-opt sx-go" id="sxJoin" data-go="join" '+(st.code.length===12?'':'disabled')+'>Vai</button></div>';
+      h+='</div>';
+    }
+    h+='</div>';
+    app.innerHTML=h;
+  }
+  function loadRoom(){
     var libs=['app','auth','database'].map(function(n){return 'https://www.gstatic.com/firebasejs/10.12.2/firebase-'+n+'-compat.js'});
     (function next(i){
       if(i===libs.length){run('src-room');return}
       var s=document.createElement('script');s.src=libs[i];s.onload=function(){next(i+1)};
-      s.onerror=function(){document.getElementById('app').innerHTML='<p style="padding:20px;color:#c00">Firebase non raggiungibile: controlla la connessione.</p>'};
+      s.onerror=function(){app.innerHTML='<p style="padding:20px;color:#c00">Firebase non raggiungibile: controlla la connessione.</p>'};
       document.head.appendChild(s);
     })(0);
-  }else run('src-ai');
+  }
+  function go(kind){
+    var nm=document.getElementById('sxName'),name=((nm&&nm.value)||st.name||'').trim().slice(0,16);
+    if(name){try{localStorage.setItem('nylo-player-name',name)}catch(e){}}
+    var cfg={name:name,n:st.n};
+    if(kind==='ai'){cfg.mode='ai';window.NYLO_START=cfg;run('src-ai');return}
+    cfg.mode='room';cfg.action=kind;if(kind==='join')cfg.code=st.code;
+    window.NYLO_START=cfg;app.innerHTML='';loadRoom();
+  }
+  app.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b||b.disabled)return;
+    var d=b.dataset;
+    if(d.n){st.n=Number(d.n);draw()}
+    else if(d.mode){st.mode=d.mode;st.sub='';draw()}
+    else if(d.sub){st.sub=d.sub;draw();var c=document.getElementById('sxCode');if(c)c.focus()}
+    else if(d.go)go(d.go);
+  });
+  app.addEventListener('input',function(e){
+    if(e.target.id==='sxName')st.name=e.target.value;
+    else if(e.target.id==='sxCode'){
+      st.code=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=st.code;
+      var j=document.getElementById('sxJoin');if(j)j.disabled=st.code.length!==12;
+    }
+  });
+  app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  draw();
 })();
 </script>
 </body>
