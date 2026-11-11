@@ -146,7 +146,13 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 .rnum{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;background:#f6d3b0;border:1px solid #f4c9a8;border-radius:8px;color:#c4122f;font-family:'Libre Baskerville',serif;font-weight:700;font-size:20px;position:relative}
 .rnum small{font-size:11px;font-weight:400;opacity:0.85}
 .rnum.start{background:transparent;color:#fff;border-style:dashed;font-size:11px;font-family:Inter,sans-serif;font-weight:600}
-.cube{width:11px;height:11px;border-radius:2px;border:1px solid rgba(0,0,0,0.5);display:inline-block}
+.shp{display:inline-block;width:15px;height:15px;flex-shrink:0;vertical-align:middle;filter:drop-shadow(0 0 1px #000) drop-shadow(0 0 1px rgba(0,0,0,0.8))}
+.shp i{display:block;width:100%;height:100%}
+.shp.s0 i{border-radius:50%}
+.shp.s1 i{clip-path:polygon(50% 4%,100% 96%,0 96%)}
+.shp.s2 i{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.shp.s3 i{clip-path:polygon(50% 0,62% 36%,100% 38%,70% 60%,81% 100%,50% 76%,19% 100%,30% 60%,0 38%,38% 36%)}
+.seat-name .shp{margin-right:5px;width:13px;height:13px}
 .rbet{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;border:1px solid rgba(0,0,0,0.4);color:#111;font-size:11px;font-weight:700;text-align:center;line-height:1.2;padding:2px 4px;overflow:hidden}
 .rslot{border:1px dashed rgba(244,201,168,0.5);border-radius:8px}
 button.tcard{background:none;border:0;padding:0;cursor:pointer}
@@ -198,6 +204,8 @@ function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render()
 function status(t){ G.msg=t; render(); }
 const cname = c => `${SUITS[c.s].n} ${c.r}`;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.r-b.r);
+const SHAPES = ['cerchio','triangolo','rombo','stella'];
+const shape = (i,t) => `<span class="shp s${i%4}" title="${esc(t||P(i).name)}"><i style="background:${SEATC[i]}"></i></span>`;
 const key = c => c.s*20+c.r;
 const plu = (n,s,p) => `${n} ${n===1?s:p}`;
 
@@ -248,7 +256,8 @@ function betOptions(slots,bets){
   });
 }
 // puntate selezionabili: quelle disponibili (se per assurdo non ce ne fossero, quelle con posto anche se già scelte)
-const betChoices = (slots,bets) => { const all=betOptions(slots,bets); const ok=all.filter(o=>o.ok); return ok.length?ok:all.filter(o=>o.fit); };
+const pickable = all => { const ok=all.filter(o=>o.ok); return ok.length?ok:all.filter(o=>o.fit); };
+const betChoices = (slots,bets) => pickable(betOptions(slots,bets));
 const betName = b => b.sp.length===1?`${b.sp[0]}/${b.sp[0]+4}`:`${b.sp[0]}/${b.sp[1]}/${b.sp[0]+4}/${b.sp[1]+4}`;
 const betLabel = b => `${betName(b)} · ${b.pts} punti`;
 
@@ -388,7 +397,7 @@ async function betPhase(){
   for(let k=0;k<n;k++){
     const p=(S.starter+k)%n; G.turn=p;
     status(p===HUM?'Tocca a te: scegli la tua puntata.':`${P(p).name} sta puntando.`);
-    const all=betOptions(S.slots,S.bets), opts=betChoices(S.slots,S.bets);
+    const all=betOptions(S.slots,S.bets), opts=pickable(all);
     let b;
     if(p===HUM){
       const okSet=new Set(opts);
@@ -519,7 +528,7 @@ function seatHtml(p,pos){
     :`<div class="backs">${S.hands[p].map(c=>`<span class="back k${c.s}"></span>`).join('')||'<span class="hint">—</span>'}</div>`;
   const meta=`<div class="seat-meta"><span class="tag">carte <b>${S.hands[p].length}</b></span><span class="tag">prese <b>${S.t[p]}</b></span><span class="tag">punti <b>${pl.score}</b></span></div>
     <div class="seat-meta">${b?`<span class="tag" title="Puntata">puntata <b>${betName(b)}</b></span>`:'<span class="tag">nessuna puntata</span>'}</div>`;
-  const name=`<div class="seat-name" style="border-bottom:3px solid ${SEATC[p]}">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const name=`<div class="seat-name" style="border-bottom:3px solid ${SEATC[p]}">${shape(p)}${esc(pl.name)}${flagHtml(p)}</div>`;
   const inner=pos==='bottom'?`${name}${meta}${hand}`:`${hand}${name}${meta}`;
   return `<div class="seat ${pos} ${S.phase==='play'&&S.lead===p&&!S.trick.length?'leader':''} ${active?'active':''}">${inner}</div>`;
 }
@@ -537,11 +546,11 @@ function rugHtml(){
   const S=G.S;
   let h='';
   for(let n=4;n>=1;n--){
-    const cubes=G.pl.map((p,i)=>posOf(S.t[i])===n?`<span class="cube" style="background:${SEATC[i]}" title="${esc(p.name)}: ${S.t[i]} prese"></span>`:'').join('');
+    const cubes=G.pl.map((p,i)=>posOf(S.t[i])===n?shape(i,`${p.name}: ${S.t[i]} prese`):'').join('');
     h+=`<div class="rnum" style="grid-row:${5-n};grid-column:2">${n}<small>/${n+4}</small>${cubes}</div>`;
     for(const side of ['L','R']) if(S.slots[n+side]===undefined) h+=`<div class="rslot" style="grid-row:${5-n};grid-column:${side==='L'?1:3}"></div>`;
   }
-  const c0=G.pl.map((p,i)=>posOf(S.t[i])===0?`<span class="cube" style="background:${SEATC[i]}" title="${esc(p.name)}"></span>`:'').join('');
+  const c0=G.pl.map((p,i)=>posOf(S.t[i])===0?shape(i,p.name):'').join('');
   h+=`<div class="rnum start" style="grid-row:5;grid-column:2">0 prese ${c0}</div>`;
   S.bets.forEach((b,p)=>{ if(!b) return;
     const top=Math.max(...b.sp);
@@ -580,7 +589,7 @@ function recapHtml(){
     <div class="recap-row"><span class="lbl">Carte</span>${SUITS.slice(n===3?1:0).map((s,i)=>`<span class="rchip k${i+(n===3?1:0)}">${ico(s.icon)} ${s.n}${s.n==='Gatti'?' (briscola)':''}</span>`).join('')}<span class="rv">${n===3?'27 carte (niente Pesci)':'36 carte'} · valori 1–9 · 9 carte a testa</span></div>
     <div class="recap-row"><span class="lbl">Puntata</span><span class="rv">scegli una puntata: 1 spazio (1/5, 2/6, 3/7, 4/8 = 4 punti) oppure 2 spazi adiacenti (1/2/5/6, 2/3/6/7, 3/4/7/8 = 2 punti). Due giocatori non possono fare la stessa puntata</span></div>
     <div class="recap-row"><span class="lbl">Prese</span><span class="rv">obbligo di seme; vince il gatto più alto, altrimenti la carta più alta del seme d'apertura · chi vince porta in mano una delle altre carte della presa e scarta il resto · il round finisce quando qualcuno resta senza carte</span></div>
-    <div class="recap-row"><span class="lbl">Punteggio</span><span class="rv">cubetto sul tuo spazio: +4 (1 spazio) o +2 (2 spazi); altrimenti −1 per ogni spazio di distanza (il tappeto è circolare 4→1); mai sotto 0 · vince chi ha più punti</span></div></details>`;
+    <div class="recap-row"><span class="lbl">Punteggio</span><span class="rv">segnalino sul tuo spazio: +4 (1 spazio) o +2 (2 spazi); altrimenti −1 per ogni spazio di distanza (il tappeto è circolare 4→1); mai sotto 0 · vince chi ha più punti</span></div></details>`;
 }
 const RULES_HTML = `
 <details class="rules"><summary>REGOLAMENTO</summary>
@@ -588,14 +597,14 @@ const RULES_HTML = `
 <h4>Obiettivo</h4>
 <p>«9 Lives» è un gioco di prese per 3–4 giocatori, circa 15 minuti. A ogni round scommetti quante prese riuscirai a vincere, ma attenzione: ogni vittoria rimette una carta in mano. Riuscirai a battere gli altri e a guadagnare le tue nove vite per primo?</p>
 <h4>Preparazione</h4>
-<ul><li>Il tappeto delle puntate e il segnapunti sono visibili a tutti; ogni giocatore ha un gatto e un cubetto per le prese, che parte sotto lo spazio 1.</li><li>Il primo giocatore è casuale. Si mescolano le carte e si danno 9 carte a testa. <b>Con 3 giocatori si tolgono i Pesci.</b></li></ul>
+<ul><li>Il tappeto delle puntate e il segnapunti sono visibili a tutti; ogni giocatore ha un gatto e un segnalino (una forma diversa per ognuno: cerchio, triangolo, rombo, stella) per le prese, che parte sotto lo spazio 1.</li><li>Il primo giocatore è casuale. Si mescolano le carte e si danno 9 carte a testa. <b>Con 3 giocatori si tolgono i Pesci.</b></li></ul>
 <h4>Puntata</h4>
 <p>Dal primo giocatore in senso orario, ognuno punta quante prese vincerà mettendo il proprio gatto in orizzontale accanto a <b>un numero</b>, oppure in verticale a cavallo di <b>due numeri</b> del tappeto. Puoi metterlo a sinistra o a destra dei numeri; quando un gatto occupa un lato di un numero, nessun altro può mettersi dallo stesso lato di quel numero. Ogni spazio ha due numeri: se pensi di vincere 1 o 5 prese lo metti nello stesso posto (1/5, 2/6, 3/7, 4/8).</p>
 <h4>Le prese</h4>
 <p>Chi è di mano gioca una carta: il suo seme è il seme d'apertura. Gli altri, in senso orario, devono rispondere al seme se possono, altrimenti giocano qualsiasi carta. <b>I Gatti sono briscola</b>: se ne viene giocato uno, vince il Gatto più alto; altrimenti vince la carta più alta del seme d'apertura.</p>
-<p>Chi vince avanza il proprio cubetto di uno spazio sul tappeto (dopo il 4 si torna all'1), <b>prende in mano una carta della presa diversa da quella che ha giocato</b> e scarta le altre. Poi apre la presa successiva. Si continua finché un giocatore resta senza carte (9–12 prese circa).</p>
+<p>Chi vince avanza il proprio segnalino di uno spazio sul tappeto (dopo il 4 si torna all'1), <b>prende in mano una carta della presa diversa da quella che ha giocato</b> e scarta le altre. Poi apre la presa successiva. Si continua finché un giocatore resta senza carte (9–12 prese circa).</p>
 <h4>Punteggio</h4>
-<ul><li>Gatto accanto a <b>uno spazio</b> e prese vinte pari a uno dei suoi due numeri: <b>4 punti</b>.</li><li>Gatto a cavallo di <b>due spazi</b> e prese vinte pari a uno dei numeri di quegli spazi: <b>2 punti</b>.</li><li>Altrimenti perdi <b>1 punto</b> per ogni spazio tra il tuo cubetto e il tuo gatto, ricordando che il tappeto è circolare (dal 4 si passa al 5, cioè all'1). Il punteggio non scende sotto zero.</li></ul>
+<ul><li>Gatto accanto a <b>uno spazio</b> e prese vinte pari a uno dei suoi due numeri: <b>4 punti</b>.</li><li>Gatto a cavallo di <b>due spazi</b> e prese vinte pari a uno dei numeri di quegli spazi: <b>2 punti</b>.</li><li>Altrimenti perdi <b>1 punto</b> per ogni spazio tra il tuo segnalino e il tuo gatto, ricordando che il tappeto è circolare (dal 4 si passa al 5, cioè all'1). Il punteggio non scende sotto zero.</li></ul>
 <h4>Round e fine partita</h4>
 <p>Il segnalino di primo giocatore passa in senso orario. Si giocano 4 round, o fino a quando qualcuno ha 9 punti o più. Vince chi ha più punti; non c'è spareggio (i pari merito vincono insieme).</p>
 <p><i>Interpretazioni nell'app:</i> la puntata si sceglie tra le 7 possibili (4 da un solo spazio, 3 da due spazi) e il lato del tappeto, a sinistra o a destra, è assegnato da solo (prima a sinistra); due giocatori non possono fare la stessa puntata, e una puntata a due spazi è disponibile solo se c'è ancora un lato libero per entrambi gli spazi. I semi sono Pesci (azzurro), Gatti (viola, briscola), Topi (rosa) e Uccelli (giallo-verde). Con 0 prese il cubetto è alla partenza e conta come mancato; la distanza è misurata sul tappeto circolare (la più corta tra «in meno» e «in più»). La carta che il vincitore prende è visibile a tutti. I dorsi delle carte hanno il colore del seme, quindi i semi delle mani avversarie sono visibili a tutti. Le AI non vedono i valori della tua mano: ragionano su mani plausibili (con i semi noti e le carte prese) e simulano il resto del round.</p>
