@@ -702,7 +702,7 @@ function tileHtml(t){
 function flagsHtml(p){
   if(!G||G.over) return '';
   let f='';
-  if(G.dealer===p&&(G.phase==='choose'||G.phase==='play')) f+='<span class="flag deal">Mazziere</span>';
+  if(G.dealer===p&&(G.phase==='choose'||G.phase==='play')) f+=G.phase==='choose'?'<span class="flag deal">Primo giocatore</span>':'<span class="flag deal">Mazziere</span>';   // nella scelta di vincoli/puntate il mazziere è il primo
   if(G.phase==='choose'&&G.start===p) f+='<span class="flag start">Start</span>';
   if(G.phase==='play'&&G.leader===p) f+='<span class="flag lead">Di mano</span>';
   return f;
@@ -730,7 +730,7 @@ function centerHtml(){
   let top='';
   if(G.phase==='choose'){
     const tb=TILES.map((t,i)=>{ const o=G.pl.find(p=>p.tile===i); return `<span class="tile t${i} ${o?'taken':''}" title="${t.desc}">${ico(t.ico)} ${t.name}<small>${o?esc(o.name):'libero'}</small></span>`; }).join('');
-    top=`<div>Vincoli e puntate · inizia il mazziere <b>${esc(P(G.dealer).name)}</b></div><div class="tboard">${tb}</div>
+    top=`<div>Vincoli e puntate · inizia il primo giocatore <b>${esc(P(G.dealer).name)}</b></div><div class="tboard">${tb}</div>
       <div>Gettoni puntata rimasti: <b>${tokLeft()}</b>/${BIDTOK} · Segnalino Start: <b>${G.start>=0?esc(P(G.start).name):'libero'}</b></div>`;
   }else if(G.phase==='play'){
     const lc=G.trick.length?G.trick[0].c.s:-1;
