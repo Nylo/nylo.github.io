@@ -70,6 +70,7 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;op
 .opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
 .opt:disabled{opacity:0.35;cursor:not-allowed}
 .hint{font-size:12px;color:var(--text-soft)}
+.bet-grp{display:flex;flex-direction:column;gap:6px}
 table.score{border-collapse:collapse;font-size:12px;width:100%}
 table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
 table.score td:first-child,table.score th:first-child{text-align:left}
@@ -80,7 +81,7 @@ table.score td:first-child,table.score th:first-child{text-align:left}
 .pday.k0{background:var(--k0)} .pday.k1{background:var(--k1);color:#3a2800} .pday.k2{background:var(--k2)} .pday.k3{background:var(--k3)}
 .pday b{font-family:'Libre Baskerville',serif;font-size:16px}
 
-.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#f6d49a 0%,#e0963a 100%);border:2px solid #2e1a14;border-radius:14px;padding:12px;margin-bottom:12px;min-height:520px}
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:var(--surface);border:2px solid #2e1a14;border-radius:14px;padding:12px;margin-bottom:12px;min-height:520px}
 .seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
 .seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
 .seat.bottom{grid-area:bottom}
@@ -91,12 +92,12 @@ table.score td:first-child,table.score th:first-child{text-align:left}
 .tag{background:rgba(100,50,70,0.14);border-radius:4px;padding:2px 6px}
 .tag b{color:#9a1a50}
 .backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:220px}
-.back{width:12px;height:18px;border-radius:3px;border:1px solid #fff;box-shadow:0 1px 1px rgba(0,0,0,0.3)}
+.back{width:18px;height:27px;border-radius:4px;border:2px solid #aaa;box-shadow:0 1px 1px rgba(0,0,0,0.3)}
 .back.k0{background:repeating-linear-gradient(45deg,#86bfe6 0 3px,#b6dcf3 3px 6px)}
 .back.k1{background:repeating-linear-gradient(45deg,#4a2a8c 0 3px,#6c48b3 3px 6px)}
 .back.k2{background:repeating-linear-gradient(45deg,#b43a6c 0 3px,#d4608d 3px 6px)}
 .back.k3{background:repeating-linear-gradient(45deg,#d4de4a 0 3px,#e8f07e 3px 6px)}
-.seat.top .backs,.seat.left .backs,.seat.right .backs{max-width:130px}
+.seat.top .backs,.seat.left .backs,.seat.right .backs{max-width:204px}
 .lbl2{font-size:10px;font-weight:700;color:var(--text-soft);letter-spacing:0.06em}
 .piles0{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;align-items:flex-end;min-height:24px;max-width:300px}
 .pile{width:20px;height:28px;border-radius:3px;background:linear-gradient(135deg,#d96a9a,#7a1a44);border:1px solid #fff;box-shadow:1px 1px 0 rgba(0,0,0,0.3)}
@@ -163,7 +164,7 @@ button.tcard .fc{outline:3px dashed var(--accent)}
   .fc i{font-size:12px}
   .fc.mini{width:22px;height:32px;font-size:11px}
   .table{padding:8px;gap:6px;min-height:0}
-  .back{width:9px;height:14px}
+  .back{width:13px;height:20px;border-width:1.5px}
   .pile{width:15px;height:22px}
   .hand{gap:3px}
   .tr{gap:5px}
@@ -401,7 +402,12 @@ async function betPhase(){
     let b;
     if(p===HUM){
       const okSet=new Set(opts);
-      b=await ask(HUM,'La tua puntata',all.map(o=>({label:`${betLabel(o)}${okSet.has(o)?'':` (${o.why})`}`,value:o,disabled:!okSet.has(o)})));
+      const owner=o=>{ const q=S.bets.findIndex(x=>x&&betKey(x.sp)===betKey(o.sp)); return q>=0?q:-1; };
+      b=await ask(HUM,'La tua puntata',all.map(o=>{
+        const dis=!okSet.has(o), q=dis?owner(o):-1;
+        const why=!dis?'':q>=0?`Posto occupato da ${P(q).name}`:"Non c'è posto sul tappeto";
+        return {label:`${betName(o)}${why?` (${why})`:''}`,value:o,disabled:dis,group:o.sp.length===1?'Puntate più rischiose (4 punti)':'Puntate più semplici (2 punti)'};
+      }));
     }
     else { await sleep(600); b=aiBet(p,opts); }
     S.bets[p]=b; b.sp.forEach(x=>{ S.slots[x+b.side]=p; });
@@ -429,9 +435,10 @@ async function playRound(){
       if(p===HUM) c=await humanPlay(); else { await sleep(650); c=aiPlay(p); }
       S.hands[p]=S.hands[p].filter(x=>x!==c);
       S.kn[p]=S.kn[p].filter(x=>x!==c);
-      if(S.trick.length&&c.s!==S.trick[0].c.s) S.void[p].add(S.trick[0].c.s);
+      const offSuit=S.trick.length&&c.s!==S.trick[0].c.s, ls=S.trick.length?S.trick[0].c.s:-1;
+      if(offSuit) S.void[p].add(ls);
       S.trick.push({p,c});
-      logMsg(`${P(p).name} gioca ${cname(c)}.`);
+      logMsg(offSuit?`${P(p).name} non ha ${SUITS[ls].n}: gioca ${cname(c)}${c.s===TR?' (briscola)':''}.`:`${P(p).name} gioca ${cname(c)}.`);
     }
     G.turn=-1;
     const wi=trickWinner(S.trick), w=S.trick[wi].p, wc=S.trick[wi].c;
@@ -529,7 +536,7 @@ function seatHtml(p,pos){
     :`<div class="backs">${S.hands[p].map(c=>`<span class="back k${c.s}"></span>`).join('')||'<span class="hint">—</span>'}</div>`;
   const meta=`<div class="seat-meta"><span class="tag">carte <b>${S.hands[p].length}</b></span><span class="tag">prese <b>${S.t[p]}</b></span><span class="tag">punti <b>${pl.score}</b></span></div>
     <div class="seat-meta">${b?`<span class="tag" title="Puntata">puntata <b>${betName(b)}</b></span>`:'<span class="tag">nessuna puntata</span>'}</div>`;
-  const name=`<div class="seat-name" style="border-bottom:3px solid ${SEATC[p]}">${shape(p)}${esc(pl.name)}${flagHtml(p)}</div>`;
+  const name=`<div class="seat-name">${shape(p)}${esc(pl.name)}${flagHtml(p)}</div>`;
   const inner=pos==='bottom'?`${name}${meta}${hand}`:`${hand}${name}${meta}`;
   return `<div class="seat ${pos} ${S.phase==='play'&&S.lead===p&&!S.trick.length?'leader':''} ${active?'active':''}">${inner}</div>`;
 }
@@ -573,7 +580,13 @@ function dockHtml(){
   }
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
   if(G.show) html+=`<div class="scroll-x"><table class="score"><tr><th></th><th>Puntata</th><th>Prese</th><th>Esito</th><th>Round</th><th>Punti</th></tr>${G.show.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td>${betName(r.b)}</td><td>${r.t}</td><td>${r.hit?'centrato':`mancato di ${r.dist}`}</td><td>${r.d>0?'+':''}${r.d}${r.now-r.old!==r.d?` (min. 0)`:''}</td><td><b>${r.now}</b></td></tr>`).join('')}</table></div>`;
-  if(PR&&PR.type==='choose') html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  if(PR&&PR.type==='choose'){
+    const btn=(o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`;
+    if(PR.options.some(o=>o.group)){
+      const gs=[]; PR.options.forEach((o,i)=>{ let g=gs.find(x=>x.n===o.group); if(!g) gs.push(g={n:o.group,items:[]}); g.items.push(btn(o,i)); });
+      html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div>`+gs.map(g=>`<div class="bet-grp"><div class="hint">${esc(g.n)}</div><div class="opts">${g.items.join('')}</div></div>`).join('');
+    } else html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map(btn).join('')}</div>`;
+  }
   else if(PR&&PR.type==='take') html+=`<div class="hint">Clicca una delle altre carte della presa per portarla in mano (le altre vengono scartate).</div>`;
   else if(PR&&PR.type==='play'){
     if(PR.sel!=null){ const c=G.S.hands[HUM].find(x=>key(x)===PR.sel); html+=`<div class="opts"><button class="opt" data-ok="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-no="1">Annulla</button></div>`; }
