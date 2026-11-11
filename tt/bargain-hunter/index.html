@@ -100,6 +100,11 @@ table.score td:first-child,table.score th:first-child{text-align:left}
 .fc.k0{background-color:var(--k0)} .fc.k1{background-color:var(--k1)} .fc.k2{background-color:var(--k2)} .fc.k3{background-color:var(--k3)} .fc.k4{background-color:var(--k4)} .fc.k5{background-color:var(--k5)}
 .fc.io{background:linear-gradient(135deg,#ffe45a,#ff9d1a);color:#7a1a00;font-family:'Inter',sans-serif;font-size:8px;font-weight:800;letter-spacing:0.02em;text-shadow:none;text-align:center}
 .fc.io i{font-size:22px;color:#d41f1f}
+.nchip{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:5px;background:rgba(127,127,127,0.25);font-weight:600;font-size:12px}
+.fc .obj{font-size:24px}
+.fc .sh{position:absolute;left:4px;top:4px;font-size:10px;opacity:.85}
+.fc.mini .obj{font-size:20px}
+.fc.mini .sh{font-size:9px;left:3px;top:3px}
 .fc.mini{width:42px;height:62px;font-size:19px}
 .fc.mini i{font-size:17px}
 .fc.mini.io i{font-size:20px}
@@ -179,6 +184,12 @@ const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
 const NAMES = ['Tu','AI Marta','AI Gino','AI Livia'];
 const SEATC = ['#ffd166','#ff8fb8','#6ee7b7','#7cc4ff'];
 const HUM = 0;
+const OBJ = [null,
+  {n:'Coltello',icon:'knife'},{n:'Martello',icon:'hammer'},{n:'Ventilatore',icon:'fan'},
+  {n:'Puzzle',icon:'puzzle-piece'},{n:'Pentola',icon:'cooking-pot'},{n:'Asciugacapelli',icon:'hair-dryer'},
+  {n:'Lampada',icon:'lamp'},{n:'Videogioco',icon:'game-controller'},{n:'Lavatrice',icon:'washing-machine'}
+];
+const objName = n => OBJ[n]?OBJ[n].n:String(n);
 const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
@@ -187,8 +198,8 @@ function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const ABORT = {abort:true};
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('bh-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('bh-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,simple:false};
+try{ const s=localStorage.getItem('bh-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('bh-a11y')==='1'; OPT.simple=localStorage.getItem('bh-simple')==='1'; }catch(e){}
 const delay = ms => new Promise(r=>setTimeout(r,ms));
 async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
 const P = i => G.pl[i];
@@ -430,7 +441,7 @@ async function chooseBargains(){
     let i;
     if(p===HUM) i=await askCard(P(HUM).hand.map((_,j)=>j),'Scegli l\'oggetto (il numero) che vuoi raccogliere: la carta va nella tua pila Affare.','scegli come Affare'); else { await sleep(700); i=aiBargain(p); }
     const c=P(p).hand.splice(i,1)[0]; P(p).bargain.push(c);
-    logMsg(`${P(p).name} sceglie come Affare ${cname(c)}: cerca gli oggetti ${c.n}.`);
+    logMsg(`${P(p).name} sceglie come Affare ${cname(c)}: cerca gli oggetti ${c.n}${OPT.simple?'':' ('+objName(c.n)+')'}.`);
   }
   G.turn=-1;
   G.R.tricks=P(0).hand.length;
@@ -529,7 +540,7 @@ async function run(){
       g.show=true;
       const last=r===g.rounds-1;
       status(last?'Partita conclusa: ecco i punteggi.':`Round ${r+1} concluso.`);
-      await ask(HUM,'Punteggio dopo le pulizie',[{label:last?'Vedi il risultato finale':'Avanti',value:1}]);
+      await ask(HUM,'Punteggio dopo le pulizie',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
       g.show=null;
       g.dealer=(g.dealer+1)%g.n;
     }
@@ -543,13 +554,16 @@ async function run(){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
+const cardIn = c => OPT.simple
+  ? `<span>${c.n}</span>${ico(COL[c.c].icon)}`
+  : `<span>${c.n}</span><i class="ph-fill ph-${OBJ[c.n].icon} obj"></i><i class="ph-fill ph-${COL[c.c].icon} sh"></i>`;
 const kface=(c,cls='')=>c.io
   ?`<span class="fc io ${cls}" title="Offerta Irresistibile">${ico('sparkle')}<span>OFFERTA</span></span>`
-  :`<span class="fc k${c.c} ${cls}" title="${cname(c)}"><span>${c.n}</span>${ico(COL[c.c].icon)}</span>`;
+  :`<span class="fc k${c.c} ${cls}" title="${cname(c)}${OPT.simple?'':' · '+objName(c.n)}">${cardIn(c)}</span>`;
 function handBtn(c,i,ok,sel){
   return c.io
     ?`<button class="fc io ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="Offerta Irresistibile">${ico('sparkle')}<span>OFFERTA</span></button>`
-    :`<button class="fc k${c.c} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}"><span>${c.n}</span>${ico(COL[c.c].icon)}</button>`;
+    :`<button class="fc k${c.c} ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}${OPT.simple?'':' · '+objName(c.n)}">${cardIn(c)}</button>`;
 }
 const initial = p => esc((P(p).name.replace(/^AI\s+/,'')[0]||'?').toUpperCase());
 function trickHtml(){
@@ -633,6 +647,7 @@ function dockHtml(){
 function recapHtml(){
   const m=MINTRASH[G.n];
   return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
+    <div class="recap-row"><span class="lbl">Oggetti</span>${OPT.simple?'<span class="rv">1–9 (icone semplificate)</span>':OBJ.slice(1).map((o,i)=>`<span class="nchip">${i+1} <i class="ph-fill ph-${o.icon}"></i> ${o.n}</span>`).join('')}</div>
     <div class="recap-row"><span class="lbl">Mazzo</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rchip io">${ico('sparkle')} Offerta Irresistibile ×2</span><span class="rv">108 oggetti (1–9, due copie per colore) + 2 Offerte</span></div>
     <div class="recap-row"><span class="lbl">Round</span><span class="rv">${G.rounds} round · 8 carte a testa (nel primo 7 prese: prima si sceglie l'Affare) · si gioca in senso orario, apre il giocatore a sinistra del mazziere</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">segui il colore di mano; senza quel colore giochi ciò che vuoi e dichiari se è briscola (una sola per presa, mai il colore di mano) · carta doppia: dichiari se è più alta o più bassa · l'Offerta batte tutto</span></div>
@@ -679,6 +694,7 @@ function menuHtml(){
   return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Mostra solo numeri e forme, senza gli oggetti di vita quotidiana"><input type="checkbox" id="optSimple" ${OPT.simple?'checked':''}> Icone semplificate</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
     </div>`:''}</div>`;
 }
@@ -735,6 +751,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('bh-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optSimple'){
+    OPT.simple=e.target.checked;
+    try{ localStorage.setItem('bh-simple',OPT.simple?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

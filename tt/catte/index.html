@@ -144,6 +144,18 @@ button.tcard .fc{outline:3px dashed var(--accent)}
 .fc.cf.k0{--k:#2b2b2b}.fc.cf.k1{--k:#6f695e}.fc.cf.k2{--k:#8b5a3c}
 .fc.cf::after{content:"";position:absolute;inset:2px;border:1px dashed var(--k);border-radius:4px;opacity:0.5;pointer-events:none}
 .fc.k2{background-color:var(--k2)}
+.fc.cf{position:relative;background:none !important;border:0 !important;box-shadow:none !important;padding:0;overflow:visible;text-shadow:none !important}
+.fc.cf::after{display:none}
+.fc.cf .cup{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.fc.cf .bdy{fill:var(--k);stroke:#4a3524;stroke-width:2.2;stroke-linejoin:round}
+.fc.cf .hdl{fill:none;stroke:#4a3524;stroke-width:3.2;stroke-linecap:round}
+.fc.cf .sau{fill:#e9dcc6;stroke:#4a3524;stroke-width:2}
+.fc.cf .stm{fill:none;stroke:#b7a58c;stroke-width:2;stroke-linecap:round;opacity:.8}
+.fc.cf.k0{--k:var(--k0)}.fc.cf.k1{--k:var(--k1)}.fc.cf.k2{--k:var(--k2)}
+.fc.cf .v{position:relative;z-index:1;margin-top:10%;margin-right:8%;font-size:20px;color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,.6) !important}
+.fc.cf.k1 .v{color:#2b2a28 !important;text-shadow:none !important}
+.fc.cf.mini .v{font-size:13px}
+.fc.cf.mini{width:34px}
 .rchip.k2{background-color:var(--k2)}
 .fc .v{font-size:22px}
 .table.n5{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
@@ -452,7 +464,7 @@ async function scoring(){
   rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} caffè ${r.t}/${S.L}${r.over?' (oltre il limite: 0)':r.exact?' (esatto: ×2)':''} = ${r.cs} + ${r.cnt} inutilizzati² = ${r.sq} → ${r.tot} punti.`));
   status(`Round ${G.round+1} concluso.`);
   const last=G.round+1>=G.n;
-  await ask(HUM,'Punteggi del round',[{label:last?'Mostra risultato finale':'Avanti',value:1}]);
+  await ask(HUM,'Punteggi del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
 async function run(){
@@ -493,7 +505,8 @@ function finishPlay(){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
-const cface=(c,cls='')=>c.f?`<span class="fc cf k${c.c} ${cls}" title="${cname(c)}"><span class="v">${c.v}</span>${ico('coffee')}</span>`
+const CUP='<svg class="cup" viewBox="0 0 48 44" aria-hidden="true"><ellipse cx="22" cy="39" rx="20" ry="4" class="sau"/><path d="M33 14h5a6 6 0 0 1 0 12h-6" class="hdl"/><path d="M5 11h30v10a13 13 0 0 1-13 13h-4A13 13 0 0 1 5 21z" class="bdy"/><path d="M9 11c1-6 3-7 3-10M17 11c1-6 3-7 3-10M25 11c1-6 3-7 3-10" class="stm"/></svg>';
+const cface=(c,cls='')=>c.f?`<span class="fc cf k${c.c} ${cls}" title="${cname(c)}">${CUP}<span class="v">${c.v}</span></span>`
   :`<span class="fc k${c.c} ${cls}" title="${cname(c)}"><span class="v">${c.v}</span>${ico('paw-print')}</span>`;
 const mini = c => cface(c,'mini');
 function handBtn(c){
@@ -505,7 +518,7 @@ function handBtn(c){
   return cface(c);
 }
 function colBtn(c){
-  if(PR&&PR.type==='coffee') return `<button class="fc cf k${c.c} mini" data-k="${key(c)}" title="${cname(c)}"><span class="v">${c.v}</span>${ico('coffee')}</button>`;
+  if(PR&&PR.type==='coffee') return `<button class="fc cf k${c.c} mini" data-k="${key(c)}" title="${cname(c)}">${CUP}<span class="v">${c.v}</span></button>`;
   return mini(c);
 }
 function flagHtml(p){
