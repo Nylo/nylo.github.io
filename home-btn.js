@@ -174,6 +174,7 @@
     var b = e.target.closest && e.target.closest('[data-home],[data-back]');
     if (!b || !ov) return;
     var back = b.getAttribute('data-back');
+    if (window.NYLO_IN_SETUP) { location.href = back || '/'; return; }   // scelta iniziale: niente da perdere, si esce subito
     ov._to = back || '/';
     ov.querySelector('[data-title]').textContent = back ? 'Tornare ' + (b.getAttribute('data-back-what') || 'alla lista dei giochi') + '?' : 'Tornare alla home?';
     ov.querySelector('[data-yes]').textContent = !back ? 'Torna alla home' : (back === '/tt/' || back === '/ntt/') ? 'Torna ai giochi' : 'Torna indietro';
