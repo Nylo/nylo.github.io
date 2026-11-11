@@ -212,14 +212,21 @@
       if (w === undefined) return 'x';
       return (Array.isArray(w) ? w.indexOf(0) >= 0 : w === 0) ? 'w' : 'l';
     }
-    var cur = null, done = false;
+    // le pagine con il passaggio «Ok, si parte»: finché non lo premi la partita non è iniziata e uscire non la fa contare come abbandonata
+    var needsOk = false;
+    try { needsOk = /Ok, si parte/.test(document.documentElement.innerHTML); } catch (e) {}
+    var cur = null, done = false, started = false;
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('button');
+      if (b && /^\s*ok,?\s+si parte\s*$/i.test(b.textContent || '')) started = true;
+    }, true);
     function tick() {
       var g = getG();
-      if (g !== cur) { if (cur && !done) rec('a'); cur = g; done = false; }
+      if (g !== cur) { if (cur && !done && started) rec('a'); cur = g; done = false; started = !needsOk; }
       if (cur && !done && ended(cur)) { done = true; rec(result(cur)); }
     }
     setInterval(tick, 400);
-    window.addEventListener('pagehide', function () { tick(); if (cur && !done) { done = true; rec('a'); } });
+    window.addEventListener('pagehide', function () { tick(); if (cur && !done && started) { done = true; rec('a'); } });
   })();
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();

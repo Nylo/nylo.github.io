@@ -454,7 +454,7 @@ async function scoring(){
   logMsg(`Round ${G.round+1}: il Signore ha vinto ${plu(L,'presa','prese')}.`);
   rows.forEach(r=>logMsg(`${G.pl[r.p].name}: previsione ${r.guess}, ${plu(r.wins,'presa','prese')}${r.pts?` → +${r.pts} Onore`:''}${r.over?' → ha messo a disagio il Signore: riceve un Uchikubi':''}.`));
   status(`Round ${G.round+1} concluso.`);
-  await choose('Risultato del round',[{label:'Continua',value:1}]);
+  await choose('Risultato del round',[{label:checkEnd()?'Mostra risultato finale':'Continua',value:1}]);
   G.show=null;
 }
 function checkEnd(){
@@ -555,8 +555,7 @@ function dockHtml(){
   if(G.over){
     const nm=G.over.winners.map(i=>esc(G.pl[i].name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
     const ex=G.over.executed.map(i=>esc(G.pl[i].name)).join(', ');
-    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b>${ex?` (${ex} è stato giustiziato)`:''}</div>${scoreTable()}
-      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b>${ex?` (${ex} è stato giustiziato)`:''}</div>${scoreTable()}`;
   }
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
   if(G.show) html+=`<div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Previsione</th><th>Prese</th><th>Onore</th><th class="l">Esito</th></tr>${G.show.rows.map(r=>`<tr class="${r.p===HUM?'me':''}"><td>${esc(G.pl[r.p].name)}</td><td>${r.guess}</td><td>${r.wins}</td><td>${r.pts?'+'+r.pts:'—'}</td><td class="l">${r.over?'<b>Uchikubi!</b> (più prese del Signore)':''}</td></tr>`).join('')}</table></div><div class="hint">Il Signore ha vinto ${plu(G.show.L,'presa','prese')}.</div>`;

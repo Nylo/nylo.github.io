@@ -384,7 +384,7 @@ async function scoring(){
   rows.forEach(r=>logMsg(`Round ${G.game+1}: ${P(r.p).name} ${r.correct?'ha rispettato la previsione':'ha sbagliato la previsione'} → ${r.pt>0?'+':''}${r.pt} punti.`));
   status(`Round ${G.game+1} concluso.`);
   const last=G.game===G.n-1;
-  await ask(HUM,'Punteggio del round',[{label:last?'Vedi il risultato finale':'Prossimo round',value:1}]);
+  await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
 
@@ -452,8 +452,7 @@ function dockHtml(){
     <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
   if(G.over){
     const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
-    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}
-      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}`;
   }
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
   if(G.show){

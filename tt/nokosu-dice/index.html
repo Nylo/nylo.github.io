@@ -656,8 +656,7 @@ function dockHtml(){
     <div class="opts">${[3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
   if(G.over){
     const nm=G.over.winners.map(i=>esc(P(i).name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
-    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (più punti${G.over.tie?'; a parità vince il dado finale più alto dell\'ultimo round':''})</div>${scoreTable()}
-      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (più punti${G.over.tie?'; a parità vince il dado finale più alto dell\'ultimo round':''})</div>${scoreTable()}`;
   }
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
   if(G.show) html+=`<div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Prese</th><th>Dado finale</th><th class="l">Bonus</th><th>Punti</th></tr>${G.show.rows.map(r=>`<tr class="${r.p===HUM?'me':''}"><td>${esc(P(r.p).name)}</td><td>${r.won}</td><td>${r.zero?'Zero':r.fin}${r.match?' ✓':''}</td><td class="l">${r.match?`+${r.bonus}${r.zb?` +${r.zb} (Zero)`:''}`:'—'}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`;

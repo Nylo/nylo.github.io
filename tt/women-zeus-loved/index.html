@@ -399,7 +399,8 @@ async function scoring(){
   G.show={rows};
   rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ha ${plu(r.piles,'pila','pile')}${r.piles&&r.up?' e l\'ultima è scoperta':''} → ${r.pen} punti persi.`));
   status(`Round ${G.round+1} concluso.`);
-  await ask(HUM,'Punti persi nel round',[{label:'Avanti',value:1}]);
+  const mn=Math.min(...G.pl.map(p=>p.total)), last=G.round+1>=ROUNDS&&G.pl.filter(p=>p.total===mn).length===1;
+  await ask(HUM,'Punti persi nel round',[{label:last?'Mostra risultato finale':'Avanti',value:1}]);
   G.show=null;
 }
 async function run(){
@@ -506,8 +507,7 @@ function dockHtml(){
     <label class="opt-toggle" title="Ogni giocatore non può mai avere più di una carta scoperta dello stesso seme"><input type="checkbox" id="optAdv" ${OPT.adv?'checked':''}> Regole avanzate (una sola carta scoperta per seme)</label>`;
   if(G.over){
     const nm=G.over.winners.map(i=>esc(P(i).name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
-    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (meno punti persi)</div>${scoreTable()}
-      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (meno punti persi)</div>${scoreTable()}`;
   }
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
   if(G.show) html+=`<div class="scroll-x"><table class="score"><tr><th></th><th>Pile</th><th>Ultima pila</th><th>Punti persi</th></tr>${G.show.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td>${r.piles}</td><td>${r.piles===0?'nessuna (−20)':r.up?'scoperta (0)':'coperta'}</td><td><b>−${r.pen}</b></td></tr>`).join('')}</table></div>`;

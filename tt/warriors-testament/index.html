@@ -504,7 +504,8 @@ async function scoring(){
   G.starter=rem.length===1?rem[0]:S.lastP;
   status(`Round ${G.round+1} concluso.`);
   S.phase='end';
-  await ask(HUM,'Punti umiliazione del round',[{label:'Avanti',value:1}]);
+  const last=G.round+1>=ROUNDS;
+  await ask(HUM,'Punti umiliazione del round',[{label:last?'Mostra risultato finale':'Avanti',value:1}]);
   G.show=null;
 }
 async function run(){
@@ -616,8 +617,7 @@ function dockHtml(){
     <div class="opts">${[3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
   if(G.over){
     const nm=G.over.winners.map(i=>esc(P(i).name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
-    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (meno punti umiliazione)</div>${scoreTable()}
-      <div class="opts"><button class="opt" data-n="${G.n}">Rigioca</button></div>`;
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (meno punti umiliazione)</div>${scoreTable()}`;
   }
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
   if(G.show) html+=`<div class="scroll-x"><table class="score"><tr><th></th><th>Lapidi</th><th>Punti lapidi</th><th>Carte in mano</th><th>Punti mano</th><th>Round</th></tr>${G.show.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td>${r.g}</td><td>${r.gp}</td><td>${r.cards}${r.cards?` (somma ${r.sum}, blu ${r.blue})`:''}</td><td>${r.hp}${r.pride?' · Orgoglio':''}</td><td><b>${r.tot}</b></td></tr>`).join('')}</table></div>`;
