@@ -144,6 +144,19 @@ details.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-top:12px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.04em}
 details.rules ul{margin:10px 0 0 18px;font-size:12px;line-height:1.6;color:var(--text-soft)}
+details.recap{display:block;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-top:12px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.04em}
+details.recap[open]>summary{margin-bottom:10px}
+.recap-row{display:block;font-size:12px;line-height:1.9}
+.recap-row>*{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft)}
+.rchip{display:inline-flex;align-items:center;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,0.35);background:#59606b;vertical-align:middle}
+.rchip.c0{background:var(--c0)}.rchip.c1{background:var(--c1)}.rchip.cat{background:var(--cat)}.rchip.bird{background:var(--bird)}
+.nchip{display:inline-flex;min-width:24px;justify-content:center;padding:2px 8px;border-radius:5px;background:rgba(127,127,127,0.25);font-weight:700;font-size:12px;vertical-align:middle}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{margin:4px 0 8px 18px;font-size:12px;line-height:1.6;color:var(--text-soft)}
 
 @media(max-width:560px){
   :root{--cw:27px;--ch:42px}
@@ -544,6 +557,53 @@ function centerHtml(){
 
 let LOGOPEN=false;
 const escL = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const RECAP_HTML = `<details class="recap"><summary>RIEPILOGO · 4 GIOCATORI · 2 SQUADRE · FINO A 5 ROUND</summary>
+    <div class="recap-row"><span class="lbl">Squadre</span><span class="rchip cat">C.A.T.</span><span class="rchip bird">B.I.R.D.</span><span class="rv">due contro due, i compagni siedono uno di fronte all'altro</span></div>
+    <div class="recap-row"><span class="lbl">Carte</span><span class="rchip c0">Rosa</span><span class="rchip c1">Azzurro</span><span class="rv">24 carte per colore (1–24); 11 a testa, 4 restano da parte</span></div>
+    <div class="recap-row"><span class="lbl">Missioni</span><span class="nchip">1/5</span><span class="nchip">2/4</span><span class="nchip">3/3</span><span class="rv">ogni squadra ha le tre tile: i numeri sono le prese che ciascun compagno deve vincere</span></div>
+    <div class="recap-row"><span class="lbl">Round</span><span class="rv">1) si sceglie la tile (senza parlare) · 2) ognuno passa una carta al compagno · 3) si gioca</span></div>
+    <div class="recap-row"><span class="lbl">Prese</span><span class="rv">si gioca solo la carta più a sinistra o più a destra della propria mano, di qualsiasi colore · vince la più alta del colore della prima carta · Camouflage (4 carte dello stesso colore): vince la più bassa</span></div>
+    <div class="recap-row"><span class="lbl">Fine round</span><span class="rv">missione compiuta (entrambi i compagni a quota) o sabotaggio riuscito (un avversario supera il proprio obiettivo) · la tile usata dalla squadra che ha vinto il round esce dal gioco</span></div>
+    <div class="recap-row"><span class="lbl">Vittoria</span><span class="rv">vince la prima squadra che rimuove tutte e tre le proprie tile</span></div></details>`;
+
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>Spy Team è un gioco di carte a squadre per 4 giocatori (circa 30 minuti). I giocatori si dividono in due squadre e gareggiano per completare tre missioni prima degli avversari.</p>
+<p>All'inizio di ogni round i compagni devono decidere come contribuiranno alla missione, ma non possono discutere i loro piani: devono leggere le intenzioni dell'altro e trovare la strategia migliore. Si porta a termine la propria missione realizzando il piano della squadra oppure facendo fallire quello degli avversari. La prima squadra che completa tutte e tre le missioni vince.</p>
+<p>Le due squadre sono C.A.T. (Covert Agents of Tactics) e B.I.R.D. (Bureau of Intelligence, Reconnaissance &amp; Detection): l'agenzia ha affidato a entrambe le stesse tre missioni per decidere quale sia l'unità migliore.</p>
+<h4>Componenti</h4>
+<p>48 carte Intel (24 per ciascuno di 2 colori, numerate da 1 a 24), 4 supporti per le carte, 1 segnalino Primo giocatore e 6 tile Missione (2 copie ciascuna di [1/5], [2/4] e [3/3]: tre per C.A.T. e tre per B.I.R.D.).</p>
+<h4>Svolgimento</h4>
+<p>Una partita dura al massimo 5 round. Ogni round segue tre passi: 1. Preparazione del round, 2. Operazione, 3. Risoluzione della missione. Le due squadre sono formate in modo che i compagni non siano seduti vicini: il primo giocatore è scelto a caso e riceve il segnalino Primo giocatore.</p>
+<h4>1. Preparazione del round</h4>
+<p>Il primo giocatore mescola le carte Intel e ne distribuisce 11 coperte a ciascun giocatore, che le inserisce nel supporto senza riordinarle, in modo che solo il proprietario veda i numeri. Le 4 carte rimaste non si usano in questo round. Fronte e retro di una carta hanno lo stesso colore: i numeri si vedono solo nella propria mano, ma il colore di ogni mano è visibile a tutti.</p>
+<p>Poi ogni squadra sceglie la tile Missione da tentare. Partendo dal primo giocatore e proseguendo in senso orario, ognuno sceglie una tile a turno. Ogni squadra ha [1/5], [2/4] e [3/3]: i numeri indicano quante prese deve vincere ciascun compagno nel round.</p>
+<ul>
+<li>Il primo giocatore sceglie una tile e la mette con il proprio numero rivolto verso di sé: l'orientamento stabilisce anche il numero del compagno. È solo una proposta e può essere cambiata.</li>
+<li>Il giocatore alla sua sinistra fa lo stesso per la propria squadra (anche questa è solo una proposta).</li>
+<li>Il compagno del primo giocatore esamina la tile proposta: può accettarla così com'è, sostituirla con un'altra tile oppure cambiarne l'orientamento.</li>
+<li>Infine l'ultimo giocatore fa lo stesso per la sua squadra. Così le due squadre fissano le tile senza discuterne.</li>
+</ul>
+<p>Quando le tile sono definitive, partendo dal primo giocatore e in senso orario, ognuno sceglie 1 carta Intel dalla propria mano e la mette coperta davanti a sé. Dopo che tutti hanno scelto, i compagni si scambiano queste carte e ognuno inserisce la carta ricevuta dove preferisce nella propria mano. La preparazione è finita.</p>
+<h4>2. Operazione</h4>
+<p>Partendo dal primo giocatore e in senso orario, ognuno gioca 1 carta Intel scoperta sul tavolo. Si può giocare solo la carta all'estremità sinistra o all'estremità destra della propria mano, di qualsiasi colore, indipendentemente dai colori giocati dagli altri.</p>
+<p>Quando tutti hanno giocato, si stabilisce la carta più forte: di norma è quella col numero più alto tra quelle dello stesso colore della prima carta giocata (la carta di apertura). Questo completa una presa.</p>
+<p><b>Camouflage:</b> se le quattro carte giocate in una presa sono dello stesso colore, la carta più forte è invece quella col numero più basso.</p>
+<p>Chi ha giocato la carta più forte vince la presa, raccoglie le quattro carte e le mette coperte davanti a sé in un unico mucchio (senza sovrapporre i mucchi, per contare le prese vinte). Il vincitore apre la presa successiva. Si continua finché non si verifica una delle condizioni della Risoluzione.</p>
+<h4>3. Risoluzione della missione</h4>
+<p>Il round finisce subito quando si verifica una di queste condizioni, anche se i giocatori hanno ancora carte in mano e senza giocare altre prese.</p>
+<p><b>Missione compiuta.</b> Se entrambi i compagni hanno vinto esattamente il numero di prese indicato dalla loro tile, la squadra completa la missione. Esempio: con la tile [1/5], la missione è compiuta appena chi ha «1» ha vinto 1 presa e chi ha «5» ne ha vinte 5.</p>
+<p><b>Sabotaggio riuscito.</b> Se uno dei due giocatori vince più prese del proprio obiettivo, rendendo impossibile soddisfare la tile, la missione di quella squadra fallisce e la squadra avversaria è considerata come se avesse completato la propria. Esempio: con la tile [1/5], se chi ha «1» vince una seconda presa, la missione fallisce subito e gli avversari completano la loro.</p>
+<p>La squadra che ha completato una missione rimuove dal gioco la tile usata in quel round; le tile rimosse non si usano più. Poi si passa il segnalino Primo giocatore al giocatore alla sinistra e si inizia un nuovo round.</p>
+<h4>Fine del gioco</h4>
+<p>Alla fine di un round, se una squadra ha rimosso tutte e tre le proprie tile Missione, vince.</p>
+<h4>Nell'app</h4>
+<p>Il gioco è per 4 giocatori; nelle stanze posti e squadre sono assegnati a caso all'avvio (i compagni siedono di fronte). Degli altri giocatori vedi solo il colore delle carte. Contro l'AI il compagno e gli avversari giocano a caso. Le carte restano visibili sul tavolo finché il vincitore non gioca la presa successiva.</p>
+<p><i>Game design: Isao Mukai · Illustrazioni: momoune · Pubblicato da Korokorodou LLC.</i></p>
+</div></details>`;
+
 function logHtml(){
   return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${escL(l)}</div>`).join('')}</div></details>`;
 }
@@ -583,16 +643,8 @@ function render(){
       ${seatHtml(0,'bottom')}
     </div>
     ${logHtml()}
-    <details class="rules">
-      <summary>PROMEMORIA REGOLE</summary>
-      <ul>
-        <li>Squadre: tu e il compagno (C.A.T.) contro i due avversari (B.I.R.D.). Vince chi completa per primo le tre missioni.</li>
-        <li>Si può giocare solo la carta all'estremo sinistro o destro del proprio portacarte, di qualsiasi colore.</li>
-        <li>Vince la presa la carta più alta del colore della prima carta giocata. <strong>Camouflage:</strong> se le 4 carte hanno lo stesso colore vince la più bassa.</li>
-        <li>Missione compiuta: entrambi i compagni hanno vinto esattamente le prese della tile. Sabotaggio: chi supera il proprio obiettivo fa fallire la sua missione e fa riuscire quella avversaria.</li>
-        <li>Degli avversari vedi solo il colore delle carte, mai il numero. Gli avversari e il compagno per ora giocano a caso.</li>
-      </ul>
-    </details>`;
+    ${RECAP_HTML}
+    ${RULES_HTML}`;
 }
 
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
@@ -865,15 +917,57 @@ function centerHtml(){
   var played=S.won.reduce(function(a,b){return a+b},0);
   return '<div class="center">'+slots+'<div class="center-note">'+(S.phase==='play'?'Presa '+Math.min(played+(S.trick.length===4?0:1),11)+'/11':'')+'</div></div>';
 }
+const RECAP_HTML = `<details class="recap"><summary>RIEPILOGO · 4 GIOCATORI · 2 SQUADRE · FINO A 5 ROUND</summary>
+    <div class="recap-row"><span class="lbl">Squadre</span><span class="rchip cat">C.A.T.</span><span class="rchip bird">B.I.R.D.</span><span class="rv">due contro due, i compagni siedono uno di fronte all'altro</span></div>
+    <div class="recap-row"><span class="lbl">Carte</span><span class="rchip c0">Rosa</span><span class="rchip c1">Azzurro</span><span class="rv">24 carte per colore (1–24); 11 a testa, 4 restano da parte</span></div>
+    <div class="recap-row"><span class="lbl">Missioni</span><span class="nchip">1/5</span><span class="nchip">2/4</span><span class="nchip">3/3</span><span class="rv">ogni squadra ha le tre tile: i numeri sono le prese che ciascun compagno deve vincere</span></div>
+    <div class="recap-row"><span class="lbl">Round</span><span class="rv">1) si sceglie la tile (senza parlare) · 2) ognuno passa una carta al compagno · 3) si gioca</span></div>
+    <div class="recap-row"><span class="lbl">Prese</span><span class="rv">si gioca solo la carta più a sinistra o più a destra della propria mano, di qualsiasi colore · vince la più alta del colore della prima carta · Camouflage (4 carte dello stesso colore): vince la più bassa</span></div>
+    <div class="recap-row"><span class="lbl">Fine round</span><span class="rv">missione compiuta (entrambi i compagni a quota) o sabotaggio riuscito (un avversario supera il proprio obiettivo) · la tile usata dalla squadra che ha vinto il round esce dal gioco</span></div>
+    <div class="recap-row"><span class="lbl">Vittoria</span><span class="rv">vince la prima squadra che rimuove tutte e tre le proprie tile</span></div></details>`;
+
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>Spy Team è un gioco di carte a squadre per 4 giocatori (circa 30 minuti). I giocatori si dividono in due squadre e gareggiano per completare tre missioni prima degli avversari.</p>
+<p>All'inizio di ogni round i compagni devono decidere come contribuiranno alla missione, ma non possono discutere i loro piani: devono leggere le intenzioni dell'altro e trovare la strategia migliore. Si porta a termine la propria missione realizzando il piano della squadra oppure facendo fallire quello degli avversari. La prima squadra che completa tutte e tre le missioni vince.</p>
+<p>Le due squadre sono C.A.T. (Covert Agents of Tactics) e B.I.R.D. (Bureau of Intelligence, Reconnaissance &amp; Detection): l'agenzia ha affidato a entrambe le stesse tre missioni per decidere quale sia l'unità migliore.</p>
+<h4>Componenti</h4>
+<p>48 carte Intel (24 per ciascuno di 2 colori, numerate da 1 a 24), 4 supporti per le carte, 1 segnalino Primo giocatore e 6 tile Missione (2 copie ciascuna di [1/5], [2/4] e [3/3]: tre per C.A.T. e tre per B.I.R.D.).</p>
+<h4>Svolgimento</h4>
+<p>Una partita dura al massimo 5 round. Ogni round segue tre passi: 1. Preparazione del round, 2. Operazione, 3. Risoluzione della missione. Le due squadre sono formate in modo che i compagni non siano seduti vicini: il primo giocatore è scelto a caso e riceve il segnalino Primo giocatore.</p>
+<h4>1. Preparazione del round</h4>
+<p>Il primo giocatore mescola le carte Intel e ne distribuisce 11 coperte a ciascun giocatore, che le inserisce nel supporto senza riordinarle, in modo che solo il proprietario veda i numeri. Le 4 carte rimaste non si usano in questo round. Fronte e retro di una carta hanno lo stesso colore: i numeri si vedono solo nella propria mano, ma il colore di ogni mano è visibile a tutti.</p>
+<p>Poi ogni squadra sceglie la tile Missione da tentare. Partendo dal primo giocatore e proseguendo in senso orario, ognuno sceglie una tile a turno. Ogni squadra ha [1/5], [2/4] e [3/3]: i numeri indicano quante prese deve vincere ciascun compagno nel round.</p>
+<ul>
+<li>Il primo giocatore sceglie una tile e la mette con il proprio numero rivolto verso di sé: l'orientamento stabilisce anche il numero del compagno. È solo una proposta e può essere cambiata.</li>
+<li>Il giocatore alla sua sinistra fa lo stesso per la propria squadra (anche questa è solo una proposta).</li>
+<li>Il compagno del primo giocatore esamina la tile proposta: può accettarla così com'è, sostituirla con un'altra tile oppure cambiarne l'orientamento.</li>
+<li>Infine l'ultimo giocatore fa lo stesso per la sua squadra. Così le due squadre fissano le tile senza discuterne.</li>
+</ul>
+<p>Quando le tile sono definitive, partendo dal primo giocatore e in senso orario, ognuno sceglie 1 carta Intel dalla propria mano e la mette coperta davanti a sé. Dopo che tutti hanno scelto, i compagni si scambiano queste carte e ognuno inserisce la carta ricevuta dove preferisce nella propria mano. La preparazione è finita.</p>
+<h4>2. Operazione</h4>
+<p>Partendo dal primo giocatore e in senso orario, ognuno gioca 1 carta Intel scoperta sul tavolo. Si può giocare solo la carta all'estremità sinistra o all'estremità destra della propria mano, di qualsiasi colore, indipendentemente dai colori giocati dagli altri.</p>
+<p>Quando tutti hanno giocato, si stabilisce la carta più forte: di norma è quella col numero più alto tra quelle dello stesso colore della prima carta giocata (la carta di apertura). Questo completa una presa.</p>
+<p><b>Camouflage:</b> se le quattro carte giocate in una presa sono dello stesso colore, la carta più forte è invece quella col numero più basso.</p>
+<p>Chi ha giocato la carta più forte vince la presa, raccoglie le quattro carte e le mette coperte davanti a sé in un unico mucchio (senza sovrapporre i mucchi, per contare le prese vinte). Il vincitore apre la presa successiva. Si continua finché non si verifica una delle condizioni della Risoluzione.</p>
+<h4>3. Risoluzione della missione</h4>
+<p>Il round finisce subito quando si verifica una di queste condizioni, anche se i giocatori hanno ancora carte in mano e senza giocare altre prese.</p>
+<p><b>Missione compiuta.</b> Se entrambi i compagni hanno vinto esattamente il numero di prese indicato dalla loro tile, la squadra completa la missione. Esempio: con la tile [1/5], la missione è compiuta appena chi ha «1» ha vinto 1 presa e chi ha «5» ne ha vinte 5.</p>
+<p><b>Sabotaggio riuscito.</b> Se uno dei due giocatori vince più prese del proprio obiettivo, rendendo impossibile soddisfare la tile, la missione di quella squadra fallisce e la squadra avversaria è considerata come se avesse completato la propria. Esempio: con la tile [1/5], se chi ha «1» vince una seconda presa, la missione fallisce subito e gli avversari completano la loro.</p>
+<p>La squadra che ha completato una missione rimuove dal gioco la tile usata in quel round; le tile rimosse non si usano più. Poi si passa il segnalino Primo giocatore al giocatore alla sinistra e si inizia un nuovo round.</p>
+<h4>Fine del gioco</h4>
+<p>Alla fine di un round, se una squadra ha rimosso tutte e tre le proprie tile Missione, vince.</p>
+<h4>Nell'app</h4>
+<p>Il gioco è per 4 giocatori; nelle stanze posti e squadre sono assegnati a caso all'avvio (i compagni siedono di fronte). Degli altri giocatori vedi solo il colore delle carte. Contro l'AI il compagno e gli avversari giocano a caso. Le carte restano visibili sul tavolo finché il vincitore non gioca la presa successiva.</p>
+<p><i>Game design: Isao Mukai · Illustrazioni: momoune · Pubblicato da Korokorodou LLC.</i></p>
+</div></details>`;
+
 function gameRender(){
   return scoreHtml()+'<div class="dock">'+dockHtml()+'</div>'+
     '<div class="table">'+seatHtml(seatAt(2),'top')+seatHtml(seatAt(1),'left')+centerHtml()+seatHtml(seatAt(3),'right')+seatHtml(seatAt(0),'bottom')+'</div>'+
-    '<details class="rules"><summary>PROMEMORIA REGOLE</summary><ul>'+
-    '<li>Due squadre da due: C.A.T. contro B.I.R.D., con i compagni seduti di fronte. Vince chi completa per primo le tre missioni.</li>'+
-    '<li>Si può giocare solo la carta all\'estremo sinistro o destro del proprio portacarte, di qualsiasi colore.</li>'+
-    '<li>Vince la presa la carta più alta del colore della prima carta giocata. <strong>Camouflage:</strong> se le 4 carte hanno lo stesso colore vince la più bassa.</li>'+
-    '<li>Missione compiuta: entrambi i compagni hanno vinto esattamente le prese della tile. Sabotaggio: chi supera il proprio obiettivo fa fallire la sua missione.</li>'+
-    '<li>Le carte restano visibili sul tavolo finché il vincitore non gioca la presa successiva.</li></ul></details>';
+    RECAP_HTML+RULES_HTML;
 }
 function gameClick(b){
   var d=b.dataset,a=d.a;if(!a)return;
