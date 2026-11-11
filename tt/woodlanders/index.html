@@ -293,7 +293,9 @@ function trickWin(plays,trump){
 }
 function collectCards(plays,w,pain){
   const all=[].concat(...plays.map(x=>x.cards));
-  return pain[w]>=0?all.filter(c=>c.s===pain[w]):all;
+  if(pain[w]<0) return all;
+  const mine=all.filter(c=>c.s===pain[w]);
+  return mine.length?mine:all;       // se nella presa non c'è il tuo seme maledetto raccogli tutto
 }
 const painVal = (c,ps) => c.s===ps?-1:1;
 function roundPts(sc,cnt){
@@ -489,9 +491,10 @@ async function playRound(){
     const col=collectCards(G.trick,w.p,G.pain), wp=P(w.p);
     col.forEach(c=>{ wp.pile.push(c); wp.score+=painVal(c,G.pain[w.p]); });
     const all=[].concat(...G.trick.map(x=>x.cards)).length;
-    const m=G.pain[w.p]>=0&&col.length<all
-      ?`${wp.name} vince con ${w.total}: nella presa c'era il suo seme maledetto, raccoglie solo ${col.length} carte (−${col.length}) e scarta le altre.`
-      :`${wp.name} vince con ${w.total} e raccoglie ${col.length} carte${G.pain[w.p]>=0&&col.some(c=>c.s===G.pain[w.p])?'':' (+'+col.length+')'}.`;
+    const hasPain=G.pain[w.p]>=0&&col.some(c=>c.s===G.pain[w.p]);
+    const m=hasPain
+      ?`${wp.name} vince con ${w.total}: nella presa c'era il suo seme maledetto, raccoglie ${col.length<all?'solo ':''}${col.length} ${col.length===1?'carta':'carte'} (−${col.length})${col.length<all?' e scarta le altre':''}.`
+      :`${wp.name} vince con ${w.total} e raccoglie ${col.length} ${col.length===1?'carta':'carte'} (+${col.length}).`;
     status(m); logMsg(m);
     await sleep(1900);
     G.leader=nextWithCards(G.pl.map(p=>p.hand),w.p);
