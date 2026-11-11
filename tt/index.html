@@ -488,12 +488,15 @@
                 }
                 var games = document.getElementById('games');
                 // preferiti: per utente (nome giocatore salvato nel browser), i preferiti stanno in cima, poi ordine per nome
+                // preferiti e statistiche momentaneamente nascosti (metti true per riattivare le icone)
+                var SHOW_FAV_STATS = false;
                 function favKey() {
                         var n = '';
                         try { n = localStorage.getItem('nylo-player-name') || ''; } catch (e) {}
                         return 'nylo-tt-fav:' + (n.trim().toLowerCase() || 'ospite');
                 }
                 function loadFavs() {
+                        if (!SHOW_FAV_STATS) return [];
                         try { return JSON.parse(localStorage.getItem(favKey()) || '[]'); } catch (e) { return []; }
                 }
                 function toggleFav(name) {
@@ -507,6 +510,7 @@
                         try { var d = JSON.parse(localStorage.getItem(favKey().replace('nylo-tt-fav:', 'nylo-stats:')) || '{}'); return d[g.ai] || {}; } catch (e) { return {}; }
                 }
                 function statsBtn(g) {
+                        if (!SHOW_FAV_STATS) return '';
                         return '<button type="button" data-stats="' + esc(g.name) + '" title="Statistiche" aria-label="Statistiche: ' + esc(g.name) + '" class="inline-flex h-8 w-8 items-center justify-center rounded-md text-lg text-slate-500 transition-colors hover:bg-white/10 hover:text-slate-200"><i class="ph ph-chart-bar" aria-hidden="true"></i></button>';
                 }
                 function pct(n, tot) { return tot ? Math.round(n * 100 / tot) : 0; }
@@ -536,6 +540,7 @@
                         ov.querySelector('[data-close]').focus();
                 }
                 function favBtn(g, on) {
+                        if (!SHOW_FAV_STATS) return '';
                         return '<button type="button" data-fav="' + esc(g.name) + '" aria-pressed="' + on + '" title="' + (on ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti') + '" aria-label="' + (on ? 'Rimuovi dai preferiti: ' : 'Aggiungi ai preferiti: ') + esc(g.name) + '" class="inline-flex h-8 w-8 items-center justify-center rounded-md text-lg transition-colors hover:bg-white/10 ' + (on ? 'text-amber-300' : 'text-slate-500 hover:text-slate-200') + '"><i class="' + (on ? 'ph-fill' : 'ph') + ' ph-bookmark-simple" aria-hidden="true"></i></button>';
                 }
                 function rowHtml(g, on) {
