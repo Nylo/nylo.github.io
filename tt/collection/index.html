@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" data-home-inline>
 <head>
 <script src="/auth-gate.js"></script>
 <script src="/home-btn.js"></script>
@@ -208,6 +208,13 @@ select option{background:var(--surface)}
 .theme-toggle:hover{background:var(--surface-raised);color:var(--text)}
 .auth-btn{background:transparent;border:1px solid var(--border);color:var(--text-soft);border-radius:7px;padding:6px 13px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all 0.15s}
 .auth-btn:hover{background:var(--surface-raised);color:var(--text)}
+.menu-wrap{position:relative;flex-shrink:0}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:160px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.25)}
+.menu-pop[hidden]{display:none}
+.menu-pop .nylo-nav{display:block;width:100%;padding:9px 10px;border:0;border-radius:6px;text-align:left;font:500 13px Inter,sans-serif;cursor:pointer;background:transparent;color:var(--text)}
+.menu-pop .nylo-nav:hover{background:var(--accent-soft)}
 .auth-btn.logged{border-color:rgba(76,175,125,0.4);color:var(--success)}
 .auth-modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center}
 .auth-modal.open{display:flex}
@@ -371,6 +378,10 @@ select option{background:var(--surface)}
       </div>
       <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
       <button class="auth-btn" id="authBtn" onclick="openAuthModal()">🔒 Accedi</button>
+      <div class="menu-wrap" id="menuWrap">
+        <button class="hamb" type="button" id="hambBtn" aria-label="Menu" aria-expanded="false"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+        <div class="menu-pop" id="menuPop" hidden><button class="nylo-nav" type="button" onclick="location.href='/'">Home</button></div>
+      </div>
     </div>
     <div class="content">
       <div class="game-grid" id="gameGrid"></div>
@@ -702,6 +713,13 @@ function updateTheme(){
   else document.documentElement.removeAttribute('data-theme');
   document.getElementById('themeToggle').textContent = t==='light'?'☀️':'🌙';
 }
+(function(){
+  var b=document.getElementById('hambBtn'),m=document.getElementById('menuPop');
+  function set(o){m.hidden=!o;b.setAttribute('aria-expanded',o?'true':'false')}
+  b.addEventListener('click',function(e){e.stopPropagation();set(m.hidden)});
+  document.addEventListener('click',function(e){if(!m.hidden&&!e.target.closest('#menuWrap'))set(false)});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false)});
+})();
 function toggleTheme(){
   const t = getTheme()==='light'?'dark':'light';
   setTheme(t);
