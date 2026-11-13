@@ -145,6 +145,13 @@ button.oc:disabled{cursor:default}
 .oc.dim{opacity:0.4;filter:saturate(0.5)}
 .oc.legal{box-shadow:0 0 0 2px var(--accent),0 0 0 4px rgba(224,185,74,0.9)}
 .oc.sel{transform:translateY(-12px);box-shadow:0 0 0 2px #fff,0 0 0 5px var(--accent)}
+button.oc.sel:hover:not(:disabled){transform:translateY(-12px)}
+.opt[data-mc]:disabled{opacity:0.6}
+@media(max-width:600px){.dock{min-height:120px}}
+body.a11y .pchip.s0{background-image:repeating-linear-gradient(0deg,rgba(200,32,47,0.45) 0 1px,transparent 1px 3px)}
+body.a11y .pchip.s1{background-image:radial-gradient(rgba(90,60,0,0.6) 30%,transparent 33%);background-size:4px 4px}
+body.a11y .pchip.s2{background-image:repeating-linear-gradient(135deg,rgba(27,42,158,0.4) 0 1px,transparent 1px 3px),repeating-linear-gradient(45deg,rgba(27,42,158,0.4) 0 1px,transparent 1px 3px)}
+body.a11y .pchip.s3{background-image:repeating-linear-gradient(90deg,rgba(47,122,47,0.5) 0 1px,transparent 1px 3px)}
 .hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:14px}
 .pchip{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 4px;border-radius:5px;background:#fff;border:2px solid var(--s0);font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:12px}
 .pchip.s0{border-color:var(--s0);color:var(--t0)} .pchip.s1{border-color:var(--s1);color:var(--t1)} .pchip.s2{border-color:var(--s2);color:var(--t2)} .pchip.s3{border-color:var(--s3);color:var(--t3)}
@@ -564,7 +571,7 @@ async function settle(w,k){
   else{
     let need=k;
     if(h.length){ need-=h.length; await discardFrom(w,h.length); }
-    status(`${pl.name} non ha abbastanza carte in mano: prende il pool e scarta le ${need} ${plural(need,'mancante','mancanti')}.`);
+    status(`${pl.name} non ha abbastanza carte in mano: prende il pool e scarta ${need===1?'la carta mancante':`le ${need} mancanti`}.`);
     await sleep(700);
     takePool(w);
     await discardFrom(w,Math.min(need,G.hands[w].length));
@@ -642,7 +649,7 @@ function tableauHtml(p){
   if(i<0) return '<div class="tableau"><span class="slot"></span></div>';
   const x=T.plays[i], res=T.res, isMin=res&&res.minIdx.includes(i);
   const cls=`mini ${G.fresh===p&&!res?'fresh':''} ${res&&res.winner===p&&!G.over?'win':''} ${isMin?'min':''}`;
-  const cap=res?(res.winner===p?'<span class="cap">vince la presa</span>':''):(T.lead>=0&&x.c.s!==T.lead?'<span class="cap">briscola</span>':'');
+  const cap=res?(res.winner===p&&!G.over?'<span class="cap">vince la presa</span>':''):(T.lead>=0&&x.c.s!==T.lead?'<span class="cap">briscola</span>':'');
   return `<div class="tableau">${cardHtml(x.c,cls)}${isMin?'<span class="cap" style="color:var(--danger);font-weight:700">minimo</span>':''}${cap}</div>`;
 }
 function flagHtml(p){
@@ -696,7 +703,7 @@ function poolPanel(){
   return `<div class="scorebox"><h3>TUO POOL / SCARTI</h3>
     <div class="prow"><span class="lbl">Scarti</span><b>${G.disc.length}</b> ${plural(G.disc.length,'carta','carte')} · cima: ${top}</div>
     <div class="prow"><span class="lbl">Tuo pool (${mine.length})</span>${mine.length?`<div class="pchips">${mine.map(c=>`<span class="pchip s${c.s}" title="${cname(c)}">${c.v}</span>`).join('')}</div>`:'<span class="cap">vuoto</span>'}</div>
-    <div class="hint">Il pool è fatto delle carte delle prese che hai vinto: quando la tua mano si svuota diventa la tua nuova mano. Chi resta senza mano e senza pool perde.</div></div>`;
+    <div class="hint">Il pool è fatto delle carte delle prese che hai vinto: quando la tua mano si svuota diventa la tua nuova mano. Chi resta senza mano e senza pool perde (anche chi, vincendo una presa, non ha carte a sufficienza tra mano e pool per scartare).</div></div>`;
 }
 function resTable(){
   const rows=G.pl.map(p=>{
@@ -710,7 +717,7 @@ function dockHtml(){
     <div class="opts">${[3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
   if(G.over){
     const L=G.over.losers.map(i=>esc(P(i).name)), W=G.over.winners.map(i=>esc(P(i).name));
-    const lead=W.length?`Perde${L.length>1?'ro':''} ${L.join(' e ')}. ${W.length>1?'Vincono':'Vince'} ${W.join(', ')}!`:'Tutti hanno perso: il serpente ha divorato se stesso!';
+    const lead=W.length?`${L.length>1?'Perdono':'Perde'} ${L.join(' e ')}. ${W.length>1?'Vincono':'Vince'} ${W.join(', ')}!`:'Tutti hanno perso: il serpente ha divorato se stesso!';
     return `<div class="dock-msg"><b>${lead}</b></div><div class="hint">La partita finisce appena un giocatore resta senza carte in mano e senza pool: perde lui, tutti gli altri vincono.</div>`;
   }
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
@@ -793,7 +800,9 @@ function render(){
       ${recapHtml()}
       ${RULES_HTML}`;
   }
+  const lb=app.querySelector('.logbody'), lbTop=lb?lb.scrollTop:0;
   app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+  if(lbTop){ const nb=app.querySelector('.logbody'); if(nb) nb.scrollTop=lbTop; }
 }
 
 document.getElementById('app').addEventListener('click',e=>{
