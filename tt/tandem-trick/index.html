@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tandem Trick</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;800&family=RocknRoll+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#a9a8ab;
+  --surface:#e8e7e9;
+  --surface-raised:#d5d4d7;
+  --accent:#e5452a;
+  --accent-soft:rgba(229,69,42,0.14);
+  --text:#161616;
+  --text-soft:#4b4a4f;
+  --danger:#b3261e;
+  --success:#1f7a45;
+  --border:rgba(0,0,0,0.28);
+  --radius:10px;
+  --k0:#e5452a; --k1:#e3a400; --k2:#3c68b9; --k3:#1b1b1b;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:linear-gradient(90deg,#9a999c 0%,#b1b0b3 50%,#9a999c 100%) fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'RocknRoll One','Inter',sans-serif;font-size:28px;font-weight:400;line-height:1.1;flex:1;color:var(--text);letter-spacing:0.02em;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo .shapes{display:inline-flex;gap:3px;font-size:15px}
+.badge{background:var(--text);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:34px;height:19px;flex:0 0 34px;margin:0;border:1px solid var(--border);border-radius:999px;background:var(--surface-raised);cursor:pointer;transition:background .15s,border-color .15s}
+.opt-toggle input[type=checkbox]::before{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-soft);transition:transform .15s,background .15s}
+.opt-toggle input[type=checkbox]:checked{background:var(--text);border-color:var(--text)}
+.opt-toggle input[type=checkbox]:checked::before{transform:translateX(15px);background:#fff}
+.opt-toggle input[type=checkbox]:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised);color:var(--text)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:220px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+/* nel menu le voci sono azioni a testo (home-btn.js): l'interruttore stilizzato deve restare nascosto e non occupare spazio */
+.menu-pop .opt-toggle.nylo-menu-action input[type=checkbox]{position:absolute;width:1px;height:1px;flex:none;margin:0;border:0;opacity:0;pointer-events:none}
+.menu-pop .opt-toggle{white-space:normal;line-height:1.35;text-align:left;width:100%}.menu-pop button.opt-toggle{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--text);text-align:left;background:transparent;border:0;box-shadow:none;cursor:pointer}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#ffd54a;color:#2a2000}
+.flag.lead{background:#fff;color:#13222b;border:1px solid rgba(0,0,0,0.35)}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Libre Baskerville',serif;font-size:16px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.7);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--text)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.25)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){border-color:var(--text);background:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#f4f3f5 0%,#d9d8db 92%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:540px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center}
+.seat.top{grid-area:top}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(0,0,0,0.4);background:rgba(255,255,255,0.5)}
+.seat.active{border-color:var(--accent);background:rgba(229,69,42,0.1)}
+.seat.winner{border-color:var(--success);background:rgba(31,122,69,0.12)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.1);border-radius:4px;padding:2px 6px}
+.tag b{color:var(--accent)}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:14px;height:20px;border-radius:3px;background:#77757c;border:1px solid #4f4d54;display:inline-flex;align-items:center;justify-content:center}
+.back.hi{background:#c4c3c8}
+.back i{font-size:9px}
+.back.k0 i{color:var(--k0)} .back.k1 i{color:var(--k1)} .back.k2 i{color:var(--k2)} .back.k3 i{color:var(--k3)}
+.seat.top .backs,.seat.left .backs,.seat.right .backs{max-width:140px}
+.tableau{display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;min-height:74px;padding:4px 6px;border-radius:8px;background:rgba(0,0,0,0.08);min-width:56px}
+.tableau .empty{width:42px;height:62px;border:1px dashed rgba(0,0,0,0.35);border-radius:6px}
+.tableau .pass{font-size:11px;color:var(--text-soft);font-weight:600;letter-spacing:0.04em;text-transform:uppercase}
+.tableau .cap{font-size:10px;color:var(--text-soft);line-height:1.2}
+.bidrow{display:flex;gap:6px;align-items:center;justify-content:center;min-height:26px;font-size:11px;color:var(--text-soft)}
+.bidc{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:6px;background:#fbfbfa;border:1px solid rgba(0,0,0,0.4);font-weight:800;font-size:13px;color:var(--text)}
+.bidc i{font-size:11px}
+.bidc.k0 i{color:var(--k0)} .bidc.k1 i{color:var(--k1)} .bidc.k2 i{color:var(--k2)} .bidc.k3 i{color:var(--k3)}
+.bn{display:inline-flex;min-width:22px;height:22px;padding:0 4px;align-items:center;justify-content:center;border-radius:5px;background:#6b6970;color:#fff;font-weight:800;font-size:12px}
+.bn.gone{opacity:0.25}
+
+.fc{width:var(--cw);height:var(--ch);border-radius:7px;border:1px solid rgba(0,0,0,0.4);background:#fbfbfa;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:'Inter',sans-serif;font-weight:800;font-size:24px;line-height:1;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.25)}
+.fc i{font-size:17px}
+.fc::before{content:attr(data-v);position:absolute;top:2px;left:4px;font-size:9px;font-weight:700}
+.fc::after{content:attr(data-v);position:absolute;bottom:2px;right:4px;font-size:9px;font-weight:700;transform:rotate(180deg)}
+.fc.k0{color:var(--k0)} .fc.k1{color:var(--k1)} .fc.k2{color:var(--k2)} .fc.k3{color:var(--k3)}
+.fc.mini{width:42px;height:62px;font-size:21px}
+.fc.mini i{font-size:15px}
+.fc.fresh{box-shadow:0 0 0 3px #2f6db5}
+.fc.win{box-shadow:0 0 0 3px var(--success)}
+.fc.pair{box-shadow:0 0 0 3px var(--accent)}
+button.fc{cursor:pointer;transition:transform 0.12s}
+button.fc:hover:not(:disabled){transform:translateY(-6px)}
+button.fc:disabled{cursor:default}
+.fc.dim{opacity:0.4;filter:saturate(0.5)}
+.fc.legal{box-shadow:0 0 0 3px #2f6db5}
+.fc.bidonly{box-shadow:0 0 0 2px #6b6970}
+.fc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--text)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+body.a11y .fc.k0,body.a11y .rchip.k0{background-image:radial-gradient(rgba(0,0,0,0.16) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .fc.k1,body.a11y .rchip.k1{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.12) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k2,body.a11y .rchip.k2{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.12) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.18) 0 3px,transparent 3px 8px)}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:var(--text-soft)}
+.center b{color:var(--text)}
+.cbon{display:flex;gap:5px;align-items:center;justify-content:center}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .rchip,.recap-row .sw{vertical-align:middle}
+.rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:700;background:#fbfbfa;border:1px solid rgba(0,0,0,0.35)}
+.rchip.k0{color:var(--k0)} .rchip.k1{color:var(--k1)} .rchip.k2{color:var(--k2)} .rchip.k3{color:var(--k3)}
+.nchip{display:inline-flex;min-width:24px;justify-content:center;padding:2px 6px;border-radius:5px;background:rgba(127,127,127,0.25);font-weight:700;font-size:12px}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+@media(max-width:600px){
+  .logo{font-size:23px}
+  :root{--cw:30px;--ch:44px}
+  .fc{font-size:15px;border-radius:5px;gap:0}
+  .fc i{font-size:11px}
+  .fc::before,.fc::after{font-size:7px;top:1px;left:2px}
+  .fc::after{top:auto;left:auto;bottom:1px;right:2px}
+  .fc.mini{width:32px;height:48px;font-size:16px}
+  .fc.mini i{font-size:12px}
+  .tableau .empty{width:32px;height:48px}
+  .table{padding:8px;gap:6px;grid-template-columns:1fr 1fr 1fr}
+  .back{width:11px;height:16px}
+  .back i{font-size:7px}
+  .hand{gap:2px}
+}
+</style>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a0c10">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="/pwa.js" defer></script>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script src="/tt/shared/core.js"></script>
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+const SUITS = [
+  {n:'Rosso',  icon:'circle',   col:'#e5452a'},
+  {n:'Giallo', icon:'star',     col:'#e3a400'},
+  {n:'Blu',    icon:'square',   col:'#3c68b9'},
+  {n:'Nero',   icon:'triangle', col:'#1b1b1b'}
+];
+const HANDN = 12;                                        // carte in mano a ciascuno (sempre 12 prese per round)
+const TARGET = 24;                                       // la partita finisce quando qualcuno arriva a 24 punti
+const BONUS = [6,3,1];                                   // carte bonus: in ordine di puntata
+const MISERE = 1000000;
+const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
+const NAMES = ['Tu','AI Kenta','AI Sora','AI Yuna'];
+const HUM = 0;
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('tdm-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tdm-a11y')==='1'; }catch(e){}
+const cname = c => `${SUITS[c.s].n} ${c.v}`;
+const num = n => n.toLocaleString('it-IT');
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// 3 giocatori: Rosso, Giallo, Blu (36 carte); 4 giocatori: anche il Nero (48 carte). Valori da 0 a 11.
+function fullDeck(n){
+  const d=[];
+  for(let s=0;s<(n===3?3:4);s++) for(let v=0;v<12;v++) d.push({s,v});
+  return d;
+}
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
+// chi risponde deve seguire il seme di mano se può; altrimenti scarta ciò che vuole (T.led = null: nessuno ha ancora giocato una carta)
+function legalIdx(hand,led){
+  const all=hand.map((_,i)=>i);
+  if(led==null) return all;
+  const same=all.filter(i=>hand[i].s===led);
+  return same.length?same:all;
+}
+// presa in corso T = {entries:[{p,k:'bid'|'play'|'tandem',c,w}],led}
+// «alla tua destra» = l'ultimo giocatore attivo che ha giocato (chi ha puntato in questa presa non partecipa e si salta)
+function rightEntry(T){
+  for(let j=T.entries.length-1;j>=0;j--) if(T.entries[j].k!=='bid') return T.entries[j];
+  return null;
+}
+// tandem possibile solo con una carta del seme di mano giocata da sola (non uno scarto, non un'altra carta già in tandem)
+function tandemBase(T){
+  const e=rightEntry(T);
+  return e&&e.k==='play'&&T.led!=null&&e.c.s===T.led?e:null;
+}
+// azioni possibili: gioca (play), tandem, punta (bid). L'ultima carta di chi non ha ancora puntato diventa la puntata obbligatoria.
+function actionsFor(hand,T,canBid){
+  if(canBid&&hand.length===1) return [{t:'bid',i:0,forced:true}];
+  const acts=[];
+  legalIdx(hand,T.led).forEach(i=>acts.push({t:'play',i}));
+  if(tandemBase(T)) hand.forEach((c,i)=>{ if(c.s===T.led) acts.push({t:'tandem',i}); });
+  if(canBid) hand.forEach((c,i)=>acts.push({t:'bid',i}));
+  return acts;
+}
+// unità in gara (carte singole o tandem) del seme di mano: valore = somma, a parità vince chi ha la carta singola più alta
+function unitsOf(T){
+  const led=T.led, units=[];
+  if(led==null) return {units,best:null};
+  T.entries.forEach(e=>{
+    if(e.k==='play'&&e.c.s===led) units.push({ps:[e.p],cs:[e.c],val:e.c.v,top:e.c.v});
+    else if(e.k==='tandem'){ const u=units.find(x=>x.ps[0]===e.w); u.ps.push(e.p); u.cs.push(e.c); u.val+=e.c.v; u.top=Math.max(u.top,e.c.v); }
+  });
+  let best=null;
+  for(const u of units) if(!best||u.val>best.val||(u.val===best.val&&u.top>best.top)) best=u;
+  return {units,best};
+}
+// null se tutti hanno puntato (presa non assegnata); in caso di tandem vinto il prossimo di mano è chi ha giocato la carta più alta
+function resolveTrick(T){
+  const {units,best}=unitsOf(T);
+  if(!best) return null;
+  let next=best.ps[0];
+  if(best.ps.length>1&&best.cs[1].v>best.cs[0].v) next=best.ps[1];
+  return {units,best,winners:best.ps,next};
+}
+// ogni presa vale 1 punto; con puntata riuscita (prese = numero) vale 2, più il bonus per ordine di puntata; puntata 0 riuscita = 1.000.000
+function roundPts(bid,tk){
+  if(bid.v!==tk) return {ok:false,pts:tk,bonus:0,mis:0};
+  const bonus=BONUS[bid.ord]||0, mis=bid.v===0?MISERE:0;
+  return {ok:true,pts:2*tk+bonus+mis,bonus,mis};
+}
+// applica un'azione allo stato S (G oppure una sua copia per le simulazioni)
+function applyAct(S,T,p,a){
+  const c=S.hands[p].splice(a.i,1)[0];
+  if(a.t==='bid'){ T.entries.push({p,k:'bid',c}); S.bid[p]={v:c.v,ord:S.bc++,c}; }
+  else if(a.t==='play'){ T.entries.push({p,k:'play',c}); if(T.led==null) T.led=c.s; }
+  else { const b=tandemBase(T); T.entries.push({p,k:'tandem',c,w:b.p}); }
+  return c;
+}
+function finishTrick(S,T){
+  const r=resolveTrick(T);
+  if(r){ r.winners.forEach(q=>S.tk[q]++); S.leader=r.next; }
+  return r;
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Monte Carlo: le mani avversarie vengono pescate tra le carte non viste (rispettando i semi visibili sul dorso delle carte 8–11
+// e i semi che non hanno risposto), poi ogni azione possibile è valutata giocando il resto del round con una politica euristica.
+// Valore = punti del round (la puntata 0 riuscita vale come una vittoria quasi certa).
+const AIP = {S:36};
+const wp = (v,n) => Math.pow((v+0.5)/12,n-1);                 // probabilità grezza che una carta di valore v vinca una presa
+const estWins = (hand,n) => hand.reduce((s,c)=>s+wp(c.v,n),0);
+function policy(S,T,p,tbs){
+  const hand=S.hands[p], n=S.n, canBid=!S.bid[p];
+  const acts=actionsFor(hand,T,canBid);
+  if(acts.length===1) return acts[0];
+  const r=hand.length, done=HANDN-r;
+  const plays=acts.filter(a=>a.t==='play'), tands=acts.filter(a=>a.t==='tandem');
+  if(canBid){
+    const noFollow=T.led!=null&&!hand.some(c=>c.s===T.led);
+    if(done>=tbs[p]||(noFollow&&done>=2)){
+      let bi=0,bs=1e9;
+      hand.forEach((c,i)=>{
+        const est=S.tk[p]+estWins(hand.filter((_,j)=>j!==i),n);
+        const sc=Math.abs(c.v-est)+0.25*wp(c.v,n)+Math.random()*0.3;
+        if(sc<bs){ bs=sc; bi=i; }
+      });
+      return {t:'bid',i:bi};
+    }
+  }
+  let need, pWin;
+  if(S.bid[p]){ need=S.bid[p].v-S.tk[p]; pWin=need<0?1:Math.min(1,need/r); }
+  else{ need=estWins(hand,n); pWin=Math.min(1,need/r); }
+  return Math.random()<pWin?winAct(S,T,p,plays,tands):loseAct(S,T,p,plays);
+}
+function winAct(S,T,p,plays,tands){
+  const hand=S.hands[p];
+  const lowest=list=>list.reduce((b,a)=>hand[a.i].v<hand[b.i].v?a:b);
+  if(T.led==null) return plays.reduce((b,a)=>hand[a.i].v>hand[b.i].v?a:b);          // apro con la carta più alta
+  const follow=plays.filter(a=>hand[a.i].s===T.led);
+  if(!follow.length) return lowest(plays);                                            // scarto la più bassa
+  const cur=unitsOf(T), bv=cur.best?cur.best.val:-1;
+  const beat=follow.filter(a=>hand[a.i].v>bv);
+  if(beat.length) return lowest(beat);
+  const base=tandemBase(T);
+  if(base&&tands.length){
+    const ov=cur.units.filter(u=>u.ps[0]!==base.p).reduce((m,u)=>Math.max(m,u.val),-1);
+    const ok=tands.filter(a=>base.c.v+hand[a.i].v>ov);
+    if(ok.length) return lowest(ok);
+  }
+  return lowest(follow);
+}
+function loseAct(S,T,p,plays){
+  const hand=S.hands[p];
+  const lowest=list=>list.reduce((b,a)=>hand[a.i].v<hand[b.i].v?a:b);
+  const highest=list=>list.reduce((b,a)=>hand[a.i].v>hand[b.i].v?a:b);
+  if(T.led==null) return lowest(plays);
+  const follow=plays.filter(a=>hand[a.i].s===T.led);
+  if(!follow.length) return highest(plays);                                           // scarto la più alta (rischiosa)
+  const cur=unitsOf(T), bv=cur.best?cur.best.val:-1;
+  const under=follow.filter(a=>hand[a.i].v<bv);
+  return under.length?highest(under):lowest(follow);
+}
+// mani avversarie plausibili
+function sampleWorld(p){
+  const seen=new Set(), add=c=>seen.add(c.s*12+c.v);
+  G.hands[p].forEach(add); G.played.forEach(add);
+  const hi=[[],[],[],[]], lo=[];
+  shuffle(fullDeck(G.n).filter(c=>!seen.has(c.s*12+c.v))).forEach(c=>{ if(c.v>=8) hi[c.s].push(c); else lo.push(c); });
+  const hands=G.hands.map(h=>h.slice());
+  for(let q=0;q<G.n;q++){
+    if(q===p) continue;
+    const need=G.hands[q].length, h=[];
+    for(let s=0;s<4;s++) for(let k=0;k<G.pub[q][s]&&hi[s].length;k++) h.push(hi[s].pop());
+    while(h.length<need){
+      let j=lo.findIndex(c=>!G.voids[q][c.s]);
+      if(j<0&&lo.length) j=0;
+      if(j>=0){ h.push(lo.splice(j,1)[0]); continue; }
+      let extra=null; for(let s=0;s<4&&!extra;s++) if(hi[s].length) extra=hi[s].pop();
+      if(!extra) break;
+      h.push(extra);
+    }
+    hands[q]=h;
+  }
+  return hands;
+}
+function simRest(S,T,order,from,tbs){
+  for(let i=from;i<order.length;i++){ const q=order[i]; applyAct(S,T,q,policy(S,T,q,tbs)); }
+  finishTrick(S,T);
+  while(S.hands[0].length){
+    const T2={entries:[],led:null};
+    for(let k=0;k<S.n;k++){ const q=(S.leader+k)%S.n; applyAct(S,T2,q,policy(S,T2,q,tbs)); }
+    finishTrick(S,T2);
+  }
+}
+const roundValue = (S,p) => { const r=roundPts(S.bid[p],S.tk[p]); return r.mis?25+r.pts-MISERE:r.pts; };
+function aiAct(p){
+  const T=G.T, hand=G.hands[p];
+  const acts=actionsFor(hand,T,!G.bid[p]);
+  if(acts.length===1) return acts[0];
+  const from=T.entries.length, tot=acts.map(()=>0), N=AIP.S;
+  for(let s=0;s<N;s++){
+    const w=sampleWorld(p), tbs=G.pl.map(()=>2+rnd(6));
+    acts.forEach((a,k)=>{
+      const S={n:G.n,hands:w.map(h=>h.slice()),bid:G.bid.slice(),tk:G.tk.slice(),bc:G.bc,leader:G.leader};
+      const Tt={entries:T.entries.slice(),led:T.led};
+      applyAct(S,Tt,p,a);
+      simRest(S,Tt,G.order,from+1,tbs);
+      tot[k]+=roundValue(S,p);
+    });
+  }
+  let bi=0,bv=-1e9;
+  acts.forEach((a,k)=>{ const v=tot[k]/N+Math.random()*0.05; if(v>bv){ bv=v; bi=k; } });
+  return acts[bi];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,round:0,first0:rnd(n),first:0,nextFirst:0,leader:0,tl:0,lastLead:0,msg:'',log:[],over:null,show:null,
+     hands:[],bid:[],tk:[],bc:0,pub:[],voids:[],played:[],T:{entries:[],led:null},order:[],trickNo:0,turn:-1,win:[],fresh:-1,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  run();
+}
+function deal(){
+  const deck=shuffle(fullDeck(G.n));
+  G.hands=G.pl.map((_,i)=>sortHand(deck.slice(i*HANDN,(i+1)*HANDN)));
+  G.bid=G.pl.map(()=>null); G.tk=G.pl.map(()=>0); G.bc=0;
+  G.pub=G.hands.map(h=>{ const a=[0,0,0,0]; h.forEach(c=>{ if(c.v>=8) a[c.s]++; }); return a; });   // semi delle carte 8–11 visibili sul dorso
+  G.voids=G.pl.map(()=>[false,false,false,false]);
+  G.played=[]; G.T={entries:[],led:null}; G.order=[]; G.trickNo=0; G.turn=-1; G.win=[]; G.fresh=-1; G.show=null;
+}
+async function humanAct(acts,T){
+  const hand=G.hands[HUM], canBid=!G.bid[HUM];
+  if(acts.length===1&&acts[0].forced){
+    const c=hand[0];
+    await ask(HUM,`Ultima carta: la tua puntata è obbligatoria (${c.v})`,[{label:`Punta ${c.v} con ${cname(c)}`,value:1}]);
+    return acts[0];
+  }
+  let hint;
+  if(T.led==null) hint='Sei il primo a giocare una carta: gioca ciò che vuoi';
+  else hint=hand.some(c=>c.s===T.led)?`Devi rispondere al seme ${SUITS[T.led].n}`:`Non hai il seme ${SUITS[T.led].n}: puoi scartare ciò che vuoi`;
+  const base=tandemBase(T);
+  if(base&&acts.some(a=>a.t==='tandem')) hint+=` · puoi fare tandem con ${P(base.p).name}`;
+  if(canBid) hint+=' · oppure punta (una volta per round)';
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'act',acts,sel:null,hint:hint+'.',res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function actPick(i){
+  if(!PR||PR.type!=='act') return;
+  const mine=PR.acts.filter(a=>a.i===i);
+  if(!mine.length) return;
+  if(!OPT.undo&&mine.length===1&&mine[0].t==='play'){ const r=PR.res; PR=null; render(); r(mine[0]); return; }
+  PR.sel=i; render();
+}
+function actDo(k){
+  if(!PR||PR.type!=='act'||PR.sel==null) return;
+  const a=PR.acts.filter(x=>x.i===PR.sel)[k]; if(!a) return;
+  const r=PR.res; PR=null; render(); r(a);
+}
+function actCancel(){ if(PR&&PR.type==='act'){ PR.sel=null; render(); } }
+// applica l'azione allo stato di gioco e scrive il messaggio
+function doAct(p,a){
+  const T=G.T, pl=P(p);
+  const base=a.t==='tandem'?tandemBase(T):null;
+  const had=G.hands[p][a.i];
+  if(a.t==='play'&&T.led!=null&&had.s!==T.led) G.voids[p][T.led]=true;       // non ha risposto al seme: non ne ha
+  const first=T.led==null;
+  const c=applyAct(G,T,p,a);
+  G.played.push(c);
+  if(c.v>=8) G.pub[p][c.s]--;
+  G.fresh=p;
+  let m;
+  if(a.t==='bid'){
+    const b=BONUS[G.bid[p].ord];
+    m=`${pl.name} punta ${c.v} (${cname(c)})${a.forced?' con l\'ultima carta (puntata obbligatoria)':''} e ${b?`prende la carta bonus da ${b}`:'non trova più carte bonus'}.`;
+  }else if(a.t==='tandem'){
+    m=`${pl.name} fa tandem con ${P(base.p).name}: ${cname(c)} accanto a ${cname(base.c)} (totale ${base.c.v+c.v}).`;
+  }else m=`${pl.name} ${first?'apre con':'gioca'} ${cname(c)}${!first&&c.s!==T.led?' (scarto)':''}.`;
+  logMsg(m);
+}
+async function oneTrick(){
+  G.trickNo++; G.T={entries:[],led:null}; G.win=[]; G.fresh=-1; G.tl=G.leader;
+  G.order=Array.from({length:G.n},(_,i)=>(G.leader+i)%G.n);
+  const T=G.T;
+  for(const p of G.order){
+    G.turn=p;
+    status(`Presa ${G.trickNo}/${HANDN} · di mano: ${P(G.leader).name}. Tocca a ${P(p).name}.`);
+    const acts=actionsFor(G.hands[p],T,!G.bid[p]);
+    let a;
+    if(p===HUM) a=await humanAct(acts,T);
+    else{ await sleep(750); a=aiAct(p); }
+    doAct(p,a);
+  }
+  G.turn=-1;
+  const r=finishTrick(G,T);
+  if(!r){
+    const m='Tutti hanno puntato: la presa non viene assegnata e resta di mano lo stesso giocatore.';
+    status(m); logMsg(m); await sleep(2000);
+    return;
+  }
+  G.win=r.winners;
+  const names=r.winners.map(q=>P(q).name).join(' e ');
+  const m=r.winners.length>1
+    ?`${names} vincono la presa in tandem (${r.best.cs.map(c=>c.v).join(' + ')} = ${r.best.val}) e prendono una presa a testa.`
+    :`${names} vince la presa con ${cname(r.best.cs[0])}.`;
+  status(m); logMsg(m);
+  await sleep(2100);
+}
+async function scoring(){
+  const rows=G.pl.map(p=>{
+    const b=G.bid[p.id], t=G.tk[p.id], r=roundPts(b,t);
+    p.total+=r.pts; p.hist.push(r.pts);
+    return {p:p.id,bid:b.v,ord:b.ord,tk:t,ok:r.ok,pts:r.pts,bonus:r.bonus,mis:r.mis,total:p.total};
+  });
+  G.show={rows};
+  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} puntava ${r.bid}, ha preso ${r.tk} prese: ${r.ok?`puntata riuscita${r.mis?' (MISÈRE!)':''}`:'puntata mancata'} · ${num(r.pts)} punti.`));
+  const done=G.pl.some(p=>p.total>=TARGET);
+  status(done?`Round ${G.round+1} concluso: qualcuno ha raggiunto ${TARGET} punti.`:`Round ${G.round+1} concluso.`);
+  await ask(HUM,'Punteggio del round',[{label:done?'Mostra risultato finale':'Prossimo round',value:1}]);
+  G.show=null;
+  return done;
+}
+async function run(){
+  const g=G;
+  try{
+    for(let k=0;;k++){
+      g.round=k; g.first=k?g.nextFirst:g.first0; g.leader=g.first;
+      deal();
+      logMsg(`— Round ${k+1}: primo giocatore ${P(g.first).name} —`);
+      if(!k){
+        status(`Buona partita a Tandem Trick, ${P(HUM).name}!`);
+        await ask(HUM,g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name,[{label:'Ok, si parte',value:1}]);
+      }
+      for(let t=0;t<HANDN;t++){ g.lastLead=g.leader; await oneTrick(); }
+      g.nextFirst=g.lastLead;                       // il round dopo apre chi ha aperto l'ultima presa
+      if(await scoring()) break;
+    }
+    const m=Math.max(...g.pl.map(p=>p.total));
+    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const kface=(c,cls='')=>`<span class="fc k${c.s} ${cls}" data-v="${c.v}" title="${cname(c)}"><span>${c.v}</span>${ico(SUITS[c.s].icon)}</span>`;
+function handBtn(c,i,ok,cls){
+  return `<button class="fc k${c.s} ${ok?'legal':'dim'} ${cls||''}" data-v="${c.v}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}"><span>${c.v}</span>${ico(SUITS[c.s].icon)}</button>`;
+}
+function bidHtml(p){
+  const b=G.bid[p];
+  if(!b) return '<div class="bidrow"><span>nessuna puntata</span></div>';
+  const bonus=BONUS[b.ord];
+  return `<div class="bidrow"><span>puntata</span><span class="bidc k${b.c.s}">${b.v}${ico(SUITS[b.c.s].icon)}</span>${bonus?`<span class="bn" title="Carta bonus">${bonus}</span>`:''}</div>`;
+}
+function tableauHtml(p){
+  const e=G.T.entries.find(x=>x.p===p);
+  if(!e) return '<div class="tableau"><span class="empty"></span></div>';
+  if(e.k==='bid') return '<div class="tableau"><span class="pass">ha puntato</span></div>';
+  const u=unitsOf(G.T).units.find(x=>x.ps.includes(p));
+  const pair=u&&u.ps.length>1;
+  const win=G.win.includes(p);
+  const cls=`mini ${G.fresh===p?'fresh':''} ${pair?'pair':''} ${win?'win':''}`;
+  const cap=e.k==='tandem'?`tandem con ${esc(P(e.w).name)}`:(pair?'in tandem':(e.c.s!==G.T.led?'scarto':''));
+  return `<div class="tableau">${kface(e.c,cls)}${cap?`<span class="cap">${cap}</span>`:''}</div>`;
+}
+function flagHtml(p){
+  if(!G||G.over) return '';
+  if(G.turn>=0&&G.tl===p) return '<span class="flag lead">Di mano</span>';
+  if(G.turn<0&&!G.show&&G.trickNo===0&&G.first===p) return '<span class="flag first">Primo giocatore</span>';
+  return '';
+}
+function seatHtml(p,pos){
+  const pl=P(p), hand=G.hands[p];
+  const active=G.turn===p, winner=G.win.includes(p);
+  let h;
+  if(p===HUM){
+    h=`<div class="hand">${hand.map((c,i)=>{
+      if(PR&&PR.type==='act'){
+        const ok=PR.acts.some(a=>a.i===i), onlyBid=ok&&!PR.acts.some(a=>a.i===i&&a.t!=='bid');
+        return handBtn(c,i,ok,`${PR.sel===i?'sel':''} ${onlyBid?'bidonly':''}`);
+      }
+      return kface(c);
+    }).join('')}</div>`;
+  }else h=`<div class="backs">${hand.map(c=>c.v>=8?`<span class="back hi k${c.s}" title="Carta 8–11: seme ${SUITS[c.s].n}">${ico(SUITS[c.s].icon)}</span>`:'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag">carte <b>${hand.length}</b></span><span class="tag">prese <b>${G.tk[p]}</b></span><span class="tag">punti <b>${num(pl.total)}</b></span></div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${tableauHtml(p)}${bidHtml(p)}${name}${meta}${h}`:(pos==='top'?`${h}${name}${meta}${bidHtml(p)}${tableauHtml(p)}`:`${name}${meta}${bidHtml(p)}${tableauHtml(p)}${h}`);
+  return `<div class="seat ${pos} ${G.turn>=0&&G.tl===p?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const T=G.T, {units,best}=unitsOf(T);
+  const lead=T.led!=null?`<div>Seme di mano: <b>${SUITS[T.led].n}</b> ${ico(SUITS[T.led].icon)}</div>`:'<div>Seme di mano: <b>–</b></div>';
+  const top=best?`<div>${G.win.length?'Vince':'In testa'}: <b>${best.ps.map(q=>esc(P(q).name)).join(' + ')}</b> (${best.val})</div>`:'<div>&nbsp;</div>';
+  return `<div class="center">${lead}${top}
+    <div>Presa <b>${Math.min(G.trickNo,HANDN)}/${HANDN}</b> · Round <b>${G.round+1}</b></div>
+    <div class="cbon" title="Carte bonus: le prende chi punta, nell'ordine">${BONUS.map((b,i)=>`<span class="bn ${i<G.bc?'gone':''}">${b}</span>`).join('')}</div></div>`;
+}
+function scoreTable(){
+  const nr=G.pl[0].hist.length;
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${p.hist.map(x=>`<td class="${x>=MISERE?'pos':''}">${num(x)}</td>`).join('')}<td><b>${num(p.total)}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th></th>${Array.from({length:nr},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Tandem Trick contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (vince chi ha più punti)</div>${scoreTable()}`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    html+=`<table class="score"><tr><th></th><th>Puntata</th><th>Prese</th><th>Esito</th><th>Round</th><th>Totale</th></tr>${G.show.rows.map(r=>
+      `<tr><td>${esc(P(r.p).name)}</td><td>${r.bid}</td><td>${r.tk}</td><td class="${r.ok?'pos':'neg'}">${r.ok?(r.mis?'MISÈRE!':'riuscita'+(r.bonus?` +${r.bonus}`:'')):'mancata'}</td><td><b>${num(r.pts)}</b></td><td>${num(r.total)}</td></tr>`).join('')}</table>`;
+  }
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='act'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){
+      const c=G.hands[HUM][PR.sel], base=tandemBase(G.T);
+      html+=`<div class="opts">${PR.acts.filter(a=>a.i===PR.sel).map((a,k)=>{
+        const l=a.t==='play'?`Gioca ${cname(c)}`:(a.t==='tandem'?`Tandem con ${P(base.p).name}: ${cname(c)} (totale ${base.c.v+c.v})`:`Punta ${c.v} con ${cname(c)} (prevedi ${c.v} ${c.v===1?'presa':'prese'})`);
+        return `<button class="opt" data-a="${k}">${esc(l)}</button>`;
+      }).join('')}<button class="opt" data-cf="0">Annulla</button></div>`;
+    }
+  }
+  return html;
+}
+function recapHtml(){
+  return `<details class="recap"><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Semi</span>${SUITS.slice(0,G.n===3?3:4).map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">carte da 0 a 11 · ${G.n===3?36:48} carte, 12 a testa · il seme delle carte 8–11 si vede sul dorso</span></div>
+    <div class="recap-row"><span class="lbl">Turno</span><span class="rv" style="margin-left:0">gioca una carta (si risponde al seme se si può) · oppure PUNTA (una volta per round) · oppure fai TANDEM</span></div>
+    <div class="recap-row"><span class="lbl">Tandem</span><span class="rv" style="margin-left:0">se chi ti precede ha giocato una carta del seme di mano, metti accanto una carta dello stesso seme: i valori si sommano · vincono in due (una presa a testa)</span></div>
+    <div class="recap-row"><span class="lbl">Puntata</span><span class="rv" style="margin-left:0">la carta di lato è la tua previsione di prese · chi punta salta la presa e prende subito una carta bonus (6, 3, 1) · all'ultima presa la carta rimasta è la puntata</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv" style="margin-left:0">1 punto a presa · puntata riuscita: 2 punti a presa + bonus · puntata 0 riuscita: 1.000.000 · si finisce a ${TARGET} punti</span></div></details>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>Tandem Trick è un gioco di prese in cui a volte puoi unire le tue carte a quelle del giocatore alla tua destra. Lo scopo è vincere prese e fare punti: se prevedi correttamente il numero di prese che farai (la puntata), il tuo punteggio raddoppia. Contano il tempismo e le decisioni.</p>
+<h4>Componenti</h4>
+<p>Carte: 4 semi (Rosso ●, Giallo ★, Blu ■, Nero ▲) numerati da 0 a 11 (48 carte). Le carte da 8 a 11 mostrano il seme anche sul dorso. Carte bonus: 6 punti, 3 punti, 1 punto (una per tipo).</p>
+<p>Con 3 giocatori si usano Rosso, Giallo e Blu (36 carte); con 4 giocatori tutti e 4 i semi (48 carte). In entrambi i casi ogni giocatore riceve 12 carte.</p>
+<h4>Preparazione del round</h4>
+<p>Si mescolano le carte e se ne distribuiscono 12 a testa. Le carte bonus sono a portata di tutti. Il primo giocatore del primo round è scelto a caso.</p>
+<h4>Azioni nel proprio turno</h4>
+<p>A turno, in senso orario, si sceglie una delle tre azioni: giocare una carta, puntare, fare tandem.</p>
+<p><b>Giocare una carta.</b> Chi apre può giocare qualsiasi carta. Gli altri devono rispondere al seme di mano se possono; se non hanno quel seme scartano una carta qualsiasi.</p>
+<p><b>Puntare (una volta per round).</b> Scegli una carta dalla mano e mettila di lato con il numero visibile: quel numero è la tua previsione di quante prese farai nel round. Subito dopo prendi una carta bonus (la prima libera: 6, poi 3, poi 1). Chi punta non partecipa a quella presa: quindi la carta della puntata non deve rispondere al seme (puntare permette di ignorare una volta l'obbligo di risposta). Se a puntare è chi doveva aprire, il seme di mano lo decide il primo giocatore successivo che gioca una carta. Se tutti puntano nella stessa presa, quella presa non viene assegnata, resta di mano lo stesso giocatore e si passa alla successiva. Si deve puntare esattamente una volta per round: se non l'hai ancora fatto all'ultima presa, la tua ultima carta diventa la tua puntata.</p>
+<p><b>Tandem.</b> Se il giocatore alla tua destra (il giocatore attivo che ha giocato subito prima di te) ha giocato una carta del seme di mano, puoi invece giocare una carta dello stesso seme per formare un tandem: la metti accanto alla sua. Se non fai tandem giochi normalmente la carta. Se il giocatore alla tua destra ha già puntato e non partecipa, lo salti e consideri il giocatore attivo successivo. Non si può fare tandem con una carta di scarto né sopra un altro tandem.</p>
+<h4>Forza della presa</h4>
+<p>Tra le carte del seme di mano vince il numero più alto. In un tandem le due carte si sommano e valgono come un unico valore. In caso di parità vince la parte che comprende la carta singola più alta. Le carte fuori seme non vincono mai.</p>
+<h4>Risolvere la presa</h4>
+<p>Il vincitore prende tutte le carte giocate nella presa e le mette coperte davanti a sé. Se vince un tandem, i due giocatori ricevono una presa ciascuno. Chi ha vinto apre la presa successiva; se ha vinto un tandem apre chi ha giocato la carta più alta.</p>
+<h4>Punteggio</h4>
+<p>Ogni presa vale 1 punto. Se la puntata è riuscita (hai fatto esattamente il numero di prese puntato) ogni presa vale 2 punti e in più ottieni il bonus della carta bonus presa: 6 punti per il primo a puntare, 3 per il secondo, 1 per il terzo (solo se la puntata riesce).</p>
+<p><b>Misère (puntata 0).</b> Puntare 0 significa dichiarare che non farai nessuna presa. Se ci riesci ottieni 1.000.000 di punti.</p>
+<h4>Fine della partita</h4>
+<p>Dopo l'ultima presa il round finisce: si controllano le puntate e si calcolano i punteggi. Se qualcuno ha almeno ${TARGET} punti la partita finisce e vince chi ha il punteggio totale più alto. Altrimenti si gioca un altro round, aperto da chi ha aperto l'ultima presa del round precedente.</p>
+<p><i>Interpretazioni nell'app:</i> a ogni presa ogni giocatore usa una carta (giocata o puntata), quindi i round hanno sempre 12 prese. Il quarto giocatore a puntare non trova più carte bonus. In caso di parità finale la vittoria è condivisa. L'AI vede, come i giocatori al tavolo, il seme sul dorso delle carte 8–11 e sa quali semi non hanno risposto, ma non vede le tue altre carte.</p>
+<p><i>Crediti:</i> gioco di Yoshihide Shinohara, grafica di smith, regolamento v1.2 (maggio 2026).</p>
+</div></details>`;
+
+let LOGOPEN=false;
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">Tandem Trick<span class="shapes">${SUITS.map(s=>`<i class="ph-fill ph-${s.icon}" style="color:${s.col}"></i>`).join('')}</span></div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    const pos=POS[G.n];
+    body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${G.pl.some(p=>p.hist.length)&&!G.over?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) actPick(Number(b.dataset.p));
+  else if(b.dataset.a!==undefined) actDo(Number(b.dataset.a));
+  else if(b.dataset.cf!==undefined) actCancel();
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('tdm-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('tdm-undo',OPT.undo?'1':'0'); }catch(err){}
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
