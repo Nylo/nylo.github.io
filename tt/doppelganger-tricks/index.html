@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doppelgänger Tricks</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gelasio:wght@400;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#17284f;
+  --ink:#0e1a3a;
+  --surface:#f4f5fa;
+  --surface-raised:#e3e7f2;
+  --accent:#2c5aa0;
+  --accent-soft:rgba(44,90,160,0.14);
+  --text:#14204a;
+  --text-soft:#4a5678;
+  --danger:#b3261e;
+  --success:#1f7a45;
+  --border:rgba(20,32,74,0.3);
+  --radius:10px;
+  --s0:#ee5aa3; --s1:#7f8a52; --s2:#f4b81e; --s3:#1b2145;
+  --n0:#ff8cc2; --n1:#b9c48b; --n2:#ffd45a; --n3:#d4d8f0;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:radial-gradient(ellipse at 50% 0%,#264078 0%,#17284f 62%,#0f1b3a 100%) fixed;background-color:var(--bg)}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Gelasio',serif;font-size:27px;font-weight:600;line-height:1.1;flex:1;color:#fff;display:flex;align-items:center;gap:10px}
+.logo .dia{width:12px;height:12px;border:2px solid #fff;transform:rotate(45deg);flex:0 0 auto}
+.badge{background:#fff;color:var(--ink);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:rgba(255,255,255,0.12);color:#fff;border:1px solid #fff}
+.btn:hover{background:rgba(255,255,255,0.3)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.nylo-home{color:#fff;border-color:#fff;background:rgba(255,255,255,0.12)}
+.nylo-home:hover{background:rgba(255,255,255,0.3);color:#fff}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:34px;height:19px;flex:0 0 34px;margin:0;border:1px solid var(--border);border-radius:999px;background:var(--surface-raised);cursor:pointer;transition:background .15s,border-color .15s}
+.opt-toggle input[type=checkbox]::before{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-soft);transition:transform .15s,background .15s}
+.opt-toggle input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.opt-toggle input[type=checkbox]:checked::before{transform:translateX(15px);background:#fff}
+.opt-toggle input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid #fff;cursor:pointer}
+.hamb:hover{background:rgba(255,255,255,0.3)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:230px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.45)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:normal;line-height:1.35;text-align:left;width:100%}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+/* nel menu le voci sono azioni a testo (home-btn.js): l'interruttore stilizzato deve restare nascosto e non occupare spazio */
+.menu-pop .opt-toggle.nylo-menu-action input[type=checkbox]{position:absolute;width:1px;height:1px;flex:none;margin:0;border:0;opacity:0;pointer-events:none}
+.menu-pop button.opt-toggle{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--text);text-align:left;background:transparent;border:0;box-shadow:none;cursor:pointer}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.lead{background:#fff;color:var(--ink)}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(5,10,30,0.65);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Gelasio',serif;font-size:18px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.35)}
+.dock.tall{position:static}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fff;border:1px solid var(--ink);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--ink);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.opt.num{min-width:38px;text-align:center}
+.opt .si{margin-right:4px}
+.hint{font-size:12px;color:var(--text-soft);line-height:1.5}
+.scroll-x{overflow-x:auto}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+.si{width:1em;height:1em;display:inline-block;vertical-align:-0.13em;fill:currentColor}
+
+.table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:linear-gradient(160deg,#142a5c 0%,#0c1838 100%);border:2px solid #fff;outline:1px solid rgba(255,255,255,0.45);outline-offset:3px;border-radius:14px;padding:12px;margin:4px 4px 16px;min-height:560px;color:#eef1fb}
+.table.n3{grid-template-areas:"left center right" "bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.07)}
+.seat.active{border-color:#ffd45a;background:rgba(255,212,90,0.14)}
+.seat.winner{border-color:#5ee08a;background:rgba(94,224,138,0.16)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.45);border-radius:4px;padding:2px 6px;color:#fff;display:inline-flex;align-items:center;gap:4px}
+.tag b{color:#ffd45a}
+.bidtag{background:#fff;color:var(--ink);border-radius:6px;padding:2px 8px;font-weight:700;font-size:12px}
+.bidtag b{font-size:15px}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:10px;height:15px;border-radius:2px;background:#1c3470;border:1px solid #fff}
+.seat.top .backs,.seat.left .backs,.seat.right .backs{display:grid;grid-template-columns:repeat(6,10px);max-width:none}
+.tableau{display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;min-height:74px;padding:4px 6px;border-radius:8px;background:rgba(255,255,255,0.08);min-width:56px}
+.slot{display:inline-block;width:42px;height:62px;border:1px dashed rgba(255,255,255,0.45);border-radius:6px}
+.cap{font-size:10px;color:#cfd6ee;line-height:1.2}
+
+/* carte: pannello colorato a destra, margine bianco con numero e simbolo a sinistra (come le carte originali) */
+.pc{width:var(--cw);height:var(--ch);border-radius:7px;border:1px solid #111;background:#fff;color:var(--ink);display:inline-flex;font-family:'Inter',sans-serif;font-weight:800;line-height:1;position:relative;flex-shrink:0;padding:0;overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,0.4)}
+.pc .pn{position:absolute;left:25%;right:3px;top:3px;bottom:3px;border-radius:4px}
+.pc.s0 .pn{background:var(--s0)} .pc.s1 .pn{background:var(--s1)} .pc.s2 .pn{background:var(--s2)} .pc.s3 .pn{background:var(--s3)}
+.pc .pn svg.fig{position:absolute;inset:12% 12%;width:76%;height:76%;fill:none;stroke:rgba(255,255,255,0.35);stroke-width:1.4}
+.pc.s2 .pn svg.fig{stroke:rgba(0,0,0,0.25)}
+.pc .nm{position:absolute;left:0;top:2px;width:25%;display:flex;flex-direction:column;align-items:center;gap:2px}
+.pc .nm b{font-size:12px;font-weight:800;color:#fff;text-shadow:-1px 0 #111,1px 0 #111,0 -1px #111,0 1px #111,-1px -1px #111,1px 1px #111,-1px 1px #111,1px -1px #111}
+.pc.s0 .nm b{color:var(--n0)} .pc.s1 .nm b{color:var(--n1)} .pc.s2 .nm b{color:var(--n2)} .pc.s3 .nm b{color:var(--n3)}
+.pc .nm .si{font-size:9px}
+.pc.s0 .nm .si{color:var(--s0)} .pc.s1 .nm .si{color:var(--s1)} .pc.s2 .nm .si{color:#d79a00} .pc.s3 .nm .si{color:var(--s3)}
+.pc .big{position:absolute;left:25%;right:3px;top:3px;bottom:3px;display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.5)}
+.pc.s2 .big{color:#14204a;text-shadow:none}
+.pc.mini{width:42px;height:62px}
+.pc.mini .big{font-size:21px}
+.pc.fresh{box-shadow:0 0 0 3px #7fb2ff}
+.pc.win{box-shadow:0 0 0 3px #5ee08a}
+.pc.ban{opacity:0.75;border-style:dashed;border-color:#ff7b6b}
+.pc.ban::after{content:'×';position:absolute;right:-1px;top:-1px;width:15px;height:15px;border-radius:50%;background:#d6362a;border:1px solid #fff;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:12px;font-weight:800;line-height:1;color:#fff}
+button.pc{cursor:pointer;transition:transform 0.12s}
+button.pc:hover:not(:disabled){transform:translateY(-6px)}
+button.pc:disabled{cursor:default}
+.pc.dim{opacity:0.4;filter:saturate(0.5)}
+.pc.legal{box-shadow:0 0 0 3px #ffd45a}
+.pc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px #ffd45a}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:14px}
+.eff{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;color:#fff;border:1px solid rgba(255,255,255,0.7)}
+.eff.s0{background:var(--s0)} .eff.s1{background:var(--s1)} .eff.s2{background:var(--s2);color:#14204a}
+body.a11y .pc.s0 .pn{background-image:radial-gradient(rgba(0,0,0,0.25) 22%,transparent 24%);background-size:7px 7px}
+body.a11y .pc.s1 .pn{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.25) 0 2px,transparent 2px 7px)}
+body.a11y .pc.s2 .pn{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.2) 0 2px,transparent 2px 7px)}
+body.a11y .pc.s3 .pn{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.25) 0 2px,transparent 2px 7px)}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;color:#cfd6ee}
+.center b{color:#ffd45a}
+.legend{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.lg{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:5px;font-weight:700;font-size:11px;border:1px solid rgba(255,255,255,0.7);color:#fff}
+.lg.s0{background:var(--s0)} .lg.s1{background:var(--s1)} .lg.s2{background:var(--s2);color:#14204a} .lg.s3{background:var(--s3)}
+.annih{font-weight:800;font-size:14px;color:#fff;background:#d6362a;border:2px solid #fff;border-radius:8px;padding:4px 10px;letter-spacing:0.03em}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .lg{vertical-align:middle}
+.paper{background:var(--surface)}
+.scorebox{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Inter',sans-serif;font-weight:800;font-size:15px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+@media(max-width:600px){
+  .logo{font-size:21px}
+  :root{--cw:32px;--ch:48px}
+  .pc{border-radius:5px}
+  .pc .pn{left:27%;right:2px;top:2px;bottom:2px;border-radius:3px}
+  .pc .nm{width:27%}
+  .pc .nm b{font-size:9px}
+  .pc .nm .si{font-size:7px}
+  .pc .big{font-size:16px;left:27%}
+  .pc.mini{width:32px;height:48px}
+  .pc.mini .big{font-size:15px}
+  .slot{width:32px;height:48px}
+  .table{padding:8px;gap:6px;grid-template-columns:1fr 1fr 1fr;margin:4px 3px 14px}
+  .back{width:7px;height:11px}
+  .seat.top .backs,.seat.left .backs,.seat.right .backs{grid-template-columns:repeat(6,7px)}
+  .hand{gap:2px}
+}
+@media(max-width:380px){.topbar{gap:6px}.logo{font-size:18px}.badge{padding:4px 9px}}
+</style>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a0c10">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="/pwa.js" defer></script>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script src="/tt/shared/core.js"></script>
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+// Semi: 0 Rosa (cerchio), 1 Verde (rettangolo), 2 Giallo (triangolo), 3 Doppelgänger (figura, jolly: conta sempre come il seme di mano)
+const SUITS = [
+  {n:'Rosa'}, {n:'Verde'}, {n:'Giallo'}, {n:'Doppelgänger'}
+];
+const SVGS = [
+  '<svg class="si" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>',
+  '<svg class="si" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="1"/></svg>',
+  '<svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5L22 21H2z"/></svg>',
+  '<svg class="si" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4.5"/><path d="M4.5 22c0-6.5 3-9.5 7.5-9.5s7.5 3 7.5 9.5z"/></svg>'
+];
+const SIC = s => SVGS[s];
+// sagome in controluce sulle carte: testa = simbolo del seme (la Doppelgänger li ha tutti e tre sovrapposti)
+const FIGS = [
+  '<circle cx="50" cy="38" r="22"/>',
+  '<rect x="34" y="14" width="32" height="48"/>',
+  '<path d="M50 12L76 62H24z"/>',
+  '<rect x="34" y="14" width="32" height="48"/><path d="M50 12L76 62H24z"/><circle cx="50" cy="38" r="22"/>'
+];
+const fig = s => `<svg class="fig" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${FIGS[s]}<path d="M26 98c0-24 8-30 24-30s24 6 24 30"/></svg>`;
+const ZEROPTS = 7, EXACT = 3, NEAR = 1;
+const POS = {3:['bottom','left','right'],4:['bottom','left','top','right']};
+const NAMES = ['Tu','AI Ines','AI Bruno','AI Clara'];
+const HUM = 0;
+const handSize = n => n===3?12:10;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('dt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('dt-a11y')==='1'; }catch(e){}
+const cname = c => `${c.v} ${SUITS[c.s].n}`;
+const mk = (s,v) => ({s,v,id:s*10+v-1});
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
+const num = n => n.toLocaleString('it-IT');
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// 40 carte (4 semi × 1–10); a 3 giocatori si tolgono i 10 (36 carte)
+function makeDeck(n){
+  const d=[]; for(let s=0;s<4;s++) for(let v=1;v<=(n===3?9:10);v++) d.push(mk(s,v));
+  return d;
+}
+// carte giocabili: la Doppelgänger si può sempre giocare ma non obbliga né soddisfa l'obbligo di seme
+function legalIdx(hand,lead){
+  const all=hand.map((_,i)=>i);
+  if(lead<0) return all;
+  if(!hand.some(c=>c.s===lead)) return all;
+  return all.filter(i=>hand[i].s===lead||hand[i].s===3);
+}
+// plays = [{p,c}] in ordine di gioco, lead = seme di mano (se la prima carta è una Doppelgänger, quello dichiarato).
+// Annientamento: due carte con lo stesso seme *effettivo* e lo stesso valore (Doppelgänger = seme di mano) escono dalla presa.
+// Vince la carta più alta del seme di mano tra quelle rimaste; se non ne resta nessuna, la più alta di qualsiasi seme (a pari valore la prima giocata);
+// se non resta nulla, nessuno vince.
+function resolveTrick(plays,lead){
+  const eff=plays.map(x=>x.c.s===3?lead:x.c.s), dead=plays.map(()=>false);
+  for(let i=0;i<plays.length;i++) for(let j=i+1;j<plays.length;j++)
+    if(eff[i]===eff[j]&&plays[i].c.v===plays[j].c.v){ dead[i]=true; dead[j]=true; }
+  let w=-1, mode='lead';
+  for(let i=0;i<plays.length;i++) if(!dead[i]&&eff[i]===lead&&(w<0||plays[i].c.v>plays[w].c.v)) w=i;
+  if(w<0){
+    mode='any';
+    for(let i=0;i<plays.length;i++) if(!dead[i]&&(w<0||plays[i].c.v>plays[w].c.v)) w=i;
+  }
+  if(w<0) mode='none';
+  return {eff,dead,wi:w,winner:w<0?-1:plays[w].p,mode};
+}
+// punti della puntata: esatta 3, errore di 1 → 1, altrimenti 0; puntata 0: 7 se esatta, altrimenti 0
+function bidPts(b,tk){
+  if(b===0) return tk===0?ZEROPTS:0;
+  return tk===b?EXACT:(Math.abs(tk-b)===1?NEAR:0);
+}
+const noNavy = h => !h.some(c=>c.s===3);
+
+// ═════════════════════════ AI ═════════════════════════
+// Puntata: Monte Carlo con mani avversarie casuali (le altre puntate sono stimate giocando "a vincere"), si sceglie la puntata col punteggio atteso migliore.
+// Giocata: Monte Carlo con determinizzazione (carte non viste distribuite rispettando i semi mancanti); il resto del round si simula con una politica
+// che gioca per raggiungere la propria puntata.
+const AIP = {N:22,eps:0.07};
+function polPlay(S,q,T){
+  const h=S.hands[q], lead=T.lead, r=h.length;
+  const lg=legalIdx(h,lead);
+  const navyLead=(i)=>lead<0&&h[i].s===3;
+  if(lg.length===1) return {i:lg[0],decl:navyLead(lg[0])?rnd(3):-1};
+  if(Math.random()<AIP.eps){ const i=lg[rnd(lg.length)]; return {i,decl:navyLead(i)?rnd(3):-1}; }
+  const need=S.bid[q]-S.tk[q];
+  const win=need<=0?false:(need>=r?true:Math.random()<need/r);
+  if(lead<0){
+    let bi=lg[0];
+    if(win){ for(const i of lg) if(h[i].v>h[bi].v||(h[i].v===h[bi].v&&Math.random()<0.5)) bi=i; }
+    else{
+      for(const i of lg){ const a=h[i], b=h[bi]; if((a.s===3?1:0)<(b.s===3?1:0)||((a.s===3)===(b.s===3)&&a.v<b.v)) bi=i; }
+    }
+    return {i:bi,decl:navyLead(bi)?rnd(3):-1};
+  }
+  const wins=[], loses=[];
+  for(const i of lg){
+    const rs=resolveTrick(T.plays.concat([{p:q,c:h[i]}]),lead);
+    (rs.winner===q?wins:loses).push(i);
+  }
+  let pick;
+  if(win){
+    pick=wins.length?wins.reduce((a,i)=>h[i].v<h[a].v?i:a,wins[0]):lg.reduce((a,i)=>h[i].v<h[a].v?i:a,lg[0]);
+  }else{
+    pick=loses.length?loses.reduce((a,i)=>h[i].v>h[a].v?i:a,loses[0]):lg.reduce((a,i)=>h[i].v<h[a].v?i:a,lg[0]);
+  }
+  return {i:pick,decl:-1};
+}
+function simTrick(S,T,L){
+  const n=S.n;
+  for(let k=T.plays.length;k<n;k++){
+    const q=(L+k)%n, r=polPlay(S,q,T);
+    const c=S.hands[q].splice(r.i,1)[0];
+    T.plays.push({p:q,c});
+    if(k===0) T.lead=c.s===3?r.decl:c.s;
+  }
+  const res=resolveTrick(T.plays,T.lead);
+  if(res.winner>=0){ S.tk[res.winner]++; S.lead=res.winner; } else S.lead=L;
+}
+function simRound(S,T,L){
+  simTrick(S,T,L);
+  while(S.hands[0].length>0) simTrick(S,{lead:-1,plays:[]},S.lead);
+}
+// mondo plausibile: le carte non viste si distribuiscono agli avversari rispettando i semi mancanti
+function sampleWorld(p){
+  const n=G.n, known=new Uint8Array(40);
+  for(let k=0;k<40;k++) if(G.seen[k]) known[k]=1;
+  G.hands[p].forEach(c=>{ known[c.id]=1; });
+  const pool=[]; for(let s=0;s<4;s++) for(let v=1;v<=(n===3?9:10);v++) if(!known[s*10+v-1]) pool.push(mk(s,v));
+  const sizes=G.hands.map((h,q)=>q===p?0:h.length), hands=G.hands.map(()=>[]);
+  const okQ=(q,s)=>sizes[q]>0&&(s===3||!G.void[q][s]);
+  const nElig=c=>{ let e=0; for(let q=0;q<n;q++) if(okQ(q,c.s)) e++; return e; };
+  shuffle(pool); pool.sort((a,b)=>nElig(a)-nElig(b));
+  for(const c of pool){
+    const el=[]; for(let q=0;q<n;q++) if(hands[q].length<sizes[q]&&okQ(q,c.s)) for(let r=0;r<sizes[q]-hands[q].length;r++) el.push(q);
+    let q;
+    if(el.length) q=el[rnd(el.length)];
+    else{ const any=[]; for(let z=0;z<n;z++) if(hands[z].length<sizes[z]) any.push(z); if(!any.length) break; q=any[rnd(any.length)]; }
+    hands[q].push(c);
+  }
+  hands[p]=G.hands[p].slice();
+  return hands;
+}
+const cloneS = S => ({n:S.n,hands:S.hands.map(a=>a.slice()),bid:S.bid.slice(),tk:S.tk.slice(),lead:S.lead});
+const cloneT = T => ({lead:T.lead,plays:T.plays.slice()});
+function aiBid(p){
+  const n=G.n, H=handSize(n), tot=new Array(H+1).fill(0);
+  for(let w=0;w<AIP.N;w++){
+    // mondo del via: carte altrui a caso
+    const pool=shuffle(makeDeck(n).filter(c=>!G.hands[p].some(x=>x.id===c.id)));
+    const hands=G.hands.map((h,q)=>q===p?h.slice():pool.splice(0,H));
+    // le altre puntate: i trick ottenuti giocando tutti "a vincere"
+    const S1={n,hands:hands.map(h=>h.slice()),bid:new Array(n).fill(99),tk:new Array(n).fill(0),lead:G.leader};
+    simRound(S1,{lead:-1,plays:[]},G.leader);
+    for(let b=0;b<=H;b++){
+      const S={n,hands:hands.map(h=>h.slice()),bid:S1.tk.slice(),tk:new Array(n).fill(0),lead:G.leader};
+      S.bid[p]=b;
+      simRound(S,{lead:-1,plays:[]},G.leader);
+      tot[b]+=bidPts(b,S.tk[p]);
+    }
+  }
+  let bi=0,bv=-1;
+  tot.forEach((v,b)=>{ const x=v/AIP.N+Math.random()*0.02; if(x>bv){ bv=x; bi=b; } });
+  return bi;
+}
+// giocata: ritorna {i,decl} (indice nella mano, seme dichiarato se apre con la Doppelgänger)
+function aiPlay(p){
+  const h=G.hands[p], T=G.T, lead=T.lead, lg=legalIdx(h,lead), cands=[];
+  for(const i of lg){
+    if(lead<0&&h[i].s===3) for(let d=0;d<3;d++) cands.push({i,decl:d}); else cands.push({i,decl:-1});
+  }
+  if(cands.length===1) return cands[0];
+  const tot=cands.map(()=>0);
+  for(let w=0;w<AIP.N;w++){
+    const hands=sampleWorld(p);
+    cands.forEach((cd,k)=>{
+      const S={n:G.n,hands:hands.map(a=>a.slice()),bid:G.bid.slice(),tk:G.tk.slice(),lead:G.leader};
+      const TT={lead:T.lead,plays:T.plays.slice()};
+      const c=S.hands[p].splice(cd.i,1)[0];
+      TT.plays.push({p,c});
+      if(TT.plays.length===1) TT.lead=c.s===3?cd.decl:c.s;
+      simRound(S,TT,T.leader);
+      tot[k]+=bidPts(G.bid[p],S.tk[p]);
+    });
+  }
+  let bi=0,bv=-1;
+  tot.forEach((v,k)=>{ const x=v/AIP.N+Math.random()*0.02; if(x>bv){ bv=x; bi=k; } });
+  return cands[bi];
+}
+// bonus: ★ (+1 sempre) o occhio-stelle (+3 se la puntata è esatta). Il primo vale sempre; con entrambi disponibili si stima la probabilità di puntata esatta.
+function aiBonus(p){
+  const av=['star','eye'].filter(k=>G.bonus[k]===null);
+  if(av.length===1) return av[0];
+  let ok=0, N=14;
+  for(let w=0;w<N;w++){
+    const hands=sampleWorld(p), S={n:G.n,hands:hands.map(a=>a.slice()),bid:G.bid.slice(),tk:G.tk.slice(),lead:G.leader};
+    const T=G.T;
+    if(S.hands[0].length&&S.hands.some(h=>h.length)){
+      // la presa in corso è già completata o in corso: si finisce con la politica
+      const rem=S.hands.map(h=>h.length);
+      if(Math.max(...rem)>Math.min(...rem)) simTrick(S,{lead:T.lead,plays:T.plays.map(x=>({p:x.p,c:x.c}))},T.leader);
+      while(S.hands[0].length>0) simTrick(S,{lead:-1,plays:[]},S.lead);
+    }
+    if(S.tk[p]===G.bid[p]) ok++;
+  }
+  return 3*ok/N>1?'eye':'star';
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,round:0,rounds:n,start0:rnd(n),start:0,leader:0,trickNo:0,msg:'',log:[],over:null,show:null,
+     hands:[],bid:[],tk:[],bonus:{star:null,eye:null},seen:new Uint8Array(40),void:[],
+     T:{lead:-1,decl:false,plays:[],res:null,leader:0},order:[],turn:-1,win:-1,fresh:-1,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  run();
+}
+function deal(){
+  const n=G.n, H=handSize(n), deck=shuffle(makeDeck(n));
+  G.hands=G.pl.map((_,i)=>sortHand(deck.slice(i*H,(i+1)*H)));
+  G.bid=G.pl.map(()=>null); G.tk=G.pl.map(()=>0); G.bonus={star:null,eye:null}; G.seen=new Uint8Array(40);
+  G.void=G.pl.map(()=>[false,false,false]);
+  G.T={lead:-1,decl:false,plays:[],res:null,leader:0};
+  G.trickNo=0; G.turn=-1; G.win=-1; G.fresh=-1; G.show=null; G.order=[];
+}
+function pick(legal,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+const bonusName = k => k==='star'?'bonus ★ (+1 punto sempre)':'bonus occhio ★★★ (+3 punti se la puntata è esatta)';
+async function bonusStep(p){
+  if(G.bonus.star!==null&&G.bonus.eye!==null) return;
+  if(G.pl.length&&(G.bonus.star===p||G.bonus.eye===p)) return;          // un solo bonus a testa per round (interpretazione)
+  if(!noNavy(G.hands[p])) return;
+  let k;
+  const av=['star','eye'].filter(x=>G.bonus[x]===null);
+  if(p===HUM){
+    const opts=av.map(x=>({label:'Prendi il '+bonusName(x),value:x})).concat([{label:'No, per ora',value:null}]);
+    k=await ask(HUM,'Non hai più carte Doppelgänger: puoi prendere un bonus',opts);
+  }else k=aiBonus(p);
+  if(!k) return;
+  G.bonus[k]=p;
+  logMsg(`${P(p).name} dichiara di non avere più carte Doppelgänger e prende il ${bonusName(k)}.`);
+  status(`${P(p).name} prende il ${bonusName(k)}.`);
+  await sleep(p===HUM?200:1100);
+}
+async function oneTrick(){
+  G.trickNo++;
+  const n=G.n, L=G.leader, H=handSize(n);
+  const T=G.T={lead:-1,decl:false,plays:[],res:null,leader:L};
+  G.order=Array.from({length:n},(_,i)=>(L+i)%n); G.win=-1; G.fresh=-1;
+  for(let k=0;k<n;k++){
+    const p=G.order[k], pl=P(p), h=G.hands[p];
+    G.turn=p;
+    status(`Presa ${G.trickNo}/${H} · tocca a ${pl.name}.`);
+    let idx, decl=-1;
+    if(p===HUM){
+      const lg=legalIdx(h,T.lead);
+      let hint;
+      if(T.lead<0) hint='sei di mano: gioca ciò che vuoi. Se apri con una Doppelgänger dichiari tu il seme.';
+      else{
+        const has=h.some(c=>c.s===T.lead);
+        hint=has?`devi rispondere al seme ${SUITS[T.lead].n}: puoi giocare una carta ${SUITS[T.lead].n} oppure una Doppelgänger (conta come ${SUITS[T.lead].n}).`
+                :`non hai carte ${SUITS[T.lead].n}: puoi giocare qualsiasi carta (una Doppelgänger conta come ${SUITS[T.lead].n}).`;
+      }
+      idx=await pick(lg,hint);
+      if(T.lead<0&&h[idx].s===3){
+        const d=await ask(HUM,'Dichiara il seme della tua Doppelgänger',[0,1,2].map(s=>({label:SUITS[s].n,value:s})));
+        decl=d;
+      }
+    }else{
+      await sleep(700);
+      const r=aiPlay(p); idx=r.i; decl=r.decl;
+    }
+    const c=h.splice(idx,1)[0];
+    T.plays.push({p,c});
+    G.seen[c.id]=1; G.fresh=p;
+    if(k===0){ T.lead=c.s===3?decl:c.s; T.decl=c.s===3; }
+    else if(c.s!==3&&c.s!==T.lead) G.void[p][T.lead]=true;           // non ha risposto al seme: non ne ha
+    logMsg(k===0
+      ?`${pl.name} apre con ${cname(c)}${c.s===3?` e dichiara ${SUITS[T.lead].n}`:''}.`
+      :`${pl.name} gioca ${cname(c)}${c.s===3?` (conta come ${SUITS[T.lead].n})`:(c.s!==T.lead?' (scarto)':'')}.`);
+    await bonusStep(p);
+  }
+  G.turn=-1;
+  const res=resolveTrick(T.plays,T.lead); T.res=res;
+  const dead=T.plays.filter((_,i)=>res.dead[i]);
+  if(dead.length){
+    const m=`ANNIENTAMENTO! ${dead.map(x=>`${cname(x.c)} di ${P(x.p).name}`).join(' e ')} escono dalla presa.`;
+    status(m); logMsg(m); await sleep(1700);
+  }
+  if(res.winner<0){
+    const m='Nessuna carta resta in gioco: nessuno vince la presa e chi era di mano apre di nuovo.';
+    status(m); logMsg(m); await sleep(1800);
+    G.leader=L;
+  }else{
+    G.tk[res.winner]++; G.win=res.winner;
+    const w=P(res.winner), c=T.plays[res.wi].c;
+    const m=res.mode==='lead'
+      ?`${w.name} vince la presa con ${cname(c)}.`
+      :`Nessuna carta del seme di mano è rimasta: vince la più alta (${cname(c)} di ${w.name}).`;
+    status(m); logMsg(m); await sleep(1900);
+    G.leader=res.winner;
+  }
+}
+async function scoring(){
+  const rows=G.pl.map(p=>{
+    const q=p.id, b=G.bid[q], t=G.tk[q], base=bidPts(b,t);
+    const star=G.bonus.star===q?1:0, eye=(G.bonus.eye===q&&t===b)?3:0;
+    const tot=base+star+eye;
+    p.total+=tot; p.hist.push(tot);
+    return {p:q,bid:b,tk:t,base,star,eye,hasEye:G.bonus.eye===q,tot,total:p.total};
+  });
+  G.show={rows};
+  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} puntava ${r.bid}, ha vinto ${r.tk} prese: ${r.base} punti${r.star?' + 1 (bonus ★)':''}${r.hasEye?(r.eye?' + 3 (bonus occhio)':' + 0 (bonus occhio, puntata non esatta)'):''} = ${r.tot}. Totale ${r.total}.`));
+  const last=G.round===G.rounds-1;
+  status(last?'Ultimo round concluso: ecco il risultato.':`Round ${G.round+1} concluso.`);
+  await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Round successivo',value:1}]);
+  if(!last) G.show=null;
+  return last;
+}
+async function bidding(){
+  const n=G.n, H=handSize(n), g=G;
+  status(`Round ${G.round+1}: ogni giocatore prevede quante prese vincerà (puntata segreta fino alla rivelazione).`);
+  const mine=await ask(HUM,`Quante prese vincerai in questo round? (0–${H})`,Array.from({length:H+1},(_,b)=>({label:b===0?'0 (nessuna)':String(b),value:b,num:true})));
+  G.bid[HUM]=mine;
+  status('Gli altri giocatori stanno puntando…'); await sleep(500);
+  for(let q=1;q<n;q++){ G.bid[q]=aiBid(q); if(g!==G) throw ABORT; await sleep(30); }
+  logMsg(`Puntate: ${G.pl.map(p=>`${p.name} ${G.bid[p.id]}`).join(' · ')}.`);
+  status('Puntate rivelate: ora si gioca.'); await sleep(900);
+}
+async function run(){
+  const g=G;
+  try{
+    for(let k=0;k<g.rounds;k++){
+      g.round=k; g.start=(g.start0+k)%g.n; g.leader=g.start;
+      deal();
+      logMsg(`— Round ${k+1}/${g.rounds}: ${handSize(g.n)} carte a testa, apre ${P(g.start).name} —`);
+      if(!k){
+        status(`Buona partita a Doppelgänger Tricks, ${P(HUM).name}!`);
+        await ask(HUM,g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name,[{label:'Ok, si parte',value:1}]);
+      }
+      await bidding();
+      for(let t=0;t<handSize(g.n);t++) await oneTrick();
+      if(await scoring()) break;
+    }
+    const m=Math.max(...g.pl.map(p=>p.total));
+    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    g.turn=-1; render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const cardHtml=(c,cls='',tag='span',attrs='')=>`<${tag} class="pc s${c.s} ${cls}" ${attrs} title="${cname(c)}"><span class="pn">${fig(c.s)}</span><span class="nm"><b>${c.v}</b>${SIC(c.s)}</span><span class="big">${c.v}</span></${tag}>`;
+function tableauHtml(p){
+  const T=G.T, i=T.plays.findIndex(x=>x.p===p);
+  if(i<0) return '<div class="tableau"><span class="slot"></span></div>';
+  const x=T.plays[i], res=T.res;
+  const banned=res&&res.dead[i];
+  const cls=`mini ${banned?'ban':''} ${G.fresh===p&&!res?'fresh':''} ${res&&res.winner===p?'win':''}`;
+  const eff=x.c.s===3&&T.lead>=0?`<span class="eff s${T.lead}">come ${SUITS[T.lead].n}</span>`:'';
+  return `<div class="tableau">${cardHtml(x.c,cls)}${eff}${banned?'<span class="cap">annientata</span>':''}</div>`;
+}
+function flagHtml(p){
+  if(!G||G.over) return '';
+  if(G.turn>=0&&G.T.leader===p) return '<span class="flag lead">Di mano</span>';
+  if(G.turn<0&&G.trickNo===0&&G.start===p) return '<span class="flag lead">Apre</span>';
+  return '';
+}
+function seatHtml(p,pos){
+  const pl=P(p), active=G.turn===p, winner=G.win===p&&G.turn<0;
+  let h;
+  if(p===HUM){
+    h=`<div class="hand">${G.hands[HUM].map((c,i)=>{
+      if(PR&&PR.type==='card'){
+        const lg=PR.legal.has(i);
+        return cardHtml(c,`${lg?'legal':'dim'} ${PR.sel===i?'sel':''}`,'button',`${lg?'':'disabled'} data-p="${i}"`);
+      }
+      return cardHtml(c);
+    }).join('')}</div>`;
+  }else h=`<div class="backs">${G.hands[p].map(()=>'<span class="back"></span>').join('')}</div>`;
+  const bid=G.bid[p];
+  const bonus=(G.bonus.star===p?`<span class="tag" title="Bonus ★: +1 punto">${ico('star')} +1</span>`:'')+(G.bonus.eye===p?`<span class="tag" title="Bonus occhio: +3 se la puntata è esatta">${ico('eye')} +3</span>`:'');
+  const meta=`<div class="seat-meta">${bid!=null?`<span class="bidtag">puntata <b>${bid}</b></span>`:''}<span class="tag">prese <b>${G.tk[p]}</b></span><span class="tag">carte <b>${G.hands[p].length}</b></span><span class="tag">punti <b>${num(pl.total)}</b></span>${bonus}</div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${h}`:(pos==='top'?`${h}${name}${meta}${tableauHtml(p)}`:`${name}${meta}${tableauHtml(p)}${h}`);
+  return `<div class="seat ${pos} ${G.turn>=0&&G.T.leader===p?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+function legendHtml(){
+  return `<div class="legend">${SUITS.map((s,i)=>`<span class="lg s${i}">${SIC(i)} ${s.n}</span>`).join('')}</div>`;
+}
+function centerHtml(){
+  const T=G.T, res=T.res;
+  const lead=T.lead>=0?`<div>Seme di mano: <b>${SUITS[T.lead].n}</b> ${SIC(T.lead)}${T.decl?' <span class="cap">(dichiarato)</span>':''}</div>`:'<div>Seme di mano: <b>–</b></div>';
+  const top=(res&&res.dead.some(x=>x)?'<div class="annih">ANNIENTAMENTO!</div>':'')+(res&&res.winner>=0?`<div>Vince la presa: <b>${esc(P(res.winner).name)}</b></div>`:(res?'<div>Nessuno vince la presa</div>':''));
+  return `<div class="center">${top}${lead}
+    <div>Presa <b>${Math.min(G.trickNo,handSize(G.n))}/${handSize(G.n)}</b> · Round <b>${G.round+1}/${G.rounds}</b></div>
+    <div class="cbon" title="Bonus del round">${['star','eye'].map(k=>`<span class="tag" style="opacity:${G.bonus[k]===null?1:0.35}">${ico(k==='star'?'star':'eye')} ${k==='star'?'+1':'+3'}</span>`).join(' ')}</div>
+    ${legendHtml()}</div>`;
+}
+function scoreTable(){
+  const nr=G.pl[0].hist.length;
+  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${p.hist.map(x=>`<td>${x}</td>`).join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Punteggi</th>${Array.from({length:nr},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table></div>`;
+}
+function roundTable(){
+  return `<div class="scroll-x"><table class="score"><tr><th></th><th>Puntata</th><th>Prese</th><th>Puntata ➜ punti</th><th>Bonus</th><th>Round</th><th>Totale</th></tr>${G.show.rows.map(r=>{
+    const bon=[r.star?'★ +1':'',r.hasEye?(r.eye?'occhio +3':'occhio +0'):''].filter(Boolean).join(' · ')||'–';
+    return `<tr><td>${esc(P(r.p).name)}</td><td>${r.bid}</td><td>${r.tk}</td><td class="${r.base>=3?'pos':''}">${r.base}</td><td>${bon}</td><td><b>${r.tot}</b></td><td>${r.total}</td></tr>`;
+  }).join('')}</table></div>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Doppelgänger Tricks contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show) html+=roundTable();
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt ${o.num?'num':''}" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){
+      const c=G.hands[HUM][PR.sel];
+      html+=`<div class="opts"><button class="opt" data-cf="1">${esc('Conferma: gioca '+cname(c))}</button><button class="opt" data-cf="0">Annulla</button></div>`;
+    }
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n;
+  return `<details class="recap"><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Mazzo</span>${SUITS.map((s,i)=>`<span class="lg s${i}">${SIC(i)} ${s.n}</span>`).join('')}<span class="rv">valori 1–${n===3?9:10} · ${n===3?'36':'40'} carte, ${handSize(n)} a testa · ${handSize(n)} prese per round</span></div>
+    <div class="recap-row"><span class="lbl">Puntata</span><span class="rv">a inizio round ognuno punta quante prese vincerà (0–${handSize(n)}); le puntate si rivelano insieme</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">si risponde al seme di mano se si può · vince la carta più alta del seme di mano · chi vince apre la presa successiva</span></div>
+    <div class="recap-row"><span class="lbl">Doppelgänger</span><span class="rv">la carta di questo seme conta sempre come il seme di mano (chi apre dichiara il seme) · si può sempre giocare, mai obbligatorio · se ha lo stesso valore di una carta del seme di mano, le due si annientano e escono dalla presa</span></div>
+    <div class="recap-row"><span class="lbl">Bonus</span><span class="rv">chi resta senza Doppelgänger in mano, dopo aver giocato una carta, può prendere il bonus ★ (+1) o il bonus occhio (+3 se la puntata è esatta)</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">puntata esatta 3 · sbagliata di 1: 1 · altrimenti 0 · puntata 0 esatta: 7 (sbagliata: 0)</span></div>
+    <div class="recap-row"><span class="lbl">Partita</span><span class="rv">${n} round (uno a testa come primo giocatore) · vince il totale più alto</span></div></details>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Introduzione</h4>
+<p>Sei a una festa e decidi di partecipare a una gara per l'invitato vestito con più eleganza. Gira però voce della presenza di doppelgänger, che possono assumere l'aspetto di altre persone… Si dice che se qualcuno incontra un doppelgänger con lo stesso volto e gli stessi vestiti, entrambi scompaiono da questo mondo. Ma a quanto pare è solo un imitatore di volti: sono sicuro che non ci saranno problemi. Non preoccuparti, goditi la festa.</p>
+<h4>Panoramica</h4>
+<p>Segna punti prevedendo correttamente il numero di prese che vincerai in ogni round. Usa con astuzia le carte Doppelgänger per realizzare le tue previsioni e ostacolare quelle degli avversari. Dopo un certo numero di round vince il giocatore con più punti.</p>
+<h4>Componenti e preparazione</h4>
+<p>40 carte da gioco, da 1 a 10, in 4 semi: Rosa (cerchio), Verde (rettangolo), Giallo (triangolo) e il seme <b>Doppelgänger</b> (blu notte, la figura). Ogni giocatore ha le sue carte previsione (1–12 e il 0) e ci sono 2 carte bonus. A 3 giocatori si tolgono tutti i 10 (36 carte); a 4 giocatori si usano tutte le carte. Le carte si mescolano e si distribuiscono in parti uguali: 12 carte a testa in 3, 10 in 4. Il primo giocatore del primo round dell'app è scelto a caso.</p>
+<h4>Svolgimento</h4>
+<p><b>Puntata.</b> Ogni giocatore prevede, in segreto e simultaneamente, quante prese vincerà nel round (da 0 al numero di carte in mano). Per puntare zero si copre la previsione con la carta 0. Le puntate si rivelano insieme e sono informazione pubblica.</p>
+<p><b>Prese.</b> Il primo giocatore gioca una qualsiasi carta della sua mano. In senso orario, ciascun altro deve rispondere con una carta dello stesso seme della carta di mano, se può (rispondere al seme); se non ha carte di quel seme gioca ciò che vuole. Quando tutti hanno giocato si forma la presa. La carta più forte è quella di valore più alto del seme di mano: chi l'ha giocata vince la presa, la raccoglie e apre la presa successiva con una carta qualsiasi.</p>
+<p><b>Carte Doppelgänger.</b> Le carte del seme Doppelgänger contano sempre come uno degli altri tre semi (Verde, Giallo o Rosa). Se la gioca il primo giocatore, deve dichiarare a quale dei tre semi appartiene, e gli altri devono rispondere a quel seme. Se la gioca un altro giocatore, la Doppelgänger segue sempre il seme di mano: vale come una carta del seme di mano. Si può sempre giocare una Doppelgänger, ma non si è mai obbligati a farlo: la si può giocare anche se si hanno carte del seme di mano, e non c'è obbligo di giocarla se non se ne hanno. Una Doppelgänger in mano non conta come «avere carte del seme di mano».</p>
+<p><b>Annientamento.</b> Se nella stessa presa vengono giocate due carte dello stesso seme e dello stesso valore, cioè se una Doppelgänger incontra la carta del seme di mano con lo stesso valore, entrambe cessano di esistere e vengono scartate dalla presa. Poiché la Doppelgänger vale sempre come il seme di mano, non c'è annientamento con carte di altri semi. Il seme di mano resta quello deciso dalla prima carta anche se questa viene annientata: vince la carta più alta di quel seme tra quelle rimaste. Se non ne è rimasta nessuna, vince la carta più alta di qualsiasi seme tra quelle rimaste (a parità vince chi ha giocato prima). Se non resta nessuna carta, nessuno vince la presa e chi era di mano apre di nuovo.</p>
+<p><b>Carte bonus.</b> Ci sono due carte bonus che si possono prendere durante il round. Nel momento in cui un giocatore, dopo aver giocato una carta, non ha più carte Doppelgänger in mano (anche se ha appena giocato l'ultima), può dichiararlo e scegliere una carta bonus, se non è già stata presa. Si può prendere solo nel proprio turno, dopo aver giocato; se non si hanno Doppelgänger fin dall'inizio, si attende di giocare la prima carta. Non c'è obbligo di prendere un bonus. Il bonus ★ vale <b>1 punto</b> a fine round, a prescindere dalla puntata. Il bonus occhio vale <b>3 punti</b> a fine round se la puntata è esatta.</p>
+<h4>Fine del round e punteggio</h4>
+<p>Quando tutte le carte sono state giocate si assegnano i punti: puntata esatta <b>3 punti</b>; puntata sbagliata di una sola presa (in più o in meno) <b>1 punto</b>; sbagliata di due o più prese <b>0 punti</b>. <b>Puntata zero:</b> 7 punti se si vincono davvero 0 prese, altrimenti 0 punti (anche se si sbaglia di una sola). A questi punti si aggiungono i bonus. Poi le carte bonus tornano al centro, si rimescola tutto e si ricomincia: il primo giocatore è quello alla sinistra del primo giocatore del round precedente.</p>
+<h4>Fine della partita</h4>
+<p>La partita finisce dopo un numero di round pari al numero di giocatori (3 con 3 giocatori, 4 con 4). Vince chi ha il punteggio più alto; in caso di parità la vittoria è condivisa.</p>
+<p><i>Nell'app:</i> la puntata è un numero da 0 a quante sono le carte in mano; chi non vince nessuna presa (per esempio perché tutte le carte sono state annientate) non incrementa il proprio conteggio; ogni giocatore può prendere al massimo un bonus per round (l'app non permette di prenderli entrambi); a ogni presa che non ha vincitore le carte giocate vengono comunque consumate, quindi un round ha sempre lo stesso numero di prese delle carte in mano. L'AI vede le carte giocate e annientate e sa quali semi non sono stati seguiti, ma non vede le tue carte.</p>
+<p><i>Crediti:</i> gioco e grafica di Mashiu; grafica: Mashiu / Arthur Lacerda; Mashiu Games 2025, Selo Carteado 2026.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo"><span class="dia"></span>Doppelgänger Tricks</div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${G.rounds}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${G.pl[0].hist.length&&!G.over?`<div class="scorebox">${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock${G&&(G.show||G.over)?' tall':''}">${dockHtml()}</div>`+body;
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('dt-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('dt-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(!OPT.undo&&PR&&PR.type==='card'&&PR.sel!=null){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
