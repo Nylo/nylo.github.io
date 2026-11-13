@@ -217,6 +217,7 @@ details.rules,details.recap,.log,.recap,.panel,.name-box,.menu-pop{background:rg
 </head>
 <body>
 <div class="app" id="app"></div>
+<script src="/tt/shared/core.js"></script>
 <script type="text/plain" id="src-ai">
 // ═════════════════════════ COSTANTI ═════════════════════════
 const COLORS = [
@@ -245,18 +246,11 @@ const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
 const rnd = n => Math.floor(Math.random()*n);
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-const ABORT = {abort:true};
 let G = null, PR = null;
 const OPT = {undo:true,a11y:false};
 try{ const s=localStorage.getItem('six-forces-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('six-forces-a11y')==='1'; }catch(e){}
-const delay = ms => new Promise(r=>setTimeout(r,ms));
-async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
-const P = i => G.pl[i];
 const sum = a => a.reduce((x,y)=>x+y,0);
-function logMsg(t){ G.log.unshift(t); if(G.log.length>600) G.log.pop(); render(); }
-function status(t){ G.msg=t; render(); }
 
 // ═════════════════════════ INTERAZIONE ═════════════════════════
 async function ask(p,title,options,o={}){

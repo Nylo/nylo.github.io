@@ -2,9 +2,9 @@
 // sulla copia salvata se la rete manca o è lenta); font, icone e librerie esterne «cache-first» / «stale-while-revalidate».
 // Il traffico Firebase (stanze) non passa di qui: le stanze richiedono la rete.
 // Per forzare un ricaricamento completo della cache dopo modifiche al service worker, incrementa VERSION.
-const VERSION = 'nylo-v1';
+const VERSION = 'nylo-v2';
 const CORE = ['/', '/tt/', '/ntt/', '/home-btn.js', '/auth-gate.js', '/tambu-gate.js', '/pwa.js',
-              '/manifest.webmanifest', '/icons/icon-192.png', '/icons/apple-touch-icon.png'];
+              '/tt/shared/core.js', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/apple-touch-icon.png'];
 const SWR_HOSTS = new Set(['fonts.googleapis.com', 'cdn.tailwindcss.com']);                      // contenuti che possono cambiare
 const IMMUTABLE_HOSTS = new Set(['fonts.gstatic.com', 'unpkg.com', 'cdnjs.cloudflare.com', 'www.gstatic.com']);  // URL versionati
 const TIMEOUT_MS = 3500;
@@ -32,13 +32,14 @@ self.addEventListener('message', e => {
   e.waitUntil((async () => {
     const cache = await caches.open(VERSION);
     try { const r = await fetch(d.url); if (r.ok) await cache.put(d.url, r); } catch (err) {}
-    // font/icone/librerie esterne già caricate dalla pagina prima che il service worker prendesse il controllo
+    // script/stili condivisi, font/icone/librerie esterne già caricati dalla pagina prima che il service worker prendesse il controllo
     const assets = Array.isArray(d.assets) ? d.assets.slice(0, 60) : [];
     await Promise.allSettled(assets.map(async u => {
       let h; try { h = new URL(u); } catch (err) { return; }
-      if (h.protocol !== 'https:' || !(SWR_HOSTS.has(h.hostname) || IMMUTABLE_HOSTS.has(h.hostname))) return;
-      if (await cache.match(u)) return;
-      const r = await fetch(u, { mode: 'cors', credentials: 'omit' });
+      const own = h.origin === location.origin && h.pathname !== '/sw.js';
+      if (!own && (h.protocol !== 'https:' || !(SWR_HOSTS.has(h.hostname) || IMMUTABLE_HOSTS.has(h.hostname)))) return;
+      if (!own && await cache.match(u)) return;
+      const r = own ? await fetch(u) : await fetch(u, { mode: 'cors', credentials: 'omit' });
       if (r.ok) await cache.put(u, r);
     }));
   })());

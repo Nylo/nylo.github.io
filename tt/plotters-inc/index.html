@@ -175,6 +175,7 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 <body>
 <div class="app" id="app"></div>
 
+<script src="/tt/shared/core.js"></script>
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const COLS = [
@@ -191,17 +192,11 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
 const rnd = n => Math.floor(Math.random()*n);
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-const ABORT = {abort:true};
 let G = null, PR = null;
 const OPT = {undo:true,a11y:false};
 try{ const s=localStorage.getItem('pi-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('pi-a11y')==='1'; }catch(e){}
-const delay = ms => new Promise(r=>setTimeout(r,ms));
-async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
-const P = i => G.pl[i];
 function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
-function status(t){ G.msg=t; render(); }
 const cname = c => `${COLS[c.s].n} ${c.v}`;
 const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
 
@@ -361,8 +356,6 @@ function aiPickCard(p){
   return lg[argmax(sc)];
 }
 
-// ═════════════════════════ PARTITA ═════════════════════════
-function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,round:0,start:rnd(n),msg:'',log:[],over:null,show:null,

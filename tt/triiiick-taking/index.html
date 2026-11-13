@@ -157,6 +157,7 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 <body>
 <div class="app" id="app"></div>
 
+<script src="/tt/shared/core.js"></script>
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const SUITS = [
@@ -181,17 +182,11 @@ function tokensFor(n,rider){
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
 const rnd = n => Math.floor(Math.random()*n);
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-const ABORT = {abort:true};
 let G = null, PR = null;
 const OPT = {undo:true,a11y:false};
 try{ const s=localStorage.getItem('tk-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tk-a11y')==='1'; }catch(e){}
-const delay = ms => new Promise(r=>setTimeout(r,ms));
-async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
-const P = i => G.pl[i];
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
-function status(t){ G.msg=t; render(); }
 const cname = c => `${SUITS[c.s].n} ${c.v}`;
 const plu = (n,s,p) => `${n} ${n===1?s:p}`;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
@@ -199,19 +194,6 @@ const key = c => c.s+'-'+c.v;
 const cnt = p => G.S.priv[p].length+G.S.pub[p].length;
 const tokStr = t => t==='R'?'Rider':String(t);
 
-// ═════════════════════════ INTERAZIONE ═════════════════════════
-async function ask(p,title,options){
-  const ok=options.filter(x=>!x.disabled);
-  if(!ok.length) return null;
-  if(p!==HUM) return ok[rnd(ok.length)].value;
-  const g=G;
-  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
-}
-function answer(i){
-  if(!PR||PR.type!=='choose') return;
-  const o=PR.options[i]; if(!o||o.disabled) return;
-  const r=PR.res; PR=null; render(); r(o.value);
-}
 
 // ═════════════════════════ PRESE (funzioni pure) ═════════════════════════
 const ks = c => c.s===BLACK?100+c.v:c.v;
@@ -226,11 +208,6 @@ function winIdx(tr){
   const lead=tr[0].c.s; let bi=0;
   for(let i=1;i<tr.length;i++) if(beat(tr[i].c,tr[bi].c,lead)) bi=i;
   return bi;
-}
-function legalOf(hand,trick){
-  if(!trick.length) return hand.slice();
-  const f=hand.filter(c=>c.s===trick[0].c.s);
-  return f.length?f:hand.slice();
 }
 // stima della probabilità che una carta vinca una presa
 function pw(c,n){
@@ -354,8 +331,6 @@ function aiNeg(p){
   return exp-cur>0.4;
 }
 
-// ═════════════════════════ PARTITA ═════════════════════════
-function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n,rider){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,rider:!!rider,round:0,first0:rnd(n),first:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,
@@ -630,9 +605,6 @@ const RULES_HTML = `
 </div></details>`;
 
 let LOGOPEN=false;
-function logHtml(){
-  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
-}
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 let MENUOPEN=false;
 function menuHtml(){

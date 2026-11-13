@@ -223,6 +223,7 @@ body .app>section>p.muted{color:var(--topc,var(--text-soft));margin-bottom:10px}
 <body>
 <div class="app" id="app"></div>
 
+<script src="/tt/shared/core.js"></script>
 <script type="text/plain" id="src-ai">
 // ═════════════════════════ COSTANTI ═════════════════════════
 const SUITS = [
@@ -243,17 +244,10 @@ const CHAOS = {t:'c'}, TRANQ = {t:'q'};
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
 const rnd = n => Math.floor(Math.random()*n);
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-const ABORT = {abort:true};
 let G = null, PR = null;
 const OPT = {undo:true,a11y:false};
 try{ const s=localStorage.getItem('apo-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('apo-a11y')==='1'; }catch(e){}
-const delay = ms => new Promise(r=>setTimeout(r,ms));
-async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
-const P = i => G.pl[i];
-function logMsg(t){ G.log.unshift(t); if(G.log.length>600) G.log.pop(); render(); }
-function status(t){ G.msg=t; render(); }
 const cname = c => c.t==='h'?`${SUITS[c.s].n} ${c.v}`:(c.t==='c'?'Caos':'Tranquillità');
 const ptsOf = c => c.t==='h'?c.v:(c.t==='c'?5:0);
 
@@ -263,25 +257,6 @@ async function ask(p,title,options){
   if(!ok.length) return null;
   const g=G;
   return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
-}
-function askCard(legal,hint){
-  const g=G;
-  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
-}
-function answer(i){
-  if(!PR||PR.type!=='choose') return;
-  const o=PR.options[i]; if(!o||o.disabled) return;
-  const r=PR.res; PR=null; render(); r(o.value);
-}
-function playIdx(i){
-  if(!PR||PR.type!=='card'||!PR.legal.has(i)) return;
-  if(OPT.undo){ PR.sel=i; render(); return; }
-  const r=PR.res; PR=null; render(); r(i);
-}
-function confirmCard(ok){
-  if(!PR||PR.type!=='card'||PR.sel==null) return;
-  if(!ok){ PR.sel=null; render(); return; }
-  const i=PR.sel, r=PR.res; PR=null; render(); r(i);
 }
 
 // ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
@@ -692,18 +667,8 @@ const RULES_HTML = `
 </div></details>`;
 
 let LOGOPEN=false;
-function logHtml(){
-  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
-}
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 let MENUOPEN=false;
-function menuHtml(){
-  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
-    ${MENUOPEN?`<div class="menu-pop">
-      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
-      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
-    </div>`:''}</div>`;
-}
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');

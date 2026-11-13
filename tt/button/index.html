@@ -243,6 +243,7 @@ button.otr.can:hover{background:rgba(232,102,94,.28)}
 <body>
 <div class="app" id="app"></div>
 
+<script src="/tt/shared/core.js"></script>
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const SUITS = ['Leopardato','Righe','Pied-de-poule','Tartan'];
@@ -264,17 +265,11 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
 const rnd = n => Math.floor(Math.random()*n);
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-const ABORT = {abort:true};
 let G = null, PR = null;
 const OPT = {undo:true};
 try{ const s=localStorage.getItem('bt-undo'); if(s!==null) OPT.undo=s==='1'; }catch(e){}
-const delay = ms => new Promise(r=>setTimeout(r,ms));
-async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
-const P = i => G.pl[i];
 function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
-function status(t){ G.msg=t; render(); }
 const argmax = a => { let b=0; for(let i=1;i<a.length;i++) if(a[i]>a[b]) b=i; return b; };
 
 // ═════════════════════════ CARTE E REGOLE (funzioni pure) ═════════════════════════
@@ -532,8 +527,6 @@ function confirmMove(ok){
   finishMove();
 }
 
-// ═════════════════════════ PARTITA ═════════════════════════
-function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n,team){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   team=!!team&&n===4;

@@ -203,6 +203,7 @@ body .app>section>p.muted{color:var(--topc,var(--text-soft));margin-bottom:10px}
 </head>
 <body>
 <div class="app" id="app"></div>
+<script src="/tt/shared/core.js"></script>
 <script type="text/plain" id="src-ai">
 // ═════════════════════════ COSTANTI ═════════════════════════
 const SUITS = [
@@ -221,17 +222,11 @@ function deckFor(n){ const d=[]; for(let s=(n===3?1:0);s<4;s++) for(let r=1;r<=9
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
 const rnd = n => Math.floor(Math.random()*n);
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-const ABORT = {abort:true};
 let G = null, PR = null;
 const OPT = {undo:true,a11y:false};
 try{ const s=localStorage.getItem('nl-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('nl-a11y')==='1'; }catch(e){}
-const delay = ms => new Promise(r=>setTimeout(r,ms));
-async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
-const P = i => G.pl[i];
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
-function status(t){ G.msg=t; render(); }
 const cname = c => `${SUITS[c.s].n} ${c.r}`;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.r-b.r);
 const SHAPES = ['cerchio','triangolo','rombo','stella'];

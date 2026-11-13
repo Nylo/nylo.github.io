@@ -108,6 +108,7 @@ details.rules summary,details.recap>summary{cursor:pointer;font-size:12px;font-w
 </head>
 <body>
 <div class="app" id="app"></div>
+<script src="/tt/shared/core.js"></script>
 <script>
 // ═════════════════════════ DATI MAPPA ═════════════════════════
 const MW_=591, MH_=838;
@@ -143,16 +144,10 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
 const rnd = n => Math.floor(Math.random()*n);
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-const ABORT = {abort:true};
 let G = null, PR = null;
-const delay = ms => new Promise(r=>setTimeout(r,ms));
-async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
-const P = i => G.pl[i];
 const pname = p => G.pl[p].name;
 function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
-function status(t){ G.msg=t; render(); }
 let TID=0;
 const mkTile = t => ({id:++TID,t});
 const act = S => ACT[S.cyc];
@@ -359,7 +354,6 @@ function newMatch(){
   G=Object.assign(S,{pl:[{id:0,name:NAMES[0]},{id:1,name:NAMES[1]}],log:[],msg:'',over:null,cycN:0,welcome:true,first:0,tokCur:0,turn:-1,anum:1,an:2,lastCycle:null});
   run();
 }
-function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function drawOffer(n){
   while(G.offer.length<n){
     if(!G.deck.length){ if(!G.disc.length) break; G.deck=shuffle(G.disc); G.disc=[]; }

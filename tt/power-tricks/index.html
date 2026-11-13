@@ -216,6 +216,7 @@ body.a11y .fc.k0,body.a11y .rchip.k0{background-image:repeating-linear-gradient(
 <body>
 <div class="app" id="app"></div>
 
+<script src="/tt/shared/core.js"></script>
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const SUITS = [
@@ -311,19 +312,13 @@ const GCOL = {G:'Verde',P:'Viola',O:'Arancione',B:'Azzurra',R:'Rossa',Y:'Gialla'
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
 const rnd = n => Math.floor(Math.random()*n);
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-const ABORT = {abort:true};
 let G = null, PR = null;
 const OPT = {undo:true,a11y:false};
 try{ const s=localStorage.getItem('pt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('pt-a11y')==='1'; }catch(e){}
 let SETUP = {ch:1};
 try{ const c=localStorage.getItem('pt-ch'); if(c!==null&&/^[0-7]$/.test(c)) SETUP.ch=+c; }catch(e){}
-const delay = ms => new Promise(r=>setTimeout(r,ms));
-async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
-const P = i => G.pl[i];
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
-function status(t){ G.msg=t; render(); }
 const cname = c => `${c.r} di ${SUITS[c.s].n}`;
 const key = c => c.s*20+c.r;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.r-b.r);
@@ -334,11 +329,6 @@ const who = p => P(p).name;
 function choose(title,options,info){
   const g=G;
   return new Promise((res,rej)=>{ PR={type:'choose',title,options,info:info||'',res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
-}
-function answer(i){
-  if(!PR||PR.type!=='choose') return;
-  const o=PR.options[i]; if(!o||o.disabled) return;
-  const r=PR.res; PR=null; render(); r(o.value);
 }
 
 // ═════════════════════════ MOTORE DI GIOCO (puro) ═════════════════════════
@@ -704,8 +694,6 @@ function aiPick6(p,types,cfg){
   return opts[bi];
 }
 
-// ═════════════════════════ FLUSSO DI GIOCO ═════════════════════════
-function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(N,ch){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={N,ch,pl:[],log:[],round:0,S:null,msg:'',over:null,show:null};
@@ -1053,9 +1041,6 @@ const RULES_HTML = `
 </div></details>`;
 
 let LOGOPEN=false;
-function logHtml(){
-  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
-}
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 let MENUOPEN=false;
 function menuHtml(){

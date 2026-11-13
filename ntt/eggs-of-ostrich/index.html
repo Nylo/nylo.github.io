@@ -192,6 +192,7 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 <body>
 <div class="app" id="app"></div>
 
+<script src="/tt/shared/core.js"></script>
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const CAPS = [2,3,5,7];                    // capacità dei 4 sacchi: la carta richiesta ha lo stesso numero
@@ -206,17 +207,10 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
 const rnd = n => Math.floor(Math.random()*n);
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-const ABORT = {abort:true};
 let G = null, PR = null;
 const OPT = {undo:true};
 try{ const s=localStorage.getItem('eggs-ostrich-undo'); if(s!==null) OPT.undo=s==='1'; }catch(e){}
-const delay = ms => new Promise(r=>setTimeout(r,ms));
-async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
-const P = i => G.pl[i];
-function logMsg(t){ G.log.unshift(t); if(G.log.length>600) G.log.pop(); render(); }
-function status(t){ G.msg=t; render(); }
 const claimName = c => c===SKIP?'SKIP':`sacco da ${CAPS[c]}`;
 const bagPts = b => b.broken?0:(b.x===b.cap?b.cap:Math.floor(b.x/2));
 const liveScore = p => p.bags.reduce((a,b)=>a+bagPts(b),0)+4*p.amber;
@@ -442,8 +436,6 @@ function aiPicks(){
   return picks;
 }
 
-// ═════════════════════════ PARTITA ═════════════════════════
-function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n:3,round:0,total:0,msg:'',log:[],over:null,phase:'idle',cur:null,deck:[],removed:[],seen:[],amberLeft:AMBERS,revealed:false,fx:{},last:'',

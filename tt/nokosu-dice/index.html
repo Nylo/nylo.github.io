@@ -212,6 +212,7 @@ button.die.pickable:hover{transform:translateY(-6px) scale(1.06);animation:none}
 <body>
 <div class="app" id="app"></div>
 
+<script src="/tt/shared/core.js"></script>
 <script>
 // ═════════════════════════ COSTANTI ═════════════════════════
 const COLORS = [
@@ -236,19 +237,13 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
 const rnd = n => Math.floor(Math.random()*n);
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-const ABORT = {abort:true};
 let G = null, PR = null;
 let SORTC = 'n';
 try{ if(localStorage.getItem('nd-sort')==='c') SORTC='c'; }catch(e){}
 const OPT = {undo:true,a11y:false};
 try{ const s=localStorage.getItem('nd-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('nd-a11y')==='1'; }catch(e){}
-const delay = ms => new Promise(r=>setTimeout(r,ms));
-async function sleep(ms){ const g=G; await delay(ms); if(g!==G) throw ABORT; }
-const P = i => G.pl[i];
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
-function status(t){ G.msg=t; render(); }
 const plu = (n,s,p) => `${n} ${n===1?s:p}`;
 const iname = it => it.t==='c'?`${COLORS[it.s].n} ${it.r}`:`dado ${COLORS[it.s].n} ${it.r}`;
 const ck = c => c.s*10+c.r;
@@ -275,11 +270,6 @@ function draftDo(v){
   const val=v==='z'?'zero':G.S.centre[Number(v)], r=PR.res;
   if(val==null) return;
   PR=null; render(); r(val);
-}
-function answer(i){
-  if(!PR||PR.type!=='choose') return;
-  const o=PR.options[i]; if(!o||o.disabled) return;
-  const r=PR.res; PR=null; render(); r(o.value);
 }
 
 // ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
@@ -447,8 +437,6 @@ function aiPlay(p){
   return cand[bi];
 }
 
-// ═════════════════════════ PARTITA ═════════════════════════
-function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,cfg:CFG[n],round:0,dealer:rnd(n),msg:'',log:[],over:null,show:null,turn:-1,S:null,
@@ -712,9 +700,6 @@ const RULES_HTML = `
 </div></details>`;
 
 let LOGOPEN=false;
-function logHtml(){
-  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
-}
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 let MENUOPEN=false;
 function menuHtml(){
@@ -744,24 +729,6 @@ function render(){
   app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
 }
 
-function askName(n){
-  try{ if(localStorage.getItem('nylo-skip-name')==='1'){ NAMES[0]=localStorage.getItem('nylo-player-name')||'Nylo'; newMatch(n); return; } }catch(e){}
-  let ov=document.getElementById('nameModal');
-  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
-  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
-  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
-  ov.style.display='flex';
-  const closeName=()=>{ ov.style.display='none'; };
-  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
-  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
-  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
-  f.onsubmit=e=>{
-    e.preventDefault();
-    const v=inp.value.trim().slice(0,16)||'Tu';
-    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
-    NAMES[0]=v; ov.style.display='none'; newMatch(n);
-  };
-}
 document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
