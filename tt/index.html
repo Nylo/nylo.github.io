@@ -26,6 +26,8 @@
         <p class="mt-1 text-sm text-slate-400">Scegli il gioco e come giocarlo: contro l'AI o contro gli amici, in una stanza online.</p>
         <div class="mt-6 flex flex-col gap-2">
                 <label class="relative block max-w-sm"><span class="sr-only">Cerca un titolo</span><i class="ph-fill ph-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true"></i><input id="q" type="search" autocomplete="off" placeholder="Cerca un titolo…" class="w-full rounded-lg border border-slate-700 bg-white/[0.04] py-2 pl-9 pr-3 text-sm text-slate-100 placeholder-slate-500 focus:border-teal-500 focus:outline-none"></label>
+                <!-- TEMPORANEO: filtro per stato (UPD / Beta / New); rimuovere questo blocco e il codice "stateFilter" nello script -->
+                <div id="stateFilter" class="flex flex-wrap gap-2" role="group" aria-label="Filtra per stato"></div>
         </div>
                 <div class="mt-4 overflow-x-auto rounded-xl border border-slate-700/60">
                         <table class="w-full min-w-[360px] border-collapse text-left text-sm">
@@ -559,10 +561,36 @@
                 }
                 // ricerca live sul titolo (senza accenti, maiuscole indifferenti)
                 function norm(t) { return String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+                // TEMPORANEO (stateFilter): tre interruttori sì/no; se almeno uno è attivo si mostrano i giochi con uno qualunque degli stati attivi
+                var stateOn = { upd: false, beta: false, 'new': false };
+                var STATE_BTN = { upd: ['UPD', 'updated'], beta: ['Beta', 'beta'], 'new': ['New', 'new'] };
+                function gameStates(g) {
+                        var b = String(g.badge || '').toLowerCase(), r = [];
+                        if (b === 'updated') r.push('upd'); if (b === 'new') r.push('new');
+                        if (g.beta || b === 'beta') r.push('beta');
+                        return r;
+                }
+                function stateMatch(g) {
+                        var act = Object.keys(stateOn).filter(function (k) { return stateOn[k]; });
+                        return !act.length || gameStates(g).some(function (k) { return stateOn[k]; });
+                }
+                function drawStateFilter() {
+                        document.getElementById('stateFilter').innerHTML = Object.keys(STATE_BTN).map(function (k) {
+                                var on = stateOn[k], st = BADGE_STYLE[STATE_BTN[k][1]];
+                                var fill = { beta: 'bg-amber-400', 'new': 'bg-sky-400', upd: 'bg-emerald-400' }[k];
+                                return '<button type="button" data-state="' + k + '" aria-pressed="' + on + '" class="inline-flex rounded border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ' + (on ? 'border-transparent text-slate-950 ' + fill : st) + '">' + STATE_BTN[k][0] + '</button>';
+                        }).join('');
+                }
+                document.getElementById('stateFilter').addEventListener('click', function (e) {
+                        var b = e.target.closest('button[data-state]'); if (!b) return;
+                        stateOn[b.getAttribute('data-state')] = !stateOn[b.getAttribute('data-state')];
+                        drawStateFilter(); show();
+                });
+                drawStateFilter();
                 var q = document.getElementById('q');
                 function show() {
                         var t = norm(q.value).trim();
-                        var list = GAMES.filter(function (g) { return !t || norm(g.name).indexOf(t) !== -1; });
+                        var list = GAMES.filter(function (g) { return (!t || norm(g.name).indexOf(t) !== -1) && stateMatch(g); });
                         var favs = loadFavs();
                         list = list.filter(function (g) { return favs.indexOf(g.name) >= 0; }).concat(list.filter(function (g) { return favs.indexOf(g.name) < 0; }));
                         games.innerHTML = list.length ? list.map(function (g) { return rowHtml(g, favs.indexOf(g.name) >= 0); }).join('') : '<tr><td colspan="5" class="px-4 py-6 text-center text-slate-400">Nessun titolo trovato.</td></tr>';
