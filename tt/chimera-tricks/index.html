@@ -473,12 +473,11 @@ function winners(){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Chimera Tricks, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let k=0;k<g.n;k++){
       g.round=k;
       setupRound(k);
       logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.start).name}${k?' (riceve la mano del primo giocatore del round precedente)':''} —`);
-      status(g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`);
+      status(k?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Chimera Tricks, ${P(HUM).name}!`);
       await ask(HUM,`Round ${k+1}/${g.n}. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}${k?' · le carte sono passate in senso orario':''}`,[{label:'Ok, si parte',value:1}]);
       await tricks();
       await scoring();
@@ -562,7 +561,7 @@ function dockHtml(){
 }
 function recapHtml(){
   const n=G.n;
-  return `<details class="recap"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Semi</span>${SUITS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">ranghi 0/10, 1–9 · i ranghi 1 e 2 hanno un cristallo · ${G.T} carte a testa, ${G.T} prese per round</span></div>
     <div class="recap-row"><span class="lbl">Giocata</span><span class="rv" style="margin-left:0">giochi 1 carta sul tuo foglio (2 spazi): con 2 carte già sul foglio ne copri una · con 2 carte si forma la <b>Chimera</b>: stesso seme = somma dei ranghi, semi diversi = entrambi i semi e rango maggiore · la carta 0/10 vale 0 se hai uno spazio libero, altrimenti 10</span></div>
     <div class="recap-row"><span class="lbl">Seme</span><span class="rv" style="margin-left:0">devi giocare in modo che la tua area contenga il seme di mano, se possibile (anche se lo hai già, non puoi rovinarlo)</span></div>

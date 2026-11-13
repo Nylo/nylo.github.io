@@ -402,13 +402,12 @@ async function scoring(){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Don't Take Me, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let k=0;k<g.n;k++){
       g.round=k; g.first=(g.first0+k)%g.n;
       deal();
       logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.first).name} —`);
-      status(g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`);
-      await ask(HUM,g.first===HUM?'Sei tu il primo giocatore':`Primo giocatore: ${P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+      status(k?g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`:`Buona partita a Don't Take Me, ${P(HUM).name}!`);
+      await ask(HUM,`${g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
       await tricks();
       await scoring();
     }
@@ -499,7 +498,7 @@ function dockHtml(){
 }
 function recapHtml(){
   const cfg=CFG[G.n];
-  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Colori</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rv">4 colori frutta + Briscola · 60 carte</span></div>
     <div class="recap-row"><span class="lbl">Numeri</span>${Array.from({length:12},(_,i)=>`<span class="nchip">${i+1}</span>`).join('')}<span class="rv">uno per colore</span></div>
     <div class="recap-row"><span class="lbl">Briscola</span><span class="rchip k4">${ico(COL[TR].icon)} Briscola</span><span class="rv">non si apre con la Briscola finché non c'è il Break · se tutti giocano Briscola vince la più bassa</span></div>

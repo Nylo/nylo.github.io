@@ -497,7 +497,6 @@ async function choosePlan(chooser){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Daytime Minutes, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     G.u=(G.start+2)%G.n;                                  // 3 giocatori: il mazzo del chiamante ignoto sta a destra del primo giocatore
     let chooser=null;
     for(let h=0;;h++){
@@ -511,7 +510,7 @@ async function run(){
         logMsg(`${P(chooser).name} sceglie il piano da ${pl} minuti.`);
       }
       logMsg(`— Round ${h+1}: piano ${g.plan} minuti, primo giocatore ${P(g.start).name}${g.n===3?' (con il chiamante ignoto)':''} —`);
-      status(g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`);
+      status(h?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Daytime Minutes, ${P(HUM).name}!`);
       await ask(HUM,`Round ${h+1}: piano da ${g.plan} minuti. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
       const overage=await playHand();
       const r=await scoring(overage);
@@ -615,7 +614,7 @@ function minsTable(){
 }
 function recapHtml(){
   const n=G.n;
-  return `<details class="recap paper"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap paper"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="rv" style="margin-left:0">45 carte (1–15 in 3 semi) · il numero decide chi vince, i minuti si contano verso il piano · ${HAND} carte a testa</span></div>
     ${minsTable()}
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">al massimo due semi: dopo il secondo seme devi giocarne uno dei due, se puoi · di giorno (mattina, pomeriggio) per ogni seme chi ha giocato il valore più alto raccoglie tutte le carte di quel seme · di sera le carte si scartano · guida chi ha giocato il valore più alto del seme di mano</span></div>

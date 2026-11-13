@@ -428,13 +428,12 @@ async function scoring(){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Kamisama no iu toori, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let r=0;r<ROUNDS;r++){
       g.round=r;
       deal();
       logMsg(`— Round ${r+1}/${ROUNDS}: apre ${P(g.first).name} —`);
-      status(g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`);
-      await ask(HUM,g.first===HUM?'Sei tu il primo giocatore':`Primo giocatore: ${P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+      status(r?g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`:`Buona partita a Kamisama no iu toori, ${P(HUM).name}!`);
+      await ask(HUM,`${g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
       await playRound();
       g.first=g.S.lead;
       await scoring();
@@ -571,7 +570,7 @@ function dockHtml(){
 }
 function recapHtml(){
   const n=G.n, q=QUOTA[n];
-  return `<details class="recap"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rv">numeri ${NMIN[n]}–10 in 5 colori + 5 carte Dio (神) · 10 carte a testa · 2 scoperte nell'Offerta · 2 coperte da parte</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">si gioca 1 carta a testa, <b>senza obbligo di colore</b> · colore forte: favorito (il più numeroso nell'Offerta, a pari merito nessuno) › colore di apertura › altri · poi numero alto · il Dio perde sempre, ma batte il 10 del suo colore se è favorito o di apertura · perde la carta più debole (a pari forza la giocata dopo)</span></div>
     <div class="recap-row"><span class="lbl">Distribuzione</span><span class="rv">chi vince decide: ${q.off} ${q.off===1?'carta':'carte'} all'Offerta, 1 a sé, 1 al perdente${q.rm?', 1 scartata':''}</span></div>

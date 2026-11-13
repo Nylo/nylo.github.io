@@ -408,13 +408,12 @@ function winners(){
 async function run(){
   const g=G;
   try{
-    G.welcome=true; await ask(HUM,`Buona partita a Otherside Trick, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
     for(let r=0;r<3;r++){
       g.round=r;
       if(r>0) g.leader=g.lastNear;
       deal();
       logMsg(`— Round ${r+1}/3 (bonus sopravvivenza +${BONUS[r]}): inizia ${P(g.leader).name} —`);
-      status(g.leader===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.leader).name}.`);
+      status(r?g.leader===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.leader).name}.`:`Buona partita a Otherside Trick, ${P(HUM).name}!`);
       await ask(HUM,`Round ${r+1}/3: ${g.leader===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.leader).name}`,[{label:'Ok, si parte',value:1}]);
       await playRound();
       if(await scoreRound()) break;
@@ -506,7 +505,7 @@ function dockHtml(){
 }
 function recapHtml(){
   const n=G.n;
-  return `<details class="recap paper hud"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap paper hud"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>`<span class="sw k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">52 carte (4 semi, 1–13) · ${n===4?'12 carte a testa, 4 carte tolte':'10 carte a testa, 2 carte tolte'} · 12 carte Kaii</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">il seme della prima carta è il lato vicino, il primo seme diverso è il lato opposto · al massimo due semi: dopo il lato opposto devi giocare uno dei due semi, se ne hai (non c'è preferenza per il lato vicino) · con nessuno dei due giochi altro, ma non puoi vincere</span></div>
     <div class="recap-row"><span class="lbl">Vincitori</span><span class="rv">carta più alta del lato vicino: prende la presa come struttura e guida · carta più alta del lato opposto: prende un Kaii · un Kaii e una struttura si contengono subito a coppie</span></div>

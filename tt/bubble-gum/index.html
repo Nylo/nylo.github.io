@@ -465,13 +465,12 @@ async function scoring(){
 async function run(){
   const g=G;
   try{
-    G.welcome=true; await ask(HUM,`Buona partita a Bubble Gum, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
     for(let k=0;;k++){
       g.round=k;
       if(k>0) g.lead=1-g.lead;                           // a ogni round si cambia il giocatore di mano
       deal();
       logMsg(`— Round ${k+1}${k>=WINS+1?' (supplementare)':''}: briscola ${SUITS[g.trump].n} (${SUITS[g.trump].gum}), di mano ${P(g.lead).name} —`);
-      status(`Briscola: ${SUITS[g.trump].n}. ${g.lead===HUM?'Sei tu il primo giocatore.':'Primo giocatore: '+P(g.lead).name+'.'}`);
+      status(k?`Briscola: ${SUITS[g.trump].n}. ${g.lead===HUM?'Sei tu il primo giocatore.':'Primo giocatore: '+P(g.lead).name+'.'}`:`Buona partita a Bubble Gum, ${P(HUM).name}!`);
       await ask(HUM,`Briscola: ${SUITS[g.trump].n}. ${g.lead===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.lead).name}`,[{label:'Ok, si parte',value:1}]);
       for(let t=0;t<HANDN;t++) await oneTrick();
       g.win=-1; g.table=[]; g.turn=-1;

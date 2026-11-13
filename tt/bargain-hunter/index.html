@@ -159,9 +159,46 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
   .fc.mini{width:32px;height:48px;font-size:14px}
   .fc.mini i{font-size:12px}
   .trick .empty{width:32px;height:48px}
-  .table{padding:8px;gap:6px;grid-template-columns:1fr 1.2fr 1fr}
+  .fc.io{font-size:5.5px;letter-spacing:0;overflow:hidden}
+  .fc.io i{font-size:17px}
+  .fc.mini.io{font-size:5.5px}
+  .fc.mini.io i{font-size:14px}
+  .app{padding:0 8px 32px}
+  .logo{font-size:24px;flex:1 1 auto;min-width:0}
+  .dock{padding:10px 12px}
+  .opt{padding:8px 10px}
+  table.score{font-size:11px}
+  table.score td,table.score th{padding:4px 5px}
+  .table{padding:6px;gap:4px;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr);min-height:0}
+  .seat{padding:4px;gap:4px;min-width:0}
+  .seat-name{font-size:12px;max-width:100%;overflow-wrap:anywhere}
+  .seat-meta{gap:3px;font-size:10px}
+  .tag{padding:1px 4px}
+  .flag{margin-left:0;margin-top:2px;font-size:9px;padding:1px 5px;white-space:normal;max-width:100%}
+  .piles{gap:4px;font-size:10px}
+  .pile{flex-wrap:wrap;justify-content:center;gap:2px 4px;padding:3px 5px;max-width:100%}
+  .pile .lbl{flex-basis:100%;text-align:center;font-size:8px;letter-spacing:0}
+  .jb{width:16px;height:24px}
+  .jmine{max-width:100%}
   .back{width:9px;height:14px}
-  .hand{gap:2px}
+  .seat.top .backs,.seat.left .backs,.seat.right .backs,.backs{max-width:100%}
+  .hand{gap:2px;max-width:100%}
+  .center{min-width:0;font-size:11px;gap:6px}
+  .trick{gap:4px;padding:4px;min-width:0;max-width:100%}
+  .chips{gap:4px}
+  .rchip{padding:2px 6px;font-size:11px}
+  .recap,details.recap,details.rules{padding:12px}
+  .recap-row .rchip,.nchip{margin-bottom:2px}
+  .rtext,.recap-row{overflow-wrap:anywhere}
+}
+@media(max-width:360px){
+  :root{--cw:27px;--ch:40px}
+  .fc.mini{width:28px;height:42px;font-size:12px}
+  .fc.mini .obj{font-size:15px}
+  .trick .empty{width:28px;height:42px}
+  .table{padding:4px;gap:3px}
+  .logo{font-size:21px}
+  .pile .lbl{font-size:7px}
 }
 </style>
 </head>
@@ -647,7 +684,7 @@ function dockHtml(){
 }
 function recapHtml(){
   const m=MINTRASH[G.n];
-  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Oggetti</span>${OPT.simple?'<span class="rv">1–9 (icone semplificate)</span>':OBJ.slice(1).map((o,i)=>`<span class="nchip">${i+1} <i class="ph-fill ph-${o.icon}"></i> ${o.n}</span>`).join('')}</div>
     <div class="recap-row"><span class="lbl">Mazzo</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rchip io">${ico('sparkle')} Offerta Irresistibile ×2</span><span class="rv">108 oggetti (1–9, due copie per colore) + 2 Offerte</span></div>
     <div class="recap-row"><span class="lbl">Round</span><span class="rv">${G.rounds} round · 8 carte a testa (nel primo 7 prese: prima si sceglie l'Affare) · si gioca in senso orario, apre il giocatore a sinistra del mazziere</span></div>

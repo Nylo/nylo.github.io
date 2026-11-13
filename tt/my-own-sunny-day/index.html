@@ -427,13 +427,12 @@ async function scoring(){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a My Own Sunny Day, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(const ph of ['out','ret']){
       g.phase=ph;
       g.first=ph==='out'?g.first0:g.lastWinner;
       deal();
       logMsg(`— ${PHASE[ph]}: primo giocatore ${P(g.first).name} —`);
-      status(g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`);
+      status(ph==='out'?`Buona partita a My Own Sunny Day, ${P(HUM).name}!`:g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`);
       await ask(HUM,(g.first===HUM?'Sei tu il primo giocatore':`Primo giocatore: ${P(g.first).name}`)+` · ${PHASE[ph]}`,[{label:'Ok, si parte',value:1}]);
       await tricks();
       await scoring();
@@ -524,7 +523,7 @@ function dockHtml(){
   return html;
 }
 function recapHtml(){
-  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n} 1–${c.max}</span>`).join('')}<span class="rv">52 carte pioggia · 13 a testa${G.n===3?' (13 scartate)':''}</span></div>
     <div class="recap-row"><span class="lbl">Briscola</span><span class="rv" style="margin-left:0">nessuna: chi ha un ombrello è «Soleggiato» se gioca una carta del colore del suo ombrello (briscola personale)</span></div>
     <div class="recap-row"><span class="lbl">Punti</span><span class="rv" style="margin-left:0">prese vinte prima = dopo l'ombrello (≠ 0): 0 punti · nessuna presa: 1 punto · altrimenti 10 punti per ogni presa di differenza</span></div></details>`;

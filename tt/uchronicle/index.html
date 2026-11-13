@@ -452,13 +452,12 @@ async function scoring(){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Uchronicle, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let r=0;r<g.n;r++){
       g.round=r; g.first=(g.first0+r)%g.n;
       deal();
       logMsg(`— Round ${r+1}/${g.n}: apre ${P(g.first).name} —`);
-      status(g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`);
-      await ask(HUM,g.first===HUM?'Sei tu il primo giocatore':`Primo giocatore: ${P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+      status(r?g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`:`Buona partita a Uchronicle, ${P(HUM).name}!`);
+      await ask(HUM,`${g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
       await playRound();
       await scoring();
     }
@@ -598,7 +597,7 @@ function dockHtml(){
   return html;
 }
 function recapHtml(){
-  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO · ${G.expert?'GIOCO ESPERTO':'GIOCO STANDARD'}</summary>
+  return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">30 carte (1–6 in 5 semi) · 10 carte a testa${G.n===2?' · le altre 10 formano il mazzo':''}</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">${G.n===2?'si scopre una carta dal mazzo, poi giocano i due giocatori · ':''}ogni carta giocata deve essere <b>più forte</b> di tutte quelle già nella presa · nessun obbligo di seme · 9 prese per round · apre chi ha giocato per ultimo</span></div>
     <div class="recap-row"><span class="lbl">Forza</span><span class="rv">${G.expert?'briscola seme+valore › briscola valore (vince l\'ultima) › ':''}briscola seme › seme della prima carta · a pari seme conta l'ordine dei valori (maggiore o minore)</span></div>

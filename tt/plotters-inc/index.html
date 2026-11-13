@@ -454,13 +454,12 @@ async function scoreRound(){
 async function run(){
   const g=G;
   try{
-    G.welcome=true; await ask(HUM,`Buona partita a Plotters, Inc., ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
     for(let r=0;r<g.n;r++){
       g.round=r;
       if(r>0) g.start=(g.start+1)%g.n;
       deal();
       logMsg(`— Round ${r+1}/${g.n}: inizia ${P(g.start).name} —`);
-      status(g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`);
+      status(r?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Plotters, Inc., ${P(HUM).name}!`);
       await ask(HUM,`Round ${r+1}/${g.n}: ${g.start===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
       await playRound();
       await scoreRound();
@@ -557,7 +556,7 @@ function dockHtml(){
 function recapHtml(){
   const n=G.n;
   const deck=n===4?'1–14 nei 4 colori (56 carte)':n===5?'1–18 in rosso e giallo, 1–17 in blu e verde (70 carte)':'1–21 nei 4 colori (84 carte)';
-  return `<details class="recap paper"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap paper"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${COLS.map((c,i)=>sw(i,null)).join('')}<span class="rv">${deck} · 14 carte a testa, 14 prese</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">chi guida stabilisce il seme di mano (briscola) · nessun obbligo di seguire, ma in una presa non possono esserci più di 3 colori · se non puoi giocare uno dei colori presenti il round finisce subito</span></div>
     <div class="recap-row"><span class="lbl">Vincitori</span><span class="rv" style="margin-left:0">la carta più alta del seme di mano prende ${Math.ceil(n/2)} carte a scelta · la carta non-di-mano più bassa (a parità la prima giocata) riceve le altre ${n-Math.ceil(n/2)} e apre la presa successiva</span></div>

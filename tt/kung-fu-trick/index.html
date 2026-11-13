@@ -444,7 +444,7 @@ async function passing(){
   G.first=f; S.ti=S.pos[f];
   const msg=`Hai ricevuto ${cname(a)} dal Maestro e ${cname(b)} dal Discepolo. ${f===HUM?'Hai il Blu 5: inizi tu.':`${P(f).name} ha il Blu 5 e inizia.`}`;
   logMsg(`Primo giocatore: ${P(f).name} (ha il Blu 5).`);
-  status(msg);
+  status(G.season===0?`Buona partita a Kung Fu Trick, ${P(HUM).name}!`:msg);
   await ask(HUM,msg,[{label:'Ok, si parte',value:1}]);
 }
 function moveMsg(p,t,r){
@@ -518,7 +518,6 @@ async function reseat(){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Kung Fu Trick, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let k=0;k<g.seasons;k++){
       g.season=k; startSeason();
       logMsg(`— Stagione ${k+1}/${g.seasons} —`);
@@ -626,7 +625,7 @@ function dockHtml(){
   return html;
 }
 function recapHtml(){
-  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Allievi</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rv">60 carte (1–12 per colore)${G.n===3?' · con 3 giocatori se ne usano 45':''} · ${HANDN[G.n]} carte a testa</span></div>
     <div class="recap-row"><span class="lbl">Templi</span><span class="rv">Grande (4 partecipanti, 2 Tecniche da 3 punti) · Medio (3 partecipanti, 3 Tecniche da 1 punto) · Piccolo (2 partecipanti)</span></div>
     <div class="recap-row"><span class="lbl">Scambio</span><span class="rv">una carta coperta al Discepolo (destra), poi una al Maestro (sinistra) · inizia chi ha il Blu 5</span></div>

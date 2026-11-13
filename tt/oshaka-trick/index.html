@@ -469,13 +469,12 @@ async function chooseStart(){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Oshaka Trick, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let k=0;k<2;k++){
       g.round=k;
       deal();
       if(k===1) g.start=await chooseStart();
       logMsg(`— ${HALF[k]}: primo giocatore ${P(g.start).name}${g.n===3?' (una carta tolta coperta dal mazzo)':''} —`);
-      status(g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`);
+      status(k?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Oshaka Trick, ${P(HUM).name}!`);
       await ask(HUM,`${HALF[k]}${k===1?' · regola in più: un 4° colore diventa penalità Oshaka':''}. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
       await tricks();
       await scoring();
@@ -562,7 +561,7 @@ function dockHtml(){
 }
 function recapHtml(){
   const n=G.n;
-  return `<details class="recap"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Colori</span>${COLS.map((s,i)=>`<span class="rchip k${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">numeri 1–${MAXN[n]}${n===3?' (una carta tolta coperta)':''} · 13 carte a testa</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">devi rispondere al colore di mano · vince il numero PIÙ BASSO tra le carte di colore diverso da quello di mano (a parità l'ultimo a giocare); se tutte hanno il colore di mano, il numero più basso</span></div>
     <div class="recap-row"><span class="lbl">Carte</span><span class="rv" style="margin-left:0">chi vince prende le carte e le sistema dalla più piccola: <b>carta punteggio</b> (colonna per colore, solo in ordine crescente) oppure <b>penalità coperta</b> (−1) · una carta più piccola della cima della sua colonna è una penalità <b>Oshaka</b> obbligata (−numero)</span></div>

@@ -465,14 +465,13 @@ async function scoring(){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Triiiick Taking, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let r=0;r<g.n;r++){
       g.round=r; g.first=(g.first0+r)%g.n;
       deal();
       logMsg(`— Round ${r+1}/${g.n}: primo giocatore ${P(g.first).name} —`);
       const t=g.S.tok[HUM];
-      status(t==='R'?'Sei il RIDER: nessun obiettivo, sabota gli altri.':`La tua Direttiva: vincere ${t} ${t===1?'presa':'prese'}.`);
-      await ask(HUM,t==='R'?'Sei il Rider! Ottieni −1 per ogni avversario che completa la sua Direttiva':`Il tuo obiettivo: ${plu(t,'presa','prese')}. Primo giocatore: ${P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+      status(r?(t==='R'?'Sei il RIDER: nessun obiettivo, sabota gli altri.':`La tua Direttiva: vincere ${t} ${t===1?'presa':'prese'}.`):`Buona partita a Triiiick Taking, ${P(HUM).name}!`);
+      await ask(HUM,(t==='R'?'Sei il Rider! Ottieni −1 per ogni avversario che completa la sua Direttiva':`Il tuo obiettivo: ${plu(t,'presa','prese')}. Primo giocatore: ${P(g.first).name}`),[{label:'Ok, si parte',value:1}]);
       await draft();
       await playRound();
       await scoring();
@@ -588,7 +587,7 @@ function dockHtml(){
 }
 function recapHtml(){
   const t=tokensFor(G.n,G.rider).map(tokStr).join(' · ');
-  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI${G.rider?' · CON RIDER':''}</summary>
+  return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${SUITS.filter((s,i)=>!(G.n===3&&i===2)).map(s=>`<span class="rchip k${SUITS.indexOf(s)}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">valori 1–8 · ${G.n===3?'24':'32'} carte · 8 a testa · il <b>Nero è briscola permanente</b></span></div>
     <div class="recap-row"><span class="lbl">Direttive</span><span class="rv">segnalini in gioco: ${t} · uno a testa, gli altri da parte per la Negoziazione</span></div>
     <div class="recap-row"><span class="lbl">Pianificazione</span><span class="rv">2 carte private a testa, poi fino a 8: <b>A</b> pesca 1 (tienila in privato, oppure mettila nel Mercato e pesca altre 2: una privata, una pubblica) · <b>B</b> prendi 1 carta dal Mercato nella Mano Pubblica · mai più di 8 carte</span></div>

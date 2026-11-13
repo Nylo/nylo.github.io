@@ -523,13 +523,12 @@ function winners(){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a ESP, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let k=0;k<ROUNDS;k++){
       g.round=k;
       if(k) g.start=(g.start+1)%g.n;
       deal();
       logMsg(`— Round ${k+1}/${ROUNDS}: primo veggente ${P(g.start).name} · ${FD[k]} carte coperte —`);
-      status(g.start===HUM?'Sei tu il primo veggente.':`Primo veggente: ${P(g.start).name}.`);
+      status(k?g.start===HUM?'Sei tu il primo veggente.':`Primo veggente: ${P(g.start).name}.`:`Buona partita a ESP, ${P(HUM).name}!`);
       await ask(HUM,`Round ${k+1}/${ROUNDS}: ${FD[k]} carte coperte e ${6-FD[k]} in mano. ${g.start===HUM?'Sei tu il primo veggente':'Primo veggente: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
       await predictions();
       await reveal();
@@ -638,7 +637,7 @@ function dockHtml(){
 }
 function recapHtml(){
   const n=G.n;
-  return `<details class="recap paper"><summary>RIEPILOGO · ${n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap paper"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${[0,1,2,3,4].map(s=>`<span class="tag" style="background:#111">${sym(s)} ${SUITS[s].n} = ${s+1}</span>`).join('')}<span class="rv">25 carte Zener (ranghi 1–5 in 5 semi) · 6 carte a testa</span></div>
     <div class="recap-row"><span class="lbl">Visione</span><span class="rv" style="margin-left:0">ognuno prevede un seme O un rango diverso per la Carta Visione coperta · chi indovina +1 punto · il seme o rango indovinato diventa <b>Soprannaturale</b> (se indovinati entrambi, il rango è <b>Super-soprannaturale</b>)</span></div>
     <div class="recap-row"><span class="lbl">Ipotesi</span><span class="rv" style="margin-left:0">metti 2/3/4/5 carte coperte (round 1–4) e tieni le altre in mano · non puoi più guardare le coperte · si giocano prima le carte in mano, poi le coperte (senza obbligo di seme) · l'ultima coperta è la puntata</span></div>

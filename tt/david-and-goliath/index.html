@@ -371,13 +371,12 @@ async function scoring(){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a David & Goliath, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let k=0;k<g.n;k++){
       g.round=k; g.first=(g.first0+k)%g.n;
       deal();
       logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.first).name} —`);
-      status(g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`);
-      await ask(HUM,g.first===HUM?'Sei tu il primo giocatore':`Primo giocatore: ${P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+      status(k?g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`:`Buona partita a David & Goliath, ${P(HUM).name}!`);
+      await ask(HUM,`${g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
       await tricks();
       await scoring();
     }
@@ -462,7 +461,7 @@ function dockHtml(){
 }
 function recapHtml(){
   const mx=MAXN[G.n];
-  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Colori</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n}</span>`).join('')}<span class="rv">${5*mx} carte in gioco</span></div>
     <div class="recap-row"><span class="lbl">Numeri</span>${Array.from({length:mx},(_,i)=>`<span class="nchip">${i+1}</span>`).join('')}<span class="rv">da 1 a ${mx} per ogni colore</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">carta più ALTA (numero, qualunque colore) → prende tutte le carte tranne la più alta · carta più BASSA → riceve la carta più alta · a parità vale l'ultima giocata</span></div>

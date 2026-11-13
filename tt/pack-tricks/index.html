@@ -467,13 +467,12 @@ async function scoreRound(){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Pack Tricks, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let r=0;r<ROUNDS;r++){
       g.round=r;
       if(r>0) g.dealer=(g.dealer+1)%4;
       deal();
       logMsg(`— Round ${r+1}/${ROUNDS}: primo giocatore ${P(g.dealer).name} —`);
-      status(g.dealer===HUM?'Sei tu il primo giocatore: guidi la prima presa.':`Primo giocatore: ${P(g.dealer).name}.`);
+      status(r?g.dealer===HUM?'Sei tu il primo giocatore: guidi la prima presa.':`Primo giocatore: ${P(g.dealer).name}.`:`Buona partita a Pack Tricks, ${P(HUM).name}!`);
       await ask(HUM,`Round ${r+1}/${ROUNDS}: ${g.dealer===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.dealer).name}`,[{label:'Ok, si parte',value:1}]);
       await playRound();
       await scoreRound();
@@ -562,7 +561,7 @@ function dockHtml(){
   return html;
 }
 function recapHtml(){
-  return `<details class="recap paper"><summary>RIEPILOGO · 4 GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap paper"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>sw(i)).join('')}<span class="rv">28 carte (1–7 in 4 colori) · 7 carte a testa · il giallo è la briscola</span></div>
     <div class="recap-row"><span class="lbl">Turno</span><span class="rv">a ogni presa ognuno fa una sola azione: gioca una carta (si segue il seme di mano se si può) oppure prende una carta Squadra (una volta per round); chi prende la carta non gioca e non può vincere la presa</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">vince la briscola più alta, altrimenti la carta più alta del seme di mano · il vincitore tiene le carte (1 presa) e guida · se tutti prendono una carta Squadra nessuno vince e guida ancora lo stesso giocatore</span></div>

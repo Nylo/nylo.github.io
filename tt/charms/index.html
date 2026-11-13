@@ -478,14 +478,14 @@ async function scoring(){
 async function run(){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Charms, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(let k=0;k<HANDS;k++){
       g.game=k; g.start=(g.start0+k)%g.n;
       deal();
       logMsg(`— Round ${k+1}/${HANDS}: primo giocatore ${P(g.start).name}. Briscola: ${SUITS[g.trump].n} —`);
       if(g.mull.length) logMsg(`Mano rimescolata per ${g.mull.map(i=>P(i).name).join(', ')} (meno di 3 carte seme o numero).`);
+      if(k===0) await announceFirst(true);
       await bidding();
-      await announceFirst();
+      if(k>0) await announceFirst();
       await tricks();
       await scoring();
     }
@@ -562,7 +562,7 @@ function dockHtml(){
 
 function recapHtml(){
   const tr=G.trump>=0?`<span class="rchip s${G.trump}">${ico(SUITS[G.trump].icon)} ${SUITS[G.trump].n}</span>`:'<span class="rv">si scopre a inizio round</span>';
-  return `<details class="recap"><summary>RIEPILOGO · ${G.n} GIOCATORI AL TAVOLO</summary>
+  return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Semi</span>${SUITS.map((s,i)=>`<span class="rchip s${i}">${ico(s.icon)} ${s.n}</span>`).join('')}<span class="rv">8 carte per seme</span></div>
     <div class="recap-row"><span class="lbl">Numeri</span>${Array.from({length:8-1+1},(_,i)=>`<span class="nchip">${i+1}</span>`).join('')}<span class="rv">4 copie per numero</span></div>
     <div class="recap-row"><span class="lbl">Briscola</span>${tr}<span class="rv">${HAND} carte a testa · ${TRICKS} prese · vince il numero più alto</span></div></details>`;
@@ -649,10 +649,10 @@ function askName(n){
     NAMES[0]=v; ov.style.display='none'; newMatch(n);
   };
 }
-async function announceFirst(){
+async function announceFirst(w){
   const p=G.start, you=p===HUM;
-  status(you?'Sei tu il primo giocatore.':`Primo giocatore: ${P(p).name}.`);
-  await ask(HUM,you?'Sei tu il primo giocatore':`Primo giocatore: ${P(p).name}`,[{label:'Ok, si parte',value:1}]);
+  status(w?`Buona partita a Charms, ${P(HUM).name}!`:you?'Sei tu il primo giocatore.':`Primo giocatore: ${P(p).name}.`);
+  await ask(HUM,(you?'Sei tu il primo giocatore':`Primo giocatore: ${P(p).name}`),[{label:'Ok, si parte',value:1}]);
 }
 document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
