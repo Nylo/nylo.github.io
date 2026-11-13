@@ -181,6 +181,34 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
   .hand{gap:2px}
   .deck{width:36px;height:54px}
 }
+
+/* ═════════ STANZE ONLINE (stesse classi del kit tt/9-lives) ═════════ */
+:root{--topc:var(--text)}
+[hidden]{display:none!important}
+.scroll-x{overflow-x:auto}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;color:var(--text)}
+.panel h2{font-size:16px;font-weight:700}
+.muted{color:var(--text-soft);font-size:12px;line-height:1.5}
+body .app>section>p.muted{color:var(--topc,var(--text-soft));margin-bottom:10px}
+.status{font-size:13px;min-height:20px;line-height:1.5;color:var(--topc,var(--text))}
+.panel input[type=text]{background:#fff;border:1px solid var(--border);color:#222;border-radius:6px;padding:9px 11px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none;letter-spacing:1px}
+.panel input[type=text]:focus{border-color:var(--accent)}
+.radios{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.radios label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.roster{list-style:none;display:flex;flex-direction:column;gap:8px}
+.roster li{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-raised);border:1px solid var(--border);border-radius:8px;font-size:13px}
+.roster .seat-n{width:20px;color:var(--text-soft)}
+.roster .grow{flex:1}
+.roster .soft{color:var(--text-soft)}
+.room-code{padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:Consolas,monospace;letter-spacing:1px;font-size:12px;color:var(--topc,var(--text));border-color:var(--topc,var(--border))}
+.conn{font-size:11px;color:var(--topc,var(--text-soft))}
+.err{position:fixed;left:12px;right:12px;bottom:12px;max-width:680px;margin:0 auto;padding:12px 14px;border:1px solid rgba(217,107,107,0.6);border-radius:8px;background:#3a1d22;color:#fff;font-size:13px;line-height:1.4;z-index:200}
+.opt.on{border-color:var(--accent);background:var(--accent);color:#1a0a12}
+.opt.on:disabled{opacity:1}
+.hint+.hint{margin-top:4px}
+.asd{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;align-items:center;max-width:260px}
+.asd .fc.mini{width:24px;height:36px;font-size:12px;border-width:1px;border-radius:4px;gap:0}
+.asd .fc.mini i{font-size:10px}
 </style>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -192,7 +220,7 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 <div class="app" id="app"></div>
 
 <script src="/tt/shared/core.js"></script>
-<script>
+<script type="text/plain" id="src-ai">
 // ═════════════════════════ COSTANTI ═════════════════════════
 const SUITS = [
   {n:'Pesca',   gum:'Peach Gum',      icon:'circle',    original:'peach'},
@@ -232,22 +260,6 @@ function askCard(legal,hint,verb){
   const g=G;
   return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,verb:verb||'gioca',sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
 }
-function answer(i){
-  if(!PR||PR.type!=='choose') return;
-  const o=PR.options[i]; if(!o||o.disabled) return;
-  const r=PR.res; PR=null; render(); r(o.value);
-}
-function playIdx(i){
-  if(!PR||PR.type!=='card'||!PR.legal.has(i)) return;
-  if(OPT.undo){ PR.sel=i; render(); return; }
-  const r=PR.res; PR=null; render(); r(i);
-}
-function confirmCard(ok){
-  if(!PR||PR.type!=='card'||PR.sel==null) return;
-  if(!ok){ PR.sel=null; render(); return; }
-  const i=PR.sel, r=PR.res; PR=null; render(); r(i);
-}
-
 // ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
 function fullDeck(){
   const d=[];
@@ -377,6 +389,7 @@ function best(tot){
   return b;
 }
 
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
 function newMatch(){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={round:0,lead:rnd(2),msg:'',log:[],over:null,trump:-1,trumpCard:null,left:0,table:[],turn:-1,win:-1,lose:-1,fresh:-1,trickNo:0,
@@ -541,8 +554,6 @@ function histHtml(){
   return `<div class="dock" style="position:static"><table class="score"><tr><th>Totale pallone (carte)</th>${G.pl[0].hist.map((_,i)=>`<th>R${i+1}</th>`).join('')}<th>Round vinti</th></tr>${rows}</table></div>`;
 }
 function dockHtml(){
-  if(!G) return `<div class="dock-msg">Bubble Gum, gioco per 2 giocatori: sfida l'AI. Vince chi per primo vince 2 round.</div>
-    <div class="opts"><button class="opt" data-n="2">Inizia la partita</button></div>`;
   if(G.over){
     const w=esc(P(G.over.winner).name);
     return `<div class="dock-msg"><b>Vince ${w}!</b> (round vinti ${P(0).stars}–${P(1).stars})</div>`;
@@ -593,9 +604,6 @@ const RULES_HTML = `
 </div></details>`;
 
 let LOGOPEN=false;
-function logHtml(){
-  return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
-}
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 let MENUOPEN=false;
 function menuHtml(){
@@ -615,34 +623,16 @@ function render(){
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
     ${menuHtml()}</div>`;
   let body='';
-  if(G&&!G.welcome){
+  if(G){
     body=`<div class="table n2">${seatHtml(1,'top')}${centerHtml()}${seatHtml(0,'bottom')}</div>
       ${histHtml()}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
   }
-  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+  app.innerHTML=top+(G?`<div class="dock">${dockHtml()}</div>`+body:'');
 }
 
-function askName(){
-  try{ if(localStorage.getItem('nylo-skip-name')==='1'){ NAMES[0]=localStorage.getItem('nylo-player-name')||'Nylo'; newMatch(); return; } }catch(e){}
-  let ov=document.getElementById('nameModal');
-  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
-  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
-  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
-  ov.style.display='flex';
-  const closeName=()=>{ ov.style.display='none'; };
-  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
-  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
-  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
-  f.onsubmit=e=>{
-    e.preventDefault();
-    const v=inp.value.trim().slice(0,16)||'Tu';
-    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
-    NAMES[0]=v; ov.style.display='none'; newMatch();
-  };
-}
 document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
@@ -651,8 +641,7 @@ document.getElementById('app').addEventListener('click',e=>{
     try{ localStorage.setItem('bg-original-suits',OPT.originalSuits?'1':'0'); }catch(err){}
     render(); return;
   }
-  if(b.dataset.n){ if(G) newMatch(); else askName(); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
@@ -672,7 +661,678 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+if(window.NYLO_START&&NYLO_START.mode==='ai'){NAMES[0]=NYLO_START.name||'Tu';newMatch();}
+</script>
+<script type="text/plain" id="src-room">
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica del gioco</h4>
+<p>Bubble Gum è un rapido gioco di prese esclusivamente per 2 giocatori. Lo scopo è vincere le prese per «gonfiare» un pallone di gomma e totalizzare più punti dell'avversario, facendo però molta attenzione a non gonfiarlo troppo, altrimenti scoppia!</p>
+<h4>Componenti</h4>
+<p>24 carte numerate (4 colori, numerate da 1 a 6) e 2 carte giocatore.</p>
+<h4>Preparazione</h4>
+<ul>
+<li>Mescola le carte e distribuiscine 10 a ciascun giocatore.</li>
+<li>Le 4 carte rimanenti formano un mazzetto al centro. Gira la prima carta del mazzetto a faccia in su: il suo colore è la <b>briscola</b> del round.</li>
+<li>Ogni giocatore riceve una carta giocatore da tenere davanti a sé: ricorda il limite massimo del pallone (15) e sul retro ha una stella per segnare i round vinti.</li>
+<li>Il primo giocatore è determinato a caso.</li>
+</ul>
+<h4>Svolgimento del round</h4>
+<p>La partita si gioca al meglio dei 3 round: vince chi si aggiudica per primo 2 round. Ogni round si divide in 10 prese.</p>
+<p><b>1. Giocare le carte.</b> Il primo giocatore sceglie una carta dalla propria mano e la gioca scoperta. L'avversario è obbligato a rispondere con una carta dello stesso colore se la possiede; se non ha carte di quel colore può giocare una carta di qualsiasi altro colore (inclusa la briscola).</p>
+<p><b>2. Decidere il vincitore della presa.</b> Se entrambi hanno giocato il colore di mano, vince la carta di valore più alto. Se l'avversario non aveva il colore richiesto e ha giocato una briscola, la briscola vince la presa. Qualsiasi altra carta fuori colore perde.</p>
+<p><b>3. Acquisire le carte.</b> Il vincitore prende la carta giocata dal perdente e la piazza scoperta davanti a sé, vicino alla propria carta giocatore: il suo valore ingrandisce il suo pallone. Il perdente prende la carta giocata dal vincitore e la aggiunge alla propria mano, poi sceglie una carta qualsiasi dalla propria mano e la mette da parte a faccia in giù. Il vincitore della presa gioca la prima carta della presa successiva.</p>
+<h4>POP!</h4>
+<p>Tieni sempre sotto controllo la somma delle carte scoperte davanti a te. Se in qualsiasi momento il totale supera 15, il pallone fa «POP!»: tutte le carte accumulate fino a quel momento vengono scartate e la tua area di gioco si svuota. Si continua a giocare le prese rimanenti.</p>
+<h4>Fine del round e della partita</h4>
+<p>Dopo le 10 prese ogni giocatore somma i valori delle carte davanti a sé. Chi ha il totale più alto vince il round e gira la carta giocatore per mostrare la stella. In caso di parità vince chi ha più carte davanti a sé; se anche le carte sono pari, entrambi vincono il round.</p>
+<p>Si continua finché uno dei due vince 2 round. Il round successivo riparte dalla preparazione, cambiando il giocatore di mano. Se entrambi arrivano a 2 round vinti nello stesso momento, si gioca un round supplementare, e così via finché c'è un vincitore.</p>
+<p><i>Interpretazioni nell'app:</i> il «totale» che fa scoppiare il pallone è la somma dei valori delle carte davanti a te (come nella traduzione; sul regolamento inglese la didascalia dice «cards exceed 14/15»). Il perdente può scartare anche la carta appena ricevuta. Nelle stanze online vedi solo la tua mano e le tue carte messe da parte (quelle dell'avversario restano coperte, ne vedi solo il numero); il primo giocatore del primo round è casuale e poi si alterna; chiunque dei due può passare al round successivo.</p>
+<p><i>Attribuzioni delle icone:</i> <a href="https://game-icons.net/1x1/delapouite/peach.html" target="_blank" rel="noopener">Peach</a>, <a href="https://game-icons.net/1x1/delapouite/banana.html" target="_blank" rel="noopener">Banana</a> e <a href="https://game-icons.net/1x1/delapouite/watermelon.html" target="_blank" rel="noopener">Watermelon</a> di Delapouite; <a href="https://game-icons.net/1x1/caro-asercion/soda-bottle.html" target="_blank" rel="noopener">Soda bottle</a> di Caro Asercion. Da <a href="https://game-icons.net/" target="_blank" rel="noopener">game-icons.net</a>, licenza <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>.</p>
+</div></details>`;
+// ═════════════════════════ BUBBLE GUM · ONLINE ═════════════════════════
+var GAME={id:'bubble-gum',logo:'Bubble Gum · Online',counts:[2],
+  lobbyNote:'Si gioca in 2: crea la stanza e condividi il codice con il tuo avversario. Quando entra, i posti al tavolo vengono assegnati a caso.'};
+var SUITS=[
+  {n:'Pesca',gum:'Peach Gum',icon:'circle',original:'peach'},
+  {n:'Banana',gum:'Banana Gum',icon:'lightning',original:'banana'},
+  {n:'Anguria',gum:'Watermelon Gum',icon:'hexagon',original:'watermelon'},
+  {n:'Soda',gum:'Soda Gum',icon:'seal',original:'sodaBottle'}
+];
+var LIMIT=15,HANDN=10,WINS=2;
+var GAME_ICONS={
+  peach:'https://game-icons.net/icons/ffffff/000000/1x1/delapouite/peach.svg',
+  banana:'https://game-icons.net/icons/ffffff/000000/1x1/delapouite/banana.svg',
+  watermelon:'https://game-icons.net/icons/ffffff/000000/1x1/delapouite/watermelon.svg',
+  sodaBottle:'https://game-icons.net/icons/ffffff/000000/1x1/caro-asercion/soda-bottle.svg'
+};
+var ico=function(n){return n.indexOf('gi:')===0?'<img class="gi" src="'+GAME_ICONS[n.slice(3)]+'" alt="" aria-hidden="true">':'<i class="ph-fill ph-'+n+'"></i>'};
+var OPT={undo:true,a11y:false,originalSuits:false};
+try{var _s=localStorage.getItem('bg-undo');if(_s!==null)OPT.undo=_s==='1';OPT.a11y=localStorage.getItem('bg-a11y')==='1';OPT.originalSuits=localStorage.getItem('bg-original-suits')==='1'}catch(e){}
+var ui={sel:null};
+var key=function(c){return c.s*10+c.v};
+var cname=function(c){return SUITS[c.s].n+' '+c.v};
+var sumOf=function(cs){return cs.reduce(function(a,c){return a+c.v},0)};
+var sortHand=function(h){return h.sort(function(a,b){return a.s-b.s||a.v-b.v})};
 
+// ─────────────── REGOLE (funzioni pure, usate dentro le transazioni) ───────────────
+// una carta è un id 0..23: colore = id/6, valore = id%6+1
+function fullIds(){var a=[];for(var i=0;i<24;i++)a.push(i);return a}
+function newDeck(){return shuffle(fullIds())}
+function validDeck(d){
+  if(!Array.isArray(d)||d.length!==24)return false;
+  var seen={};
+  for(var i=0;i<24;i++){var x=d[i];if(typeof x!=='number'||x%1||x<0||x>23||seen[x])return false;seen[x]=1}
+  return true;
+}
+function mkCard(id){return {s:Math.floor(id/6),v:id%6+1}}
+// chi risponde deve rispondere al colore se può
+function canPlay(hand,led,c){return led<0||c.s===led||!hand.some(function(x){return x.s===led})}
+// true = vince chi risponde: stesso colore → valore più alto; altrimenti vince la briscola giocata da chi risponde; ogni altra carta fuori colore perde
+function followerWins(c1,c2,trump){
+  if(c2.s===c1.s)return c2.v>c1.v;
+  return c2.s===trump;
+}
+// punteggio di fine round: totale più alto, a parità più carte davanti, altrimenti entrambi vincono
+function roundResult(f0,f1){
+  var a=sumOf(f0),b=sumOf(f1);
+  if(a!==b)return a>b?[1,0]:[0,1];
+  if(f0.length!==f1.length)return f0.length>f1.length?[1,0]:[0,1];
+  return [1,1];
+}
+function dealInto(S,deck,pre){
+  var cs=deck.map(mkCard);
+  S.hands=[sortHand(cs.slice(0,HANDN)),sortHand(cs.slice(HANDN,2*HANDN))];
+  var rest=cs.slice(2*HANDN);
+  S.trumpCard=rest[0];S.trump=rest[0].s;S.left=rest.length-1;
+  S.front=[[],[]];S.aside=[[],[]];S.popped=[];S.table=[];S.last=null;S.show=null;S.pend=null;
+  S.trickNo=0;S.lead=S.first;S.turn=S.first;S.phase='play';
+  S.msg=(pre?pre+' ':'')+'Round '+(S.round+1)+(S.round>=WINS+1?' (supplementare)':'')+': briscola '+SUITS[S.trump].n+' ('+SUITS[S.trump].gum+'), di mano '+S.names[S.first]+'.';
+}
+function gameInitial(players){
+  var S={v:0,game:GAME.id,n:2,names:players.map(function(p){return p.name}),uids:players.map(function(p){return p.uid}),
+    round:0,first:rnd(2),stars:[0,0],hist:[[],[]],over:null};
+  dealInto(S,newDeck());
+  return S;
+}
+// chiude la presa: il vincitore apre la successiva; dopo la decima il round è finito
+function finishTrick(S,w,m){
+  S.lead=w;S.turn=w;S.pend=null;
+  if(S.hands[0].length&&S.hands[1].length){S.phase='play';S.msg=m;return}
+  scoreRound(S,m);
+}
+function scoreRound(S,m){
+  var f0=S.front[0],f1=S.front[1],r=roundResult(f0,f1),sums=[sumOf(f0),sumOf(f1)],cnts=[f0.length,f1.length];
+  for(var i=0;i<2;i++){if(r[i])S.stars[i]++;S.hist[i].push({sum:sums[i],cnt:cnts[i],win:!!r[i]})}
+  S.show={sums:sums,cnts:cnts,r:r};S.phase='roundEnd';S.turn=-1;S.pend=null;
+  var rm=r[0]&&r[1]?'Parità totale ('+sums[0]+'–'+sums[1]+', '+cnts[0]+'–'+cnts[1]+' carte): il round va a entrambi.'
+    :S.names[r[0]?0:1]+' vince il round: '+sums[0]+' contro '+sums[1]+(sums[0]===sums[1]?' (a parità di totale ha più carte: '+cnts[0]+' contro '+cnts[1]+')':'')+'.';
+  S.msg=m+' Round '+(S.round+1)+' concluso. '+rm;
+}
+function resolveTrick(S){
+  var a=S.table[0].p,b=S.table[1].p,c1=S.table[0].c,c2=S.table[1].c;
+  var fw=followerWins(c1,c2,S.trump);
+  var w=fw?b:a,l=fw?a:b,cw=fw?c2:c1,cl=fw?c1:c2;
+  var why=c2.s===c1.s?'valore più alto':(fw?'briscola':'colore di mano');
+  var m=S.names[w]+' vince la presa ('+why+') e prende '+cname(cl)+'.';
+  S.front[w].push(cl);
+  var pop=sumOf(S.front[w])>LIMIT;
+  if(pop){
+    m+=' POP! Il pallone di '+S.names[w]+' scoppia (totale '+sumOf(S.front[w])+' > '+LIMIT+'): le sue carte davanti vengono scartate.';
+    S.popped=S.popped.concat(S.front[w]);S.front[w]=[];
+  }
+  S.last={cards:S.table.slice(),winner:w,loser:l,cw:cw,cl:cl,pop:pop};
+  S.table=[];
+  S.hands[l].push(cw);sortHand(S.hands[l]);
+  if(S.hands[l].length===1){       // ultima presa: la sola carta in mano va da parte
+    S.aside[l].push(S.hands[l].pop());
+    finishTrick(S,w,m+' '+S.names[l]+' prende '+cname(cw)+' e la scarta coperta.');
+    return;
+  }
+  S.phase='discard';S.turn=l;S.pend={w:w,l:l};
+  S.msg=m+' '+S.names[l]+' prende '+cname(cw)+' in mano e deve scartare una carta coperta.';
+}
+
+function gameReduce(S,seat,a){
+  if(!S||seat<0||seat>=2||!a)return null;
+  var i,hand,ix;
+  switch(a.type){
+  case 'play':{
+    if(S.phase!=='play'||S.turn!==seat)return null;
+    hand=S.hands[seat];ix=-1;
+    for(i=0;i<hand.length;i++)if(key(hand[i])===a.k){ix=i;break}
+    if(ix<0)return null;
+    var card=hand[ix],led=S.table.length?S.table[0].c.s:-1;
+    if(!canPlay(hand,led,card))return null;
+    hand.splice(ix,1);
+    if(!S.table.length){
+      S.last=null;S.trickNo++;S.table=[{p:seat,c:card}];S.turn=1-seat;
+      S.msg=S.names[seat]+' gioca '+cname(card)+'. Tocca a '+S.names[1-seat]+'.';
+    }else{
+      S.table.push({p:seat,c:card});
+      resolveTrick(S);
+    }
+    break;}
+  case 'discard':{
+    if(S.phase!=='discard'||S.turn!==seat||!S.pend||S.pend.l!==seat)return null;
+    hand=S.hands[seat];ix=-1;
+    for(i=0;i<hand.length;i++)if(key(hand[i])===a.k){ix=i;break}
+    if(ix<0)return null;
+    S.aside[seat].push(hand.splice(ix,1)[0]);
+    finishTrick(S,S.pend.w,S.names[seat]+' ha scartato una carta coperta. '+S.names[S.pend.w]+' apre la presa successiva.');
+    break;}
+  case 'next':{
+    if(S.phase!=='roundEnd')return null;
+    if((S.stars[0]>=WINS||S.stars[1]>=WINS)&&S.stars[0]!==S.stars[1]){
+      S.over={winner:S.stars[0]>S.stars[1]?0:1};
+      S.phase='gameEnd';S.show=null;S.turn=-1;S.msg='Partita conclusa.';break;
+    }
+    if(!validDeck(a.deck))return null;
+    S.round++;S.first=1-S.first;                 // a ogni round si cambia il giocatore di mano
+    dealInto(S,a.deck);
+    break;}
+  case 'rematch':{
+    if(S.phase!=='gameEnd'||!validDeck(a.deck))return null;
+    if(a.first!==0&&a.first!==1)return null;
+    S.round=0;S.first=a.first;S.over=null;S.stars=[0,0];S.hist=[[],[]];
+    dealInto(S,a.deck);
+    break;}
+  default:return null;
+  }
+  return S;
+}
+
+// ─────────────── RENDER ───────────────
+function gameBadge(){return S.phase==='gameEnd'?'Partita conclusa':'Round '+(S.round+1)}
+var suitIcon=function(s){return ico(OPT.originalSuits?'gi:'+SUITS[s].original:SUITS[s].icon)};
+var kface=function(c,cls){return '<span class="fc k'+c.s+' '+(cls||'')+'" title="'+cname(c)+' ('+SUITS[c.s].gum+')"><span>'+c.v+'</span>'+suitIcon(c.s)+'</span>'};
+function handBtn(c,i,ok,sel){
+  return '<button class="fc k'+c.s+' '+(ok?'legal':'dim')+' '+(sel?'sel':'')+'" '+(ok?'':'disabled')+' data-p="'+i+'" title="'+cname(c)+' ('+SUITS[c.s].gum+')"><span>'+c.v+'</span>'+suitIcon(c.s)+'</button>';
+}
+function myPlay(){return S.phase==='play'&&S.turn===me}
+function myDiscard(){return S.phase==='discard'&&S.turn===me}
+function ledNow(){return S.table.length?S.table[0].c.s:-1}
+function flagHtml(p){
+  if(S.phase!=='play')return '';
+  if(S.trickNo===0&&!S.table.length)return S.lead===p?'<span class="flag first">Primo giocatore</span>':'';
+  return S.lead===p?'<span class="flag lead">Di mano</span>':'';
+}
+function starsHtml(p){
+  var n=S.stars[p],h='';
+  for(var i=0;i<Math.max(WINS,n);i++)h+='<i class="ph-fill ph-star '+(i<n?'on':'')+'"></i>';
+  return '<span class="stars" title="Round vinti: '+n+'">'+h+'</span>';
+}
+function frontHtml(p){
+  var fr=S.front[p],sum=sumOf(fr),pct=Math.min(100,Math.round(100*sum/LIMIT)),pop=!!(S.last&&S.last.pop&&S.last.winner===p);
+  var sorted=fr.slice().sort(function(a,b){return a.s-b.s||a.v-b.v});
+  return '<div class="balloon '+(pop?'pop':'')+'"><div class="bl-h">'+ico('balloon')+' <b>'+sum+'</b>/'+LIMIT+' <span class="hint">· '+fr.length+' '+(fr.length===1?'carta':'carte')+'</span></div>'+
+    '<div class="meter '+(sum>=13?'hot':'')+'"><i style="width:'+pct+'%"></i></div>'+
+    '<div class="front">'+(sorted.length?sorted.map(function(c){return kface(c,'mini')}).join(''):'<span class="empty"></span>')+'</div>'+
+    (pop?'<div class="popflash">POP!</div>':'')+'</div>';
+}
+function tableauHtml(p){
+  var cur=S.table.filter(function(x){return x.p===p})[0],card=null,cls='';
+  if(cur){card=cur.c;cls=S.table[S.table.length-1].p===p?'fresh':''}
+  else if(S.last){
+    var lc=S.last.cards.filter(function(x){return x.p===p})[0];
+    if(lc){card=lc.c;cls=S.last.winner===p?'win':'lose'}
+  }
+  return '<div class="tableau">'+(card?kface(card,'mini '+cls):'<span class="empty"></span>')+'</div>';
+}
+// informazioni nascoste: dell'avversario si vede solo il numero di carte in mano e da parte; le mie carte da parte le vedo solo io
+function seatHtml(p,pos){
+  var active=(S.phase==='play'||S.phase==='discard')&&S.turn===p,
+      winner=!!(S.last&&S.last.winner===p&&!S.table.length&&S.phase!=='gameEnd');
+  var hand,asd='';
+  if(p===me){
+    var mine=S.hands[me],led=ledNow();
+    if(myPlay())hand='<div class="hand">'+mine.map(function(c,i){return handBtn(c,i,canPlay(mine,led,c),ui.sel===i)}).join('')+'</div>';
+    else if(myDiscard())hand='<div class="hand">'+mine.map(function(c,i){return handBtn(c,i,true,ui.sel===i)}).join('')+'</div>';
+    else hand='<div class="hand">'+mine.map(function(c){return kface(c)}).join('')+'</div>';
+    if(S.aside[me].length)asd='<div class="asd" title="Le tue carte messe da parte: solo tu le vedi"><span class="hint">da parte</span>'+sortHand(S.aside[me].slice()).map(function(c){return kface(c,'mini')}).join('')+'</div>';
+  }else hand='<div class="backs">'+S.hands[p].map(function(){return '<span class="back"></span>'}).join('')+'</div>';
+  var meta='<div class="seat-meta"><span class="tag">carte <b>'+S.hands[p].length+'</b></span><span class="tag">scartate <b>'+S.aside[p].length+'</b></span></div>';
+  var name='<div class="seat-name">'+esc(S.names[p])+(p===me?' (tu)':'')+flagHtml(p)+' '+starsHtml(p)+'</div>';
+  var inner=pos==='bottom'?tableauHtml(p)+frontHtml(p)+name+meta+asd+hand:hand+name+meta+frontHtml(p)+tableauHtml(p);
+  return '<div class="seat '+pos+' '+(active?'active':'')+' '+(winner?'winner':'')+'">'+inner+'</div>';
+}
+function trickNow(){return S.phase==='play'&&!S.table.length?Math.min(S.trickNo+1,HANDN):Math.min(S.trickNo,HANDN)}
+function centerHtml(){
+  return '<div class="center"><div class="cmid"><div>'+kface(S.trumpCard)+'<div>briscola</div></div><div><div class="deck">'+S.left+'</div><div>coperte</div></div></div>'+
+    '<div>Briscola: <b>'+SUITS[S.trump].n+'</b> '+ico(SUITS[S.trump].icon)+'</div>'+
+    '<div>Presa <b>'+trickNow()+'/'+HANDN+'</b> · Round <b>'+(S.round+1)+'</b></div></div>';
+}
+function histHtml(){
+  if(!S.hist[0].length)return '';
+  var hd='';S.hist[0].forEach(function(_,i){hd+='<th>R'+(i+1)+'</th>'});
+  var rows=S.names.map(function(nm,p){
+    return '<tr><td>'+esc(nm)+(p===me?' (tu)':'')+'</td>'+S.hist[p].map(function(h){return '<td class="'+(h.win?'':'neg')+'">'+h.sum+' <span class="hint">('+h.cnt+')</span>'+(h.win?' ★':'')+'</td>'}).join('')+'<td><b>'+S.stars[p]+'</b> ★</td></tr>';
+  }).join('');
+  return '<div class="dock" style="position:static"><table class="score"><tr><th>Totale pallone (carte)</th>'+hd+'<th>Round vinti</th></tr>'+rows+'</table></div>';
+}
+function startInfo(){return 'Briscola: '+SUITS[S.trump].n+'. '+(S.lead===me?'Sei tu il primo giocatore':'Primo giocatore: '+S.names[S.lead])}
+function confirmBar(verb){
+  var mine=S.hands[me];
+  if(ui.sel!==null&&mine[ui.sel])return '<div class="opts"><button class="opt" data-cf="1">Conferma: '+verb+' '+cname(mine[ui.sel])+'</button><button class="opt" data-cf="0">Annulla</button></div>';
+  return '';
+}
+function dockHtml(){
+  var msg='<div class="dock-msg">'+esc(S.msg)+'</div>';
+  if(S.phase==='gameEnd'){
+    return '<div class="dock-msg"><b>Vince '+esc(S.names[S.over.winner])+(S.over.winner===me?' (tu)':'')+'!</b> (round vinti '+S.stars[0]+'–'+S.stars[1]+')</div>'+
+      '<div class="opts"><button class="opt" data-rematch="1">Rivincita</button></div>';
+  }
+  if(S.phase==='roundEnd'){
+    var done=(S.stars[0]>=WINS||S.stars[1]>=WINS)&&S.stars[0]!==S.stars[1];
+    return msg+'<div class="dock-title">FINE DEL ROUND</div><div class="opts"><button class="opt" data-next="1">'+(done?'Mostra risultato finale':'Round successivo')+'</button></div>';
+  }
+  if(S.phase==='discard'){
+    if(S.turn!==me)return msg+'<div class="hint">'+esc(S.names[S.turn])+' sta scegliendo la carta da scartare…</div>';
+    return msg+'<div class="hint">Tocca a te: hai ricevuto '+cname(S.last.cw)+': scegli una carta qualsiasi dalla mano da scartare a faccia in giù.</div>'+confirmBar('scarta');
+  }
+  var first=S.trickNo===0&&!S.table.length;
+  var head=first&&S.round===0?'<div class="dock-msg">Buona partita a Bubble Gum, '+esc(S.names[me])+'!</div>':msg;
+  if(first)head+='<div class="dock-title">'+esc(startInfo()).toUpperCase()+'</div>';
+  if(S.turn!==me)return head+'<div class="hint">Tocca a '+esc(S.names[S.turn])+'.</div>';
+  var mine=S.hands[me],led=ledNow(),hint;
+  if(led<0)hint='Sei di mano: gioca la carta che vuoi.';
+  else hint=mine.some(function(c){return c.s===led})?'Devi rispondere al colore '+SUITS[led].n+'.':'Non hai il colore '+SUITS[led].n+': gioca ciò che vuoi (una carta '+SUITS[S.trump].n+', la briscola, vince la presa).';
+  return head+'<div class="hint">Tocca a te: '+hint+'</div>'+confirmBar('gioca');
+}
+function recapHtml(){
+  return '<details class="recap"><summary>RIEPILOGO</summary>'+
+    '<div class="recap-row"><span class="lbl">Carte</span>'+SUITS.map(function(s,i){return '<span class="rchip k'+i+'">'+suitIcon(i)+' '+s.n+'</span>'}).join('')+'<span class="rv">24 carte: Pesca, Banana, Anguria e Soda, da 1 a 6 · 10 carte a testa, 4 da parte (la prima scoperta fa la briscola)</span></div>'+
+    '<div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">chi risponde deve rispondere al colore · stesso colore: vince il valore più alto · altrimenti vince solo una briscola giocata da chi risponde</span></div>'+
+    '<div class="recap-row"><span class="lbl">Premio</span><span class="rv" style="margin-left:0">il vincitore mette davanti a sé la carta del perdente (gonfia il pallone) · il perdente prende in mano la carta del vincitore e scarta una carta coperta</span></div>'+
+    '<div class="recap-row"><span class="lbl">POP!</span><span class="rv" style="margin-left:0">se il totale delle carte davanti a te supera '+LIMIT+' il pallone scoppia e le perdi tutte</span></div>'+
+    '<div class="recap-row"><span class="lbl">Round</span><span class="rv" style="margin-left:0">dopo 10 prese vince il totale più alto (a parità più carte, altrimenti entrambi) · il primo a vincere 2 round vince la partita</span></div></details>';
+}
+function gameRender(){
+  if(!myPlay()&&!myDiscard())ui.sel=null;
+  return '<div class="dock">'+dockHtml()+'</div><div class="table n2">'+seatHtml(1-me,'top')+centerHtml()+seatHtml(me,'bottom')+'</div>'+
+    histHtml()+recapHtml()+RULES_HTML;
+}
+function gameMenu(){
+  return '<label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" '+(OPT.undo?'checked':'')+'> Abilita annulla</label>'+
+    '<label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" '+(OPT.a11y?'checked':'')+'> Modalità accessibile</label>'+
+    (S?'<button class="opt-toggle nylo-menu-action" type="button" id="toggleSuitIcons">'+(OPT.originalSuits?'Usa semi stilizzati':'Usa semi originali')+'</button>':'');
+}
+function actNow(){return {type:S.phase==='discard'?'discard':'play'}}
+function gameChange(e){
+  if(e.target.id==='optA11y'){OPT.a11y=e.target.checked;try{localStorage.setItem('bg-a11y',OPT.a11y?'1':'0')}catch(x){}render()}
+  else if(e.target.id==='optUndo'){
+    OPT.undo=e.target.checked;try{localStorage.setItem('bg-undo',OPT.undo?'1':'0')}catch(x){}
+    if(S&&!OPT.undo&&ui.sel!==null&&(myPlay()||myDiscard())&&S.hands[me][ui.sel]){var a=actNow();a.k=key(S.hands[me][ui.sel]);ui.sel=null;act(a);return}
+    ui.sel=null;render();
+  }
+}
+function gameClick(b){
+  var d=b.dataset;
+  if(b.id==='toggleSuitIcons'){OPT.originalSuits=!OPT.originalSuits;try{localStorage.setItem('bg-original-suits',OPT.originalSuits?'1':'0')}catch(x){}render();return}
+  if(d.p!==undefined){
+    var i=Number(d.p);
+    if((myPlay()||myDiscard())&&S.hands[me][i]){
+      if(OPT.undo){ui.sel=ui.sel===i?null:i;render()}
+      else{var a=actNow();a.k=key(S.hands[me][i]);act(a)}
+    }
+  }
+  else if(d.cf!==undefined){
+    if(d.cf==='1'){if(ui.sel!==null&&(myPlay()||myDiscard())&&S.hands[me][ui.sel]){var a2=actNow();a2.k=key(S.hands[me][ui.sel]);ui.sel=null;act(a2)}}
+    else{ui.sel=null;render()}
+  }
+  else if(d.next)act({type:'next',deck:newDeck()});
+  else if(d.rematch)act({type:'rematch',deck:newDeck(),first:rnd(2)});
+}
+
+// ═════════════════════════ KIT STANZE (Firebase RTDB) ═════════════════════════
+// Stesso schema di tt/spy-team/online: rooms/$room con hostUid, members, lobby, state (le regole già pubblicate bastano).
+// Lo stato di gioco è un unico oggetto JSON salvato come stringa in state.s (+ contatore state.v); ogni azione è una
+// transazione che applica gameReduce() all'ultima versione. Le mani stanno nello stato (nascoste solo dall'interfaccia). 2 giocatori: stessi percorsi e campi di tt/9-lives, con lobby/playerCount=2.
+var FIREBASE_CONFIG={
+  apiKey:"AIzaSyAoOMLytOqFY9GRXpi2kUGEyzLK-r00nvQ",
+  authDomain:"gachapon-trick.firebaseapp.com",
+  databaseURL:"https://gachapon-trick-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"gachapon-trick",
+  storageBucket:"gachapon-trick.firebasestorage.app",
+  messagingSenderId:"869677835302",
+  appId:"1:869677835302:web:85768d5a6ac0d94f8372e7"
+};
+var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+var SAVE_KEY=GAME.id+'-online-last';
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var rnd=function(n){return Math.floor(Math.random()*n)};
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+function getPlayerName(){
+  var name='';
+  try{
+    name=localStorage.getItem('nylo-player-name')||'';
+    if(!name){var last=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');name=last&&last.name||''}
+  }catch(e){}
+  return String(name||'Giocatore').trim().slice(0,18)||'Giocatore';
+}
+var playerName=getPlayerName();
+var db=null,user=null,roomRef=null,roomCode='',lobbyData=null,S=null,me=-1,listeners=[],startingGame=false;
+var statusText='',connText='',joinVal='',chosenCount=GAME.counts[0],MENUOPEN=false;
+try{var lastRoom=JSON.parse(localStorage.getItem(SAVE_KEY));if(lastRoom)joinVal=lastRoom.code||''}catch(e){}
+
+function setStatus(t){statusText=t;render()}
+function setConn(t){connText=t;var c=document.getElementById('conn');if(c)c.textContent=t}
+function showErr(t){
+  var e=document.getElementById('err');
+  if(!e){e=document.createElement('div');e.id='err';e.className='err';e.setAttribute('role','alert');document.body.appendChild(e)}
+  e.textContent=t;e.hidden=false;setConn('Errore');clearTimeout(showErr.t);showErr.t=setTimeout(function(){e.hidden=true},8000);
+}
+function genCode(){var b=new Uint8Array(12);crypto.getRandomValues(b);return Array.from(b,function(x){return ALPHABET[x%ALPHABET.length]}).join('')}
+function withTimeout(p,ms,msg){
+  return new Promise(function(res,rej){var t=setTimeout(function(){rej(new Error(msg))},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})});
+}
+function authMsg(e){
+  if(e.code==='auth/operation-not-allowed')return 'Attiva il provider Anonimo in Firebase Authentication.';
+  if(e.code==='auth/unauthorized-domain')return 'Dominio non autorizzato: aggiungilo in Authentication > Impostazioni > Domini autorizzati.';
+  if(e.code==='auth/network-request-failed')return 'Firebase non raggiungibile: controlla la connessione e che il sito sia in HTTPS.';
+  return e.message||'Errore di autenticazione Firebase.';
+}
+async function connect(){
+  if(!window.firebase)throw new Error('Firebase non caricato. Controlla la connessione.');
+  if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+  db=firebase.database();
+  if(user)return;
+  try{user=(await withTimeout(firebase.auth().signInAnonymously(),15000,'Autenticazione scaduta dopo 15 secondi.')).user}
+  catch(e){throw new Error(authMsg(e))}
+}
+function saveLast(name){try{localStorage.setItem(SAVE_KEY,JSON.stringify({code:roomCode,name:name}))}catch(e){}}
+
+// ─────────────── LOBBY ───────────────
+async function createRoom(){
+  try{
+    setStatus('Connessione a Firebase...');await connect();
+    var created=false,lastErr=null;
+    for(var i=0;i<5&&!created;i++){
+      roomCode=genCode();roomRef=db.ref('rooms/'+roomCode);
+      try{
+        await roomRef.child('hostUid').set(user.uid);
+        await roomRef.child('members/'+user.uid).set(true);
+        await roomRef.child('lobby').set({game:GAME.id,hostUid:user.uid,playerCount:chosenCount,started:false,closed:false,players:{}});
+        created=true;
+      }catch(e){lastErr=e;roomRef=null}
+    }
+    if(!created)throw lastErr||new Error('Impossibile creare la stanza. Verifica le regole del database.');
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;setStatus(e.message||'Errore durante la creazione della stanza.')}
+}
+async function joinRoom(){
+  try{
+    roomCode=joinVal.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(roomCode.length!==12)throw new Error('Il codice stanza è di 12 caratteri.');
+    setStatus('Connessione...');await connect();
+    roomRef=db.ref('rooms/'+roomCode);
+    await roomRef.child('members/'+user.uid).set(true);
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;setStatus(e.code==='PERMISSION_DENIED'?'Stanza non trovata o non accessibile.':(e.message||'Errore durante l\'accesso alla stanza.'))}
+}
+function reserveSeat(name){
+  var lobbyRef=roomRef.child('lobby');
+  return lobbyRef.once('value').then(function(snap){
+    if(!snap.exists())throw new Error('Lobby non trovata: controlla il codice.');
+    var initial=snap.val();
+    if(initial.game!==GAME.id)throw new Error('Questo codice appartiene a un altro gioco.');
+    return new Promise(function(resolve,reject){
+      lobbyRef.transaction(function(cur){
+        if(cur===null)cur=initial;
+        if(!cur||!cur.playerCount||cur.closed)return;
+        cur.players=cur.players||{};
+        if(cur.players[user.uid])return cur;            // rientro: il posto è già tuo
+        if(cur.started)return;
+        var occ={};Object.keys(cur.players).forEach(function(u){occ[cur.players[u].seat]=true});
+        var seat=1;while(seat<=cur.playerCount&&occ[seat])seat++;
+        if(seat>cur.playerCount)return;
+        cur.players[user.uid]={uid:user.uid,name:name,seat:seat};
+        return cur;
+      },function(err,committed,snap2){
+        if(err){reject(err);return}
+        var cur=snap2&&snap2.val();
+        if(!cur||!cur.players||!cur.players[user.uid]){
+          reject(new Error(cur&&cur.started?'La partita è già iniziata.':'La stanza è piena o non disponibile.'));return;
+        }
+        lobbyData=cur;saveLast(name);enterRoom();resolve();
+      },false);
+    });
+  });
+}
+function orderedPlayers(d){
+  return Object.keys(d.players||{}).map(function(u){return d.players[u]}).sort(function(a,b){return a.seat-b.seat});
+}
+function maybeStart(){
+  if(!lobbyData||S||startingGame||lobbyData.started||lobbyData.hostUid!==user.uid)return;
+  if(orderedPlayers(lobbyData).length===lobbyData.playerCount)startGame();
+}
+function startGame(){
+  startingGame=true;
+  var seated=orderedPlayers(lobbyData);   // i posti si assegnano a caso all'avvio
+  shuffle(seated);
+  var init=gameInitial(seated.map(function(p){return {uid:p.uid,name:p.name}}));
+  init.v=0;
+  roomRef.child('state').transaction(function(cur){if(cur!==null)return;return {v:0,s:JSON.stringify(init)}},function(err){
+    if(err){startingGame=false;showErr('Errore durante l\'avvio: '+err.message);return}
+    roomRef.child('lobby/started').set(true).catch(function(e){startingGame=false;showErr(e.message)});
+  },false);
+}
+
+// ─────────────── STANZA ───────────────
+function enterRoom(){
+  setConn('Lobby');
+  var lobbyRef=roomRef.child('lobby');
+  var lh=function(snap){if(!snap.exists())return;lobbyData=snap.val();if(!S){render();maybeStart()}};
+  lobbyRef.on('value',lh,function(e){showErr(e.message)});listeners.push({ref:lobbyRef,h:lh});
+  var stateRef=roomRef.child('state');
+  var sh=function(snap){
+    if(!snap.exists())return;
+    var raw=snap.val();
+    try{S=JSON.parse(raw.s)}catch(e){showErr('Stato della stanza non leggibile.');return}
+    me=S.uids.indexOf(user.uid);
+    if(me<0){showErr('Non risulti tra i giocatori di questa partita.');return}
+    setConn('Connesso');
+    render();
+  };
+  stateRef.on('value',sh,function(e){showErr('Connessione persa: '+e.message)});listeners.push({ref:stateRef,h:sh});
+  render();
+}
+function leave(){
+  listeners.forEach(function(l){l.ref.off('value',l.h)});
+  if(!roomRef||S||!user){window.location.reload();return}
+  // prima dell'inizio libera il posto; a partita avviata si può rientrare con lo stesso codice
+  roomRef.child('lobby').transaction(function(cur){
+    if(!cur||cur.started)return;
+    cur.players=cur.players||{};delete cur.players[user.uid];
+    var rest=orderedPlayers(cur);
+    if(cur.hostUid===user.uid&&rest.length)cur.hostUid=rest[0].uid;
+    return cur;
+  },function(){
+    roomRef.child('members/'+user.uid).remove().catch(function(){}).then(function(){window.location.reload()});
+  },false);
+}
+
+// azioni: ogni azione è una transazione sullo stato, validata da gameReduce() sull'ultima versione
+function act(a){
+  if(!roomRef||me<0)return;
+  var seat=me;
+  roomRef.child('state').transaction(function(cur){
+    if(!cur||!cur.s)return;
+    var st;try{st=JSON.parse(cur.s)}catch(e){return}
+    var r=gameReduce(st,seat,a);
+    if(!r)return;
+    r.v=(st.v||0)+1;
+    return {v:r.v,s:JSON.stringify(r)};
+  },function(err,committed){
+    if(err)showErr('Errore di sincronizzazione: '+err.message);
+    else if(!committed)setConn('Azione non più valida');
+  },false);
+}
+
+// ─────────────── RENDER ───────────────
+function lobbyHtml(){
+  var radios=GAME.counts.length<2?'':GAME.counts.map(function(n){
+    return '<label><input type="radio" name="pc" value="'+n+'" '+(chosenCount===n?'checked':'')+'> '+n+' giocatori'+(GAME.countNote&&GAME.countNote[n]?' · '+GAME.countNote[n]:'')+'</label>';
+  }).join('');
+  return '<section><p class="muted">Sei connesso come <b>'+esc(playerName)+'</b>.</p>'+
+    '<div class="panel"><h2>Crea una stanza</h2><p class="muted">'+GAME.lobbyNote+'</p>'+
+    (radios?'<div class="radios" role="radiogroup" aria-label="Numero di giocatori">'+radios+'</div>':'')+
+    '<button class="opt" id="createRoom" type="button" data-create="1">Crea stanza</button></div>'+
+    '<div class="panel"><h2>Unisciti a una stanza</h2>'+
+    '<input type="text" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(joinVal)+'">'+
+    '<button class="opt" type="button" data-join="1">Unisciti</button></div>'+
+    '<p class="status" role="status" aria-live="polite">'+esc(statusText)+'</p>'+
+    '<button class="btn btn-sm" type="button" data-ai="1">← Torna alla scelta</button></section>';
+}
+function waitingHtml(){
+  var d=lobbyData||{players:{},playerCount:GAME.counts[0]};
+  var players=orderedPlayers(d),full=players.length===d.playerCount,html='';
+  for(var seat=1;seat<=d.playerCount;seat++){
+    var p=players[seat-1];
+    html+='<li><span class="seat-n">'+seat+'.</span>'+
+      (p?'<span class="grow">'+esc(p.name)+(p.uid===user.uid?' (tu)':'')+'</span>':'<span class="grow soft">In attesa di un giocatore</span>')+
+      (p&&p.uid===d.hostUid?'<span class="flag first">HOST</span>':'')+'</li>';
+  }
+  return '<section><div class="panel"><h2>Stanza '+roomCode+'</h2><p class="muted">'+
+    (d.started?'La partita si sta caricando...':players.length+' / '+d.playerCount+' giocatori'+(full?' · avvio in corso':' · condividi il codice con gli altri'))+
+    '</p><ul class="roster">'+html+'</ul></div></section>';
+}
+function kitMenuHtml(){
+  var extra=typeof gameMenu==='function'?gameMenu():'';
+  return '<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="'+MENUOPEN+'"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>'+
+    (MENUOPEN?'<div class="menu-pop">'+extra+'</div>':'')+'</div>';
+}
+function render(){
+  document.body.classList.toggle('a11y',!!(typeof OPT!=='undefined'&&OPT.a11y));
+  var focus=document.activeElement&&document.activeElement.id==='joinCode';
+  var badge=S&&typeof gameBadge==='function'?gameBadge():'';
+  var top='<div class="topbar"><div class="logo">'+GAME.logo+'</div>'+
+    (window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+
+    (badge?'<span class="badge">'+badge+'</span>':'')+
+    (roomRef?'<span class="room-code">'+roomCode+'</span><button class="btn btn-sm" type="button" data-copy="1">Copia codice</button><button class="btn btn-sm" type="button" data-leave="1">Esci</button>':'')+
+    '<span class="conn" id="conn">'+esc(connText)+'</span>'+kitMenuHtml()+'</div>';
+  var body=!roomRef?lobbyHtml():(!S?waitingHtml():gameRender());
+  document.getElementById('app').innerHTML=top+body;
+  if(focus){var j=document.getElementById('joinCode');if(j){j.focus();j.setSelectionRange(j.value.length,j.value.length)}}
+}
+var APP=document.getElementById('app');
+APP.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b||b.disabled)return;
+  var d=b.dataset;
+  if(d.menu){MENUOPEN=!MENUOPEN;render();return}
+  if(d.ai!==undefined){location.href=location.pathname;return}
+  if(d.create!==undefined){createRoom();return}
+  if(d.join!==undefined){joinRoom();return}
+  if(d.leave!==undefined){if(!S||confirm('Uscire dalla stanza? Potrai rientrare con lo stesso codice.'))leave();return}
+  if(d.copy!==undefined){
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(roomCode).then(function(){setConn('Codice copiato')});
+    else window.prompt('Copia il codice stanza:',roomCode);
+    return;
+  }
+  if(S&&typeof gameClick==='function')gameClick(b);
+});
+APP.addEventListener('input',function(e){if(e.target.id==='joinCode'){joinVal=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=joinVal}});
+APP.addEventListener('keydown',function(e){if(e.target.id==='joinCode'&&e.key==='Enter')joinRoom()});
+APP.addEventListener('change',function(e){
+  if(e.target.name==='pc'){chosenCount=Number(e.target.value);return}
+  if(typeof gameChange==='function')gameChange(e);
+});
+document.addEventListener('click',function(e){if(MENUOPEN&&!e.target.closest('.menu-wrap')){MENUOPEN=false;render()}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&MENUOPEN){MENUOPEN=false;render()}});
+render();
+if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosenCount;if(NYLO_START.name)playerName=NYLO_START.name.slice(0,18);if(NYLO_START.action==='join'){joinVal=NYLO_START.code||'';joinRoom()}else createRoom();}
+</script>
+<style id="sx-css">
+.sx-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:12px;color:var(--text)}
+.sx-label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text-soft);margin-top:2px}
+.sx-row{display:flex;gap:8px;flex-wrap:wrap}
+.sx-opt{padding:10px 16px;border-radius:7px;border:1px solid var(--border);background:var(--surface-raised);color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;transition:border-color .12s,background .12s}
+.sx-opt:hover:not(:disabled){border-color:var(--success)}
+.sx-opt.on{border-color:var(--accent);background:var(--accent);color:#1a0a12;font-weight:600}
+.sx-opt:disabled{opacity:.4;cursor:not-allowed}
+.sx-row .sx-opt{flex:1 1 0;min-width:0}
+.sx-go{background:var(--accent);border-color:var(--accent);color:#1a0a12;font-weight:600;margin-top:1rem}
+.sx-go:hover:not(:disabled){filter:brightness(1.1);border-color:var(--accent)}
+.sx-in{background:#fff;border:1px solid var(--border);color:#222;border-radius:6px;padding:10px 12px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none}
+.sx-in:focus{border-color:var(--accent)}
+.sx-in.code{letter-spacing:2px;text-transform:uppercase;font-family:Consolas,monospace}
+.sx-nav{display:flex;gap:8px;align-items:center;margin-left:auto}
+.sx-nav .nylo-home{background:var(--surface-raised);color:var(--text);border-color:var(--border)}
+.sx-nav .nylo-home:hover{border-color:var(--accent)}
+.sx-sub{display:flex;flex-direction:column;gap:10px;padding-top:2px}
+</style>
+<script>
+(function(){
+  var P=window.NYLO_SETUP={id:'bubble-gum',logo:'Bubble Gum',counts:[2]};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  function run(id){var s=document.createElement('script');s.textContent=document.getElementById(id).textContent;document.body.appendChild(s)}
+  window.addEventListener('hashchange',function(){location.reload()});
+  window.NYLO_IN_SETUP=true;   // finché si sceglie, Home/Indietro escono senza avviso
+  var app=document.getElementById('app');
+  var st={n:P.counts[0],mode:location.hash==='#stanze'?'room':(location.hash==='#ai'?'ai':''),sub:'',code:'',name:''};
+  var needName=false;
+  try{
+    st.name=localStorage.getItem('nylo-player-name')||'';
+    var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
+  }catch(e){}
+  needName=!st.name;   // il nome arriva dalla sessione; il campo compare solo se manca
+  function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
+  function draw(){
+    var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
+    h+='<div class="sx-card">';
+    if(needName)h+='<label class="sx-label" for="sxName">IL TUO NOME</label><input class="sx-in" id="sxName" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(st.name)+'">';
+    if(P.counts.length>1){
+      h+='<div class="sx-label">GIOCATORI</div><div class="sx-row">'+P.counts.map(function(n){return btn('data-n="'+n+'"','',n+' giocatori',st.n===n)}).join('')+'</div>';
+    }
+    h+='<div class="sx-label">MODALITÀ</div><div class="sx-row">'+btn('data-mode="ai"','','Contro l’AI',st.mode==='ai')+btn('data-mode="room"','','A stanze',st.mode==='room')+'</div>';
+    if(st.mode==='ai'){
+      h+='<div class="sx-sub"><div class="sx-row">'+btn('data-go="ai"','sx-go','Inizia',false)+'</div></div>';
+    }else if(st.mode==='room'){
+      h+='<div class="sx-label">OPZIONI STANZA</div><div class="sx-sub"><div class="sx-row">'+btn('data-sub="create"','','Crea nuova',st.sub==='create')+btn('data-sub="join"','','Unisciti',st.sub==='join')+'</div>';
+      if(st.sub==='create')h+='<div class="sx-row">'+btn('data-go="create"','sx-go','Inizia',false)+'</div>';
+      if(st.sub==='join')h+='<input class="sx-in code" id="sxCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(st.code)+'"><div class="sx-row"><button type="button" class="sx-opt sx-go" id="sxJoin" data-go="join" '+(st.code.length===12?'':'disabled')+'>Inizia</button></div>';
+      h+='</div>';
+    }
+    h+='</div>';
+    app.innerHTML=h;
+  }
+  function loadRoom(){
+    var libs=['app','auth','database'].map(function(n){return 'https://www.gstatic.com/firebasejs/10.12.2/firebase-'+n+'-compat.js'});
+    (function next(i){
+      if(i===libs.length){run('src-room');return}
+      var s=document.createElement('script');s.src=libs[i];s.onload=function(){next(i+1)};
+      s.onerror=function(){app.innerHTML='<p style="padding:20px;color:#c00">Firebase non raggiungibile: controlla la connessione.</p>'};
+      document.head.appendChild(s);
+    })(0);
+  }
+  function go(kind){
+    var nm=document.getElementById('sxName'),name=((nm&&nm.value)||st.name||'').trim().slice(0,16);
+    window.NYLO_IN_SETUP=false;
+    if(name){try{localStorage.setItem('nylo-player-name',name)}catch(e){}}
+    var cfg={name:name,n:st.n};
+    if(kind==='ai'){cfg.mode='ai';window.NYLO_START=cfg;run('src-ai');return}
+    cfg.mode='room';cfg.action=kind;if(kind==='join')cfg.code=st.code;
+    window.NYLO_START=cfg;app.innerHTML='';loadRoom();
+  }
+  app.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b||b.disabled)return;
+    var d=b.dataset;
+    if(d.n){st.n=Number(d.n);draw()}
+    else if(d.mode){st.mode=d.mode;st.sub='';draw()}
+    else if(d.sub){st.sub=d.sub;draw();var c=document.getElementById('sxCode');if(c)c.focus()}
+    else if(d.go)go(d.go);
+  });
+  app.addEventListener('input',function(e){
+    if(e.target.id==='sxName')st.name=e.target.value;
+    else if(e.target.id==='sxCode'){
+      st.code=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=st.code;
+      var j=document.getElementById('sxJoin');if(j)j.disabled=st.code.length!==12;
+    }
+  });
+  app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  draw();
+})();
 </script>
 </body>
 </html>

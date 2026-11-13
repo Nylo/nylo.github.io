@@ -24,10 +24,10 @@
         <a href="/#online" class="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200"><i class="ph-fill ph-arrow-left"></i>Indietro</a>
         <h1 class="text-2xl font-bold">Trick-taking online</h1>
         <p class="mt-1 text-sm text-slate-400">Scegli il gioco e come giocarlo: contro l'AI o contro gli amici, in una stanza online.</p>
-        <div class="mt-6 flex flex-col gap-2">
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-2">
                 <label class="relative block max-w-sm"><span class="sr-only">Cerca un titolo</span><i class="ph-fill ph-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true"></i><input id="q" type="search" autocomplete="off" placeholder="Cerca un titolo…" class="w-full rounded-lg border border-slate-700 bg-white/[0.04] py-2 pl-9 pr-3 text-sm text-slate-100 placeholder-slate-500 focus:border-teal-500 focus:outline-none"></label>
-                <!-- TEMPORANEO: filtro per stato (UPD / Beta / New); rimuovere questo blocco e il codice "stateFilter" nello script -->
-                <div id="stateFilter" class="flex flex-wrap gap-2" role="group" aria-label="Filtra per stato"></div>
+                <!-- TEMPORANEO, solo admin: filtro per stato (UPD / Beta / New); rimuovere questo blocco e il codice "stateFilter" nello script -->
+                <div id="stateFilter" class="hidden flex-wrap justify-end gap-2" role="group" aria-label="Filtra per stato"></div>
         </div>
                 <div class="mt-4 overflow-x-auto rounded-xl border border-slate-700/60">
                         <table class="w-full min-w-[360px] border-collapse text-left text-sm">
@@ -574,7 +574,11 @@
                         var act = Object.keys(stateOn).filter(function (k) { return stateOn[k]; });
                         return !act.length || gameStates(g).some(function (k) { return stateOn[k]; });
                 }
+                var IS_ADMIN = false;   // stesso accesso admin della collection (password master → localStorage nylo-admin)
+                try { IS_ADMIN = localStorage.getItem('nylo-admin') === '85770706df4d616a498c17a05c1f8fe200d36b219ea00c688d4ac39ee46103c4'; } catch (e) {}
                 function drawStateFilter() {
+                        if (!IS_ADMIN) return;
+                        document.getElementById('stateFilter').classList.replace('hidden', 'flex');
                         document.getElementById('stateFilter').innerHTML = Object.keys(STATE_BTN).map(function (k) {
                                 var on = stateOn[k], st = BADGE_STYLE[STATE_BTN[k][1]];
                                 var fill = { beta: 'bg-amber-400', 'new': 'bg-sky-400', upd: 'bg-emerald-400' }[k];
