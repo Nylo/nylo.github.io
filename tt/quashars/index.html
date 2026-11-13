@@ -106,8 +106,8 @@ table.score .neg{color:var(--danger)}
 .seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
 .tag{background:rgba(0,0,0,0.3);border-radius:4px;padding:2px 6px}
 .tag.neg{background:rgba(255,255,255,0.85);color:var(--danger);font-weight:700}
-.chip{display:inline-block;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #f0c9a8}
-.chip.flex{background:#5fbf7f;border-color:#fff}
+.chip{display:inline-block;width:14px;height:14px;border-radius:50%;background:#f28a1e;border:2px solid #ffd9a8}
+.chip.flex{background:#fff;border-color:#f0c9a8}
 .chip.blue{background:#2b69b8;border-color:#fff}
 .backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:210px}
 .back{width:16px;height:24px;border-radius:3px;background:linear-gradient(135deg,#f3a15f,#c4531a);border:1px solid #fff}
@@ -334,7 +334,7 @@ const RULES_HTML = `
 <h4>1. Carte Contratto</h4>
 <p>Si gira una carta da ciascuno dei 4 mazzi. Ogni round si usa una carta diversa per pila (3 round in 3 giocatori, 4 round in 4 giocatori).</p>
 <h4>2. Previsione</h4>
-<p>Partendo dal giocatore iniziale, in senso orario, ognuno prevede quante volte soddisferà le condizioni delle quattro carte Contratto e prende altrettanti gettoni bianchi (anche zero). Puoi aggiungere un gettone di riserva (faccia verde): con 3 gettoni bianchi e uno di riserva prevedi 3 o 4 volte; con il solo gettone di riserva prevedi 0 o 1 volta.</p>
+<p>Partendo dal giocatore iniziale, in senso orario, ognuno prevede quante volte soddisferà le condizioni delle quattro carte Contratto e prende altrettanti gettoni bianchi (anche zero). Puoi aggiungere un gettone di riserva (bianco): con 3 gettoni bianchi e uno di riserva prevedi 3 o 4 volte; con il solo gettone di riserva prevedi 0 o 1 volta.</p>
 <p>Ogni volta che una condizione è soddisfatta si restituisce un gettone. Se ne servono più di quelli che hai (dopo i bianchi, il gettone di riserva), si prende un gettone blu, che vale −1 a fine round.</p>
 <h4>3. Prese</h4>
 <p>Il giocatore iniziale gioca qualsiasi carta, gli altri devono rispondere al seme se possono. Se non vengono giocate carte rosse vince la carta più alta del seme del giocatore iniziale; se ne vengono giocate, vince la carta rossa più alta. Il vincitore restituisce un gettone per ogni condizione soddisfatta, tiene le carte e inizia la presa successiva. Si giocano 12 prese.</p>
@@ -413,13 +413,13 @@ async function predictions(){
     }
     while(true){
       const opts=[];
-      for(let n=0;n<=MAXPRED;n++) opts.push({label:n===0?'0 volte (nessun gettone)':`${n} ${n===1?'volta':'volte'}`,value:n,w:n<=1?1:(n<=4?1.5:0.3)});
+      for(let n=0;n<=MAXPRED;n++) opts.push({label:String(n),value:n,w:n<=1?1:(n<=4?1.5:0.3)});
       const n=await ask(p,'Quante volte soddisferai le condizioni dei 4 contratti? (prendi altrettanti gettoni)',opts,{pause:350});
       const fo=[
         {label:`No: esattamente ${n}`,value:false,w:1.5},
         {label:`Sì: ${n} oppure ${n+1} (vale 1× invece di 2×)`,value:true,w:1}];
       if(p===HUM&&OPT.undo) fo.push({label:'Annulla',value:'undo'});
-      const flex=await ask(p,`Vuoi aggiungere un gettone di riserva (faccia verde)? Prevedi ${n} oppure ${n+1}`,fo,{pause:200});
+      const flex=await ask(p,`Vuoi aggiungere un gettone di riserva (bianco)? Prevedi ${n} oppure ${n+1}`,fo,{pause:200});
       if(flex==='undo') continue;
       const txt=flex?`${n}–${n+1} volte (con gettone di riserva)`:`${n} ${n===1?'volta':'volte'}`;
       if(p===HUM&&OPT.undo){
@@ -849,7 +849,7 @@ function predForm(){
   for(var k=0;k<=MAXPRED;k++)btns+='<button class="opt '+(ui.n===k?'on':'')+'" data-pn="'+k+'">'+k+'</button>';
   var h='<div class="dock-title">QUANTE VOLTE SODDISFERAI LE CONDIZIONI DEI 4 CONTRATTI? (PRENDI ALTRETTANTI GETTONI)</div><div class="opts">'+btns+'</div>';
   if(ui.n!==null){
-    h+='<div class="dock-title">VUOI AGGIUNGERE UN GETTONE DI RISERVA (FACCIA VERDE)?</div><div class="opts">'+
+    h+='<div class="dock-title">VUOI AGGIUNGERE UN GETTONE DI RISERVA (BIANCO)?</div><div class="opts">'+
       '<button class="opt '+(ui.flex===false?'on':'')+'" data-pf="0">No: esattamente '+ui.n+'</button>'+
       '<button class="opt '+(ui.flex===true?'on':'')+'" data-pf="1">Sì: '+ui.n+' oppure '+(ui.n+1)+' (vale 1× invece di 2×)</button></div>';
   }
