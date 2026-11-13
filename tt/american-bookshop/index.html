@@ -33,7 +33,7 @@ body{background:linear-gradient(160deg,#f8b93f 0%,#ee9f20 100%) fixed}
 .app{max-width:980px;margin:0 auto;padding:0 12px 48px}
 
 .topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
-.logo{font-family:'Playfair Display',serif;font-weight:900;font-size:34px;line-height:1.05;flex:1;letter-spacing:0.03em;text-transform:uppercase;color:var(--ink)}
+.logo{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(22px,6.6vw,30px);line-height:1.05;flex:1;letter-spacing:0.03em;text-transform:uppercase;color:var(--ink)}
 .logo small{font-family:'Libre Baskerville',serif;font-weight:700;font-size:11px;letter-spacing:0.16em;color:var(--ink);display:block;margin-bottom:2px}
 .badge{background:var(--ink);color:#f8de9a;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
 .btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-soft);border:1px solid var(--border)}
@@ -178,13 +178,6 @@ body{background:radial-gradient(ellipse at 50% 0%,#f9b73a 0%,#f5a623 55%,#ee9a14
 .dock{box-shadow:0 3px 0 rgba(27,18,8,0.55)}
 .badge{background:var(--ink);color:#f5a623;letter-spacing:0.04em;text-transform:uppercase;font-family:'Libre Baskerville',serif}
 
-.cover{max-width:400px;aspect-ratio:5/6;display:flex;flex-direction:column;justify-content:center;margin:6px auto 16px;border:30px solid transparent;border-image:var(--frame) 24 / 30px / 0 stretch;padding:6px 0 4px;text-align:center;color:var(--ink)}
-.cover h1{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(34px,11.5vw,48px);line-height:0.92;letter-spacing:0.01em;text-transform:uppercase;margin:6px 0 14px}
-.cover .orn{display:flex;justify-content:center;margin:4px 0 22px}
-.cover .cred{font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;line-height:1.5}
-.cover .cred span{display:block;font-family:'Inter',sans-serif;font-weight:600;opacity:0.85;margin-top:12px}
-.cover .cred b{display:block;font-family:'Libre Baskerville',serif;font-weight:700;font-size:12px;letter-spacing:0.08em}
-.cover .cg{font-size:8px;letter-spacing:0.3em;margin-top:26px;font-weight:600}
 
 .won{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;max-width:250px;padding:3px 4px;border-radius:6px;background:rgba(27,18,8,0.1)}
 .seat.left .won,.seat.right .won,.seat.top .won,.seat.tl .won,.seat.tr .won{max-width:150px}
@@ -197,7 +190,6 @@ body.a11y .wc.s3{background-image:repeating-linear-gradient(90deg,rgba(255,255,2
 @media(max-width:600px){
   :root{--fw:14px}
   .table{padding:2px 0 6px}
-  .cover{border-width:22px;border-image-width:22px;max-width:300px}
   .won{max-width:120px;gap:1px}
   .seat.bottom .won{max-width:260px}
   .wc{width:14px;height:20px;font-size:9px;border-radius:2px}
@@ -678,7 +670,7 @@ function menuHtml(){
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
-  const top=`<div class="topbar"><div class="logo"><small>TAIKI SHINZAWA'S</small>American Bookshop</div>
+  const top=`<div class="topbar"><div class="logo">American Bookshop</div>
     ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
     ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${G.n}</span>`:''}
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
@@ -752,7 +744,7 @@ const RULES_HTML = `
 <p><i>Interpretazioni nell'app:</i> il primo giocatore del primo round è casuale. Nelle stanze online si gioca solo tra persone (3–5): le carte rimaste da giocare coperte restano segrete finché tutti hanno scelto, poi vengono rivelate insieme; il giocatore con il punteggio migliore del round sceglie il nuovo primo giocatore dal pannello in alto, e chiunque può passare al round successivo.</p>
 </div></details>`;
 // ═════════════════════════ AMERICAN BOOKSHOP · ONLINE ═════════════════════════
-var GAME={id:'american-bookshop',logo:'<small>TAIKI SHINZAWA\'S</small>American Bookshop · Online',counts:[3,4,5],
+var GAME={id:'american-bookshop',logo:'American Bookshop · Online',counts:[3,4,5],
   lobbyNote:'Servono da 3 a 5 giocatori (scegli quanti qui sotto). Quando la stanza è piena, i posti al tavolo vengono assegnati a caso.'};
 var SUITS=[
   {n:'Teiera',book:'Alla ricerca del tempo perduto',icon:'coffee'},
@@ -1338,7 +1330,6 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
 .sx-opt{padding:10px 16px;border-radius:7px;border:1px solid var(--border);background:var(--surface-raised);color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;transition:border-color .12s,background .12s}
 .sx-opt:hover:not(:disabled){border-color:var(--accent)}
 .sx-opt.on{border-color:var(--accent);background:var(--accent);color:#fff;font-weight:600}
-.sx-opt.on::before{content:'\2713\00a0'}
 .sx-opt:disabled{opacity:.4;cursor:not-allowed}
 .sx-row .sx-opt{flex:1 1 0;min-width:0}
 .sx-go{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;margin-top:1rem}
@@ -1353,7 +1344,7 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
 </style>
 <script>
 (function(){
-  var P=window.NYLO_SETUP={id:'american-bookshop',logo:'<small>TAIKI SHINZAWA\'S</small>American Bookshop',counts:[3,4,5]};
+  var P=window.NYLO_SETUP={id:'american-bookshop',logo:'American Bookshop',counts:[3,4,5]};
   var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
   function run(id){var s=document.createElement('script');s.textContent=document.getElementById(id).textContent;document.body.appendChild(s)}
   window.addEventListener('hashchange',function(){location.reload()});
@@ -1366,12 +1357,10 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
     var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
   }catch(e){}
   needName=!st.name;   // il nome arriva dalla sessione; il campo compare solo se manca
-  var COVER=`<header class="cover"><h1>American<br>Book<br>Shop</h1><div class="orn"><svg viewBox='0 0 40 24' width='34' height='20' aria-hidden='true' fill='currentColor'><path d='M20 22L11.0 22.0' stroke='currentColor' stroke-width='0'/><ellipse cx='6.5' cy='22.0' rx='1.6' ry='5.2' transform='rotate(-90.0 6.5 22.0)'/><path d='M20 22L11.5 18.9' stroke='currentColor' stroke-width='0'/><ellipse cx='7.3' cy='17.4' rx='1.6' ry='5.2' transform='rotate(-70.0 7.3 17.4)'/><path d='M20 22L13.1 16.2' stroke='currentColor' stroke-width='0'/><ellipse cx='9.7' cy='13.3' rx='1.6' ry='5.2' transform='rotate(-50.0 9.7 13.3)'/><path d='M20 22L15.5 14.2' stroke='currentColor' stroke-width='0'/><ellipse cx='13.3' cy='10.3' rx='1.6' ry='5.2' transform='rotate(-30.0 13.3 10.3)'/><path d='M20 22L18.4 13.1' stroke='currentColor' stroke-width='0'/><ellipse cx='17.7' cy='8.7' rx='1.6' ry='5.2' transform='rotate(-10.0 17.7 8.7)'/><path d='M20 22L21.6 13.1' stroke='currentColor' stroke-width='0'/><ellipse cx='22.3' cy='8.7' rx='1.6' ry='5.2' transform='rotate(10.0 22.3 8.7)'/><path d='M20 22L24.5 14.2' stroke='currentColor' stroke-width='0'/><ellipse cx='26.8' cy='10.3' rx='1.6' ry='5.2' transform='rotate(30.0 26.8 10.3)'/><path d='M20 22L26.9 16.2' stroke='currentColor' stroke-width='0'/><ellipse cx='30.3' cy='13.3' rx='1.6' ry='5.2' transform='rotate(50.0 30.3 13.3)'/><path d='M20 22L28.5 18.9' stroke='currentColor' stroke-width='0'/><ellipse cx='32.7' cy='17.4' rx='1.6' ry='5.2' transform='rotate(70.0 32.7 17.4)'/><path d='M20 22L29.0 22.0' stroke='currentColor' stroke-width='0'/><ellipse cx='33.5' cy='22.0' rx='1.6' ry='5.2' transform='rotate(90.0 33.5 22.0)'/><circle cx='20' cy='22' r='3'/></svg></div>
-      <div class="cred"><span>Designer</span><b>Taiki Shinzawa</b><span>Artist</span><b>Crayon Company</b></div><div class="cg">CARD GAME</div></header>`;
   function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
   function draw(){
     var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
-    h+=COVER+'<div class="sx-card">';
+    h+='<div class="sx-card">';
     if(needName)h+='<label class="sx-label" for="sxName">IL TUO NOME</label><input class="sx-in" id="sxName" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(st.name)+'">';
     if(P.counts.length>1){
       h+='<div class="sx-label">GIOCATORI</div><div class="sx-row">'+P.counts.map(function(n){return btn('data-n="'+n+'"','',n+' giocatori',st.n===n)}).join('')+'</div>';
