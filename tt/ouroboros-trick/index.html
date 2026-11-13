@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ouroboros Trick</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Dela+Gothic+One&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f3eee0;
+  --ink:#1a1b2e;
+  --surface:#fffdf7;
+  --surface-raised:#efe9d8;
+  --accent:#1b2a9e;
+  --accent-soft:rgba(27,42,158,0.1);
+  --text:#1d1e30;
+  --text-soft:#555a73;
+  --danger:#b3261e;
+  --success:#2f7a2f;
+  --border:rgba(26,27,46,0.3);
+  --radius:10px;
+  --s0:#c8202f; --s1:#e0b94a; --s2:#1b2a9e; --s3:#2f7a2f;
+  --t0:#c8202f; --t1:#8a6700; --t2:#1b2a9e; --t3:#2f7a2f;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:var(--bg);position:relative}
+/* anello ouroboros appena accennato dietro la pagina */
+body::before{content:'';position:fixed;right:-24vmin;top:-20vmin;width:92vmin;height:92vmin;border-radius:50%;pointer-events:none;z-index:0;opacity:.09;
+  background:conic-gradient(from -80deg,var(--s0) 0 25%,var(--s1) 0 50%,var(--s2) 0 75%,var(--s3) 0 100%);
+  -webkit-mask:radial-gradient(circle,transparent 57%,#000 58%,#000 78%,transparent 79%);mask:radial-gradient(circle,transparent 57%,#000 58%,#000 78%,transparent 79%)}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px;position:relative;z-index:1}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Dela Gothic One','Inter',sans-serif;font-size:24px;font-weight:400;line-height:1.05;flex:1;color:var(--ink);display:flex;align-items:center;gap:10px;min-width:0}
+.logo svg{flex:0 0 auto;width:34px;height:34px}
+.logo small{display:block;font-size:10px;letter-spacing:.14em;margin-top:3px}
+.logo small i{font-style:normal}
+.logo small i:nth-child(4n+1){color:var(--t0)} .logo small i:nth-child(4n+2){color:var(--t1)} .logo small i:nth-child(4n+3){color:var(--t2)} .logo small i:nth-child(4n+4){color:var(--t3)}
+.badge{background:var(--ink);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:var(--text);border:1px solid var(--ink)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:34px;height:19px;flex:0 0 34px;margin:0;border:1px solid var(--border);border-radius:999px;background:var(--surface-raised);cursor:pointer;transition:background .15s,border-color .15s}
+.opt-toggle input[type=checkbox]::before{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-soft);transition:transform .15s,background .15s}
+.opt-toggle input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.opt-toggle input[type=checkbox]:checked::before{transform:translateX(15px);background:#fff}
+.opt-toggle input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:#fff;color:var(--text);border:1px solid var(--ink);cursor:pointer}
+.hamb:hover{background:var(--surface-raised)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:230px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(26,27,46,0.28)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:normal;line-height:1.35;text-align:left;width:100%}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+/* nel menu le voci sono azioni a testo (home-btn.js): l'interruttore stilizzato deve restare nascosto e non occupare spazio */
+.menu-pop .opt-toggle.nylo-menu-action input[type=checkbox]{position:absolute;width:1px;height:1px;flex:none;margin:0;border:0;opacity:0;pointer-events:none}
+.menu-pop button.opt-toggle{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--text);text-align:left;background:transparent;border:0;box-shadow:none;cursor:pointer}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.lead{background:var(--accent);color:#fff}
+.flag.win{background:var(--success);color:#fff}
+.flag.lose{background:var(--danger);color:#fff}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(26,27,46,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.4)}
+.name-box h3{font-family:'Dela Gothic One',sans-serif;font-weight:400;font-size:17px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(26,27,46,0.22)}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fff;border:1px solid var(--ink);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--ink);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft);line-height:1.5}
+.scroll-x{overflow-x:auto}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+table.score tr.out td{color:var(--danger);font-weight:700}
+
+/* semi: quadratino di colore (con il motivo del serpente in modalità accessibile) */
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;border:1px solid rgba(0,0,0,0.35)}
+.sw.s0{background:var(--s0)} .sw.s1{background:var(--s1)} .sw.s2{background:var(--s2)} .sw.s3{background:var(--s3)}
+body.a11y .sw.s0{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.75) 0 1px,transparent 1px 3px)}
+body.a11y .sw.s1{background-image:radial-gradient(rgba(60,40,0,0.8) 30%,transparent 33%);background-size:4px 4px}
+body.a11y .sw.s2{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.75) 0 1px,transparent 1px 3px),repeating-linear-gradient(45deg,rgba(255,255,255,0.75) 0 1px,transparent 1px 3px)}
+body.a11y .sw.s3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.8) 0 1px,transparent 1px 3px)}
+
+.table{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;background:#fbf7ea;border:2px solid var(--accent);outline:1px solid rgba(27,42,158,0.35);outline-offset:3px;border-radius:14px;padding:12px;margin:4px 4px 16px;min-height:480px}
+.table.n3{grid-template-areas:"left left center center right right" "bottom bottom bottom bottom bottom bottom"}
+.table.n4{grid-template-areas:"top top top top top top" "left left center center right right" "bottom bottom bottom bottom bottom bottom"}
+.table.n5{grid-template-areas:"topL topL topL topR topR topR" "left left center center right right" "bottom bottom bottom bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top} .seat.topL{grid-area:topL} .seat.topR{grid-area:topR}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border:1px dashed rgba(27,42,158,0.6);background:rgba(27,42,158,0.05)}
+.seat.active{border:2px solid var(--accent);background:rgba(224,185,74,0.24);box-shadow:0 0 0 2px #e0b94a}
+.seat.winner{border:2px solid var(--success);background:rgba(47,122,47,0.12)}
+.seat.loser{border:2px solid var(--danger);background:rgba(179,38,30,0.09)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(26,27,46,0.09);border-radius:4px;padding:2px 6px;color:var(--text);display:inline-flex;align-items:center;gap:4px}
+.tag b{color:var(--accent)}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px;align-items:center}
+.back{width:9px;height:14px;border-radius:2px;background:var(--accent);border:1px solid rgba(255,255,255,0.8);box-shadow:0 0 0 1px rgba(26,27,46,0.35)}
+.backs .more{font-size:10px;color:var(--text-soft);margin-left:2px}
+.seat.top .backs,.seat.topL .backs,.seat.topR .backs,.seat.left .backs,.seat.right .backs{display:grid;grid-template-columns:repeat(7,9px);max-width:none}
+.tableau{display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;min-height:74px;padding:4px 6px;border-radius:8px;background:rgba(26,27,46,0.05);min-width:56px}
+.slot{display:inline-block;width:42px;height:62px;border:1px dashed rgba(26,27,46,0.4);border-radius:6px}
+.cap{font-size:10px;color:var(--text-soft);line-height:1.2}
+
+/* carte: bianche, numero tecnico nel colore del seme, anello del serpente (con la testa) al centro */
+.oc{width:var(--cw);height:var(--ch);border-radius:6px;border:1px solid #b6ad96;background:#fff;color:var(--ink);display:inline-block;position:relative;flex-shrink:0;padding:0;overflow:hidden;box-shadow:0 2px 4px rgba(26,27,46,0.28);font-family:'Chakra Petch','Inter',sans-serif}
+.oc .cn{position:absolute;left:3px;top:1px;font-size:19px;font-weight:700;line-height:1.1;letter-spacing:-0.02em}
+.oc .cn2{position:absolute;right:3px;bottom:1px;font-size:11px;font-weight:700;line-height:1;transform:rotate(180deg);opacity:.85}
+.oc.s0 .cn,.oc.s0 .cn2{color:var(--t0)} .oc.s1 .cn,.oc.s1 .cn2{color:var(--t1)} .oc.s2 .cn,.oc.s2 .cn2{color:var(--t2)} .oc.s3 .cn,.oc.s3 .cn2{color:var(--t3)}
+.oc .ring{position:absolute;left:50%;bottom:3px;width:calc(var(--cw) - 10px);height:calc(var(--cw) - 10px);transform:translateX(-50%);fill:none}
+.oc .ring circle.a{fill:none}
+.oc.s0 .ring .a{stroke:var(--s0)} .oc.s1 .ring .a{stroke:var(--s1)} .oc.s2 .ring .a{stroke:var(--s2)} .oc.s3 .ring .a{stroke:var(--s3)}
+.oc .ring .eye{fill:#fff;stroke:none}
+.oc .ring .pat{display:none}
+body.a11y .oc .ring .pat{display:inline}
+.oc.mini{width:42px;height:62px;--cw:42px}
+.oc.fresh{box-shadow:0 0 0 3px #7f8fe0}
+.oc.win{box-shadow:0 0 0 3px var(--success)}
+.oc.min{outline:2px dashed var(--danger);outline-offset:-3px}
+button.oc{cursor:pointer;transition:transform 0.12s}
+button.oc:hover:not(:disabled){transform:translateY(-6px)}
+button.oc:disabled{cursor:default}
+.oc.dim{opacity:0.4;filter:saturate(0.5)}
+.oc.legal{box-shadow:0 0 0 2px var(--accent),0 0 0 4px rgba(224,185,74,0.9)}
+.oc.sel{transform:translateY(-12px);box-shadow:0 0 0 2px #fff,0 0 0 5px var(--accent)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:14px}
+.pchip{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 4px;border-radius:5px;background:#fff;border:2px solid var(--s0);font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:12px}
+.pchip.s0{border-color:var(--s0);color:var(--t0)} .pchip.s1{border-color:var(--s1);color:var(--t1)} .pchip.s2{border-color:var(--s2);color:var(--t2)} .pchip.s3{border-color:var(--s3);color:var(--t3)}
+.pchips{display:flex;gap:3px;flex-wrap:wrap}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;font-size:12px;line-height:1.45;color:var(--text-soft);min-width:0}
+.center b{color:var(--accent)}
+.legend{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.lg{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:5px;font-weight:600;font-size:11px;border:1px solid var(--border);background:#fff;color:var(--text)}
+.mnote{font-weight:700;color:var(--danger);font-size:12px}
+
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .lg{vertical-align:middle}
+.scorebox{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
+.scorebox h3{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em;margin-bottom:8px}
+.prow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;margin-bottom:8px}
+.prow .lbl{font-weight:600;color:var(--text-soft)}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Inter',sans-serif;font-weight:800;font-size:15px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+@media(max-width:600px){
+  .logo{font-size:19px}
+  .logo svg{width:28px;height:28px}
+  :root{--cw:34px;--ch:50px}
+  .oc{border-radius:5px}
+  .oc .cn{font-size:15px;left:2px}
+  .oc .cn2{display:none}
+  .oc .ring{bottom:2px}
+  .oc.mini{width:34px;height:50px;--cw:34px}
+  .slot{width:34px;height:50px}
+  .table{padding:8px;gap:6px;margin:4px 3px 14px}
+  .back{width:7px;height:11px}
+  .seat.top .backs,.seat.topL .backs,.seat.topR .backs,.seat.left .backs,.seat.right .backs{grid-template-columns:repeat(7,7px)}
+  .hand{gap:3px}
+  .seat{padding:6px 4px}
+  table.score td,table.score th{padding:5px 4px}
+}
+@media(max-width:380px){.topbar{gap:6px}.logo{font-size:16px}.logo small{display:none}.badge{padding:4px 9px}}
+</style>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a0c10">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="/pwa.js" defer></script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="pat0" width="8" height="4" patternUnits="userSpaceOnUse"><rect y="1.4" width="8" height="1.3" fill="#fff" opacity=".85"/></pattern>
+    <pattern id="pat1" width="10" height="6" patternUnits="userSpaceOnUse"><path d="M0 3Q2.5 0 5 3T10 3" fill="none" stroke="#4a3500" stroke-width="1.1" opacity=".85"/></pattern>
+    <pattern id="pat2" width="8" height="6" patternUnits="userSpaceOnUse"><path d="M0 5L2 1L4 5L6 1L8 5" fill="none" stroke="#fff" stroke-width="1.1" opacity=".85"/></pattern>
+    <pattern id="pat3" width="6" height="4" patternUnits="userSpaceOnUse"><rect x="0" y="1.4" width="3.4" height="1.3" fill="#fff" opacity=".9"/></pattern>
+  </defs>
+</svg>
+<div class="app" id="app"></div>
+
+<script src="/tt/shared/core.js"></script>
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+// Semi: 0 Rosso (righe), 1 Giallo (onde), 2 Blu (zigzag), 3 Verde (trattini)
+const SUITS = [{n:'Rosso'},{n:'Giallo'},{n:'Blu'},{n:'Verde'}];
+const SW = s => `<span class="sw s${s}"></span>`;
+const SIC = SW;
+const POS = {3:['bottom','left','right'],4:['bottom','left','top','right'],5:['bottom','left','topL','topR','right']};
+const NAMES = ['Tu','AI Hebi','AI Nagi','AI Kaa','AI Mamba'];
+const HUM = 0, HAND0 = 12;
+const maxV = n => n===3?9:(n===4?12:15);
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('ot-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ot-a11y')==='1'; }catch(e){}
+const cname = c => `${c.v} ${SUITS[c.s].n}`;
+const mk = (s,v) => ({s,v,id:s*16+v});
+const cardOf = id => mk(id>>4,id&15);
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
+const plural = (n,a,b) => n===1?a:b;
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// 4 semi × 1..maxV(n): 36 / 48 / 60 carte, tutte distribuite (12 a testa)
+function makeDeck(n){
+  const d=[]; for(let s=0;s<4;s++) for(let v=1;v<=maxV(n);v++) d.push(mk(s,v));
+  return d;
+}
+// carte giocabili: si deve rispondere al seme di mano se si può
+function legalIdx(hand,lead){
+  const all=hand.map((_,i)=>i);
+  if(lead<0) return all;
+  const f=all.filter(i=>hand[i].s===lead);
+  return f.length?f:all;
+}
+// plays = [{p,c}] in ordine di gioco, lead = seme di mano. Ogni seme diverso da quello di mano è briscola e batte il seme di mano;
+// tra briscole vince il numero più alto (a parità, chi ha giocato per ultimo); senza briscole vince il numero più alto del seme di mano.
+// min = valore più basso tra tutte le carte della presa (di qualsiasi seme) = carte da scartare.
+function resolveTrick(plays,lead){
+  let wi=-1, trump=false, bv=-1;
+  plays.forEach((x,i)=>{
+    const s=x.c.s, v=x.c.v;
+    if(s!==lead){ if(!trump){ trump=true; wi=i; bv=v; } else if(v>=bv){ wi=i; bv=v; } }
+    else if(!trump&&v>bv){ wi=i; bv=v; }
+  });
+  const min=Math.min(...plays.map(x=>x.c.v));
+  return {wi,winner:plays[wi].p,trump,min,minIdx:plays.map((x,i)=>x.c.v===min?i:-1).filter(i=>i>=0)};
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Obiettivo: sopravvivere (non restare con mano e pool vuoti). Ogni carta in mano o nel pool è una "vita":
+// chi non vince perde la carta giocata; chi vince guadagna n−1 carte nel pool ma ne scarta tante quanto il valore più basso della presa.
+// Vincere conviene quindi solo se il valore più basso della presa è < n.
+// L'AI conosce: la propria mano, tutti i pool e gli scarti (le carte sono state viste uscire in presa/scarto), le mani "note" (nuova mano = pool),
+// le dimensioni di tutte le mani e i semi mancanti. Mai le mani nascoste altrui.
+// Decisioni: Monte Carlo con determinizzazione (mani nascoste campionate) e rollout con politica euristica fino a fine partita.
+const AIP = {ms:150, minW:6, maxW:90, cap:40, eps:0.06};
+const sOf = id => id>>4;
+const vOf = id => id&15;
+window.OTDBG = {swCalls:0, swMismatch:0, maxMs:0, decisions:0, totMs:0};
+function curBest(plays,L){
+  // stato della presa in corso: c'è una briscola? valore più alto della briscola / del seme di mano
+  let trump=false, bt=-1, bl=-1;
+  for(const x of plays){ const s=sOf(x.id), v=vOf(x.id); if(s!==L){ trump=true; if(v>bt) bt=v; } else if(v>bl) bl=v; }
+  return {trump,bt,bl};
+}
+function wouldWin(cb,L,s,v){
+  if(s!==L) return !cb.trump||v>=cb.bt;
+  return !cb.trump&&v>cb.bl;
+}
+// carta da giocare nelle simulazioni (S.hands: array di id)
+function polPlay(S,q,plays,lead){
+  const h=S.hands[q], n=S.n, V=S.V;
+  let lg=h;
+  if(lead>=0){ const f=h.filter(id=>sOf(id)===lead); if(f.length) lg=f; }
+  if(lg.length===1) return lg[0];
+  if(Math.random()<AIP.eps) return lg[rnd(lg.length)];
+  const r=n-plays.length-1;
+  let m0=(V+1)/n;
+  if(plays.length){ m0=99; for(const x of plays){ const v=vOf(x.id); if(v<m0) m0=v; } }
+  const cb=plays.length?curBest(plays,lead):null;
+  let best=-1e9, bid=lg[0];
+  for(const id of lg){
+    const s=sOf(id), v=vOf(id), L=lead>=0?lead:s;
+    const win=plays.length?wouldWin(cb,L,s,v):true;
+    const k=Math.min(m0,v);
+    let net, certainLoss=false;
+    if(!win){ net=-1; certainLoss=true; }
+    else if(r===0) net=n-1-k;
+    else{
+      const pb=(s!==L)?0.04+0.3*(1-v/V):0.12+0.4*(1-v/V);
+      const p=Math.pow(1-pb,r);
+      net=p*(n-1-k)+(1-p)*(-1);
+    }
+    const sc=net+(certainLoss?0.002*v:-0.002*v);
+    if(sc>best){ best=sc; bid=id; }
+  }
+  return bid;
+}
+// scarto nelle simulazioni: le carte più alte
+function polDiscard(S,w,cnt){
+  const h=S.hands[w];
+  if(cnt>=h.length){ h.length=0; return; }
+  h.sort((a,b)=>vOf(b)-vOf(a)); h.splice(0,cnt);
+}
+function simAfter(S){
+  const n=S.n;
+  for(let q=0;q<n;q++) if(!S.hands[q].length&&S.pools[q].length){ S.hands[q]=S.pools[q]; S.pools[q]=[]; }
+  for(let q=0;q<n;q++) if(!S.hands[q].length&&!S.pools[q].length){ S.over=true; S.lost[q]=1; }
+}
+function simTrick(S){
+  const n=S.n, plays=S.plays;
+  let lead=plays.length?sOf(plays[0].id):-1;
+  for(let k=plays.length;k<n;k++){
+    const q=(S.leader+k)%n, id=polPlay(S,q,plays,lead), h=S.hands[q];
+    h.splice(h.indexOf(id),1);
+    plays.push({p:q,id}); if(k===0) lead=sOf(id);
+  }
+  const cb=curBest(plays,lead); let wi=-1, bv=-1, mn=99;
+  plays.forEach((x,i)=>{
+    const s=sOf(x.id), v=vOf(x.id); if(v<mn) mn=v;
+    if(s!==lead){ if(wi<0||sOf(plays[wi].id)===lead||v>=bv){ wi=i; bv=v; } }
+    else if(!cb.trump&&v>bv){ wi=i; bv=v; }
+  });
+  const w=plays[wi].p;
+  for(const x of plays) S.pools[w].push(x.id);
+  const h=S.hands[w];
+  if(h.length>=mn) polDiscard(S,w,mn);
+  else{
+    const need=mn-h.length;
+    S.hands[w]=S.pools[w]; S.pools[w]=[];
+    polDiscard(S,w,need);
+  }
+  simAfter(S);
+  S.plays=[]; S.leader=w; S.tricks++;
+}
+function simValue(S,p){
+  if(S.over) return S.lost[p]?0:0.85+0.15*Math.min(1,(S.hands[p].length+S.pools[p].length)/(2*S.n));
+  let mT=1e9;
+  for(let q=0;q<S.n;q++) if(q!==p){ const t=S.hands[q].length+S.pools[q].length; if(t<mT) mT=t; }
+  const tp=S.hands[p].length+S.pools[p].length;
+  return 0.8/(1+Math.exp(-(tp-mT)/2.5));
+}
+function rollout(S,p){
+  while(!S.over&&S.tricks<AIP.cap) simTrick(S);
+  return simValue(S,p);
+}
+const cloneS = S => ({n:S.n,V:S.V,hands:S.hands.map(a=>a.slice()),pools:S.pools.map(a=>a.slice()),plays:S.plays.map(x=>({p:x.p,id:x.id})),leader:S.leader,over:false,lost:new Array(S.n).fill(0),tricks:0});
+// mondo plausibile: le carte non note si distribuiscono ai giocatori con mano nascosta rispettando i semi mancanti
+function sampleWorld(p){
+  const n=G.n, V=G.V, known=new Uint8Array(64);
+  const mark=c=>{ known[c.id]=1; };
+  G.hands[p].forEach(mark);
+  G.disc.forEach(mark);
+  G.pool.forEach(a=>a.forEach(mark));
+  G.T.plays.forEach(x=>mark(x.c));
+  G.kh.forEach((a,q)=>{ if(q!==p&&a) a.forEach(id=>{ known[id]=1; }); });
+  const pool=[]; for(let s=0;s<4;s++) for(let v=1;v<=V;v++) if(!known[s*16+v]) pool.push(s*16+v);
+  const hands=[], sizes=[];
+  for(let q=0;q<n;q++){
+    if(q===p){ hands.push(G.hands[p].map(c=>c.id)); sizes.push(0); }
+    else if(G.kh[q]){ hands.push(G.kh[q].slice()); sizes.push(0); }
+    else{ hands.push([]); sizes.push(G.hands[q].length); }          // dimensione pubblica
+  }
+  let need=0; sizes.forEach(x=>{ need+=x; });
+  OTDBG.swCalls++; if(need!==pool.length) OTDBG.swMismatch++;
+  const okQ=(q,s)=>sizes[q]>0&&!G.void[q][s];
+  const nElig=id=>{ let e=0; for(let q=0;q<n;q++) if(okQ(q,sOf(id))) e++; return e; };
+  shuffle(pool); pool.sort((a,b)=>nElig(a)-nElig(b));
+  const cnt=sizes.map(()=>0);
+  for(const id of pool){
+    const el=[]; for(let q=0;q<n;q++) if(cnt[q]<sizes[q]&&okQ(q,sOf(id))) for(let r=0;r<sizes[q]-cnt[q];r++) el.push(q);
+    let q;
+    if(el.length) q=el[rnd(el.length)];
+    else{ const any=[]; for(let z=0;z<n;z++) if(cnt[z]<sizes[z]) any.push(z); if(!any.length) break; q=any[rnd(any.length)]; }
+    hands[q].push(id); cnt[q]++;
+  }
+  return hands;
+}
+function baseWorld(p,withTrick){
+  const hands=sampleWorld(p);
+  return {n:G.n,V:G.V,hands,pools:G.pool.map(a=>a.map(c=>c.id)),plays:withTrick?G.T.plays.map(x=>({p:x.p,id:x.c.id})):[],leader:withTrick?G.T.leader:p,over:false,lost:new Array(G.n).fill(0),tricks:0};
+}
+function timed(fn){
+  const t0=performance.now(), r=fn(); const dt=performance.now()-t0;
+  OTDBG.decisions++; OTDBG.totMs+=dt; if(dt>OTDBG.maxMs) OTDBG.maxMs=dt;
+  return r;
+}
+function pickBest(tot,nW){
+  let bi=0, bv=-1;
+  tot.forEach((v,k)=>{ const x=v/nW+Math.random()*0.003; if(x>bv){ bv=x; bi=k; } });
+  return bi;
+}
+// candidati da giocare: per ogni seme la più bassa, la più alta, la più bassa che batte la presa e (se tante) una media
+function pruneCands(h,lg,T){
+  const by=[[],[],[],[]]; lg.forEach(i=>by[h[i].s].push(i));
+  const keep=new Set(), L=T.lead;
+  const cb=L>=0?curBest(T.plays.map(x=>({id:x.c.id})),L):null;
+  by.forEach((arr,s)=>{
+    if(!arr.length) return;
+    arr.sort((a,b)=>h[a].v-h[b].v);
+    keep.add(arr[0]); keep.add(arr[arr.length-1]);
+    if(arr.length>=4) keep.add(arr[arr.length>>1]);
+    if(L>=0){ const w=arr.find(i=>wouldWin(cb,L,s,h[i].v)); if(w!==undefined) keep.add(w); }
+  });
+  return [...keep];
+}
+// giocata: ritorna l'indice nella mano
+function aiPlay(p){
+  return timed(()=>{
+    const h=G.hands[p], T=G.T, lg=legalIdx(h,T.lead);
+    if(lg.length===1) return lg[0];
+    const cands=pruneCands(h,lg,T);
+    if(cands.length===1) return cands[0];
+    const tot=cands.map(()=>0), t0=performance.now(), ms=window.OT_AIMS||AIP.ms;
+    let nW=0;
+    while(nW<AIP.minW||(performance.now()-t0<ms&&nW<AIP.maxW)){
+      const base=baseWorld(p,true);
+      cands.forEach((ci,k)=>{
+        const S=cloneS(base), id=h[ci].id, mh=S.hands[p];
+        mh.splice(mh.indexOf(id),1); S.plays.push({p,id});
+        simTrick(S);
+        tot[k]+=rollout(S,p);
+      });
+      nW++;
+    }
+    return cands[pickBest(tot,nW)];
+  });
+}
+function discardCands(h,cnt){
+  const idx=h.map((_,i)=>i), out=[], seen=new Set();
+  const push=a=>{ const b=a.slice(0,cnt), key=b.slice().sort((x,y)=>x-y).join(','); if(!seen.has(key)){ seen.add(key); out.push(b); } };
+  const byV=idx.slice().sort((a,b)=>h[b].v-h[a].v);
+  push(byV);                                                                // le più alte
+  push(byV.slice().reverse());                                              // le più basse
+  const cs=[0,0,0,0]; h.forEach(c=>cs[c.s]++);
+  push(idx.slice().sort((a,b)=>cs[h[a].s]-cs[h[b].s]||h[b].v-h[a].v));      // svuota i semi più corti
+  push(idx.slice().sort((a,b)=>cs[h[b].s]-cs[h[a].s]||h[b].v-h[a].v));      // alleggerisce i semi lunghi
+  const med=[...h].map(c=>c.v).sort((a,b)=>a-b)[h.length>>1];
+  push(idx.slice().sort((a,b)=>Math.abs(h[a].v-med)-Math.abs(h[b].v-med))); // tiene alte e basse, scarta le medie
+  push(shuffle(idx.slice()));
+  return out;
+}
+// scarto: ritorna gli indici (nella mano) delle carte da scartare
+function aiDiscard(p,cnt){
+  return timed(()=>{
+    const h=G.hands[p], cands=discardCands(h,cnt);
+    if(cands.length===1) return cands[0];
+    const tot=cands.map(()=>0), t0=performance.now(), ms=window.OT_AIMS||AIP.ms;
+    let nW=0;
+    while(nW<AIP.minW||(performance.now()-t0<ms&&nW<AIP.maxW)){
+      const base=baseWorld(p,false);
+      cands.forEach((cd,k)=>{
+        const S=cloneS(base), ids=new Set(cd.map(i=>h[i].id));
+        S.hands[p]=S.hands[p].filter(id=>!ids.has(id));
+        simAfter(S);
+        tot[k]+=S.over?simValue(S,p):rollout(S,p);
+      });
+      nW++;
+    }
+    return cands[pickBest(tot,nW)];
+  });
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,V:maxV(n),trickNo:0,msg:'',log:[],over:null,
+     hands:[],pool:[],disc:[],kh:[],void:[],
+     T:{lead:-1,plays:[],res:null,leader:0},order:[],turn:-1,win:-1,fresh:-1,leader:rnd(n),
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i]}))};
+  run();
+}
+function deal(){
+  const n=G.n, deck=shuffle(makeDeck(n));
+  G.hands=G.pl.map((_,i)=>sortHand(deck.slice(i*HAND0,(i+1)*HAND0)));
+  G.pool=G.pl.map(()=>[]); G.disc=[]; G.kh=G.pl.map(()=>null);
+  G.void=G.pl.map(()=>[false,false,false,false]);
+  G.T={lead:-1,plays:[],res:null,leader:G.leader};
+  G.trickNo=0; G.turn=-1; G.win=-1; G.fresh=-1; G.order=[];
+}
+function pick(legal,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+// scelta multipla degli scarti: ritorna gli indici scelti nella mano
+function askDiscards(k,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'multi',k,sel:new Set(),hint,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function toggleM(i){
+  if(!PR||PR.type!=='multi') return;
+  if(PR.sel.has(i)) PR.sel.delete(i);
+  else if(PR.k===1){ PR.sel.clear(); PR.sel.add(i); }
+  else if(PR.sel.size<PR.k) PR.sel.add(i);
+  render();
+}
+function confirmM(){
+  if(!PR||PR.type!=='multi'||PR.sel.size!==PR.k) return;
+  const r=PR.res, v=[...PR.sel]; PR=null; render(); r(v);
+}
+function resetM(){ if(PR&&PR.type==='multi'){ PR.sel.clear(); render(); } }
+
+const lst = cs => cs.map(cname).join(', ');
+function moveToDisc(w,cards){
+  const ids=new Set(cards.map(c=>c.id));
+  G.hands[w]=G.hands[w].filter(c=>!ids.has(c.id));
+  if(G.kh[w]) G.kh[w]=G.kh[w].filter(id=>!ids.has(id));
+  const ord=cards.slice().sort((a,b)=>b.v-a.v||a.s-b.s);
+  ord.forEach(c=>G.disc.push(c));
+  logMsg(`${P(w).name} scarta ${ord.length} ${plural(ord.length,'carta','carte')}: ${lst(ord)}.`);
+}
+function takePool(q){
+  const pl=P(q), n=G.pool[q].length;
+  G.hands[q]=sortHand(G.pool[q]); G.pool[q]=[];
+  G.kh[q]=G.hands[q].map(c=>c.id); G.void[q]=[false,false,false,false];
+  logMsg(`${pl.name} ha finito la mano e prende il proprio pool (${n} ${plural(n,'carta','carte')}) come nuova mano.`);
+}
+// il vincitore scarta cnt carte dalla propria mano (se cnt ≥ mano le scarta tutte)
+async function discardFrom(w,cnt){
+  if(cnt<=0) return;
+  const h=G.hands[w];
+  if(cnt>=h.length){
+    const all=h.slice();
+    status(`${P(w).name} scarta ${plural(all.length,'la sua ultima carta','tutte le sue carte')}.`);
+    await sleep(w===HUM?500:900);
+    moveToDisc(w,all); return;
+  }
+  let idx;
+  if(w===HUM){
+    status(`Hai vinto la presa: scegli ${cnt} ${plural(cnt,'carta','carte')} da scartare.`);
+    idx=await askDiscards(cnt,`scegli ${cnt} ${plural(cnt,'carta','carte')} da scartare (verranno mostrate a tutti). Tocca di nuovo una carta per toglierla.`);
+  }else{
+    status(`${P(w).name} sceglie ${cnt} ${plural(cnt,'carta','carte')} da scartare…`);
+    await sleep(500);
+    idx=aiDiscard(w,cnt);
+  }
+  moveToDisc(w,idx.map(i=>h[i]));
+  status(`${P(w).name} ha scartato ${cnt} ${plural(cnt,'carta','carte')}.`);
+  await sleep(w===HUM?300:1000);
+}
+async function settle(w,k){
+  const pl=P(w), n=G.n;
+  G.T.plays.forEach(x=>G.pool[w].push(x.c));
+  logMsg(`${pl.name} mette le ${n} carte della presa nel proprio pool: il valore più basso è ${k}, quindi scarta ${k} ${plural(k,'carta','carte')}.`);
+  const h=G.hands[w];
+  if(h.length>=k) await discardFrom(w,k);
+  else{
+    let need=k;
+    if(h.length){ need-=h.length; await discardFrom(w,h.length); }
+    status(`${pl.name} non ha abbastanza carte in mano: prende il pool e scarta le ${need} ${plural(need,'mancante','mancanti')}.`);
+    await sleep(700);
+    takePool(w);
+    await discardFrom(w,Math.min(need,G.hands[w].length));
+  }
+  for(let i=0;i<n;i++){
+    const q=(w+i)%n;
+    if(!G.hands[q].length&&G.pool[q].length){ takePool(q); await sleep(q===HUM?300:500); }
+  }
+}
+async function oneTrick(){
+  G.trickNo++;
+  const n=G.n, L=G.leader;
+  const T=G.T={lead:-1,plays:[],res:null,leader:L};
+  G.order=Array.from({length:n},(_,i)=>(L+i)%n); G.win=-1; G.fresh=-1;
+  for(let k=0;k<n;k++){
+    const p=G.order[k], pl=P(p), h=G.hands[p];
+    G.turn=p;
+    status(`Presa ${G.trickNo} · tocca a ${pl.name}.`);
+    let idx;
+    if(p===HUM){
+      const lg=legalIdx(h,T.lead);
+      let hint;
+      if(T.lead<0) hint='sei di mano: gioca una carta qualsiasi, il suo seme diventa il seme di mano.';
+      else if(lg.length===1&&h.some(c=>c.s===T.lead)) hint=`devi rispondere al seme ${SUITS[T.lead].n}: hai una sola carta ${SUITS[T.lead].n}.`;
+      else if(h.some(c=>c.s===T.lead)) hint=`devi rispondere al seme ${SUITS[T.lead].n}.`;
+      else hint=`non hai carte ${SUITS[T.lead].n}: puoi giocare qualsiasi carta (ogni altro seme è briscola e batte il seme di mano).`;
+      idx=await pick(lg,hint);
+    }else{
+      await sleep(650);
+      idx=aiPlay(p);
+    }
+    const c=h.splice(idx,1)[0];
+    T.plays.push({p,c});
+    G.fresh=p;
+    if(G.kh[p]) G.kh[p]=G.kh[p].filter(id=>id!==c.id);
+    if(k===0) T.lead=c.s;
+    else if(c.s!==T.lead) G.void[p][T.lead]=true;           // non ha risposto al seme: non ne ha
+    logMsg(k===0?`${pl.name} apre con ${cname(c)}.`:`${pl.name} gioca ${cname(c)}${c.s!==T.lead?' (briscola)':''}.`);
+  }
+  G.turn=-1;
+  const res=resolveTrick(T.plays,T.lead); T.res=res;
+  const w=res.winner, wc=T.plays[res.wi].c;
+  G.win=w; G.leader=w;
+  const m=`${P(w).name} vince la presa con ${cname(wc)}${res.trump?' (briscola)':''}. Valore più basso: ${res.min}.`;
+  status(m); logMsg(m);
+  await sleep(1700);
+  await settle(w,res.min);
+  const lost=G.pl.filter(p=>!G.hands[p.id].length&&!G.pool[p.id].length).map(p=>p.id);
+  if(lost.length) G.over={losers:lost,winners:G.pl.map(p=>p.id).filter(i=>!lost.includes(i))};
+}
+async function run(){
+  const g=G;
+  try{
+    deal();
+    logMsg(`— Partita a ${g.n} giocatori: ${g.n*HAND0} carte (1–${g.V} in 4 semi), ${HAND0} a testa. Di mano: ${P(g.leader).name} —`);
+    status(`Buona partita a Ouroboros Trick, ${P(HUM).name}!`);
+    await ask(HUM,g.leader===HUM?'Sei tu il primo di mano':'Primo di mano: '+P(g.leader).name,[{label:'Ok, si parte',value:1}]);
+    while(!g.over) await oneTrick();
+    g.turn=-1; g.win=-1;
+    const L=g.over.losers, W=g.over.winners;
+    const m=W.length?`Fine partita: ${L.map(i=>P(i).name).join(' e ')} ${plural(L.length,'ha perso','hanno perso')}.`:'Fine partita: tutti hanno perso, il serpente ha divorato se stesso!';
+    logMsg(m); status(m);
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const RING = s => `<svg class="ring" viewBox="0 0 40 40" aria-hidden="true"><g transform="rotate(-50 20 20)"><circle class="a" cx="20" cy="20" r="13" stroke-width="7" stroke-dasharray="70 12"/><circle class="a" cx="20" cy="20" r="13" stroke-width="10" stroke-dasharray="10 72" stroke-dashoffset="-60"/><g class="pat"><circle cx="20" cy="20" r="13" fill="none" stroke="url(#pat${s})" stroke-width="7" stroke-dasharray="70 12"/><circle cx="20" cy="20" r="13" fill="none" stroke="url(#pat${s})" stroke-width="10" stroke-dasharray="10 72" stroke-dashoffset="-60"/></g></g><circle class="eye" cx="12.7" cy="9.2" r="1.4"/></svg>`;
+const cardHtml = (c,cls='',tag='span',attrs='') => `<${tag} class="oc s${c.s} ${cls}" ${attrs} title="${cname(c)}"><b class="cn">${c.v}</b>${RING(c.s)}<b class="cn2">${c.v}</b></${tag}>`;
+const LOGO_SVG = `<svg viewBox="0 0 40 40" aria-hidden="true"><g transform="rotate(-50 20 20)" fill="none" stroke-width="7"><circle cx="20" cy="20" r="13" stroke="#c8202f" stroke-dasharray="17.7 64"/><circle cx="20" cy="20" r="13" stroke="#e0b94a" stroke-dasharray="17.7 64" stroke-dashoffset="-20.4"/><circle cx="20" cy="20" r="13" stroke="#1b2a9e" stroke-dasharray="17.7 64" stroke-dashoffset="-40.8"/><circle cx="20" cy="20" r="13" stroke="#2f7a2f" stroke-dasharray="14.5 67" stroke-dashoffset="-61.2"/><circle cx="20" cy="20" r="13" stroke="#c8202f" stroke-width="10" stroke-dasharray="7 75" stroke-dashoffset="-1"/></g><circle cx="13.6" cy="8.4" r="1.5" fill="#fff"/></svg>`;
+function tableauHtml(p){
+  const T=G.T, i=T.plays.findIndex(x=>x.p===p);
+  if(i<0) return '<div class="tableau"><span class="slot"></span></div>';
+  const x=T.plays[i], res=T.res, isMin=res&&res.minIdx.includes(i);
+  const cls=`mini ${G.fresh===p&&!res?'fresh':''} ${res&&res.winner===p&&!G.over?'win':''} ${isMin?'min':''}`;
+  const cap=res?(res.winner===p?'<span class="cap">vince la presa</span>':''):(T.lead>=0&&x.c.s!==T.lead?'<span class="cap">briscola</span>':'');
+  return `<div class="tableau">${cardHtml(x.c,cls)}${isMin?'<span class="cap" style="color:var(--danger);font-weight:700">minimo</span>':''}${cap}</div>`;
+}
+function flagHtml(p){
+  if(!G) return '';
+  if(G.over) return G.over.losers.includes(p)?'<span class="flag lose">Ha perso</span>':'<span class="flag win">Vince</span>';
+  const ld=G.turn>=0?G.T.leader:G.leader;
+  return ld===p?'<span class="flag lead">Leader</span>':'';
+}
+function seatHtml(p,pos){
+  const pl=P(p), active=G.turn===p;
+  const winner=G.over?G.over.winners.includes(p):false, loser=G.over?G.over.losers.includes(p):(G.win===p&&G.turn<0?false:false);
+  const hl=G.hands[p].length;
+  let h;
+  if(p===HUM){
+    h=`<div class="hand">${G.hands[HUM].map((c,i)=>{
+      if(PR&&PR.type==='card'){
+        const lg=PR.legal.has(i);
+        return cardHtml(c,`${lg?'legal':'dim'} ${PR.sel===i?'sel':''}`,'button',`${lg?'':'disabled'} data-p="${i}"`);
+      }
+      if(PR&&PR.type==='multi') return cardHtml(c,`legal ${PR.sel.has(i)?'sel':''}`,'button',`data-m="${i}"`);
+      return cardHtml(c);
+    }).join('')}</div>`;
+  }else{
+    const shown=Math.min(hl,14);
+    h=`<div class="backs">${Array.from({length:shown},()=>'<span class="back"></span>').join('')}${hl>shown?`<span class="more">+${hl-shown}</span>`:''}</div>`;
+  }
+  const meta=`<div class="seat-meta"><span class="tag">mano <b>${hl}</b></span><span class="tag">pool <b>${G.pool[p].length}</b></span></div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${h}`:((pos==='top'||pos==='topL'||pos==='topR')?`${h}${name}${meta}${tableauHtml(p)}`:`${name}${meta}${tableauHtml(p)}${h}`);
+  const isW=G.win===p&&!G.over&&G.T.res;
+  return `<div class="seat ${pos} ${(G.turn>=0?G.T.leader:G.leader)===p&&!G.over?'leader':''} ${active?'active':''} ${winner?'winner':''} ${loser?'loser':''} ${isW?'winner':''}">${inner}</div>`;
+}
+function legendHtml(){
+  return `<div class="legend">${SUITS.map((s,i)=>`<span class="lg">${SW(i)} ${s.n}</span>`).join('')}</div>`;
+}
+function centerHtml(){
+  const T=G.T, res=T.res;
+  const lead=T.lead>=0?`<div>Seme di mano: <b>${SUITS[T.lead].n}</b> ${SW(T.lead)}</div>`:'<div>Seme di mano: <b>–</b></div>';
+  let top='';
+  if(G.over) top='<div><b>Partita conclusa</b></div>';
+  else if(res) top=`<div>Vince la presa: <b>${esc(P(res.winner).name)}</b></div><div class="mnote">Valore più basso: ${res.min}</div>`;
+  const dtop=G.disc.length?cardHtml(G.disc[G.disc.length-1],'mini'):'<span class="slot"></span>';
+  return `<div class="center">${top}${lead}
+    <div>Presa <b>${G.trickNo}</b></div>
+    <div>Scarti: <b>${G.disc.length}</b> · cima</div>${dtop}
+    ${legendHtml()}</div>`;
+}
+function poolPanel(){
+  const mine=sortHand(G.pool[HUM].slice());
+  const top=G.disc.length?cardHtml(G.disc[G.disc.length-1],'mini'):'<span class="cap">nessuno scarto</span>';
+  return `<div class="scorebox"><h3>TUO POOL / SCARTI</h3>
+    <div class="prow"><span class="lbl">Scarti</span><b>${G.disc.length}</b> ${plural(G.disc.length,'carta','carte')} · cima: ${top}</div>
+    <div class="prow"><span class="lbl">Tuo pool (${mine.length})</span>${mine.length?`<div class="pchips">${mine.map(c=>`<span class="pchip s${c.s}" title="${cname(c)}">${c.v}</span>`).join('')}</div>`:'<span class="cap">vuoto</span>'}</div>
+    <div class="hint">Il pool è fatto delle carte delle prese che hai vinto: quando la tua mano si svuota diventa la tua nuova mano. Chi resta senza mano e senza pool perde.</div></div>`;
+}
+function resTable(){
+  const rows=G.pl.map(p=>{
+    const hl=G.hands[p.id].length, pl=G.pool[p.id].length, out=G.over&&G.over.losers.includes(p.id);
+    return `<tr class="${out?'out':''}"><td>${esc(p.name)}${out?' (ha perso)':''}</td><td>${hl}</td><td>${pl}</td><td><b>${hl+pl}</b></td></tr>`;
+  }).join('');
+  return `<div class="scorebox"><h3>CARTE RIMASTE</h3><div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Mano</th><th>Pool</th><th>Totale</th></tr>${rows}</table></div></div>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Ouroboros Trick contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const L=G.over.losers.map(i=>esc(P(i).name)), W=G.over.winners.map(i=>esc(P(i).name));
+    const lead=W.length?`Perde${L.length>1?'ro':''} ${L.join(' e ')}. ${W.length>1?'Vincono':'Vince'} ${W.join(', ')}!`:'Tutti hanno perso: il serpente ha divorato se stesso!';
+    return `<div class="dock-msg"><b>${lead}</b></div><div class="hint">La partita finisce appena un giocatore resta senza carte in mano e senza pool: perde lui, tutti gli altri vincono.</div>`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){
+      const c=G.hands[HUM][PR.sel];
+      html+=`<div class="opts"><button class="opt" data-cf="1">${esc('Conferma: gioca '+cname(c))}</button><button class="opt" data-cf="0">Annulla</button></div>`;
+    }else if(OPT.undo){
+      html+=`<div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Conferma: gioca 12 Giallo</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+    }
+  }else if(PR&&PR.type==='multi'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>
+      <div class="opts"><button class="opt" data-mc="1" ${PR.sel.size===PR.k?'':'disabled'}>Conferma scarto (${PR.sel.size}/${PR.k})</button>${OPT.undo?`<button class="opt" data-mr="1" ${PR.sel.size?'':'disabled'}>Azzera</button>`:''}</div>`;
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n;
+  return `<details class="recap"><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Mazzo</span>${SUITS.map((s,i)=>`<span class="lg">${SW(i)} ${s.n}</span>`).join('')}<span class="rv">valori 1–${G.V} · ${n*HAND0} carte, ${HAND0} a testa</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">si risponde al seme di mano se si può · ogni altro seme è briscola e batte il seme di mano · vince la briscola più alta (a parità, l'ultima giocata) oppure, senza briscole, il numero più alto del seme di mano</span></div>
+    <div class="recap-row"><span class="lbl">Chi vince</span><span class="rv">mette le carte della presa nel proprio pool, poi scarta tante carte della sua mano quanto il valore più basso della presa (di qualsiasi seme) e apre la presa successiva</span></div>
+    <div class="recap-row"><span class="lbl">Mano vuota</span><span class="rv">chi finisce la mano prende il proprio pool come nuova mano · se il vincitore ha meno carte da scartare di quante ne servono, scarta la mano, prende il pool e scarta le restanti</span></div>
+    <div class="recap-row"><span class="lbl">Fine</span><span class="rv">perde chi resta senza mano e senza pool (anche più giocatori insieme, anche tutti) · gli altri vincono</span></div></details>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Che gioco è</h4>
+<p>Ouroboros Trick è un gioco di prese. L'Uroboro è il serpente che si morde la coda formando un cerchio, simbolo di cicli ed eternità: ma se il serpente finisce per consumare completamente il proprio corpo, il ciclo si interrompe.</p>
+<p>In un gioco di prese i giocatori giocano a turno, in senso orario, una carta scoperta dalla propria mano: questo giro si chiama «presa». Chi gioca la prima carta è il «Leader» e il seme (colore) della sua carta è il «seme di mano». Quando tutti hanno giocato, la carta più forte secondo le regole determina il vincitore, che raccoglie le carte e apre la presa successiva.</p>
+<h4>Obiettivo</h4>
+<p>Sopravvivere fino alla fine. Chi resta senza carte e non può più rifornirsi perde. La partita finisce quando c'è un perdente e tutti i giocatori ancora in gioco vincono.</p>
+<h4>Componenti e preparazione</h4>
+<p>Quattro semi (quattro colori: Rosso, Giallo, Blu, Verde) con valori da 1 a 15: 60 carte. Il coperchio della scatola fa da pila degli scarti. Le carte usate dipendono dai giocatori: <b>3 giocatori</b> 1–9 (36 carte), <b>4 giocatori</b> 1–12 (48 carte), <b>5 giocatori</b> 1–15 (60 carte). Si mescolano e si danno 12 carte coperte a ciascun giocatore, quindi tutte le carte sono in mano. Il primo Leader è scelto a caso.</p>
+<h4>Regole della presa</h4>
+<p><b>Giocare.</b> Partendo dal Leader e in senso orario, ogni giocatore mette una carta scoperta dalla propria mano.</p>
+<p><b>Obbligo di rispondere.</b> Se hai in mano una carta del seme di mano devi giocarne una di quel seme. Se non ne hai, puoi giocare una carta di qualsiasi seme.</p>
+<p><b>Briscola.</b> Ogni seme diverso dal seme di mano è una briscola e batte sempre il seme di mano.</p>
+<p><b>Chi vince.</b> Se nella presa non ci sono briscole vince il numero più alto (del seme di mano). Se ci sono briscole vince la briscola di numero più alto (anche di semi diversi tra loro); se più briscole hanno il numero più alto, vince chi l'ha giocata per ultimo.</p>
+<h4>Cosa fa il vincitore della presa</h4>
+<ul><li>Guarda il valore più basso tra le carte uscite nella presa, di qualsiasi seme.</li>
+<li>Mette tutte le carte della presa coperte davanti a sé: è il suo «pool».</li>
+<li>Sceglie dalla propria mano tante carte quanto il valore più basso, le mostra a tutti e le scarta scoperte nella pila degli scarti.</li>
+<li>Apre la presa successiva.</li></ul>
+<p><i>Esempio 1</i> (4 giocatori, A di mano): A gioca 11, B 7, C 9, D 8, tutte del seme di mano. Vince A (numero più alto); il valore più basso è 7: A mette le 4 carte nel pool e scarta 7 carte dalla mano. Apre ancora A.</p>
+<p><i>Esempio 2</i>: A 5 (Blu, seme di mano), B 1 (Giallo), C 12 (Blu), D 10 (Blu). Vince B con la briscola; il valore più basso è 1: B mette le 4 carte nel pool e scarta 1 carta. Apre B.</p>
+<p><i>Esempio 3</i>: A 4 (Verde, seme di mano), B 6 (briscola), C 6 (un'altra briscola, giocata dopo), D 6 (Verde). Vince C, la briscola dello stesso numero giocata dopo; il valore più basso è 4: C scarta 4 carte. Apre C.</p>
+<h4>Quando si finiscono le carte</h4>
+<p>Quando il vincitore ha concluso, ogni giocatore con la mano vuota prende tutte le carte del proprio pool e le usa come nuova mano.</p>
+<p>Se il vincitore ha in mano meno carte di quelle da scartare: 1) mette le carte della presa nel pool; 2) scarta tutte le carte rimaste in mano; 3) prende tutto il pool come nuova mano; 4) scarta dalla nuova mano le carte mancanti.</p>
+<p><i>Esempio (5 giocatori)</i>: D ha 1 carta in mano e il pool vuoto. Gioca la sua ultima carta: non ha più mano né pool, ma non ha ancora perso. D vince la presa e il valore più basso è 4. Mette le 5 carte nel pool e, avendo la mano vuota, le prende subito come nuova mano; ne scarta 4 e gli resta 1 carta. D è il Leader della presa successiva.</p>
+<h4>Fine della partita</h4>
+<p>La partita finisce appena un giocatore ha la mano vuota e il pool vuoto a conclusione di tutte le operazioni della presa: è lui il perdente e tutti gli altri sono vincitori. Se più giocatori soddisfano insieme la condizione di sconfitta, perdono tutti loro; è anche possibile che perdano tutti.</p>
+<p><i>Nell'app:</i> il primo Leader è casuale e non ci sono round (una sola partita). Gli scarti sono mostrati con la sola cima e il conteggio (come al tavolo non si guardano le altre); le carte scartate sono rivelate a tutti e l'AI le ricorda. Il tuo pool è consultabile in ogni momento nel pannello sotto il tavolo; dei pool altrui vedi solo il numero di carte (le carte entrano in un pool a faccia in su durante la presa, quindi puoi rileggerle nel LOG e l'AI le ricorda). Quando la mano di un giocatore diventa il suo pool, l'AI ne conosce il contenuto. L'AI non vede mai le tue carte in mano non ancora giocate né quelle degli altri giocatori. Lo scarto di più carte si sceglie toccandole e confermando; se serve scartare più carte di quelle disponibili (mano e pool insieme) si scartano tutte e chi le possedeva perde. Se più carte della presa hanno il valore più basso conta quel valore una sola volta.</p>
+<p><i>Crediti:</i> gioco di Yoshihide Shinohara; illustrazioni di Sumisu.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const kata='ウロボロストリック'.split('').map(ch=>`<i>${ch}</i>`).join('');
+  const top=`<div class="topbar"><div class="logo">${LOGO_SVG}<span>Ouroboros Trick<small>${kata}</small></span></div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Presa ${G.trickNo}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${poolPanel()}
+      ${resTable()}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ MENUOPEN=false; const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')){ MENUOPEN=false; toSetup(); } }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+  else if(b.dataset.m!==undefined) toggleM(Number(b.dataset.m));
+  else if(b.dataset.mc!==undefined) confirmM();
+  else if(b.dataset.mr!==undefined) resetM();
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('ot-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('ot-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(!OPT.undo&&PR&&PR.type==='card'&&PR.sel!=null) PR.sel=null;
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
