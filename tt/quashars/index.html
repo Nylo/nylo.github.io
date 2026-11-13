@@ -305,6 +305,7 @@ const roundLine = (round,name,r) => `Round ${round}: ${name} ${r.correct?'ha ris
 
 // ═════════════════════════ RENDER COMUNE ═════════════════════════
 const predText = pr => !pr?'—':pr.flex?`${pr.n}–${pr.n+1} volte`:`${pr.n} ${pr.n===1?'volta':'volte'}`;
+const predNum = pr => !pr?'—':pr.flex?`${pr.n}–${pr.n+1}`:String(pr.n);
 const chipsOf = pl => Array.from({length:pl.white},()=>'<span class="chip"></span>').join('')+(pl.flex?'<span class="chip flex" title="Gettone di riserva"></span>':'')+Array.from({length:pl.blue},()=>'<span class="chip blue" title="Gettone blu (−1)"></span>').join('');
 const cardFace = (c,cls='') => `<span class="pc c${c.c} ${cls}"><small>${c.n}</small>${c.n}${ico(COLORS[c.c].icon)}</span>`;
 const cardBtn = (c,cls,attrs) => `<button class="pc c${c.c} ${cls}" ${attrs} title="${c.n} ${COLORS[c.c].n}"><small>${c.n}</small>${c.n}${ico(COLORS[c.c].icon)}</button>`;
@@ -313,7 +314,7 @@ const scoreTableOf = (pls,n,me) => {
   const rows=pls.map((p,i)=>`<tr><td>${esc(p.name)}${i===me?' (tu)':''}</td>${Array.from({length:n},(_,k)=>k<p.hist.length?`<td class="${p.hist[k]<0?'neg':''}">${p.hist[k]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
   return `<div class="scroll-x"><table class="score"><tr><th></th>${Array.from({length:n},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table></div>`;
 };
-const showTableOf = (rows,names,me) => `<div class="scroll-x"><table class="score"><tr><th></th><th>Previsione</th><th>Prese</th><th>Gettoni rimasti</th><th>Esito</th><th>Punti</th></tr>${rows.map(r=>`<tr><td>${esc(names[r.p])}${r.p===me?' (tu)':''}</td><td>${predText(r.pred)}</td><td>${r.won}</td><td>${r.white} bianchi${r.blue?` + ${r.blue} blu`:''}</td><td>${r.correct?'corretta':'errata'}</td><td class="${r.pt<0?'neg':''}"><b>${r.pt>0?'+':''}${r.pt}</b></td></tr>`).join('')}</table></div>`;
+const showTableOf = (rows,names,me) => `<div class="scroll-x"><table class="score"><tr><th></th><th>Previsione</th><th>Prese</th><th>Gettoni rimasti</th><th>Esito</th><th>Punti</th></tr>${rows.map(r=>`<tr><td>${esc(names[r.p])}${r.p===me?' (tu)':''}</td><td>${predNum(r.pred)}</td><td>${r.won}</td><td${r.white+r.blue?` title="${r.white} normali, ${r.blue} blu"`:''}>${r.white+r.blue}</td><td>${r.correct?'corretta':'errata'}</td><td class="${r.pt<0?'neg':''}"><b>${r.pt>0?'+':''}${r.pt}</b></td></tr>`).join('')}</table></div>`;
 const winnersText = names => names.length>1?names.slice(0,-1).map(esc).join(', ')+' e '+esc(names[names.length-1]):esc(names[0]);
 
 function recapHtmlFor(n){
@@ -334,8 +335,8 @@ const RULES_HTML = `
 <h4>1. Carte Contratto</h4>
 <p>Si gira una carta da ciascuno dei 4 mazzi. Ogni round si usa una carta diversa per pila (3 round in 3 giocatori, 4 round in 4 giocatori).</p>
 <h4>2. Previsione</h4>
-<p>Partendo dal giocatore iniziale, in senso orario, ognuno prevede quante volte soddisferà le condizioni delle quattro carte Contratto e prende altrettanti gettoni bianchi (anche zero). Puoi aggiungere un gettone di riserva (bianco): con 3 gettoni bianchi e uno di riserva prevedi 3 o 4 volte; con il solo gettone di riserva prevedi 0 o 1 volta.</p>
-<p>Ogni volta che una condizione è soddisfatta si restituisce un gettone. Se ne servono più di quelli che hai (dopo i bianchi, il gettone di riserva), si prende un gettone blu, che vale −1 a fine round.</p>
+<p>Partendo dal giocatore iniziale, in senso orario, ognuno prevede quante volte soddisferà le condizioni delle quattro carte Contratto e prende altrettanti gettoni (anche zero). Puoi aggiungere un gettone di riserva (bianco): con 3 gettoni e uno di riserva prevedi 3 o 4 volte; con il solo gettone di riserva prevedi 0 o 1 volta.</p>
+<p>Ogni volta che una condizione è soddisfatta si restituisce un gettone. Se ne servono più di quelli che hai (dopo i gettoni normali, il gettone di riserva), si prende un gettone blu, che vale −1 a fine round.</p>
 <h4>3. Prese</h4>
 <p>Il giocatore iniziale gioca qualsiasi carta, gli altri devono rispondere al seme se possono. Se non vengono giocate carte rosse vince la carta più alta del seme del giocatore iniziale; se ne vengono giocate, vince la carta rossa più alta. Il vincitore restituisce un gettone per ogni condizione soddisfatta, tiene le carte e inizia la presa successiva. Si giocano 12 prese.</p>
 <h4>4. Punteggio</h4>
