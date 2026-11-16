@@ -72,6 +72,7 @@ table.score{border-collapse:collapse;font-size:12px;width:100%}
 table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
 table.score td:first-child,table.score th:first-child{text-align:left}
 table.score .neg{color:var(--danger)}
+.scroll-x{overflow-x:auto;max-width:100%}
 
 .table{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-areas:". top ." "left center right" "bottom bottom bottom";gap:10px;background:radial-gradient(ellipse at center,#245563 0%,#0e222a 90%);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;min-height:540px}
 .table.n5{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
@@ -192,6 +193,8 @@ table.score th{color:#1b1b1b}
   .bc{width:22px;height:22px;font-size:11px}
   .hand{gap:2px}
   .deck{width:36px;height:54px}
+  table.score{font-size:11px}
+  table.score td,table.score th{padding:4px 5px}
 }
 </style>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
@@ -628,7 +631,7 @@ function centerHtml(){
 }
 function scoreTable(){
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:G.n},(_,i)=>i<p.hist.length?`<td>${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${holdOf(p)}</b></td></tr>`).join('');
-  return `<table class="score"><tr><th>Valore dei BiD COIN rimasti</th>${Array.from({length:G.n},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Ora</th></tr>${rows}</table>`;
+  return `<div class="scroll-x"><table class="score"><tr><th>Valore dei BiD COIN rimasti</th>${Array.from({length:G.n},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Ora</th></tr>${rows}</table></div>`;
 }
 function dockHtml(){
   if(!G) return `<div class="dock-msg">Bid COIN contro l'AI. Quanti giocatori in tutto?</div>
@@ -640,8 +643,8 @@ function dockHtml(){
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
   if(G.show){
     const txt={ok:'Riuscita','zero ok':'Zero riuscita',fail:'Fallita','zero fail':'Zero fallita',nulla:'–'};
-    html+=`<table class="score"><tr><th></th><th>Prese</th><th>Puntata</th><th>Esito</th><th>Scartati</th><th>Valore rimasto</th></tr>${G.show.rows.map(r=>
-      `<tr><td>${esc(P(r.p).name)}</td><td>${r.wins}</td><td>${r.res.startsWith('zero')?'ZERO':r.bid}</td><td class="${r.res.includes('fail')?'neg':''}">${txt[r.res]}${r.taken?` (+${r.taken}×1)`:''}</td><td>${r.gone.length?r.gone.join(' + '):'–'}</td><td><b>${r.hold}</b></td></tr>`).join('')}</table>`;
+    html+=`<div class="scroll-x"><table class="score"><tr><th></th><th>Prese</th><th>Puntata</th><th>Esito</th><th>Scartati</th><th>Valore rimasto</th></tr>${G.show.rows.map(r=>
+      `<tr><td>${esc(P(r.p).name)}</td><td>${r.wins}</td><td>${r.res.startsWith('zero')?'ZERO':r.bid}</td><td class="${r.res.includes('fail')?'neg':''}">${txt[r.res]}${r.taken?` (+${r.taken}×1)`:''}</td><td>${r.gone.length?r.gone.join(' + '):'–'}</td><td><b>${r.hold}</b></td></tr>`).join('')}</table></div>`;
   }
   if(PR&&PR.type==='choose'){
     html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;

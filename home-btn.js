@@ -28,7 +28,11 @@
     '.topbar>.nylo-home,.topbar>[data-new]{display:none!important}' +
     '.menu-pop .nylo-nav{display:block;width:100%;padding:9px 10px;border:0;border-radius:6px;text-align:left;white-space:nowrap;font:500 13px Inter,system-ui,sans-serif;cursor:pointer;background:transparent;color:var(--text,inherit)}' +
     '.menu-pop .nylo-nav:hover{background:var(--accent-soft,rgba(255,255,255,.1))}' +
-    '.menu-pop .nylo-sep{height:1px;margin:2px 0;background:var(--border,rgba(255,255,255,.2))}';
+    '.menu-pop .nylo-sep{height:1px;margin:2px 0;background:var(--border,rgba(255,255,255,.2))}' +
+    // elenchi numerati del regolamento: senza padding (reset globale) i numeri finiscono sul bordo dell'accordion
+    '.rtext ol,details.rules ol{padding-left:22px}' +
+    // niente scroll orizzontale: se un elemento sborda il browser mobile rimpicciolisce la pagina e lascia spazio bianco in fondo
+    'html,body{overflow-x:clip}';
   document.head.appendChild(st);
 
   // accordion: lo stato aperto/chiuso resta mentre la pagina si ridisegna (si azzera solo cambiando o ricaricando la pagina)
