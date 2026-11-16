@@ -86,13 +86,16 @@ table.score tr.me td{background:var(--accent-soft)}
 .chips{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
 table.score td.l .chips{justify-content:flex-start}
 
-/* carte: sfondo nero che sfuma nel colore del posto, raggi bianchi, numero grande col bordo bianco e pallino con la lettera del posto */
-.mc{--sc:#888;--sd:#888;width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-block;position:relative;overflow:hidden;flex-shrink:0;padding:0;box-shadow:0 0 0 1px #000,0 3px 6px rgba(0,0,0,0.6);
-  background:repeating-conic-gradient(from -24deg at 50% 125%,rgba(255,255,255,0.4) 0 9deg,transparent 9deg 22deg),linear-gradient(180deg,#09090c 0%,#09090c 28%,var(--sc) 100%)}
-.mc.dual{background:repeating-conic-gradient(from -24deg at 50% 125%,rgba(255,255,255,0.4) 0 9deg,transparent 9deg 22deg),linear-gradient(180deg,#09090c 0%,#09090c 26%,transparent 80%),linear-gradient(100deg,var(--sc) 0 50%,var(--sd) 50% 100%)}
-.mc .v{position:absolute;left:3px;top:0;font-family:'Bangers','Anton',sans-serif;font-weight:400;font-size:calc(var(--cw)*.56);line-height:1.12;color:var(--sc);-webkit-text-stroke:calc(var(--cw)*.05) #fff;paint-order:stroke fill;letter-spacing:.02em}
-.mc .bd{position:absolute;right:2px;bottom:2px;display:flex;gap:2px}
-.mc .sb{display:inline-flex;align-items:center;justify-content:center;width:calc(var(--cw)*.36);height:calc(var(--cw)*.36);border-radius:50%;border:1px solid #fff;font-family:'Bangers',sans-serif;font-style:normal;font-size:calc(var(--cw)*.26);line-height:1;color:#fff;text-shadow:0 0 2px #000,0 0 2px #000}
+/* carte: colore pieno del posto, numero bianco con contorno, icona dello strumento (carte doppie divise a metà) */
+.mc{--sc:#888;--sd:#888;width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-block;position:relative;overflow:hidden;flex-shrink:0;padding:0;box-shadow:0 0 0 1px #000,0 3px 6px rgba(0,0,0,0.6);background:var(--sc)}
+.mc.dual{background:linear-gradient(180deg,var(--sc) 0 50%,var(--sd) 50% 100%)}
+.mc .v{position:absolute;left:calc(var(--cw)*.07);top:calc(var(--cw)*.02);font-family:'Bangers','Anton',sans-serif;font-weight:400;font-size:calc(var(--cw)*.54);line-height:1.1;color:#fff;-webkit-text-stroke:calc(var(--cw)*.075) #000;paint-order:stroke fill;letter-spacing:.02em}
+.mc.dual .v{font-size:calc(var(--cw)*.46)}
+.mc .ico{position:absolute;color:#fff;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.55))}
+.mc .ico svg,.sbd svg{display:block;width:100%;height:auto}
+.mc .ico.one{left:50%;top:63%;width:calc(var(--cw)*.6);transform:translate(-50%,-50%)}
+.mc .ico.a{right:calc(var(--cw)*.06);top:calc(var(--cw)*.06);width:calc(var(--cw)*.44)}
+.mc .ico.b{left:50%;bottom:calc(var(--cw)*.08);width:calc(var(--cw)*.46);transform:translateX(-50%)}
 .mc.ghost{opacity:.45;filter:saturate(.6)}
 .mc.fresh{box-shadow:0 0 0 1px #000,0 0 0 4px #ffd54a}
 .mc.legal{box-shadow:0 0 0 1px #000,0 0 0 3px rgba(255,255,255,0.7),0 3px 6px rgba(0,0,0,0.6)}
@@ -104,7 +107,8 @@ button.mc.sel:hover:not(:disabled){transform:translateY(-10px)}
 .hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:12px}
 .ch{--sc:#888;--sd:#888;display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:21px;padding:0 3px;border-radius:4px;font-family:'Bangers',sans-serif;font-size:14px;line-height:1;color:#111;border:1px solid rgba(255,255,255,.7);background:var(--sc)}
 .ch.dual{background:linear-gradient(100deg,var(--sc) 0 50%,var(--sd) 50% 100%)}
-.sbd{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid #fff;font-family:'Bangers',sans-serif;font-size:11px;line-height:1;color:#fff;text-shadow:0 0 2px #000;vertical-align:-2px;margin-right:2px}
+.sbd{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid #fff;color:#fff;vertical-align:-3px;margin-right:3px;padding:2px}
+.sbd.big{width:30px;height:30px;padding:6px;margin:0;opacity:.55}
 
 /* palco: i 5 posti della band */
 .stage{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:12px;margin-bottom:12px}
@@ -513,20 +517,29 @@ async function run(){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
-const sbHtml = s => `<i class="sb" style="background:${SC[s]}">${s}</i>`;
-const mcHtml = (c,cls='',tag='span',attrs='') => `<${tag} class="mc ${c.s.length>1?'dual':''} ${cls}" style="--sc:${SC[c.s[0]]};--sd:${SC[c.s[c.s.length-1]]}" ${attrs} title="${cname(c)}"><b class="v">${c.v}</b><span class="bd">${c.s.map(sbHtml).join('')}</span></${tag}>`;
+// icone strumenti (Phosphor, MIT: guitar, microphone-stage, piano-keys; batteria e basso disegnati)
+const ICONS = {
+  V:['0 0 256 256','<path d="M115.06,46.36a4,4,0,0,0-6.11.54A71.54,71.54,0,0,0,96,88a73.29,73.29,0,0,0,.63,9.42L27.12,192.22A15.93,15.93,0,0,0,28.71,213L43,227.29a15.93,15.93,0,0,0,20.78,1.59l94.81-69.53A73.29,73.29,0,0,0,168,160a71.54,71.54,0,0,0,41.09-12.93,4,4,0,0,0,.54-6.12Zm2.61,103.28-16,16a8,8,0,1,1-11.31-11.31l16-16a8,8,0,0,1,11.31,11.31Zm109.4-20.56a4,4,0,0,1-6.12.54L126.38,35.05a4,4,0,0,1,.54-6.12A71.93,71.93,0,0,1,227.07,129.08Z"/>'],
+  G:['0 0 256 256','<path d="M249.66,46.34l-40-40a8,8,0,0,0-11.32,11.32L200.69,20,140.52,80.16C117.73,68.3,92.21,69.29,76.75,84.74a42.27,42.27,0,0,0-9.39,14.37A8.24,8.24,0,0,1,59.81,104c-14.59.49-27.26,5.72-36.65,15.11C11.08,131.22,6,148.6,8.74,168.07,11.4,186.7,21.07,205.15,36,220s33.34,24.56,52,27.22A71.13,71.13,0,0,0,98.1,248c15.32,0,28.83-5.23,38.76-15.16,9.39-9.39,14.62-22.06,15.11-36.65a8.24,8.24,0,0,1,4.92-7.55,42.22,42.22,0,0,0,14.37-9.39c15.45-15.46,16.44-41,4.58-63.77L236,55.31l2.34,2.35a8,8,0,0,0,11.32-11.32Zm-156,159.31a8,8,0,0,1-11.31,0l-32-32a8,8,0,0,1,11.32-11.31l32,32A8,8,0,0,1,93.66,205.65Zm42.14-45.86a28,28,0,1,1,0-39.59A28,28,0,0,1,135.8,159.79Zm31.06-58a86.94,86.94,0,0,0-6-6.68,85.23,85.23,0,0,0-6.69-6L176,67.31,188.69,80ZM200,68.68,187.32,56,212,31.31,224.69,44Z"/>'],
+  D:['0 0 24 24','<path d="M4.2 2.3l7 5.600-.9 1.100-7-5.600zM19.800 2.300l-7 5.600.9 1.100 7-5.600z"/><ellipse cx="12" cy="11" rx="9" ry="3.400"/><path d="M3 13.200v4.800c0 1.900 4 3.400 9 3.400s9-1.500 9-3.400v-4.800c0 1.900-4 3.400-9 3.400s-9-1.500-9-3.400z"/>'],
+  B:['0 0 24 24','<g transform="rotate(45 12 12)"><rect x="10.700" y="0.200" width="2.600" height="13.500" rx=".6"/><rect x="9.600" y="-1.200" width="4.800" height="3.800" rx=".9"/><path d="M12 11.500c-3.800 0-6.300 2.100-6.300 5.100 0 3.300 2.200 6.200 6.300 6.200s6.300-2.900 6.300-6.200c0-3-2.500-5.100-6.300-5.100z"/></g>'],
+  K:['0 0 256 256','<path d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM88,208H48V48H72v96a8,8,0,0,0,8,8h8Zm64,0H104V152h8a8,8,0,0,0,8-8V48h16v96a8,8,0,0,0,8,8h8Zm56,0H168V152h8a8,8,0,0,0,8-8V48h24V208Z"/>']
+};
+const icHtml = sk => `<svg viewBox="${ICONS[sk][0]}" fill="currentColor" aria-hidden="true">${ICONS[sk][1]}</svg>`;
+const sbdHtml = (sk,cls='') => `<i class="sbd ${cls}" style="background:${SC[sk]}">${icHtml(sk)}</i>`;
+const mcHtml = (c,cls='',tag='span',attrs='') => `<${tag} class="mc ${c.s.length>1?'dual':''} ${cls}" style="--sc:${SC[c.s[0]]};--sd:${SC[c.s[c.s.length-1]]}" ${attrs} title="${cname(c)}"><b class="v">${c.v}</b>${c.s.length>1?`<span class="ico a">${icHtml(c.s[0])}</span><span class="ico b">${icHtml(c.s[1])}</span>`:`<span class="ico one">${icHtml(c.s[0])}</span>`}</${tag}>`;
 const chHtml = c => `<span class="ch ${c.s.length>1?'dual':''}" style="--sc:${SC[c.s[0]]};--sd:${SC[c.s[c.s.length-1]]}" title="${cname(c)}">${c.v}</span>`;
 function stageHtml(){
   const seen=new Set(), pickMode=PR&&PR.type==='pick';
   const slots=SEATS.map(sk=>{
     const c=G.occ[sk], taken=c&&G.bandLeft&&!G.bandLeft.has(c.id);
-    if(!c) return `<div class="slot"><span class="sn"><i class="sbd" style="background:${SC[sk]}">${sk}</i>${SN[sk]}</span><span class="empty"><i class="sbd" style="background:${SC[sk]};opacity:.5;width:20px;height:20px;font-size:14px;line-height:18px">${sk}</i></span></div>`;
+    if(!c) return `<div class="slot"><span class="sn">${sbdHtml(sk)}${SN[sk]}</span><span class="empty">${sbdHtml(sk,'big')}</span></div>`;
     const first=!seen.has(c.id); seen.add(c.id);
     const own=G.own[c.id], rk=G.rank&&G.rank.find(r=>r.c.id===c.id);
     let card;
     if(pickMode&&first&&!taken&&PR.avail.some(x=>x.id===c.id)) card=mcHtml(c,`legal ${PR.sel===c.id?'sel':''}`,'button',`data-pk="${c.id}"`);
     else card=mcHtml(c,`${first?'':'ghost'} ${G.fresh===c.id?'fresh':''}`);
-    return `<div class="slot full"><span class="sn"><i class="sbd" style="background:${SC[sk]}">${sk}</i>${SN[sk]}</span><div class="${taken?'taken':''}">${card}</div>${rk&&first?`<em class="rk">${rk.r}°</em>`:''}<span class="own" style="background:${SEATC[own]||'#ccc'}">${esc(shortName(own))}</span></div>`;
+    return `<div class="slot full"><span class="sn">${sbdHtml(sk)}${SN[sk]}</span><div class="${taken?'taken':''}">${card}</div>${rk&&first?`<em class="rk">${rk.r}°</em>`:''}<span class="own" style="background:${SEATC[own]||'#ccc'}">${esc(shortName(own))}</span></div>`;
   }).join('');
   const miss=['V','G','D','B'].filter(k=>!G.occ[k]).map(k=>SN[k]);
   const info=G.phase==='perform'?'Esibizione: ognuno prende un membro':G.phase==='audition'?(miss.length?`Per la piccola band mancano: ${miss.join(', ')}`:'Band completa'):'';
@@ -599,7 +612,7 @@ function goneHtml(){
 function recapHtml(){
   const n=G.n;
   return `<details class="recap"><summary>RIEPILOGO</summary>
-    <div class="recap-row"><span class="lbl">Carte</span>${SEATS.map(s=>`<span class="tag"><i class="sbd" style="background:${SC[s]}">${s}</i>${SN[s]}</span>`).join(' ')}<span class="rv">50 membri (1–10 per ogni posto${n===3?', senza 9 e 10':n===4?', senza i 9':''}): ${PER[n]} a testa, 1 scartata coperta${n===5?' (nessuna)':''}</span></div>
+    <div class="recap-row"><span class="lbl">Carte</span>${SEATS.map(s=>`<span class="tag">${sbdHtml(s)}${SN[s]}</span>`).join(' ')}<span class="rv">50 membri (1–10 per ogni posto${n===3?', senza 9 e 10':n===4?', senza i 9':''}): ${PER[n]} a testa, 1 scartata coperta${n===5?' (nessuna)':''}</span></div>
     <div class="recap-row"><span class="lbl">Audizione</span><span class="rv">a turno si gioca un membro: occupa il posto se è libero o più alto del membro che c'è (a parità resta chi c'era), altrimenti si scarta · i membri a doppio colore sfidano due posti insieme</span></div>
     <div class="recap-row"><span class="lbl">Fine audizione</span><span class="rv">appena Vocal, Guitar, Drum e Bass sono occupati (piccola band); se c'è anche Keyboard è una grande band</span></div>
     <div class="recap-row"><span class="lbl">Esibizione</span><span class="rv">il membro più basso è 1° (a parità, chi è più vicino al giocatore di mano) · in ordine ognuno prende un membro della band · il segnalino di mano passa a sinistra di chi ha giocato l'ultima carta</span></div>
