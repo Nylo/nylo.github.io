@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Tanuki Is Done For</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f6bd4b;
+  --ink:#1d4d2b;
+  --surface:#fff8e6;
+  --surface-raised:#f3e6c0;
+  --accent:#2a8a3b;
+  --accent-soft:rgba(42,138,59,0.14);
+  --brass:#8a5a24;
+  --text:#2a2118;
+  --text-soft:#6a5a44;
+  --danger:#b3261e;
+  --success:#1f7a3a;
+  --border:rgba(29,77,43,0.3);
+  --radius:10px;
+  --shadow:3px 3px 0 rgba(29,77,43,0.85);
+  --cw:48px; --ch:70px;
+}
+.k0{--kc:#f2bf15;--kx:#7a5500;--kl:#fbe7a0;--kt:#2b1d00}
+.k1{--kc:#d9362d;--kx:#b3281f;--kl:#f6d4d1;--kt:#fff}
+.k2{--kc:#1a6fbf;--kx:#17609f;--kl:#cfe2f5;--kt:#fff}
+.k3{--kc:#23863f;--kx:#1d7a37;--kl:#cfe9d5;--kt:#fff}
+.k4{--kc:#a23d9b;--kx:#8d3188;--kl:#ecd2ea;--kt:#fff}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background-color:var(--bg);background-image:radial-gradient(rgba(138,90,36,0.16) 1.6px,transparent 2px),radial-gradient(ellipse at 50% 0%,rgba(255,255,255,0.45),transparent 70%);background-size:16px 16px,100% 100%;background-attachment:fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.logo .t{font-family:'Dela Gothic One','Inter',sans-serif;font-weight:400;font-size:22px;line-height:1.1;color:var(--ink);letter-spacing:.01em}
+.badge{background:var(--accent);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap;border:2px solid var(--ink)}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:#fffdf5;color:var(--text);border:2px solid var(--ink)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:34px;height:19px;flex:0 0 34px;margin:0;border:1px solid var(--border);border-radius:999px;background:var(--surface-raised);cursor:pointer;transition:background .15s,border-color .15s}
+.opt-toggle input[type=checkbox]::before{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-soft);transition:transform .15s,background .15s}
+.opt-toggle input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.opt-toggle input[type=checkbox]:checked::before{transform:translateX(15px);background:#fff}
+.opt-toggle input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:#fffdf5;color:var(--text);border:2px solid var(--ink);cursor:pointer}
+.hamb:hover{background:var(--surface-raised)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:240px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:normal;line-height:1.35;text-align:left;width:100%}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+/* nel menu le voci sono azioni a testo (home-btn.js): l'interruttore stilizzato deve restare nascosto e non occupare spazio */
+.menu-pop .opt-toggle.nylo-menu-action input[type=checkbox]{position:absolute;width:1px;height:1px;flex:none;margin:0;border:0;opacity:0;pointer-events:none}
+.menu-pop button.opt-toggle{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--text);text-align:left;background:transparent;border:0;box-shadow:none;cursor:pointer}
+.flag{display:inline-block;margin-left:5px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.lead{background:#8a5a24;color:#fff}
+.flag.win{background:var(--success);color:#fff}
+.log{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px 14px;margin-top:12px;margin-bottom:14px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(20,35,20,0.7);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:2px solid var(--ink);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.name-box h3{font-family:'Dela Gothic One','Inter',sans-serif;font-weight:400;font-size:18px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.dock.tall{position:static}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fffdf5;border:2px solid var(--ink);color:var(--text);border-radius:8px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--brass);border-color:var(--ink);color:#fff}
+.opt.on{background:var(--accent);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.opt .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--kc);margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.4)}
+.hint{font-size:12px;color:var(--text-soft);line-height:1.5}
+.hint b{color:var(--text)}
+.stack{display:grid}.stack>*{grid-area:1/1}
+.scroll-x{overflow-x:auto;max-width:100%}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score tr.me td{background:var(--accent-soft)}
+
+/* carte: fondo del colore, numero e simbolo negli angoli, al centro l'orso oppure la gabbia con il tanuki */
+.pc{width:var(--cw);height:var(--ch);border-radius:6px;background:var(--kc);border:2px solid var(--ink);box-shadow:0 2px 5px rgba(0,0,0,.35);position:relative;display:inline-block;overflow:hidden;flex-shrink:0;padding:0;color:var(--kt)}
+.pc.k0{background:repeating-linear-gradient(135deg,#f5c518 0 6px,#e8b800 6px 12px)}
+.pc::before{content:'';position:absolute;inset:2px;border-radius:4px;border:1px solid rgba(255,255,255,.55)}
+.pc.k0::before{border-color:rgba(43,29,0,.45)}
+.pc .pt{position:absolute;left:50%;top:52%;width:calc(var(--cw)*.58);height:calc(var(--cw)*.58);transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;border-radius:50%;background:#fff8e6;border:1.5px solid rgba(29,77,43,.7)}
+.pc .pt svg{width:78%;height:78%;display:block}
+.pc .cn{position:absolute;display:flex;flex-direction:column;align-items:center;gap:1px;font-family:'Inter',sans-serif;font-weight:800;font-size:calc(var(--cw)*.3);line-height:1;font-style:normal;color:var(--kt);z-index:2;min-width:calc(var(--cw)*.2)}
+.pc .cn svg{width:calc(var(--cw)*.2);height:calc(var(--cw)*.2);display:block;fill:var(--kt)}
+.pc .cn.a{left:calc(var(--cw)*.06);top:calc(var(--cw)*.04)}
+.pc .cn.d{right:calc(var(--cw)*.06);bottom:calc(var(--cw)*.04);transform:rotate(180deg)}
+.pc.mini{--cw:42px;--ch:61px}
+.pc.fresh{box-shadow:0 0 0 3px #fff,0 0 0 5px #8a5a24,0 2px 5px rgba(0,0,0,.45)}
+.pc.win{box-shadow:0 0 0 3px var(--success),0 2px 5px rgba(0,0,0,.45)}
+.pc.legal{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--ink)}
+.pc.dim{opacity:.4;filter:saturate(.5)}
+.pc.sel{transform:translateY(-12px);box-shadow:0 0 0 2px #fff,0 0 0 5px #8a5a24}
+button.pc{cursor:pointer;transition:transform .12s}
+button.pc:hover:not(:disabled){transform:translateY(-6px)}
+button.pc.sel:hover:not(:disabled){transform:translateY(-12px)}
+button.pc:disabled{cursor:default}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:14px}
+.back{width:9px;height:14px;border-radius:2px;background:linear-gradient(135deg,#f08a8a,#d96a7a);border:1px solid #fff8e6;box-shadow:0 0 0 1px rgba(29,77,43,.6)}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.seat.top .backs,.seat.left .backs,.seat.right .backs,.seat.tl .backs,.seat.tr .backs{display:grid;grid-template-columns:repeat(9,9px);max-width:none}
+.nc{display:inline-flex;align-items:center;justify-content:center;gap:2px;min-width:24px;height:28px;padding:0 4px;border-radius:5px;background:var(--kc);color:var(--kt);font-family:'Inter',sans-serif;font-weight:800;font-size:13px;line-height:1;border:1px solid rgba(29,77,43,.65);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.nc.s{min-width:20px;height:22px;font-size:11px}
+.nc svg{width:11px;height:11px;display:block}
+.nc.t{box-shadow:inset 0 0 0 2px rgba(255,248,230,.85)}
+.nc.k0.t{box-shadow:inset 0 0 0 2px rgba(43,29,0,.55)}
+.nc.fd{opacity:.55;border-style:dashed}
+
+.legend{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+.lg{display:flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;border-radius:999px;background:rgba(29,77,43,.07);font-size:12px;font-weight:700;color:var(--kx)}
+.lg .ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--kc)}
+.lg .ic svg{width:13px;height:13px;display:block;fill:var(--kt)}
+.lg small{font-weight:500;color:var(--text-soft);font-size:10px}
+.lgt{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.lgt span{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text-soft)}
+.lgt svg{width:20px;height:20px;display:block}
+
+.table{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr);gap:8px;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin:0 0 14px}
+.table.n3{grid-template-areas:"left center right" "bottom bottom bottom"}
+.table.n4{grid-template-areas:". top ." "left center right" "bottom bottom bottom"}
+.table.n5{grid-template-areas:"tl . tr" "left center right" "bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center} .seat.bottom{grid-area:bottom} .seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
+.seat.leader{border:1px dashed rgba(138,90,36,0.9);background:rgba(138,90,36,0.07)}
+.seat.active{border:2px solid var(--brass);background:rgba(246,189,75,0.35);box-shadow:0 0 0 2px #ffd54a}
+.seat.winner{border:2px solid var(--success);background:rgba(31,122,58,0.12)}
+.seat-name{font-weight:600;font-size:13px;overflow-wrap:anywhere;display:flex;flex-direction:column;align-items:center;gap:3px}
+.seat-name .nm{display:inline-block;padding:2px 10px;border-radius:999px;color:#2a2118;font-weight:700;border:1px solid rgba(29,77,43,0.35);background:var(--sc,#eee)}
+.nmrow{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap}.nmrow .flag{margin-left:0}
+.seat-meta{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(29,77,43,0.09);border-radius:4px;padding:2px 6px;color:var(--text)}
+.tag b{color:var(--accent)}
+.tag.ok{background:rgba(31,122,58,0.16);color:#17532b;font-weight:700}
+.tag.ko{background:rgba(179,38,30,0.13);color:#86201a;font-weight:700}
+.tag.kk{border-left:4px solid var(--kc);border-radius:2px 4px 4px 2px}
+.sub{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;min-width:0;padding:4px;border-radius:8px}
+.tableau{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:65px;min-width:46px;padding:3px;border-radius:8px;background:rgba(29,77,43,0.05)}
+.slot{display:inline-block;width:42px;height:61px;border:1px dashed rgba(29,77,43,0.4);border-radius:6px}
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.45;color:var(--text-soft);min-width:0}
+.center b{color:var(--accent)}
+.rbox{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;font-size:12px;border:2px solid var(--ink)}
+
+.scorebox{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:14px}
+.scorebox h3{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em;margin-bottom:8px}
+.acq{display:flex;flex-direction:column;gap:12px}
+.ab{border-top:1px dashed var(--border);padding-top:10px}
+.ab:first-child{border-top:0;padding-top:0}
+.ab-h{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;font-size:12px}
+.ab-h .nm{display:inline-block;padding:2px 10px;border-radius:999px;color:#2a2118;font-weight:700;border:1px solid rgba(29,77,43,0.35);background:var(--sc,#eee)}
+.ab-h .tot{margin-left:auto;font-weight:700}
+.arow{display:grid;grid-template-columns:78px minmax(0,1fr) auto;gap:6px;align-items:center;padding:3px 0}
+.arow .al{font-size:11px;font-weight:700;color:var(--kx);display:flex;align-items:center;gap:5px;min-width:0}
+.arow .al i{width:10px;height:10px;border-radius:50%;background:var(--kc);flex:0 0 10px;border:1px solid rgba(0,0,0,.35)}
+.arow .cs{display:flex;flex-wrap:wrap;gap:3px;min-width:0}
+.arow .ar{font-size:11px;font-weight:700;white-space:nowrap;text-align:right}
+.arow .ar.pos{color:var(--success)}.arow .ar.neg{color:var(--danger)}
+.arow .ar small{display:block;font-weight:500;color:var(--text-soft);font-size:10px}
+.unseen{display:flex;flex-direction:column;gap:5px}
+.unseen .ur{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:56px;font-size:11px;font-weight:700;color:var(--kx)}
+.recap{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+details.rules{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Dela Gothic One','Inter',sans-serif;font-weight:400;font-size:15px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul,.rtext ol{padding-left:20px}
+.rtext b{color:var(--text)}
+
+@media(max-width:600px){
+  .logo .t{font-size:18px}
+  :root{--cw:36px;--ch:53px}
+  .pc{border-radius:5px;border-width:1.5px}
+  .pc.mini{--cw:36px;--ch:53px}
+  .slot{width:36px;height:53px}
+  .table{padding:8px;gap:6px}
+  .back{width:7px;height:11px}
+  .seat.top .backs,.seat.left .backs,.seat.right .backs,.seat.tl .backs,.seat.tr .backs{grid-template-columns:repeat(5,7px)}
+  .hand{gap:3px}
+  .seat{padding:6px 3px}
+  .seat-name .nm{padding:2px 6px;font-size:12px}
+  table.score td,table.score th{padding:5px 4px}
+  .arow{grid-template-columns:64px minmax(0,1fr) auto}
+  .nc{min-width:21px;height:25px;font-size:12px}
+}
+@media(max-width:380px){.topbar{gap:6px}.logo .t{font-size:15px}.badge{padding:4px 9px}}
+@media(max-width:340px){.logo .t{font-size:13px}.badge{font-size:11px;padding:3px 7px}.seat-name .nm{padding:2px 5px;font-size:11px}.arow{grid-template-columns:58px minmax(0,1fr) auto}}
+</style>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#f6bd4b">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="/pwa.js" defer></script>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script src="/tt/shared/core.js"></script>
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+// 5 colori da 9 carte (1–9): 0 Giallo (△, briscola), 1 Rosso (○), 2 Blu (□), 3 Verde (＋), 4 Viola (☆).
+// In ogni colore: carte orso (1·2·4·6·8·9) e carte tanuki/gabbia (3·5·7).
+const COLS = [
+  {n:'Giallo', sym:'tri',  sub:'briscola'},
+  {n:'Rosso',  sym:'circ'},
+  {n:'Blu',    sym:'sq'},
+  {n:'Verde',  sym:'plus'},
+  {n:'Viola',  sym:'star'}
+];
+const TR = 0;
+const TM = (1<<3)|(1<<5)|(1<<7);
+const CARD = []; for(let k=0;k<5;k++) for(let r=1;r<=9;r++) CARD[k*10+r]={id:k*10+r,k,r,t:(TM>>r&1)===1};
+const FAKE_BEAR = [0,1,2,3,4].map(k=>({id:-1,k,r:1,t:false}));
+const FAKE_TAN  = [0,1,2,3,4].map(k=>({id:-2,k,r:3,t:true}));
+const NAMES = ['Tu','AI Genzo','AI Haruna','AI Shiro','AI Mitsu'];
+const SEATC = ['#ffe2a8','#cfe8c8','#cfe3f2','#f2d3e4','#e3d9f2'];
+const HUM = 0;
+const HS = 9, ROUNDS = 2;
+const POS = {3:['bottom','left','right'],4:['bottom','left','top','right'],5:['bottom','left','tl','tr','right']};
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+let LOGOPEN=false, RULESOPEN=false, RECAPOPEN=false, MENUOPEN=false;
+const OPT = {undo:true, seen:false};
+try{ let s=localStorage.getItem('tn-undo'); if(s!==null) OPT.undo=s==='1'; OPT.seen=localStorage.getItem('tn-seen')==='1'; }catch(e){}
+const cname = c => `${c.r} ${COLS[c.k].n}`;
+const sortHand = h => h.sort((a,b)=>a.k-b.k||a.r-b.r);
+const plural = (n,a,b) => n===1?a:b;
+const sgn = v => v>0?'+'+v:(v<0?'−'+(-v):'0');
+const POP = new Uint8Array(1<<10); for(let i=1;i<POP.length;i++) POP[i]=POP[i>>1]+(i&1);
+const nameOf = s => P(s).name;
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// vince la briscola (giallo) più alta; se non ce ne sono, la carta più alta del colore giocato dal primo
+function better(a,b,lk){
+  if(a.k===TR||b.k===TR){ if(a.k!==b.k) return a.k===TR; return a.r>b.r; }
+  if(a.k===lk&&b.k!==lk) return true;
+  if(b.k===lk&&a.k!==lk) return false;
+  return a.k===lk&&a.r>b.r;
+}
+function trickWin(plays){
+  const lk=plays[0].c.k; let b=plays[0];
+  for(let i=1;i<plays.length;i++) if(better(plays[i].c,b.c,lk)) b=plays[i];
+  return b;
+}
+// chi apre non può giocare giallo se ha altro; gli altri devono rispondere al colore se lo hanno
+function legalCards(hand,plays){
+  if(!plays.length){ const nt=hand.filter(c=>c.k!==TR); return nt.length?nt:hand.slice(); }
+  const lk=plays[0].c.k, f=hand.filter(c=>c.k===lk);
+  return f.length?f:hand.slice();
+}
+const newAcq = full => ({n:[0,0,0,0,0],cap:[false,false,false,false,false],fd:0,wins:0,cards:full?[[],[],[],[],[]]:null,fdc:full?[]:null});
+// il vincitore prende le carte: un colore con tanuki si «cattura»; un colore già catturato finisce coperto
+function takeCards(A,cs){
+  const by=[[],[],[],[],[]]; for(const c of cs) by[c.k].push(c);
+  for(let k=0;k<5;k++){
+    const g=by[k]; if(!g.length) continue;
+    if(A.cap[k]){ A.fd+=g.length; if(A.fdc) A.fdc.push(...g); }
+    else{ A.n[k]+=g.length; if(A.cards) A.cards[k].push(...g); if(g.some(c=>c.t)) A.cap[k]=true; }
+  }
+  A.wins++;
+}
+// punti del round: catturato +1 a carta, non catturato −1 a carta, coperte −2 a carta, +2 se non si è mai vinto
+function rscore(A){ let t=A.wins===0?2:0; for(let k=0;k<5;k++) t+=A.cap[k]?A.n[k]:-A.n[k]; return t-2*A.fd; }
+// variazione di punti se si prendono le carte cs (senza modificare A)
+function takeDelta(A,cs){
+  const cnt=[0,0,0,0,0], tn=[0,0,0,0,0];
+  for(const c of cs){ cnt[c.k]++; if(c.t) tn[c.k]=1; }
+  let d=A.wins===0?-2:0;
+  for(let k=0;k<5;k++){
+    const n=cnt[k]; if(!n) continue;
+    if(A.cap[k]) d-=2*n; else if(tn[k]) d+=2*A.n[k]+n; else d-=n;
+  }
+  return d;
+}
+function noteFor(A,cs){
+  const by=[[],[],[],[],[]]; cs.forEach(c=>by[c.k].push(c)); const out=[];
+  for(let k=0;k<5;k++){
+    const g=by[k]; if(!g.length) continue; const n=g.length;
+    if(A.cap[k]) out.push(`${n} ${COLS[k].n} ${plural(n,'coperta','coperte')} (${sgn(-2*n)})`);
+    else if(g.some(c=>c.t)) out.push(`cattura il ${COLS[k].n}: ${A.n[k]+n} ${plural(A.n[k]+n,'carta vale','carte valgono')} +1 (${sgn(A.n[k]+n)})`);
+    else out.push(`${n} ${COLS[k].n} senza tanuki: −1 ciascuna per ora (${sgn(-n)})`);
+  }
+  if(A.wins===0) out.push('perde il bonus di +2 per chi non vince mai');
+  return out;
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Informazione parziale: l'AI conosce la propria mano, le carte già uscite, quante carte ha ciascuno e chi ha mostrato di non avere un colore.
+// Politica rapida (stima della probabilità di vincere la presa × variazione di punti) e Monte Carlo sulle mani nascoste per scegliere la carta.
+const AIP = {ms:110, minW:4, maxW:120};
+const TUN = {dump:0, lowwin:0, wo:0.25, noise:0.35};
+function viewU(S,s){
+  const m=S.un.slice(); for(const c of S.hands[s]) m[c.k]&=~(1<<c.r);
+  const cnt=m.map(x=>POP[x]); let tot=0; for(const x of cnt) tot+=x;
+  return {m,cnt,tot};
+}
+const pHold = (B,T,h) => (B<=0||T<=0||h<=0)?0:1-Math.pow(Math.max(0,1-B/T),h);
+// probabilità che la carta c, giocata ora da s, vinca la presa
+function pWin(S,s,c,U){
+  const X=S.plays, cur=X.concat([{s,c}]);
+  if(trickWin(cur).s!==s) return 0;
+  const m=S.n-X.length-1; if(m===0||U.tot===0) return 1;
+  const lk=cur[0].c.k, Y=U.cnt[TR];
+  let pw=1;
+  for(let j=1;j<=m;j++){
+    const p=(S.leader+X.length+j)%S.n, h=S.hands[p].length;
+    const isVoid=(S.vm[p]>>lk&1)===1;
+    const pv=isVoid?1:Math.pow(Math.max(0,1-U.cnt[lk]/U.tot),h);
+    let beat;
+    if(c.k===TR){
+      const hi=POP[U.m[TR]>>(c.r+1)];
+      beat=lk===TR?pHold(hi,U.tot,h):pv*pHold(hi,U.tot-U.cnt[lk],h);
+    }else{
+      const hi=POP[U.m[lk]>>(c.r+1)];
+      const pa=isVoid?0:pHold(hi,U.tot,h), pb=Y>0?pv*pHold(Y,U.tot-U.cnt[lk],h):0;
+      beat=1-(1-pa)*(1-pb);
+    }
+    pw*=1-beat;
+  }
+  return pw;
+}
+function qCard(S,s,legal,noise){
+  const A=S.acq[s], U=viewU(S,s), X=S.plays, m=S.n-X.length-1, base=X.map(x=>x.c);
+  let best=legal[0], bv=-1e9;
+  for(const c of legal){
+    const pw=pWin(S,s,c,U); let d=0;
+    if(pw>0){
+      const cards=base.concat([c]), lk=cards[0].k;
+      if(m>0){
+        const tr=U.cnt[lk]?POP[U.m[lk]&TM]/U.cnt[lk]:0.3, pT=1-Math.pow(1-tr,m), bears=[]; for(let i=0;i<m;i++) bears.push(FAKE_BEAR[lk]);
+        d=(1-pT)*takeDelta(A,cards.concat(bears))+pT*takeDelta(A,cards.concat(bears.slice(1),[FAKE_TAN[lk]]));
+      }else d=takeDelta(A,cards);
+    }
+    const v=pw*d+(1-pw)*TUN.dump*c.r-(d>0?pw*TUN.lowwin*c.r:0)+Math.random()*noise;
+    if(v>bv){ bv=v; best=c; }
+  }
+  return best;
+}
+function playCard(S,s,c){
+  const h=S.hands[s]; h.splice(h.indexOf(c),1);
+  if(S.plays.length){ const lk=S.plays[0].c.k; if(c.k!==lk) S.vm[s]|=1<<lk; }
+  else if(c.k===TR){ for(const k of S.cols) if(k!==TR) S.vm[s]|=1<<k; }   // ha aperto col giallo: ha solo giallo
+  S.plays.push({s,c}); S.un[c.k]&=~(1<<c.r);
+}
+function settle(S){
+  const w=trickWin(S.plays); takeCards(S.acq[w.s],S.plays.map(x=>x.c)); S.leader=w.s; return w.s;
+}
+function finishTrick(S,noise){
+  while(S.plays.length<S.n){
+    const s=(S.leader+S.plays.length)%S.n, lg=legalCards(S.hands[s],S.plays);
+    playCard(S,s,lg.length===1?lg[0]:qCard(S,s,lg,noise));
+  }
+  settle(S); S.plays=[];
+}
+function playOut(S,noise){
+  while(S.plays.length||S.hands[S.leader].length) finishTrick(S,noise);
+  return S.acq.map(rscore);
+}
+// mondo possibile dal punto di vista di s: la sua mano è vera, le altre sono campionate tra le carte non viste rispettando i colori che non hanno
+function sampleWorld(s){
+  const n=G.n, m=G.un.slice(); for(const c of G.hands[s]) m[c.k]&=~(1<<c.r);
+  const pool=[]; for(const k of G.cols) for(let r=1;r<=9;r++) if(m[k]>>r&1) pool.push(CARD[k*10+r]);
+  shuffle(pool);
+  const cap=G.hands.map((h,q)=>q===s?0:h.length), hands=G.hands.map((h,q)=>q===s?h.slice():[]);
+  const nel=c=>{ let e=0; for(let q=0;q<n;q++) if(q!==s&&!(G.vm[q]>>c.k&1)) e++; return e; };
+  pool.sort((a,b)=>nel(a)-nel(b));
+  for(const c of pool){
+    let tot=0; const w=[];
+    for(let q=0;q<n;q++){ const x=(cap[q]>0&&!(G.vm[q]>>c.k&1))?cap[q]:0; w.push(x); tot+=x; }
+    if(!tot){ for(let q=0;q<n;q++){ w[q]=cap[q]>0?cap[q]:0; tot+=w[q]; } }
+    if(!tot) break;
+    let r=rnd(tot), q=0; while(r>=w[q]){ r-=w[q]; q++; }
+    hands[q].push(c); cap[q]--;
+  }
+  return {n,cols:G.cols,hands,plays:G.plays.map(x=>({s:x.s,c:x.c})),leader:G.leader,acq:G.acq.map(a=>({n:a.n.slice(),cap:a.cap.slice(),fd:a.fd,wins:a.wins})),un:G.un.slice(),vm:G.vm.slice()};
+}
+function cloneW(W){ return {n:W.n,cols:W.cols,hands:W.hands.map(h=>h.slice()),plays:W.plays.map(x=>({s:x.s,c:x.c})),leader:W.leader,acq:W.acq.map(a=>({n:a.n.slice(),cap:a.cap.slice(),fd:a.fd,wins:a.wins})),un:W.un.slice(),vm:W.vm.slice()}; }
+const worldValue = (pts,o,n) => { let t=0; for(let q=0;q<n;q++) if(q!==o) t+=pts[q]; return pts[o]-TUN.wo*t/(n-1); };
+function aiCard(s){
+  const L=legalCards(G.hands[s],G.plays); if(L.length===1) return L[0];
+  const tot=L.map(()=>0), t0=performance.now(), ms=window.TN_AIMS||AIP.ms; let nW=0;
+  while(nW<AIP.minW||(performance.now()-t0<ms&&nW<AIP.maxW)){
+    const W=sampleWorld(s);
+    L.forEach((c,i)=>{
+      const X=cloneW(W); playCard(X,s,X.hands[s].find(x=>x.id===c.id));
+      finishTrick(X,TUN.noise*0.5);
+      tot[i]+=worldValue(playOut(X,TUN.noise*0.5),s,G.n);
+    });
+    nW++;
+  }
+  let bi=0; tot.forEach((v,i)=>{ if(v>tot[bi]) bi=i; });
+  return L[bi];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,R:ROUNDS,rd:0,msg:'',log:[],over:null,show:null,phase:'',turn:-1,hands:[],acq:[],cols:[],un:[0,0,0,0,0],vm:[],plays:[],leader:0,first:rnd(n),trick:0,res:null,fresh:-1,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  run();
+}
+function dealRound(){
+  const n=G.n, others=shuffle([1,2,3,4]);
+  G.cols=n===5?[0,1,2,3,4]:[0,...others.slice(0,n-1)].sort((a,b)=>a-b);
+  const pool=[]; for(const k of G.cols) for(let r=1;r<=9;r++) pool.push(CARD[k*10+r]);
+  shuffle(pool);
+  G.hands=[]; for(let s=0;s<n;s++) G.hands.push(sortHand(pool.slice(s*HS,(s+1)*HS)));
+  G.un=[0,0,0,0,0]; pool.forEach(c=>{ G.un[c.k]|=1<<c.r; });
+  G.vm=new Array(n).fill(0); G.acq=Array.from({length:n},()=>newAcq(true));
+  G.plays=[]; G.trick=0; G.res=null; G.fresh=-1; G.phase='play';
+  G.leader=(G.first+G.rd-1)%n;
+}
+function humanTurn(s,legal){
+  const g=G, h=G.hands[s];
+  if(legal.length===1){ status(`${nameOf(s)}: puoi giocare solo ${cname(legal[0])}.`); return sleep(900).then(()=>legal[0]); }
+  return new Promise((res,rej)=>{ PR={type:'turn',seat:s,legal:new Set(legal.map(c=>c.id)),sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function tapCard(id){
+  if(!PR||PR.type!=='turn'||!PR.legal.has(id)) return;
+  const c=G.hands[PR.seat].find(x=>x.id===id);
+  if(!OPT.undo){ const r=PR.res; PR=null; render(); r(c); return; }
+  PR.sel=PR.sel===id?null:id; render();
+}
+function goTurn(kind){
+  if(!PR||PR.type!=='turn'||PR.sel==null) return;
+  if(kind==='x'){ PR.sel=null; render(); return; }
+  const c=G.hands[PR.seat].find(x=>x.id===PR.sel), r=PR.res; PR=null; render(); r(c);
+}
+const colTxt = () => G.cols.map(k=>COLS[k].n).join(', ');
+function turnHint(){
+  const s=PR.seat, X=G.plays;
+  if(!X.length){
+    const onlyY=G.hands[s].every(c=>c.k===TR);
+    return `<b>Apri tu la presa.</b> ${onlyY?'Hai solo carte gialle, quindi puoi aprire con il giallo (briscola).':'Non puoi aprire con il giallo (briscola).'}`;
+  }
+  const lk=X[0].c.k, has=G.hands[s].some(c=>c.k===lk);
+  const w=trickWin(X);
+  const cur=`Al momento vince ${esc(nameOf(w.s))} con ${esc(cname(w.c))}.`;
+  return has?`<b>Devi rispondere con il ${COLS[lk].n}.</b> ${cur}`:`<b>Non hai il ${COLS[lk].n}:</b> puoi giocare qualsiasi carta, ma solo il giallo (briscola) può vincere. ${cur}`;
+}
+function previewText(c){
+  const s=PR.seat, X=G.plays, A=G.acq[s], rest=G.n-X.length-1;
+  const cards=X.map(x=>x.c).concat([c]), win=trickWin(X.concat([{s,c}])).s===s, notes=noteFor(A,cards);
+  const tn=c.t?' (tanuki)':'';
+  return `${esc(cname(c))}${tn}: ${X.length?(win?'al momento vince la presa':'al momento non vince la presa'):'apri tu'}${rest?`; ${rest} ${plural(rest,'giocatore deve','giocatori devono')} ancora giocare`:''}. Se prendessi ${cards.length===1?'la carta':'le '+cards.length+' carte'} sul tavolo: ${notes.join('; ')} → ${sgn(takeDelta(A,cards))} punti.`;
+}
+async function oneTrick(){
+  const n=G.n; G.trick++; G.plays=[]; G.res=null; G.fresh=-1;
+  const t=G.trick, leader=G.leader;
+  logMsg(`Round ${G.rd}/${G.R} · presa ${t}/${HS}: di mano ${nameOf(leader)}.`);
+  status(`Round ${G.rd}/${G.R} · presa ${t}/${HS}: di mano ${nameOf(leader)}.`);
+  await sleep(600);
+  for(let k=0;k<n;k++){
+    const s=(leader+k)%n, legal=legalCards(G.hands[s],G.plays);
+    G.turn=s; status(`Presa ${t}/${HS} · tocca a ${nameOf(s)}.`);
+    let c;
+    if(s===HUM) c=await humanTurn(s,legal); else { await sleep(550); c=aiCard(s); }
+    playCard(G,s,c); G.fresh=s;
+    logMsg(`${nameOf(s)} gioca ${cname(c)}${c.t?' (tanuki)':''}.`);
+  }
+  G.turn=-1;
+  const w=trickWin(G.plays), cards=G.plays.map(x=>x.c), A=G.acq[w.s], notes=noteFor(A,cards);
+  takeCards(A,cards); G.leader=w.s; G.res={w:w.s};
+  const msg=`${nameOf(w.s)} vince la presa con ${cname(w.c)} e prende ${cards.length} carte (${cards.map(cname).join(', ')}): ${notes.join('; ')}.`;
+  status(msg); logMsg(msg);
+  await sleep(2400);
+}
+function roundBreakdown(A){
+  const parts=[];
+  for(let k=0;k<5;k++) if(A.n[k]) parts.push({k,n:A.n[k],cap:A.cap[k],pts:A.cap[k]?A.n[k]:-A.n[k]});
+  return {parts,fd:A.fd,bonus:A.wins===0,total:rscore(A)};
+}
+async function roundEnd(){
+  const bd=G.acq.map(roundBreakdown), pts=bd.map(b=>b.total);
+  G.pl.forEach(p=>{ p.total+=pts[p.id]; p.hist.push(pts[p.id]); });
+  logMsg(`Round ${G.rd} concluso: ${G.pl.map(p=>`${p.name} ${sgn(pts[p.id])} (totale ${p.total})`).join(' · ')}.`);
+  const last=G.rd===G.R;
+  G.show={bd,pts,last}; G.phase='end'; G.plays=[]; G.res=null; G.turn=-1;
+  status(last?'Partita conclusa: ecco il risultato.':`Round ${G.rd} concluso.`);
+  await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
+  G.show=null;
+}
+async function run(){
+  const g=G;
+  try{
+    for(let rd=1;rd<=g.R;rd++){
+      g.rd=rd; dealRound();
+      logMsg(`— Round ${rd}/${g.R}: colori in gioco ${colTxt()} (${g.cols.length*9} carte, 9 a testa). Di mano ${nameOf(g.leader)}. —`);
+      if(rd===1){
+        status(`Buona partita a The Tanuki Is Done For, ${P(HUM).name}!`);
+        await ask(HUM,`Round 1/${g.R} · colori in gioco: ${colTxt()} · di mano ${nameOf(g.leader)}`,[{label:'Ok, si parte',value:1}]);
+      }else{
+        status(`Round ${rd}/${g.R} · colori in gioco: ${colTxt()} · di mano ${nameOf(g.leader)}.`);
+        await sleep(1200);
+      }
+      for(let i=0;i<HS;i++) await oneTrick();
+      await roundEnd();
+    }
+    const m=Math.max(...g.pl.map(p=>p.total));
+    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    g.turn=-1; g.show=null; render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const SYM = {
+  tri:'<path d="M12 3L22 20H2z"/>',
+  circ:'<circle cx="12" cy="12" r="9"/>',
+  sq:'<rect x="3.500" y="3.500" width="17" height="17" rx="1.500"/>',
+  plus:'<path d="M9.500 3h5v6.500H21v5h-6.500V21h-5v-6.500H3v-5h6.500z"/>',
+  star:'<path d="M12 2l3 6.500 7 .9-5.200 4.800 1.400 7L12 17.800 5.800 21.200l1.400-7L2 9.400l7-.9z"/>'
+};
+const symSvg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${SYM[COLS[k].sym]}</svg>`;
+const BEAR_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.500" cy="6.500" r="3.200" fill="#6b4423"/><circle cx="18.500" cy="6.500" r="3.200" fill="#6b4423"/><circle cx="12" cy="13" r="8.500" fill="#7b4a23"/><ellipse cx="12" cy="16.200" rx="4.200" ry="3.200" fill="#e8c9a0"/><circle cx="8.600" cy="11" r="1.300" fill="#fff"/><circle cx="15.400" cy="11" r="1.300" fill="#fff"/><circle cx="8.800" cy="11.200" r=".7" fill="#2a1a0c"/><circle cx="15.200" cy="11.200" r=".7" fill="#2a1a0c"/><ellipse cx="12" cy="14.600" rx="1.600" ry="1.100" fill="#2a1a0c"/><path d="M8.500 7.800l2.200 1.300M15.500 7.800l-2.200 1.300" stroke="#2a1a0c" stroke-width="1.100" stroke-linecap="round"/></svg>';
+const CAGE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8.500" cy="9.500" r="2.200" fill="#8a5a2b"/><circle cx="15.500" cy="9.500" r="2.200" fill="#8a5a2b"/><circle cx="12" cy="14" r="5.200" fill="#a9743c"/><ellipse cx="12" cy="15.600" rx="3" ry="2.200" fill="#e8c9a0"/><path d="M8.600 12.200c1.200 1 2 1.300 3.400 1.300s2.200-.3 3.400-1.300" stroke="#3a2412" stroke-width="1.700" stroke-linecap="round" fill="none"/><circle cx="12" cy="15.200" r=".9" fill="#2a1a0c"/><rect x="3" y="3" width="18" height="18" rx="1" fill="none" stroke="#6b4423" stroke-width="2"/><path d="M7.500 3v18M12 3v18M16.500 3v18" stroke="#6b4423" stroke-width="1.500"/></svg>';
+const CAGE_MINI = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="1" fill="none" stroke="currentColor" stroke-width="3"/><path d="M8.500 3v18M15.500 3v18" stroke="currentColor" stroke-width="2.600"/></svg>';
+function cardHtml(c,cls='',tag='span',attrs=''){
+  const corner=`${c.r}${symSvg(c.k)}`;
+  return `<${tag} class="pc k${c.k} ${cls}" ${attrs} title="${cname(c)}${c.t?' · tanuki (gabbia)':' · orso'}"><span class="pt">${c.t?CAGE_SVG:BEAR_SVG}</span><i class="cn a">${corner}</i><i class="cn d">${corner}</i></${tag}>`;
+}
+const chipN = (c,cls='') => `<span class="nc k${c.k} ${c.t?'t':''} ${cls}" title="${cname(c)}${c.t?' · tanuki (gabbia)':''}">${c.r}${c.t?CAGE_MINI:''}</span>`;
+function legendHtml(){
+  return `<div class="legend">${G.cols.map(k=>`<span class="lg k${k}"><span class="ic">${symSvg(k)}</span>${COLS[k].n}${COLS[k].sub?` <small>${COLS[k].sub}</small>`:''}</span>`).join('')}</div>
+    <div class="lgt"><span>${BEAR_SVG} carta orso: 1·2·4·6·8·9</span><span>${CAGE_SVG} carta tanuki (gabbia): 3·5·7, cattura il colore</span></div>`;
+}
+const liveOf = s => G.acq[s]?sgn(rscore(G.acq[s])):'–';
+function playedHtml(s){
+  const x=G.plays.find(y=>y.s===s);
+  if(x) return `<div class="tableau">${cardHtml(x.c,`mini ${G.res&&G.res.w===s&&G.plays.length===G.n?'win':''} ${G.fresh===s&&!G.res?'fresh':''}`)}</div>`;
+  return `<div class="tableau">${G.phase==='play'?'<span class="slot"></span>':''}</div>`;
+}
+function subHtml(s,pos){
+  const human=s===HUM, hl=G.hands[s].length, active=G.turn===s;
+  let h='';
+  if(human){
+    h=`<div class="hand">${G.hands[s].map(c=>{
+      if(PR&&PR.type==='turn'&&PR.seat===s){ const lg=PR.legal.has(c.id); return cardHtml(c,`${lg?'legal':'dim'} ${PR.sel===c.id?'sel':''}`,'button',`${lg?'':'disabled'} data-t="${c.id}"`); }
+      return cardHtml(c);
+    }).join('')}</div>`;
+  }else h=`<div class="backs">${Array.from({length:hl},()=>'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag"><b>${hl}</b> ${plural(hl,'carta','carte')} · <b>${liveOf(s)}</b> pt</span></div>`;
+  const tb=playedHtml(s);
+  const inner=pos==='bottom'?`${tb}${meta}${h}`:(pos==='top'?`${h}${meta}${tb}`:`${meta}${tb}${h}`);
+  return `<div class="sub ${active?'active':''}">${inner}</div>`;
+}
+function flagHtml(s){
+  if(G.over) return G.over.winners.includes(s)?'<span class="flag win">Vince</span>':'';
+  return G.phase==='play'&&G.leader===s?'<span class="flag lead">Di mano</span>':'';
+}
+function seatHtml(s,pos){
+  const pl=P(s);
+  const name=`<div class="seat-name"><span class="nm" style="--sc:${SEATC[s]}">${esc(pl.name)}</span><div class="nmrow">${flagHtml(s)}<span class="tag">totale <b>${pl.total}</b></span></div></div>`;
+  const sub=subHtml(s,pos);
+  const act=G.turn===s, ld=G.phase==='play'&&!G.over&&G.leader===s&&G.turn<0&&!G.plays.length;
+  const wn=(G.res&&G.res.w===s&&G.plays.length===G.n)||(G.over&&G.over.winners.includes(s));
+  const inner=pos==='top'?`${sub}${name}`:`${name}${sub}`;
+  return `<div class="seat ${pos} ${ld?'leader':''} ${act?'active':''} ${wn&&!G.over?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  let top='';
+  if(G.over) top='<div><b>Partita conclusa</b></div>';
+  else if(G.res&&G.plays.length===G.n) top=`<div>Presa a <b>${esc(nameOf(G.res.w))}</b></div>`;
+  return `<div class="center">${top}<span class="rbox">Round ${G.rd||1}/${G.R}</span>
+    <div>${G.phase==='play'&&G.trick?`Presa <b>${Math.min(G.trick,HS)}/${HS}</b>`:''}</div></div>`;
+}
+function acqRows(A){
+  const rows=[];
+  for(let k=0;k<5;k++){
+    if(!A.n[k]) continue;
+    const cs=A.cards[k].slice().sort((x,y)=>(y.t-x.t)||x.r-y.r), cap=A.cap[k];
+    rows.push(`<div class="arow k${k}"><span class="al"><i></i>${COLS[k].n}<span style="font-weight:500;color:var(--text-soft)">${A.n[k]}</span></span><span class="cs">${cs.map(c=>chipN(c,'s')).join('')}</span><span class="ar ${cap?'pos':'neg'}">${sgn(cap?A.n[k]:-A.n[k])}<small>${cap?'catturato':'senza tanuki'}</small></span></div>`);
+  }
+  if(A.fd) rows.push(`<div class="arow"><span class="al">Coperte<span style="font-weight:500;color:var(--text-soft)">${A.fd}</span></span><span class="cs">${A.fdc.slice().sort((x,y)=>x.k-y.k||x.r-y.r).map(c=>chipN(c,'s fd')).join('')}</span><span class="ar neg">${sgn(-2*A.fd)}<small>−2 ciascuna</small></span></div>`);
+  return rows.length?rows.join(''):'<div class="hint">Nessuna carta ancora.</div>';
+}
+function acqHtml(){
+  return `<div class="scorebox"><h3>CARTE ACQUISITE (CATTURATO = +1 A CARTA · SENZA TANUKI = −1 · COPERTE = −2)</h3><div class="acq">${G.pl.map(p=>{
+    const A=G.acq[p.id];
+    return `<div class="ab"><div class="ab-h"><span class="nm" style="--sc:${SEATC[p.id]}">${esc(p.name)}</span>${A.wins===0?'<span class="tag ok">nessuna presa: +2</span>':''}<span class="tot">${sgn(rscore(A))} ora</span></div>${acqRows(A)}</div>`;
+  }).join('')}</div></div>`;
+}
+function unseenHtml(){
+  const pm=G.un.slice(); G.hands[HUM].forEach(c=>{ pm[c.k]&=~(1<<c.r); });
+  const rows=G.cols.map(k=>{
+    const cs=[]; for(let r=1;r<=9;r++) if(pm[k]>>r&1) cs.push(CARD[k*10+r]);
+    return `<div class="ur k${k}"><span class="l">${COLS[k].n}</span>${cs.map(c=>chipN(c,'s')).join('')||'<span class="hint">—</span>'}</div>`;
+  }).join('');
+  return `<div class="scorebox"><h3>CARTE NON ANCORA USCITE (NON IN MANO TUA E NON GIOCATE)</h3><div class="unseen">${rows}</div></div>`;
+}
+function scoreTable(){
+  const nr=G.pl[0].hist.length;
+  const rows=G.pl.map(p=>`<tr class="${p.id===HUM?'me':''}"><td>${esc(p.name)}</td>${p.hist.map(x=>`<td class="${x<0?'neg':''}">${x}</td>`).join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Punteggi</th>${Array.from({length:nr},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table></div>`;
+}
+function showHtml(){
+  const sh=G.show;
+  return G.pl.map(p=>{
+    const b=sh.bd[p.id];
+    const parts=b.parts.map(x=>`<span class="tag kk k${x.k} ${x.cap?'ok':'ko'}">${COLS[x.k].n} ${x.cap?'catturato':'senza tanuki'}: ${x.n} → ${sgn(x.pts)}</span>`).join(' ')
+      +(b.fd?` <span class="tag ko">Coperte ${b.fd} → ${sgn(-2*b.fd)}</span>`:'')+(b.bonus?' <span class="tag ok">Nessuna presa → +2</span>':'');
+    return `<div class="ab"><div class="ab-h"><span class="nm" style="--sc:${SEATC[p.id]}">${esc(p.name)}</span><b class="tot">${sgn(b.total)}</b></div><div class="seat-meta" style="justify-content:flex-start">${parts||'<span class="hint">Nessuna carta.</span>'}</div></div>`;
+  }).join('');
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">The Tanuki Is Done For contro l'AI.</div>
+    <div class="dock-title">QUANTI GIOCATORI IN TUTTO?</div>
+    <div class="opts">${[3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show) html+=`<div class="acq">${showHtml()}</div>`;
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt ${o.k!==undefined?'k'+o.k:''}" ${o.disabled?'disabled':''} data-i="${i}">${o.k!==undefined?'<span class="dot"></span>':''}${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='turn'){
+    const PH='13 Giallo: al momento non vince la presa; 3 giocatori devono ancora giocare. Se prendessi le 4 carte sul tavolo: 3 Rosso senza tanuki: −1 ciascuna per ora (−3); cattura il Blu: 5 carte valgono +1 (+5); perde il bonus di +2 per chi non vince mai → −12 punti.';
+    html+=`<div class="hint">${turnHint()}</div>`;
+    if(PR.sel!=null){
+      const c=G.hands[PR.seat].find(x=>x.id===PR.sel);
+      html+=`<div class="stack"><div class="hint">${previewText(c)}</div><div class="hint" style="visibility:hidden" aria-hidden="true">${PH}</div></div><div class="opts"><button class="opt k${c.k}" data-go="play"><span class="dot"></span>${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    }else if(OPT.undo) html+=`<div class="stack"><div class="hint"></div><div class="hint" style="visibility:hidden" aria-hidden="true">${PH}</div></div><div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 13 Giallo</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+  }
+  return html;
+}
+function recapHtml(){
+  return `<details class="recap" ${RECAPOPEN?'open':''}><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Carte</span><span class="rv">${G.n===5?'45 carte (tutti i colori)':`${G.n*9} carte: il giallo e ${G.n-1} altri colori`} · 9 carte a testa · 2 round</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">chi apre non può giocare giallo (salvo mano tutta gialla) · si risponde al colore se si ha, altrimenti carta libera · vince il giallo più alto, se non c'è la carta più alta del colore di apertura · chi vince prende le carte e apre</span></div>
+    <div class="recap-row"><span class="lbl">Tanuki</span><span class="rv">le carte 3·5·7 (gabbia): se le prendi in un colore non ancora catturato, lo catturi e tutte le sue carte valgono +1 ciascuna</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">colore catturato +1 a carta · colore senza tanuki −1 a carta · carte di un colore già catturato (coperte) −2 a carta · +2 se non vinci nessuna presa</span></div></details>`;
+}
+const RULES_HTML = () => `
+<details class="rules" ${RULESOPEN?'open':''}><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Che gioco è</h4>
+<p><i>The Tanuki Is Done For</i> (たぬきは もう、おしまいです。トリテ) è un gioco di prese per 3–5 giocatori. Siete cacciatori che hanno teso una trappola per catturare gli orsi scesi dalla montagna, ma nelle gabbie è finito un tanuki! Prendere le carte con la gabbia «chiude» un colore e lo rende prezioso; ma le prese successive dello stesso colore ti costano molto.</p>
+<h4>Componenti</h4>
+<ul><li><b>45 carte</b> in cinque colori da 9 carte numerate 1–9: <b>Giallo</b> △ (la briscola), <b>Rosso</b> ○, <b>Blu</b> □, <b>Verde</b> ＋, <b>Viola</b> ☆.</li>
+<li>In ogni colore, le carte <b>orso</b> sono 1·2·4·6·8·9 e le carte <b>tanuki</b> (gabbia, <i>オリ</i>) sono 3·5·7.</li></ul>
+<h4>Preparazione</h4>
+<p>Con <b>3</b> giocatori si scelgono 3 colori, compreso il giallo (27 carte); con <b>4</b> giocatori 4 colori, compreso il giallo (36 carte); con <b>5</b> giocatori si usano tutti e cinque (45 carte). Si mescola e si danno <b>9 carte a testa</b>: non resta nessuna carta fuori.</p>
+<h4>Una presa</h4>
+<ol><li>Chi apre gioca una carta, <b>ma non può aprire con il giallo</b>, a meno che in mano abbia solo carte gialle (in quel caso può aprire fin dall'inizio).</li>
+<li>In senso orario ognuno gioca una carta: se ha il colore giocato dal primo <b>deve</b> rispondere con quel colore; se non ce l'ha, gioca una carta qualsiasi. Le carte di un altro colore perdono sempre, <b>tranne le gialle</b>.</li>
+<li>Vince la presa il <b>giallo più alto</b>, se ne è stato giocato almeno uno; altrimenti la <b>carta più alta del colore giocato dal primo</b>.</li>
+<li>Chi vince prende tutte le carte giocate e apre la presa successiva. Il round finisce quando le mani sono vuote (9 prese).</li></ol>
+<h4>Le carte che prendi</h4>
+<p>Davanti a te le carte si dispongono scoperte in pile, una per colore.</p>
+<ul><li>Quando prendi una <b>carta tanuki</b> di un colore che non hai ancora catturato, la metti in cima alla pila: quel colore è <b>catturato</b> («orso catturato») e <b>tutte le sue carte valgono +1 ciascuna</b>.</li>
+<li>Se prendi carte di un colore <b>già catturato</b>, vanno <b>coperte</b>, in una pila a parte, e valgono <b>−2 ciascuna</b>. Una carta tanuki di un colore già catturato conta come una normale carta orso.</li>
+<li>Se prendi carte di un colore non ancora catturato e senza tanuki, restano nella pila: per ora <b>−1 ciascuna</b>. Valgono +1 se in seguito catturi quel colore.</li>
+<li>Se prendi più carte dello stesso colore in una presa e tra queste c'è un tanuki, il colore è catturato subito e tutte le carte di quella presa valgono +1.</li></ul>
+<h4>Punteggio del round</h4>
+<p>Somma: <b>+1</b> per ogni carta delle pile catturate, <b>−1</b> per ogni carta delle pile non catturate, <b>−2</b> per ogni carta coperta. Chi ha chiuso il round senza <b>aver mai vinto una presa</b> prende <b>+2</b>.</p>
+<h4>Fine della partita</h4>
+<p>Si giocano due round. Vince il totale più alto; in caso di parità la vittoria è condivisa.</p>
+<p><i>Nell'app:</i> a 3 e 4 giocatori i colori in gioco (oltre al giallo) sono scelti a caso all'inizio di ogni round. Il primo di mano del primo round è sorteggiato; nel secondo apre il giocatore successivo (in senso orario). Le carte coperte sono mostrate scoperte, perché sono state viste da tutti quando sono state giocate. L'AI conosce la propria mano, le carte già uscite, quante carte ha ciascuno e chi ha mostrato di non avere un colore, non le mani altrui. Nel menu puoi attivare la tabella «Carte non ancora uscite» e «Abilita annulla» (chiede conferma prima di giocare una carta).</p>
+</div></details>`;
+
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma prima di giocare una carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Mostra le carte che non sono in mano tua e non sono ancora state giocate"><input type="checkbox" id="optSeen" ${OPT.seen?'checked':''}> Mostra le carte non ancora uscite</label>
+    </div>`:''}</div>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{
+  if(!e.target.matches) return;
+  if(e.target.matches('details.log')) LOGOPEN=e.target.open;
+  else if(e.target.matches('details.rules')) RULESOPEN=e.target.open;
+  else if(e.target.matches('details.recap')) RECAPOPEN=e.target.open;
+},true);
+let LASTTALL=false;
+function render(){
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo"><span class="t">The Tanuki Is Done For</span></div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over&&G.rd?`<span class="badge">Round ${G.rd}/${G.R}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    const ready=G.hands.length>0;
+    body=`${ready?`<div class="scorebox"><h3>COLORI IN GIOCO</h3>${legendHtml()}</div>`:''}
+      ${ready?`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>`:''}
+      ${ready?acqHtml():''}
+      ${ready&&OPT.seen&&!G.over?unseenHtml():''}
+      ${G.pl[0].hist.length&&!G.over?`<div class="scorebox"><h3>PUNTEGGI</h3>${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML()}`;
+  }
+  const lb=app.querySelector('.logbody'), lbTop=lb?lb.scrollTop:0;
+  app.innerHTML=top+`<div class="dock${G&&(G.show||G.over)?' tall':''}">${dockHtml()}</div>`+body;
+  if(lbTop){ const nb=app.querySelector('.logbody'); if(nb) nb.scrollTop=lbTop; }
+  const tall=!!(G&&(G.show||G.over)); if(tall&&!LASTTALL) window.scrollTo(0,0); LASTTALL=tall;
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ MENUOPEN=false; const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')){ MENUOPEN=false; toSetup(); } }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.t!==undefined) tapCard(Number(b.dataset.t));
+  else if(b.dataset.go!==undefined) goTurn(b.dataset.go);
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optUndo'){
+    OPT.undo=e.target.checked;
+    try{ localStorage.setItem('tn-undo',OPT.undo?'1':'0'); }catch(err){}
+    if(!OPT.undo&&PR&&PR.type==='turn'&&PR.sel!=null) PR.sel=null;
+    render();
+  }else if(e.target.id==='optSeen'){
+    OPT.seen=e.target.checked;
+    try{ localStorage.setItem('tn-seen',OPT.seen?'1':'0'); }catch(err){}
+    render();
+  }
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
