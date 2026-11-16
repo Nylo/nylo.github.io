@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1st Band</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bangers&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#07070a;
+  --surface:#16161e;
+  --surface-raised:#262633;
+  --ink:#f4f4f6;
+  --accent:#e5272f;
+  --accent-soft:rgba(229,39,47,0.18);
+  --text:#f4f4f6;
+  --text-soft:#b2b2c6;
+  --danger:#ff6b6b;
+  --success:#5fd37d;
+  --border:rgba(255,255,255,0.28);
+  --radius:10px;
+  --cw:46px; --ch:68px;
+  --cV:#f2b51f; --cG:#2fb34f; --cD:#e23b3b; --cB:#3b82f0; --cK:#a45be0;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background-color:var(--bg);background-image:radial-gradient(ellipse at 0% 0%,rgba(40,90,210,0.38),transparent 46%),radial-gradient(ellipse at 100% 100%,rgba(225,30,42,0.34),transparent 46%),radial-gradient(#fff 0.7px,transparent 1.3px);background-size:auto,auto,97px 83px;background-attachment:fixed,fixed,scroll}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Anton','Inter',sans-serif;font-size:34px;font-weight:400;line-height:1;flex:1;color:#fff;letter-spacing:.03em;text-transform:uppercase;font-style:italic;transform:skewX(-6deg);text-shadow:3px 3px 0 var(--accent);min-width:0}
+.logo sup{font-size:.5em;vertical-align:.6em;margin-left:1px}
+.badge{background:var(--accent);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:34px;height:19px;flex:0 0 34px;margin:0;border:1px solid var(--border);border-radius:999px;background:var(--surface-raised);cursor:pointer;transition:background .15s,border-color .15s}
+.opt-toggle input[type=checkbox]::before{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-soft);transition:transform .15s,background .15s}
+.opt-toggle input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.opt-toggle input[type=checkbox]:checked::before{transform:translateX(15px);background:#fff}
+.opt-toggle input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:var(--surface);color:var(--text);border:1px solid var(--border);cursor:pointer}
+.hamb:hover{background:var(--surface-raised)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:230px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.6)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:normal;line-height:1.35;text-align:left;width:100%}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+/* nel menu le voci sono azioni a testo (home-btn.js): l'interruttore stilizzato deve restare nascosto e non occupare spazio */
+.menu-pop .opt-toggle.nylo-menu-action input[type=checkbox]{position:absolute;width:1px;height:1px;flex:none;margin:0;border:0;opacity:0;pointer-events:none}
+.menu-pop button.opt-toggle{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--text);text-align:left;background:transparent;border:0;box-shadow:none;cursor:pointer}
+.flag{display:inline-block;margin-left:5px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:var(--accent);color:#fff}
+.flag.win{background:var(--success);color:#06210f}
+.log{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:2px solid var(--ink);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.6)}
+.name-box h3{font-family:'Anton',sans-serif;font-weight:400;font-size:20px;letter-spacing:.03em;text-transform:uppercase}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#0d0d13;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+.dock.tall{position:static}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:var(--surface-raised);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--accent);border-color:var(--accent);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft);line-height:1.5}
+.hint b{color:var(--text)}
+.scroll-x{overflow-x:auto;max-width:100%}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score tr.me td{background:var(--accent-soft)}
+.chips{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+table.score td.l .chips{justify-content:flex-start}
+
+/* carte: sfondo nero che sfuma nel colore del posto, raggi bianchi, numero grande col bordo bianco e pallino con la lettera del posto */
+.mc{--sc:#888;--sd:#888;width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-block;position:relative;overflow:hidden;flex-shrink:0;padding:0;box-shadow:0 0 0 1px #000,0 3px 6px rgba(0,0,0,0.6);
+  background:repeating-conic-gradient(from -24deg at 50% 125%,rgba(255,255,255,0.4) 0 9deg,transparent 9deg 22deg),linear-gradient(180deg,#09090c 0%,#09090c 28%,var(--sc) 100%)}
+.mc.dual{background:repeating-conic-gradient(from -24deg at 50% 125%,rgba(255,255,255,0.4) 0 9deg,transparent 9deg 22deg),linear-gradient(180deg,#09090c 0%,#09090c 26%,transparent 80%),linear-gradient(100deg,var(--sc) 0 50%,var(--sd) 50% 100%)}
+.mc .v{position:absolute;left:3px;top:0;font-family:'Bangers','Anton',sans-serif;font-weight:400;font-size:calc(var(--cw)*.56);line-height:1.12;color:var(--sc);-webkit-text-stroke:calc(var(--cw)*.05) #fff;paint-order:stroke fill;letter-spacing:.02em}
+.mc .bd{position:absolute;right:2px;bottom:2px;display:flex;gap:2px}
+.mc .sb{display:inline-flex;align-items:center;justify-content:center;width:calc(var(--cw)*.36);height:calc(var(--cw)*.36);border-radius:50%;border:1px solid #fff;font-family:'Bangers',sans-serif;font-style:normal;font-size:calc(var(--cw)*.26);line-height:1;color:#fff;text-shadow:0 0 2px #000,0 0 2px #000}
+.mc.ghost{opacity:.45;filter:saturate(.6)}
+.mc.fresh{box-shadow:0 0 0 1px #000,0 0 0 4px #ffd54a}
+.mc.legal{box-shadow:0 0 0 1px #000,0 0 0 3px rgba(255,255,255,0.7),0 3px 6px rgba(0,0,0,0.6)}
+.mc.sel{transform:translateY(-10px);box-shadow:0 0 0 1px #000,0 0 0 4px var(--accent),0 3px 8px rgba(0,0,0,0.7)}
+button.mc{cursor:pointer;transition:transform .12s}
+button.mc:hover:not(:disabled){transform:translateY(-6px)}
+button.mc.sel:hover:not(:disabled){transform:translateY(-10px)}
+.mc.back{background:radial-gradient(circle,rgba(255,255,255,.55) 0 1px,transparent 1.5px) 0 0/5px 5px,linear-gradient(135deg,#7a1018,#1a0508);border-color:#fff}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:12px}
+.ch{--sc:#888;--sd:#888;display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:21px;padding:0 3px;border-radius:4px;font-family:'Bangers',sans-serif;font-size:14px;line-height:1;color:#111;border:1px solid rgba(255,255,255,.7);background:var(--sc)}
+.ch.dual{background:linear-gradient(100deg,var(--sc) 0 50%,var(--sd) 50% 100%)}
+.sbd{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid #fff;font-family:'Bangers',sans-serif;font-size:11px;line-height:1;color:#fff;text-shadow:0 0 2px #000;vertical-align:-2px;margin-right:2px}
+
+/* palco: i 5 posti della band */
+.stage{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:12px;margin-bottom:12px}
+.stage-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.stage-h b{font-family:'Anton',sans-serif;font-weight:400;letter-spacing:.06em;font-size:15px}
+.stage-h span{font-size:11px;color:var(--text-soft)}
+.slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.slot{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,0.05);min-width:0;min-height:128px;border:1px dashed var(--border)}
+.slot.full{border-style:solid}
+.slot .sn{font-size:10px;font-weight:700;letter-spacing:.03em;color:var(--text-soft);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot .empty{width:var(--cw);height:var(--ch);border-radius:7px;border:2px dashed rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;opacity:.8}
+.slot .own{font-size:10px;font-weight:700;color:#111;border-radius:8px;padding:1px 6px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot .rk{font-style:normal;font-family:'Bangers',sans-serif;font-size:15px;color:#ffd54a;line-height:1}
+.slot .taken{opacity:.35}
+.lastbar{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--text-soft);min-height:26px;flex-wrap:wrap}
+.lastbar b{color:var(--text)}
+
+.table{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:12px;margin:0 0 12px}
+.table.n3{grid-template-areas:"left left right right" "bottom bottom bottom bottom"}
+.table.n4{grid-template-areas:"top top top top" "left left right right" "bottom bottom bottom bottom"}
+.table.n5{grid-template-areas:"tl tl tr tr" "left left right right" "bottom bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top} .seat.left{grid-area:left} .seat.right{grid-area:right} .seat.bottom{grid-area:bottom} .seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
+.seat.first{border:1px dashed rgba(255,255,255,0.5);background:rgba(255,255,255,0.04)}
+.seat.active{border:2px solid var(--accent);background:rgba(229,39,47,0.16)}
+.seat.winner{border:2px solid var(--success);background:rgba(95,211,125,0.12)}
+.seat-name{font-weight:600;font-size:13px;overflow-wrap:anywhere}
+.seat-name .nm{display:inline-block;padding:2px 10px;border-radius:999px;color:#111;font-weight:700}
+.seat-meta{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(255,255,255,0.1);border-radius:4px;padding:2px 6px;color:var(--text)}
+.tag b{color:#ffd54a}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:220px}
+.back{width:9px;height:14px;border-radius:2px;background:linear-gradient(135deg,#9b1a22,#2a070b);border:1px solid #fff}
+.area{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:100%}
+.area .ch{min-width:18px;height:19px;font-size:12px}
+.cap{font-size:10px;color:var(--text-soft);letter-spacing:.04em}
+
+.scorebox{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
+.scorebox h3{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em;margin-bottom:8px}
+.recap{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+details.rules{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Inter',sans-serif;font-weight:800;font-size:15px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul,.rtext ol{padding-left:20px}
+.rtext b{color:var(--text)}
+
+@media(max-width:600px){
+  .logo{font-size:27px}
+  :root{--cw:34px;--ch:50px}
+  .mc{border-radius:5px;border-width:1px}
+  .slot{min-height:104px}
+  .slot .sn{font-size:9px;letter-spacing:0}
+  .slot .sn .sbd{display:none}
+  .slot .own{font-size:9px;padding:1px 4px}
+  .table{padding:8px;gap:6px}
+  .seat{padding:6px 3px}
+  .back{width:7px;height:11px}
+  .hand{gap:3px}
+  table.score td,table.score th{padding:5px 4px}
+}
+@media(max-width:380px){.topbar{gap:6px}.logo{font-size:22px}.badge{padding:4px 9px}}
+</style>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a0c10">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="/pwa.js" defer></script>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script src="/tt/shared/core.js"></script>
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+// 5 posti della band: V Vocal, G Guitar, D Drum, B Bass, K Keyboard. Piccola band = V+G+D+B, grande band = + K.
+const SEATS = ['V','G','D','B','K'];
+const SN = {V:'Vocal',G:'Guitar',D:'Drum',B:'Bass',K:'Keyboard'};
+const SC = {V:'#f2b51f',G:'#2fb34f',D:'#e23b3b',B:'#3b82f0',K:'#a45be0'};
+// carte doppio colore (valore, altro posto): ognuna vale anche come Vocal. Dalla foto delle carte: Vocal+Guitar 1·4·7·9, Vocal+Bass 2·5·8, Vocal+Keyboard 3·6.
+const DUALS = [[1,'G'],[4,'G'],[7,'G'],[9,'G'],[2,'B'],[5,'B'],[8,'B'],[3,'K'],[6,'K']];
+const CARDS = [];
+SEATS.forEach((sk,si)=>{ for(let v=1;v<=10;v++){
+  const dual = DUALS.some(d=>d[0]===v&&d[1]===sk), s = dual?['V',sk]:[sk];
+  CARDS.push({id:si*10+v-1,v,s,k:s.join('')});
+}});
+const PER = {3:13,4:11,5:10};
+const deckFor = n => CARDS.filter(c=>n===3?c.v<=8:n===4?c.v!==9:true);
+const NAMES = ['Tu','AI Axl','AI Ziggy','AI Joan','AI Freddie'];
+const SEATC = ['#ffd166','#ff8fb8','#6ee7b7','#7cc4ff','#c4a7ff'];
+const HUM = 0;
+const POS = {3:['bottom','left','right'],4:['bottom','left','top','right'],5:['bottom','left','tl','tr','right']};
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+const OPT = {undo:true};
+try{ const s=localStorage.getItem('fb-undo'); if(s!==null) OPT.undo=s==='1'; }catch(e){}
+const cname = c => `${c.v} ${c.s.map(s=>SN[s]).join('+')}`;
+const sortHand = h => h.sort((a,b)=>a.v-b.v||a.id-b.id);
+const plural = (n,a,b) => n===1?a:b;
+const shortName = p => P(p).name.replace(/^AI /,'');
+
+// ═════════════════════════ REGOLE (funzioni pure sullo stato S) ═════════════════════════
+// S: {n, hands[p]=[carta], occ={V,G,D,B,K → carta|null}, own[id]=giocatore che l'ha giocata, area[p]=[carta] (area punti), start, last, gone?=[carte scartate]}
+const emptyOcc = () => ({V:null,G:null,D:null,B:null,K:null});
+// effetto di giocare c: ogni posto sfidato va alla carta se è libero o se il valore è maggiore (a parità vince chi c'era già)
+function evalPlay(S,c){
+  const occ2=Object.assign({},S.occ), wins=[], loses=[], dis=[];
+  for(const sk of c.s){
+    const o=occ2[sk];
+    if(!o||c.v>o.v){ wins.push(sk); if(o) dis.push({o,sk}); occ2[sk]=c; } else loses.push(sk);
+  }
+  const removedOthers=[]; const here=new Set(SEATS.map(k=>occ2[k]&&occ2[k].id));
+  for(const d of dis) if(!here.has(d.o.id)&&!removedOthers.includes(d.o)) removedOthers.push(d.o);
+  return {wins,loses,dis,occ2,removedOthers,selfRemoved:!wins.length,complete:!!(occ2.V&&occ2.G&&occ2.D&&occ2.B)};
+}
+function playCard(S,p,c){
+  const e=evalPlay(S,c);
+  S.hands[p]=S.hands[p].filter(x=>x!==c); S.occ=e.occ2; S.last=p;
+  if(!e.selfRemoved) S.own[c.id]=p;
+  if(S.gone){ if(e.selfRemoved) S.gone.push(c); e.removedOthers.forEach(o=>S.gone.push(o)); }
+  return e;
+}
+const bandFull = S => !!(S.occ.V&&S.occ.G&&S.occ.D&&S.occ.B);
+function membersOf(occ){ const seen=new Set(), m=[]; for(const k of SEATS){ const c=occ[k]; if(c&&!seen.has(c.id)){ seen.add(c.id); m.push(c); } } return m; }
+// 1° = il membro di valore più basso; a parità chi è più vicino (in senso orario) al giocatore di mano
+function rankMembers(occ,ownOf,start,n){
+  return membersOf(occ).sort((a,b)=>a.v-b.v||((ownOf(a.id)-start+n)%n)-((ownOf(b.id)-start+n)%n)||a.id-b.id);
+}
+const nextWithCards = (S,p) => { for(let k=1;k<=S.n;k++){ const q=(p+k)%S.n; if(S.hands[q].length) return q; } return -1; };
+const firstWithCards = (S,p) => S.hands[p].length?p:nextWithCards(S,p);
+
+// punteggio: somma dei valori + bande (piccola +5, grande +10, ognuna con carte diverse; una carta doppia copre due posti). Si cerca la combinazione migliore.
+const TYPES = [...new Set(CARDS.map(c=>c.k))];
+const TI = {}; TYPES.forEach((t,i)=>{ TI[t]=i; });
+function genTpl(R){
+  const out=new Map();
+  (function g(rem,cur){
+    if(!rem.length){ const key=cur.slice().sort().join('|'); if(!out.has(key)) out.set(key,cur.slice()); return; }
+    const s=rem[0];
+    for(const t of TYPES) if(t.indexOf(s)>=0&&[...t].every(ch=>rem.indexOf(ch)>=0)) g(rem.filter(ch=>t.indexOf(ch)<0),cur.concat(t));
+  })(R,[]);
+  return [...out.values()];
+}
+const vecOf = types => { const a=TYPES.map(()=>0); types.forEach(t=>{ a[TI[t]]++; }); return a; };
+const TPLS = [];
+genTpl(['V','G','D','B','K']).forEach(t=>TPLS.push({need:vecOf(t),pts:10,s:0,l:1}));
+genTpl(['V','G','D','B']).forEach(t=>TPLS.push({need:vecOf(t),pts:5,s:1,l:0}));
+const PM = new Map();
+function packRec(arr){
+  const key=arr.join(','), m=PM.get(key); if(m) return m;
+  let best={p:0,s:0,l:0};
+  for(const t of TPLS){
+    let ok=true; for(let i=0;i<arr.length;i++) if(t.need[i]>arr[i]){ ok=false; break; }
+    if(!ok) continue;
+    const a2=arr.map((x,i)=>x-t.need[i]), r=packRec(a2), p=t.pts+r.p;
+    if(p>best.p) best={p,s:t.s+r.s,l:t.l+r.l};
+  }
+  PM.set(key,best); return best;
+}
+const areaVec = area => { const a=TYPES.map(()=>0); area.forEach(c=>{ a[TI[c.k]]++; }); return a; };
+const packOf = area => packRec(areaVec(area));
+const baseOf = area => area.reduce((a,c)=>a+c.v,0);
+const scoreOf = area => baseOf(area)+packOf(area).p;
+
+// ═════════════════════════ AI ═════════════════════════
+// Gioco euristico (politica) + Monte Carlo: le mani degli altri sono campionate tra le carte non viste (note: le proprie, quelle sul palco, scartate o già prese da qualcuno).
+const AIP = {ms:150, minW:4, maxW:300};
+function greedyGain(occ,ownOf,start,n,p){
+  const ranked=rankMembers(occ,ownOf,start,n), avail=ranked.slice(), g=new Array(n).fill(0);
+  for(const c of ranked){
+    let b=0; for(let i=1;i<avail.length;i++) if(avail[i].v>avail[b].v) b=i;
+    g[ownOf(c.id)]+=avail[b].v; avail.splice(b,1);
+  }
+  let o=0; for(let q=0;q<n;q++) if(q!==p) o+=g[q];
+  return g[p]-o/(n-1);
+}
+function polPlay(S,p){
+  const h=S.hands[p]; if(h.length===1) return h[0];
+  let best=h[0], bu=-1e9;
+  for(const c of h){
+    const e=evalPlay(S,c); let u;
+    if(e.selfRemoved) u=-0.35*c.v-0.4;
+    else{
+      const ownOf=id=>id===c.id?p:S.own[id];
+      u=0.5*e.wins.length+0.08*(10-c.v)+(e.complete?0.9:0.25)*greedyGain(e.occ2,ownOf,S.start,S.n,p)+(e.complete?0.3:0);
+    }
+    u+=(Math.random()-0.5)*0.5;
+    if(u>bu){ bu=u; best=c; }
+  }
+  return best;
+}
+function polPick(S,p,avail,noise){
+  const area=S.area[p], pk=packOf(area).p, cov=new Set(); area.forEach(c=>c.s.forEach(s=>cov.add(s)));
+  let best=avail[0], bu=-1e9;
+  for(const c of avail){
+    const g=c.v+packOf(area.concat(c)).p-pk, nc=c.s.filter(s=>!cov.has(s)).length;
+    const u=g+0.5*nc+(noise?Math.random()*0.3:0);
+    if(u>bu){ bu=u; best=c; }
+  }
+  return best;
+}
+// esibizione simulata: assegna le posizioni, ognuno prende un membro, il primo di mano passa a sinistra di chi ha giocato l'ultima carta
+function performSim(S){
+  const ownOf=id=>S.own[id], ranked=rankMembers(S.occ,ownOf,S.start,S.n), avail=ranked.slice(), order=ranked.map(c=>S.own[c.id]);
+  for(const p of order){ const c=polPick(S,p,avail,true); avail.splice(avail.indexOf(c),1); S.area[p].push(c); }
+  S.occ=emptyOcc(); S.start=(S.last+1)%S.n;
+}
+function cloneS(S){ return {n:S.n,hands:S.hands.map(a=>a.slice()),occ:Object.assign({},S.occ),own:S.own.slice(),area:S.area.map(a=>a.slice()),start:S.start,last:S.last}; }
+function simRest(S,cur){
+  let g=0;
+  while(cur>=0&&g++<80){
+    const c=polPlay(S,cur); playCard(S,cur,c);
+    if(bandFull(S)){ performSim(S); cur=firstWithCards(S,S.start); } else cur=nextWithCards(S,cur);
+  }
+  return S.area.map(scoreOf);
+}
+function simFrom(S,p,c){
+  playCard(S,p,c);
+  let cur;
+  if(bandFull(S)){ performSim(S); cur=firstWithCards(S,S.start); } else cur=nextWithCards(S,p);
+  return simRest(S,cur);
+}
+function sampleWorld(p){
+  const used=new Set(); G.hands[p].forEach(c=>used.add(c.id)); G.gone.forEach(c=>used.add(c.id));
+  G.area.forEach(a=>a.forEach(c=>used.add(c.id))); membersOf(G.occ).forEach(c=>used.add(c.id));
+  const pool=shuffle(deckFor(G.n).filter(c=>!used.has(c.id))), hands=[]; let i=0;
+  for(let q=0;q<G.n;q++){
+    if(q===p) hands.push(G.hands[p].slice());
+    else{ const sz=G.hands[q].length; hands.push(pool.slice(i,i+sz)); i+=sz; }
+  }
+  return hands;
+}
+const mkSim = hands => ({n:G.n,hands,occ:Object.assign({},G.occ),own:G.own.slice(),area:G.area.map(a=>a.slice()),start:G.start,last:G.last});
+function aiAct(p){
+  const h=G.hands[p]; if(h.length===1) return h[0];
+  const tot=h.map(()=>0), t0=performance.now(), ms=window.FB_AIMS||AIP.ms, n=G.n; let nW=0;
+  while(nW<AIP.minW||(performance.now()-t0<ms&&nW<AIP.maxW)){
+    const base=mkSim(sampleWorld(p));
+    h.forEach((c,i)=>{
+      const sc=simFrom(cloneS(base),p,c); let o=0,mx=-1e9;
+      for(let q=0;q<n;q++) if(q!==p){ o+=sc[q]; if(sc[q]>mx) mx=sc[q]; }
+      tot[i]+=sc[p]-(o/(n-1)+mx)/2;
+    });
+    nW++;
+  }
+  let bi=0; tot.forEach((v,i)=>{ if(v>tot[bi]) bi=i; });
+  return h[bi];
+}
+const aiPick = (p,avail) => polPick(G,p,avail,false);
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,round:0,msg:'',log:[],over:null,show:null,phase:'',turn:-1,hands:[],area:[],occ:emptyOcc(),own:new Array(50).fill(-1),gone:[],
+     start:0,last:0,rank:null,bandLeft:null,note:null,fresh:-1,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i]}))};
+  run();
+}
+function deal(){
+  const n=G.n, per=PER[n], deck=shuffle(deckFor(n).slice());
+  G.hands=G.pl.map((_,i)=>sortHand(deck.slice(i*per,(i+1)*per)));
+  G.area=G.pl.map(()=>[]); G.gone=[]; G.occ=emptyOcc(); G.own=new Array(50).fill(-1);
+  // di mano: chi ha Vocal 1; se non è in gioco (carta in eccesso scartata) Vocal 2, e così via
+  let st=0, found=false;
+  for(let v=1;v<=10&&!found;v++) G.hands.forEach((h,i)=>{ if(!found&&h.some(c=>c.v===v&&c.s.length===1&&c.s[0]==='V')){ st=i; found=true; } });
+  G.start=st; G.last=(st+n-1)%n;
+}
+function previewText(c){
+  const e=evalPlay(G,c);
+  if(e.selfRemoved) return `Sfida ${c.s.map(s=>SN[s]).join(' e ')} ma c'è già un membro di valore uguale o maggiore: la carta verrebbe <b>scartata</b>.`;
+  const parts=e.wins.map(sk=>{ const d=e.dis.find(x=>x.sk===sk); return `<b>${SN[sk]}</b>${d?` (toglie il ${d.o.v} di ${esc(shortName(G.own[d.o.id]))})`:' (libero)'}`; });
+  let t=`Conquista ${parts.join(' e ')}.`;
+  if(e.loses.length) t+=` Su ${e.loses.map(s=>SN[s]).join(' e ')} perde: resta solo sul resto.`;
+  if(e.complete) t+=' <b>Completa la band: l\'audizione finisce.</b>';
+  return t;
+}
+function humanPlay(){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'turn',sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function tapCard(id){
+  if(!PR||PR.type!=='turn') return;
+  const c=G.hands[HUM].find(x=>x.id===id); if(!c) return;
+  if(!OPT.undo){ const r=PR.res; PR=null; render(); r(c); return; }
+  PR.sel=PR.sel===id?null:id; render();
+}
+function goTurn(kind){
+  if(!PR||PR.type!=='turn'||PR.sel==null) return;
+  if(kind==='x'){ PR.sel=null; render(); return; }
+  const c=G.hands[HUM].find(x=>x.id===PR.sel), r=PR.res; PR=null; render(); r(c);
+}
+function humanPick(avail,rank){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'pick',avail,rank,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function tapPick(id){
+  if(!PR||PR.type!=='pick') return;
+  const c=PR.avail.find(x=>x.id===id); if(!c) return;
+  if(!OPT.undo){ const r=PR.res; PR=null; render(); r(c); return; }
+  PR.sel=PR.sel===id?null:id; render();
+}
+function goPick(kind){
+  if(!PR||PR.type!=='pick'||PR.sel==null) return;
+  if(kind==='x'){ PR.sel=null; render(); return; }
+  const c=PR.avail.find(x=>x.id===PR.sel), r=PR.res; PR=null; render(); r(c);
+}
+async function audition(){
+  const n=G.n; G.phase='audition'; G.rank=null; G.bandLeft=null; G.note=null;
+  let p=firstWithCards(G,G.start);
+  while(p>=0){
+    G.turn=p; G.fresh=-1;
+    status(p===HUM?'Tocca a te: gioca un membro.':`Tocca a ${P(p).name}.`);
+    let c;
+    if(p===HUM) c=await humanPlay();
+    else{ await sleep(650); c=aiAct(p); }
+    const e=playCard(G,p,c); G.fresh=e.selfRemoved?-1:c.id; G.turn=-1;
+    let t;
+    if(e.selfRemoved) t=`${P(p).name} gioca ${cname(c)}: non batte nessun membro e viene scartata.`;
+    else{
+      t=`${P(p).name} gioca ${cname(c)}: prende ${e.wins.map(sk=>SN[sk]).join(' e ')}`;
+      const rm=e.removedOthers; if(rm.length) t+=`, scarta ${rm.map(o=>cname(o)).join(', ')}`;
+      if(e.loses.length) t+=` (perde su ${e.loses.map(s=>SN[s]).join(' e ')})`;
+      t+='.';
+    }
+    G.note={c,p,text:t,removed:e.selfRemoved};
+    logMsg(t); status(t);
+    await sleep(p===HUM?900:1100);
+    if(bandFull(G)) return true;
+    p=nextWithCards(G,p);
+  }
+  return false;
+}
+async function exhibition(){
+  const n=G.n; G.phase='perform';
+  const ownOf=id=>G.own[id], ranked=rankMembers(G.occ,ownOf,G.start,n), kind=G.occ.K?'grande band':'piccola band';
+  G.rank=ranked.map((c,i)=>({r:i+1,c,p:G.own[c.id]})); G.bandLeft=new Set(ranked.map(c=>c.id)); G.fresh=-1; G.turn=-1;
+  const oldStart=G.start; G.start=(G.last+1)%n;
+  logMsg(`Band completa (${kind}). Classifica: ${G.rank.map(r=>`${r.r}° ${P(r.p).name} (${cname(r.c)})`).join(' · ')}.`);
+  logMsg(`Il segnalino di mano passa a ${P(G.start).name}.`);
+  status(`Band completa: ${kind}. Si assegnano le posizioni: il membro più basso è 1°${ranked.length>1&&ranked[0].v===ranked[1].v?' (a parità conta chi è più vicino al giocatore di mano)':''}.`);
+  await sleep(2300);
+  const picked=G.pl.map(()=>[]);
+  for(const r of G.rank){
+    const p=r.p; G.turn=p; G.note=null;
+    const avail=ranked.filter(c=>G.bandLeft.has(c.id));
+    status(p===HUM?`Tocca a te (${r.r}° posto): scegli un membro.`:`${P(p).name} (${r.r}° posto) sceglie un membro.`);
+    let c;
+    if(p===HUM){
+      if(avail.length===1){ status(`${r.r}° posto: ti resta ${cname(avail[0])}, lo prendi.`); await sleep(1200); c=avail[0]; }
+      else c=await humanPick(avail,r.r);
+    }else{ await sleep(800); c=aiPick(p,avail); }
+    G.area[p].push(c); picked[p].push(c); G.bandLeft.delete(c.id);
+    logMsg(`${r.r}° posto: ${P(p).name} prende ${cname(c)}.`);
+    await sleep(p===HUM?500:700);
+  }
+  G.turn=-1; G.occ=emptyOcc(); G.bandLeft=null; G.rank=null; G.own=new Array(50).fill(-1);
+  const rows=G.pl.map(p=>({p:p.id,got:picked[p.id],sc:scoreOf(G.area[p.id])}));
+  const more=G.hands.some(h=>h.length);
+  G.show={rows,more};
+  status(`Round ${G.round} concluso.`);
+  await ask(HUM,'Risultato del round',[{label:more?'Prossimo round':'Mostra risultato finale',value:1}]);
+  G.show=null;
+  return more;
+}
+function finish(){
+  const rows=G.pl.map(p=>{ const a=G.area[p.id], pk=packOf(a); return {p:p.id,base:baseOf(a),pk,total:baseOf(a)+pk.p,cards:a.length}; });
+  const m=Math.max(...rows.map(r=>r.total));
+  G.over={rows,winners:rows.filter(r=>r.total===m).map(r=>r.p)}; G.turn=-1; G.show=null; G.phase='end';
+}
+async function run(){
+  const g=G; let asked=false;
+  try{
+    deal();
+    status(`Buona partita a 1st Band, ${P(HUM).name}!`);
+    await ask(HUM,`Di mano: ${P(G.start).name}${G.hands.some(h=>h.some(c=>c.v===1&&c.s.length===1&&c.s[0]==='V'))?' (ha Vocal 1)':' (Vocal 1 non è in gioco)'}`,[{label:'Ok, si parte',value:1}]);
+    for(;;){
+      g.round++;
+      logMsg(`— Round ${g.round}: apre ${P(g.start).name} —`);
+      const full=await audition();
+      if(!full){
+        const left=membersOf(g.occ);
+        if(left.length) logMsg(`Le carte sono finite: la band incompleta (${left.map(cname).join(', ')}) viene rimossa.`);
+        g.occ=emptyOcc(); break;
+      }
+      const more=await exhibition();
+      if(!more){ asked=true; break; }
+    }
+    g.phase='end'; status('Partita conclusa: ecco il risultato.');
+    if(!asked) await ask(HUM,'Fine della partita',[{label:'Mostra risultato finale',value:1}]);
+    finish(); logMsg('Partita conclusa.'); render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const sbHtml = s => `<i class="sb" style="background:${SC[s]}">${s}</i>`;
+const mcHtml = (c,cls='',tag='span',attrs='') => `<${tag} class="mc ${c.s.length>1?'dual':''} ${cls}" style="--sc:${SC[c.s[0]]};--sd:${SC[c.s[c.s.length-1]]}" ${attrs} title="${cname(c)}"><b class="v">${c.v}</b><span class="bd">${c.s.map(sbHtml).join('')}</span></${tag}>`;
+const chHtml = c => `<span class="ch ${c.s.length>1?'dual':''}" style="--sc:${SC[c.s[0]]};--sd:${SC[c.s[c.s.length-1]]}" title="${cname(c)}">${c.v}</span>`;
+function stageHtml(){
+  const seen=new Set(), pickMode=PR&&PR.type==='pick';
+  const slots=SEATS.map(sk=>{
+    const c=G.occ[sk], taken=c&&G.bandLeft&&!G.bandLeft.has(c.id);
+    if(!c) return `<div class="slot"><span class="sn"><i class="sbd" style="background:${SC[sk]}">${sk}</i>${SN[sk]}</span><span class="empty"><i class="sbd" style="background:${SC[sk]};opacity:.5;width:20px;height:20px;font-size:14px;line-height:18px">${sk}</i></span></div>`;
+    const first=!seen.has(c.id); seen.add(c.id);
+    const own=G.own[c.id], rk=G.rank&&G.rank.find(r=>r.c.id===c.id);
+    let card;
+    if(pickMode&&first&&!taken&&PR.avail.some(x=>x.id===c.id)) card=mcHtml(c,`legal ${PR.sel===c.id?'sel':''}`,'button',`data-pk="${c.id}"`);
+    else card=mcHtml(c,`${first?'':'ghost'} ${G.fresh===c.id?'fresh':''}`);
+    return `<div class="slot full"><span class="sn"><i class="sbd" style="background:${SC[sk]}">${sk}</i>${SN[sk]}</span><div class="${taken?'taken':''}">${card}</div>${rk&&first?`<em class="rk">${rk.r}°</em>`:''}<span class="own" style="background:${SEATC[own]||'#ccc'}">${esc(shortName(own))}</span></div>`;
+  }).join('');
+  const miss=['V','G','D','B'].filter(k=>!G.occ[k]).map(k=>SN[k]);
+  const info=G.phase==='perform'?'Esibizione: ognuno prende un membro':G.phase==='audition'?(miss.length?`Per la piccola band mancano: ${miss.join(', ')}`:'Band completa'):'';
+  const n=G.note;
+  const last=n?`<div class="lastbar">${n.removed?mcHtml(n.c,'',''):''}<span>${esc(n.text)}</span></div>`:'<div class="lastbar"><span>Nessuna carta giocata in questo round.</span></div>';
+  return `<div class="stage"><div class="stage-h"><b>PALCO</b><span>${info}</span></div><div class="slots">${slots}</div>${G.phase==='audition'?last:''}</div>`;
+}
+function flagHtml(p){
+  if(G.over) return G.over.winners.includes(p)?'<span class="flag win">Vince</span>':'';
+  return p===G.start?'<span class="flag first">Di mano</span>':'';
+}
+function seatHtml(p,pos){
+  const pl=P(p), hl=G.hands[p].length, area=G.area[p], active=G.turn===p;
+  let h;
+  if(p===HUM){
+    h=`<div class="hand">${G.hands[HUM].map(c=>{
+      if(PR&&PR.type==='turn') return mcHtml(c,`legal ${PR.sel===c.id?'sel':''}`,'button',`data-t="${c.id}"`);
+      return mcHtml(c);
+    }).join('')}</div>`;
+  }else h=`<div class="backs">${Array.from({length:hl},()=>'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag">mano <b>${hl}</b></span><span class="tag">punti <b>${scoreOf(area)}</b></span></div>`;
+  const name=`<div class="seat-name"><span class="nm" style="background:${SEATC[p]}">${esc(pl.name)}</span>${flagHtml(p)}</div>`;
+  const ar=`<div class="area">${area.length?area.slice().sort((a,b)=>b.v-a.v).map(chHtml).join(''):'<span class="cap">area punti vuota</span>'}</div>`;
+  const inner=pos==='bottom'?`${name}${meta}${ar}${h}`:`${h}${name}${meta}${ar}`;
+  return `<div class="seat ${pos} ${G.phase!=='end'&&p===G.start&&!G.over?'first':''} ${active?'active':''} ${G.over&&G.over.winners.includes(p)?'winner':''}">${inner}</div>`;
+}
+function bandTxt(pk){ const t=[]; if(pk.l) t.push(`${pk.l} ${plural(pk.l,'grande','grandi')} (+${pk.l*10})`); if(pk.s) t.push(`${pk.s} ${plural(pk.s,'piccola','piccole')} (+${pk.s*5})`); return t.join(' + ')||'–'; }
+function finalTable(){
+  const rows=G.over.rows.map(r=>`<tr class="${r.p===HUM?'me':''}"><td>${esc(P(r.p).name)}</td><td class="l"><div class="chips">${G.area[r.p].slice().sort((a,b)=>b.v-a.v).map(chHtml).join('')}</div></td><td>${r.base}</td><td>${bandTxt(r.pk)}</td><td><b>${r.total}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th></th><th class="l">Area punti</th><th>Valori</th><th>Bande</th><th>Totale</th></tr>${rows}</table></div>`;
+}
+function showTable(){
+  const rows=G.show.rows.map(r=>`<tr class="${r.p===HUM?'me':''}"><td>${esc(P(r.p).name)}</td><td class="l"><div class="chips">${r.got.length?r.got.map(chHtml).join(''):'–'}</div></td><td><b>${r.sc}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th></th><th class="l">Presi in questo round</th><th>Punti</th></tr>${rows}</table></div>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">1st Band contro l'AI. Quanti giocatori in tutto?</div>
+    <div class="opts">${[3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${finalTable()}`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show) html+=showTable();
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='turn'){
+    if(PR.sel!=null){
+      const c=G.hands[HUM].find(x=>x.id===PR.sel);
+      html+=`<div class="hint">${previewText(c)}</div><div class="opts"><button class="opt" data-go="play">${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    }else{
+      html+=`<div class="hint">Gioca un membro dalla mano: prende il posto se è libero o se ha valore maggiore, altrimenti viene scartato. L'audizione finisce appena Vocal, Guitar, Drum e Bass sono occupati.</div>
+        <div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 10 Vocal+Keyboard</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+    }
+  }else if(PR&&PR.type==='pick'){
+    if(PR.sel!=null){
+      const c=PR.avail.find(x=>x.id===PR.sel), area=G.area[HUM], gain=c.v+packOf(area.concat(c)).p-packOf(area).p;
+      html+=`<div class="hint">${esc(cname(c))}: +${gain} punti${gain>c.v?` (di cui +${gain-c.v} per una nuova band)`:''}.</div><div class="opts"><button class="opt" data-go="pick">${esc('Prendi '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    }else{
+      html+=`<div class="hint">Tocca a te (${PR.rank}° posto): tocca uno dei membri sul palco per portarlo nella tua area punti. Ogni membro vale il suo numero; band complete danno bonus.</div>
+        <div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Prendi 10 Vocal+Keyboard</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+    }
+  }
+  return html;
+}
+function goneHtml(){
+  if(!G.gone.length) return '';
+  return `<details class="log"><summary>CARTE SCARTATE (${G.gone.length})</summary><div class="chips" style="justify-content:flex-start;margin-top:8px">${G.gone.slice().sort((a,b)=>a.v-b.v).map(chHtml).join('')}</div></details>`;
+}
+function recapHtml(){
+  const n=G.n;
+  return `<details class="recap"><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Carte</span>${SEATS.map(s=>`<span class="tag"><i class="sbd" style="background:${SC[s]}">${s}</i>${SN[s]}</span>`).join(' ')}<span class="rv">50 membri (1–10 per ogni posto${n===3?', senza 9 e 10':n===4?', senza i 9':''}): ${PER[n]} a testa, 1 scartata coperta${n===5?' (nessuna)':''}</span></div>
+    <div class="recap-row"><span class="lbl">Audizione</span><span class="rv">a turno si gioca un membro: occupa il posto se è libero o più alto del membro che c'è (a parità resta chi c'era), altrimenti si scarta · i membri a doppio colore sfidano due posti insieme</span></div>
+    <div class="recap-row"><span class="lbl">Fine audizione</span><span class="rv">appena Vocal, Guitar, Drum e Bass sono occupati (piccola band); se c'è anche Keyboard è una grande band</span></div>
+    <div class="recap-row"><span class="lbl">Esibizione</span><span class="rv">il membro più basso è 1° (a parità, chi è più vicino al giocatore di mano) · in ordine ognuno prende un membro della band · il segnalino di mano passa a sinistra di chi ha giocato l'ultima carta</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">somma dei valori dei membri presi · ogni piccola band (V+G+D+B) +5, ogni grande band (V+G+D+B+K) +10 · vince il totale più alto</span></div></details>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Che gioco è</h4>
+<p>1st Band è un gioco di carte per 3–5 giocatori. Ogni round i giocatori fanno un'audizione per formare una band; poi si distribuiscono i membri della band e a fine partita vince chi ha più punti.</p>
+<h4>Componenti</h4>
+<ul><li><b>50 carte Membro</b> (10 per ogni posto della band): Vocal, Guitar, Drum, Bass e Keyboard, valori da 1 a 10. Alcune carte sono <b>a doppio colore</b> e valgono per due posti.</li>
+<li>5 carte Posizione (1°–5°), carte riepilogo e il segnalino «Di mano».</li></ul>
+<h4>Preparazione</h4>
+<ul><li>3 giocatori: si tolgono i 9 e i 10 (13 carte a testa). 4 giocatori: si tolgono i 9 (11 carte a testa). 5 giocatori: tutte le carte (10 a testa).</li>
+<li>Con 3–4 giocatori la carta in eccesso dopo la distribuzione viene scartata.</li>
+<li>Comincia chi ha <b>Vocal 1</b> e prende il segnalino «Di mano». Se Vocal 1 non è in gioco, chi ha Vocal 2.</li></ul>
+<h4>Come si gioca</h4>
+<p>Ogni round ha due fasi.</p>
+<h4>A. Audizione</h4>
+<p>I posti sono cinque: Vocal, Guitar, Drum, Bass e Keyboard. A partire dal giocatore di mano, in senso orario, ognuno gioca <b>1 carta Membro</b> dalla mano davanti a sé per contendersi i posti.</p>
+<ul><li>Ogni posto tiene <b>solo il membro di valore più alto</b>.</li>
+<li>Se un nuovo membro sfida un posto occupato si confrontano i valori: <b>il più basso viene tolto</b>. A parità viene tolto il nuovo membro.</li>
+<li>I membri a <b>doppio colore</b> sfidano due posti insieme. Ogni posto si risolve da solo: la carta può vincere 1 o 2 posti, oppure essere tolta.</li>
+<li>Si può giocare anche un membro di valore più basso, ma viene subito tolto dal gioco.</li></ul>
+<p>L'audizione finisce subito quando una band è completa, anche se qualcuno ha giocato meno turni:</p>
+<ul><li><b>Piccola band:</b> Vocal + Guitar + Drum + Bass.</li>
+<li><b>Grande band:</b> Vocal + Guitar + Drum + Bass + Keyboard.</li></ul>
+<h4>B. Esibizione</h4>
+<ol><li><b>Posizioni:</b> si confrontano i membri della band: chi ha il membro di valore <b>più basso</b> prende il 1° posto, poi il successivo e così via. A parità ha la precedenza chi è più vicino al giocatore di mano (in senso orario). Chi ha più membri prende più posizioni.</li>
+<li><b>Giocatore di mano:</b> il segnalino passa a sinistra di chi ha giocato l'ultima carta Membro.</li>
+<li>I membri della band vanno al centro.</li>
+<li>A partire dal 1° posto, a turno ogni posizione prende <b>1 membro</b> (anche di un altro giocatore) e lo mette nella propria area punti. Poi si inizia un nuovo round con il nuovo giocatore di mano.</li></ol>
+<h4>Fine della partita</h4>
+<p>La partita finisce quando tutte le carte sono state giocate. I membri delle band incomplete vengono tolti, poi si conta:</p>
+<ol><li><b>Valori:</b> somma dei valori dei membri nella tua area punti.</li>
+<li><b>Bande:</b> ogni piccola band +5, ogni grande band +10. Una grande band non conta anche come piccola.</li></ol>
+<p>Vince chi ha il punteggio più alto; in caso di parità la vittoria è condivisa.</p>
+<p><i>Esempio:</i> area con 6 Drum, 4 Vocal+Guitar, 8 Keyboard, 6 Bass e 3 Drum: valori 6+4+8+6+3 = 27; i membri coprono Vocal, Guitar, Drum, Bass e Keyboard, quindi una grande band +10: totale 37.</p>
+<p><i>Carte a doppio colore:</i> sono 9 e valgono sempre anche come Vocal: Vocal+Guitar (1, 4, 7, 9), Vocal+Bass (2, 5, 8) e Vocal+Keyboard (3, 6). Ognuna prende il posto della carta singola dello stesso valore e dell'altro strumento.</p>
+<p><i>Nell'app:</i> il segnalino «Di mano» è il flag «Di mano». Le carte scartate sono visibili a tutti nel pannello «Carte scartate». Nel conteggio finale l'app cerca da sola la combinazione di bande migliore con le carte che hai (una carta doppia copre due posti). Se le carte finiscono prima che la band sia completa, i membri sul palco vengono tolti e la partita termina. L'AI conosce le carte in mano sue, quelle sul palco, scartate o già prese, ma mai le mani degli altri.</p>
+</div></details>`;
+
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma prima di giocare una carta o prendere un membro"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+    </div>`:''}</div>`;
+}
+let LOGOPEN=false;
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')&&e.target.querySelector('.logbody')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function render(){
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">1<sup>st</sup> Band</div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over&&G.round?`<span class="badge">Round ${G.round}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=`${G.hands.length&&!G.over?stageHtml():''}
+      <div class="table n${G.n}">${G.hands.length?G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join(''):''}</div>
+      ${G.hands.length?goneHtml():''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  const lb=app.querySelector('.logbody'), lbTop=lb?lb.scrollTop:0;
+  app.innerHTML=top+`<div class="dock${G&&(G.show||G.over)?' tall':''}">${dockHtml()}</div>`+body;
+  if(lbTop){ const nb=app.querySelector('.logbody'); if(nb) nb.scrollTop=lbTop; }
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ MENUOPEN=false; const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')){ MENUOPEN=false; toSetup(); } }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.t!==undefined) tapCard(Number(b.dataset.t));
+  else if(b.dataset.pk!==undefined) tapPick(Number(b.dataset.pk));
+  else if(b.dataset.go!==undefined){ if(PR&&PR.type==='pick') goPick(b.dataset.go==='x'?'x':'pick'); else goTurn(b.dataset.go); }
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('fb-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(!OPT.undo&&PR&&(PR.type==='turn'||PR.type==='pick')&&PR.sel!=null) PR.sel=null;
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
