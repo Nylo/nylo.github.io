@@ -1,11 +1,11 @@
-# Random Gallery
+# Cascadia — Scoring Cards Generator
 
 Una webapp statica che estrae casualmente un'immagine per ciascuna delle 5 categorie, con possibilità di ri-randomizzare.
 
 ## Struttura del progetto
 
 ```
-random-gallery/
+cascadia/
 ├── index.html          ← webapp completa
 └── images/
     ├── categoria-a/
@@ -40,12 +40,12 @@ Ogni categoria può avere 5 o 6 immagini (o quante ne vuoi).
 
 ## Come pubblicarlo su GitHub Pages
 
-1. Crea un nuovo repository su GitHub (es. `random-gallery`)
+1. Crea un nuovo repository su GitHub (es. `cascadia`)
 2. Carica tutti i file (inclusa la cartella `images/`)
 3. Vai su **Settings → Pages**
 4. In *Source* seleziona il branch `main` e la cartella `/ (root)`
 5. Clicca **Save** — dopo qualche secondo il sito sarà online a:
-   `https://tuousername.github.io/random-gallery/`
+   `https://tuousername.github.io/cascadia/`
 
 ## Note
 
