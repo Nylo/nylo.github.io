@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it" data-home-inline>
 <head>
+<script>try{if(localStorage.getItem("ioc-theme")==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}</script>
 <script src="/auth-gate.js"></script>
 <script src="/home-btn.js"></script>
 <meta charset="UTF-8">
@@ -14,54 +15,78 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#0f1720; --panel:rgba(255,255,255,.06); --panel2:rgba(255,255,255,.1);
-  --text:#ecf0f6; --text-soft:#a3b0c4; --soft:#a3b0c4; --line:rgba(255,255,255,.14); --border:rgba(255,255,255,.22); --accent:#b9a2e0;
-  --k-any:#4fc3c8; --k-les:#b9a2e0; --k-pub:#e8a85b; --k-tre:#e2c25a;
+  color-scheme:light;
+  --bg:#ffffff; --panel:#f4f6fa; --panel2:#e8ecf3; --field:#ffffff; --surface-raised:#e8ecf3;
+  --text:#1c2431; --text-soft:#576377; --soft:#576377; --line:rgba(20,30,50,.16); --border:rgba(20,30,50,.28); --accent:#6a3fb8; --accent-on:#fff;
+  --shadow:0 1px 3px rgba(20,30,50,.12);
+  --k-any:#8a5fd6; --k-any-t:#6a3fb8; --k-any-on:#fff;
+  --k-les:#3f7fd1; --k-les-t:#2a62ad; --k-les-on:#fff;
+  --k-tre:#e6c02e; --k-tre-t:#8a6a00; --k-tre-on:#1b1400;
+  --k-all:#6a3fb8; --k-all-t:#6a3fb8; --k-all-on:#fff;
+  --tint:10%;
   --c-rosso:#e0555e; --c-arancio:#f19a3e; --c-verde:#58b368; --c-blu:#5aa2e6; --c-viola:#a173d6;
 }
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0f1720; --panel:rgba(255,255,255,.06); --panel2:rgba(255,255,255,.1); --field:#17212d; --surface-raised:rgba(255,255,255,.1);
+  --text:#ecf0f6; --text-soft:#a3b0c4; --soft:#a3b0c4; --line:rgba(255,255,255,.14); --border:rgba(255,255,255,.22); --accent:#b9a2e0; --accent-on:#0b1020;
+  --shadow:0 2px 10px rgba(0,0,0,.45);
+  --k-any:#a98be0; --k-any-t:#c4b0ee; --k-any-on:#0b1020;
+  --k-les:#5aa2e6; --k-les-t:#86bdf0; --k-les-on:#0b1020;
+  --k-tre:#e2c25a; --k-tre-t:#ecd27a; --k-tre-on:#1b1400;
+  --k-all:#b9a2e0; --k-all-t:#b9a2e0; --k-all-on:#0b1020;
+  --tint:14%;
+}
 html,body{min-height:100%}
-body{font-family:'Inter',sans-serif;font-size:15px;color:var(--text);background:radial-gradient(ellipse at 50% 0%,#1d3a4a 0%,#0f1720 70%) fixed;background-color:var(--bg)}
+body{font-family:'Inter',sans-serif;font-size:15px;color:var(--text);background-color:var(--bg)}
+:root[data-theme="dark"] body{background:radial-gradient(ellipse at 50% 0%,#1d3a4a 0%,#0f1720 70%) fixed;background-color:var(--bg)}
 .app{max-width:1100px;margin:0 auto;padding:6px 12px 36px}
-.topbar{display:flex;align-items:center;gap:10px;padding:10px 0 4px}
-.topnav{display:flex;gap:8px;align-items:center}
-.brand{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
-.brand img{width:54px;height:54px;border-radius:12px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.45);flex-shrink:0}
+.topbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;padding:10px 0 4px}
+.topnav{display:flex;gap:8px;align-items:center;margin-left:auto}
+.brand{display:flex;align-items:center;gap:12px;flex:1 1 220px;min-width:0}
+.brand img{width:54px;height:54px;border-radius:12px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);flex-shrink:0}
 .title{font-family:'Cinzel',serif;font-weight:800;font-size:22px;letter-spacing:.04em;line-height:1.1}
 .title span{color:var(--accent)}
 .sub{font-size:12px;color:var(--soft);margin:2px 0 0;font-family:'Inter',sans-serif;font-weight:500;letter-spacing:0}
+.theme-sw{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;color:var(--text-soft);font:500 14px 'Inter',sans-serif;cursor:pointer;padding:2px}
+.theme-sw .track{position:relative;width:44px;height:24px;border-radius:999px;background:var(--panel2);border:1px solid var(--border);transition:background .15s}
+.theme-sw .knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--accent);color:var(--accent-on);display:flex;align-items:center;justify-content:center;font-size:11px;transition:transform .15s}
+:root[data-theme="dark"] .theme-sw .knob{transform:translateX(20px)}
+.theme-sw:focus-visible .track{outline:2px solid var(--accent);outline-offset:2px}
 details.filters{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin:10px 0 14px 0}
 details.filters>summary{cursor:pointer;list-style:none;padding:9px 14px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px}
 details.filters>summary::-webkit-details-marker{display:none}
 details.filters>summary .cnt{margin-left:auto;color:var(--soft);font-weight:500}
 .tabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:4px 12px 10px}
-.tab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;color:var(--text);border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
-.tab i{font-size:16px}
+.tab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.tab i{font-size:16px;color:var(--kt)}
 .tab small{color:var(--soft);font-weight:500;font-size:12px}
 .tab:hover{background:var(--panel2)}
-.tab.on{background:var(--tc,var(--accent));border-color:var(--tc,var(--accent));color:#0b1020}
-.tab.on small{color:#0b1020;opacity:.7}
+.tab.on{background:var(--kc);border-color:var(--kc);color:var(--ko)}
+.tab.on i,.tab.on small{color:var(--ko)}
+.tab.on small{opacity:.8}
 .filter-bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:4px 12px 12px}
 .filter-bar label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--soft);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
-.filter-bar select,.filter-bar input{min-width:140px;max-width:200px;background:#17212d;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:8px 10px;font:inherit;font-size:14px;text-transform:none;letter-spacing:0}
-.filter-bar .reset{align-self:flex-end;background:transparent;color:var(--accent);border:1px solid var(--line);border-radius:7px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer}
+.filter-bar select,.filter-bar input{min-width:140px;max-width:200px;background:var(--field);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font:inherit;font-size:14px;text-transform:none;letter-spacing:0}
+.filter-bar .reset{align-self:flex-end;background:transparent;color:var(--accent);border:1px solid var(--border);border-radius:7px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer}
 .alpha-wrap{padding:0 8px 10px}
 .alpha{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;padding:2px 4px}
 .alpha button{flex-shrink:0;min-width:32px;height:32px;border:0;border-radius:6px;background:transparent;color:var(--text);font:inherit;font-weight:700;font-size:13px;cursor:pointer}
 .alpha button:hover{background:var(--panel2)}
-.alpha button.on{background:var(--accent);color:#0b1020}
+.alpha button.on{background:var(--accent);color:var(--accent-on)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
-.card{display:flex;flex-direction:column;gap:8px;min-width:0;padding:12px 14px 12px;background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--kc);border-radius:10px;scroll-margin-top:10px}
+.card{display:flex;flex-direction:column;gap:8px;min-width:0;padding:12px 14px 12px;background:var(--panel);background:color-mix(in srgb,var(--kc) var(--tint),var(--bg));border:1px solid var(--line);border:1px solid color-mix(in srgb,var(--kc) 45%,transparent);border-left:6px solid var(--kc);border-radius:10px;scroll-margin-top:10px;box-shadow:var(--shadow)}
 .card.flash{animation:flash 1.2s ease-out}
-@keyframes flash{0%{background:rgba(185,162,224,.35)}100%{background:var(--panel)}}
+@keyframes flash{0%{outline:3px solid var(--accent)}100%{outline:3px solid transparent}}
 .chead{display:flex;align-items:flex-start;gap:8px}
 .cname{flex:1;min-width:0;font-size:17px;font-weight:800;line-height:1.2;overflow-wrap:anywhere}
-.cnum{flex-shrink:0;font-size:12px;font-weight:700;color:var(--soft);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
-.desc{padding:8px 10px;background:var(--panel);border-radius:6px;line-height:1.5;font-size:14px;flex:1}
+.cnum{flex-shrink:0;font-size:12px;font-weight:700;color:var(--soft);border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:2px 7px}
+.desc{padding:8px 10px;background:var(--bg);border-radius:6px;line-height:1.5;font-size:14px;flex:1}
 .note{display:flex;gap:6px;align-items:flex-start;font-size:12.5px;color:var(--soft);line-height:1.45}
-.note i{margin-top:2px;flex-shrink:0;color:var(--accent)}
+.note i{margin-top:2px;flex-shrink:0;color:var(--kt)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--soft);white-space:nowrap}
-.chip.kind{border-color:var(--kc);color:var(--kc)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--soft);white-space:nowrap}
+.chip.kind{border-color:var(--kc);color:var(--kt)}
 .cc{font-weight:700;padding:0 4px;border-radius:4px;color:#0b1020;white-space:nowrap}
 .cc.rosso{background:var(--c-rosso)}.cc.arancio{background:var(--c-arancio)}.cc.verde{background:var(--c-verde)}.cc.blu{background:var(--c-blu)}.cc.viola{background:var(--c-viola)}
 .empty{text-align:center;color:var(--soft);padding:40px 10px}
@@ -75,7 +100,7 @@ details.filters>summary .cnt{margin-left:auto;color:var(--soft);font-weight:500}
 </style>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#0f1720">
+<meta name="theme-color" content="#ffffff">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <script src="/pwa.js" defer></script>
 </head>
@@ -83,7 +108,7 @@ details.filters>summary .cnt{margin-left:auto;color:var(--soft);font-weight:500}
 <div class="app">
   <div class="topbar">
     <div class="brand"><img src="cover.webp" alt="The Isle of Cats" width="54" height="54"><div><div class="title">THE ISLE OF <span>CATS</span> IT</div><div class="sub">Carte Anytime, Lesson e Treasure in italiano</div></div></div>
-    <div class="topnav"><button type="button" class="nylo-home" title="Torna agli helpers" aria-label="Indietro: torna agli helpers" onclick="location.href='/#helpers'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg><span>Indietro</span></button><button type="button" class="nylo-home" title="Torna alla home" aria-label="Torna alla home" onclick="location.href='/'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span>Home</span></button></div>
+    <div class="topnav"><button type="button" class="nylo-home" title="Torna agli helpers" aria-label="Indietro: torna agli helpers" onclick="location.href='/#helpers'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg><span>Indietro</span></button><button type="button" class="nylo-home" title="Torna alla home" aria-label="Torna alla home" onclick="location.href='/'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span>Home</span></button><button type="button" class="theme-sw" id="themeSw" role="switch" aria-checked="false" aria-label="Tema scuro" title="Cambia tema chiaro/scuro"><i class="ph ph-sun"></i><span class="track"><span class="knob"></span></span><i class="ph ph-moon"></i></button></div>
   </div>
   <details class="filters" id="fdet" open>
     <summary><i class="ph ph-funnel"></i> Filtri <span class="cnt" id="cnt"></span></summary>
@@ -93,7 +118,7 @@ details.filters>summary .cnt{margin-left:auto;color:var(--soft);font-weight:500}
       <label>Modulo<select id="fMod"><option value="">Tutti</option></select></label>
       <label>Lesson<select id="fPub"><option value="">Tutte</option><option value="L">Personali</option><option value="P">Public</option></select></label>
       <label>Ordina per<select id="fSort"><option value="n">Nome</option><option value="num">N° carta</option></select></label>
-      <label>Cerca<input id="fQ" type="search" placeholder="Nome o testo"></label>
+      <label>Cerca<input id="fQ" type="search" placeholder="Nome, testo o numero"></label>
       <button class="reset" id="fReset" type="button">Azzera</button>
     </div>
     <div class="alpha-wrap"><div class="alpha" id="alpha"></div></div>
@@ -104,11 +129,12 @@ details.filters>summary .cnt{margin-left:auto;color:var(--soft);font-weight:500}
 <script>
 // k: A = Anytime, L = Lesson personale, P = Lesson Public, T = Treasure
 const KINDS = {
-  A:{n:'Anytime', i:'lightning', c:'#4fc3c8'},
-  L:{n:'Lesson', i:'graduation-cap', c:'#b9a2e0'},
-  P:{n:'Lesson (Public)', i:'users-three', c:'#e8a85b'},
-  T:{n:'Treasure', i:'diamond', c:'#e2c25a'}
+  A:{n:'Anytime', i:'lightning', v:'any'},
+  L:{n:'Lesson', i:'graduation-cap', v:'les'},
+  P:{n:'Lesson (Public)', i:'users-three', v:'les'},
+  T:{n:'Treasure', i:'diamond', v:'tre'}
 };
+const kvars = v => `--kc:var(--k-${v});--kt:var(--k-${v}-t);--ko:var(--k-${v}-on)`;
 const SETS = {B:'Base', K1:'KS Promo 1', K2:'KS Promo 2', KB:'Kittens + Beasts'};
 // [N° carta, nome, traduzione, nota, set, modulo]
 const DATA = [["A",69,"Boat Winch","Posiziona il tuo prossimo Gatto o Tesoro dove vuoi nella barca","Puoi ignorare l'adiacenza.","B",""],["A",82,"Cat Blanket","Puoi salvare 2 Gatti invece di 1 solo.","Paghi il relativo costo in pesce ed usando 1 cesto per ogni gatto.","B",""],["A",83,"Cat Call","Prendi 4 tessere a caso dal sacchetto e mettile nei territori a tua scelta","","B",""],["A",70,"Cat Rigger","Posiziona il tuo prossimo Gatto o Tesoro dove vuoi nella barca","Puoi ignorare l'adiacenza.","B",""],["A",249,"Cat Whistle","Prendi 4 tessere a caso dal sacchetto e mettile nei territori a tua scelta","","K1",""],["A",77,"Catnip","Sposta fino a 3 Gatti in un differente lato della plancia","","B",""],["A",96,"Cod Catcher","Scegli un colore. Ottieni 1 Pesce per ogni Gatto di quel colore nella Barca","","B",""],["A",91,"Cook's Paella","Ottieni 1 Pesce per ogni Colore Unico di Gatto nella tua barca","Quindi massimo 5 pesci.","B",""],["A",95,"Crab Pot","Ottieni 1 Pesce per ogni Tesoro Comune nella tua barca","","B",""],["A",73,"Crow's Nest","Pesca 3 carte","Paghi quelle che decidi di tenere.","B",""],["A",88,"Enhanced Design","Scarta 2 Tesori per ottenere 1 cesto permanente","","B",""],["A",94,"Fishing Rod","Ottieni 1 Pesce per ogni Tesoro Comune nella tua barca","","B",""],["A",78,"Gone Fishing","Ottieni 1 pesce per ogni Carta Lesson davanti a te","Le Public Lesson non contano.","B",""],["A",346,"Hidey-Hole","Pesca a caso una tessera dal sacchetto e posizionala subito sulla barca","","K2",""],["A",79,"Lazy Afternoon","Ottieni 1 pesce per ogni Carta Lesson davanti a te","Le Public Lesson non contano.","B",""],["A",71,"Look-out","Pesca 2 carte","Paghi quelle che decidi di tenere.","B",""],["A",75,"Lucky Clue","Pesca a caso una tessera dal sacchetto e posizionala subito sulla barca","","B",""],["A",85,"Muriel's Design","Ottieni 1 cesto permanente","","B",""],["A",74,"Navigator","Pesca 3 carte","Paghi quelle che decidi di tenere.","B",""],["A",81,"Old Box","Puoi salvare 2 Gatti invece di 1 solo.","Paghi il relativo costo in pesce ed usando 1 cesto per ogni gatto.","B",""],["A",347,"Pirate Map","Pesca 2 carte","","K2",""],["A",67,"Plaice Grabber","Ottieni 2 pesci per ogni Oshax nella tua barca","","B",""],["A",76,"Re-purpose","Scarta 1 cesto permanente per ottenere 5 pesci","Puoi scartarne anche uno che hai già usato.","B",""],["A",68,"Salmon Hunter","Ottieni 2 pesci per ogni Oshax nella tua barca","","B",""],["A",72,"Scout","Pesca 2 carte","Paghi quelle che decidi di tenere.","B",""],["A",90,"Seafood Menu","Ottieni 1 Pesce per ogni Colore Unico di Gatto nella tua barca","Quindi massimo 5 pesci.","B",""],["A",248,"Smuggler's Tip","Pesca a caso una tessera dal sacchetto e posizionala subito sulla barca","","K1",""],["A",80,"Stuffed Mouse","Puoi salvare 2 Gatti invece di 1 solo.","Paghi il relativo costo in pesce ed usando 1 cesto per ogni gatto.","B",""],["A",89,"Superior Tools","Scarta 2 Tesori per ottenere 1 cesto permanente","","B",""],["A",84,"Tobal's Special","Ottieni 1 cesto permanente","","B",""],["A",97,"Tuna Surprise","Scegli un colore. Ottieni 1 Pesce per ogni Gatto di quel colore nella Barca","","B",""],["A",93,"Vaddran Flys","Ottieni 2 Pesci per ogni Tesoro Raro nella tua barca","","B",""],["A",92,"Vaddran Net","Ottieni 2 Pesci per ogni Tesoro Raro nella tua barca","","B",""],["A",86,"Workshop","Scarta 2 Carte Lesson giocate per ottenere 1 cesto permanente","","B",""],["A",87,"Workshop","Scarta 2 Carte Lesson giocate per ottenere 1 cesto permanente","","B",""],["L",115,"All Claws","15 Punti se hai 3 o + Gatti di ogni colore a bordo","","B",""],["L",122,"Antiquarrian","2 Punti per Tesoro Raro a bordo","","B",""],["P",150,"Archelogist","Tutti i giocatori ricevono 5 Punti per ogni Mappa del Tesoro che non hanno coperto","","B","C"],["L",120,"Befriender","1 Punto per ogni Gatto solitario a bordo.","","B",""],["L",333,"Blue Garmin","8 Punti se hai esattamente 4 gatti blu e 4 gatti verdi sulla tua barca","","KB","I"],["P",143,"Captain's Favorite","Scegli un colore. Tutti i giocatori ottengono 2 Punti per ogni Gatto del colore scelto che tocca il bordo della barca","Scegli il colore quando la carta viene giocata.","B","C"],["L",138,"Cat Nest","4 Punti per famiglia di 4+ Gatti a bordo","","B","B"],["L",328,"Cat Stripes","15 Punti se hai gatti di esattamente 2 colori diversi che toccano i bordi della nave","","KB","I"],["L",220,"Cat Towers","Scegli un colore. Ottieni 7 Punti se la tua barca contiene un'area di almeno 5x5 di quel colore","Scegli il colore alla fine del gioco. Nei 25 quadrati del 5x5 non sono ammessi spazi vuoti o tesori.","K1","D"],["L",241,"Cat-Cousins","15 Punti se hai almeno 3 famiglie dello stesso colore, separate","","K1","F"],["L",124,"Clean Slate","10 Punti se non hai Ratti visibili a bordo","","B",""],["P",144,"Cook's Favorite","Scegli un colore. Tutti i giocatori ottengono 1 Punto per ogni Gatto del colore scelto","Scegli il colore quando la carta viene giocata.","B","C"],["P",145,"Crew's Favorite","Scegli un colore. Tutti i giocatori ottengono 5 Punti se hanno 3+ Gatti del colore scelto a bordo","Scegli il colore quando la carta viene giocata.","B","C"],["L",133,"Dedicated","7 Punti se hai esattamente 6 Carte Lesson personali","Le Public Lesson non contano.","B","A"],["P",228,"Dreadful Scamper","Tutti i giocatori perdono 2 Punti per ogni Ratto visibile","Anziché 1 Punto.","K1","E"],["L",118,"Engineer","7 Punti se hai esattamente 3 Cesti Standard","","B",""],["L",245,"Even Keel","10 Punti se la riga centrale della tua barca è completa","","K1",""],["L",246,"Extra Litter","2 Punti per stanza completa della tua barca","","K1",""],["L",238,"Family Ties","7 Punti se ogni gatto sulla tua barca appartiene ad una famiglia","","K1","F"],["L",121,"Family Tree","10 Punti se hai la famiglia di Gatti più grande (7+ se giochi in solo)","Anche in caso di pareggio.","B",""],["L",140,"Fed and Watered","15 Punti se la Sala Da Pranzo (mela) è vuota","Ma perdi comunque 5 Punti per una stanza vuota quindi il guadagno netto è 10 Punti.","B","B"],["P",146,"Feral Friend","Scegli un colore. 3 Punti per ogni Gatto Solitario a bordo del colore scelto","Scegli il colore quando la carta viene giocata.","B","C"],["L",119,"Final Sprint","7 Punti se sei il primo di turno alla fine del gioco.","","B",""],["P",233,"Friendless","Tutti i giocatori perdono 2 Punti per ogni gatto solitario sulla propria barca","","K1","E"],["L",223,"Friendly Feline","10 Punti se hai almeno 1 gatto che tocca altri gatti di 5 colori diversi","","K1","D"],["L",237,"Fur-Pile","15 Punti se non hai tesori (comuni o rari) sulla tua barca","","K1","F"],["L",128,"Garmin Cattery","9 Punti se hai esattamente 5 Gatti Verdi a bordo","","B","A"],["P",234,"Going Hungry","Tutti i giocatori perdono 2 Punti per ogni pesce non speso a fine partita","","K1","E"],["L",242,"Gold Rush","7 Punti per ogni colonna contenente solo tesori (comuni o rari) alta almeno 9 quadrati","Tutti i 9 quadrati devono contenere tesori, non sono ammessi spazi vuoti o gatti.","K1","F"],["L",330,"Golden Heart","9 Punti se sei il giocatore che ha meno tesori","","KB","I"],["L",351,"Golden View","9 Punti se hai esattamente 2 tesori comuni che toccano il bordo della nave","","K2",""],["L",126,"Hard Worker","1 Punto per Carta Lesson personale","Le Public Lesson non contano.","B",""],["L",127,"Hissnipper Cattery","9 Punti se hai esattamente 5 Gatti Blu a bordo","","B","A"],["L",247,"Holy Confusion","25 Punti se tutta la tua barca è completa","","K1",""],["L",350,"In The Shadows","7 Punti se hai una famiglia di almeno 5 gatti che non tocca il bordo della nave","","K2",""],["P",147,"Industrious","Tutti i giocatori ricevono 2 Punti per ogni Carta Lesson davanti a loro","Escluse le Public Lessons.","B","C"],["L",225,"Keeper's Wish","7 Punti se hai almeno un Oshax che tocca un altro Oshax","","K1","D"],["P",229,"Light Lord","Tutti i giocatori perdono 3 Punti per ogni stanza non completa","Anziché 5 Punti.","K1","E"],["L",132,"Menagerie","10 Punti se hai esattamente 5 Ratti visibili a bordo","Ma perdi comunque 1 per ogni ratto visibile (quindi il guadagno netto è 5 Punti).","B","A"],["L",131,"Mhoxxite Cattery","9 Punti se hai esattamente 5 Gatti Arancio a bordo","","B","A"],["L",329,"Missed Opportunities","3 Punti per ogni mappa visibile sulla tua barca","","KB","I"],["L",243,"Museum Boat","9 Punti se hai esattamente 4 tesori rari sulla tua barca","","K1","F"],["L",136,"Noisy Paws","12 punti se entrambe le Stanze del Capitano (Pappagallo) sono piene","","B","B"],["L",236,"Not So Lonely","9 Punti se hai esattamente 5 gatti solitari","","K1","F"],["L",326,"Open Arms","3 Punti per ogni famiglia","","KB","I"],["L",331,"Orange Vandermill","8 Punti se hai esattamente 4 gatti arancio e 4 gatti viola sulla tua barca","","KB","I"],["L",221,"Organized","7 Punti per ogni colonna contenente gatti di 1 solo colore alta almeno 9 quadrati","Tutti i 9 quadrati devono essere del colore scelto, non sono ammessi spazi vuoti o tesori.","K1","D"],["L",114,"Overflowing","10 Punti se hai esattamente 15 Gatti a bordo","","B",""],["L",327,"Perfect Balance","9 Punti se hai lo stesso numero di tesori comuni e di tesori rari","","KB","I"],["P",235,"Poor Man's Plight","Tutti i giocatori perdono 5 Punti se non hanno almeno 7 tesori comuni o 4 rari sulla propria barca","","K1","E"],["L",139,"Preserver","3 Punti per ogni Oshax a bordo","","B","B"],["L",239,"Pride of Cats","9 Punti se la tua barca contiene un'area 5x1 completa contenente 5 gatti nell'ordine: Rosso, Arancio, Verde, Blu e Viola","","K1","F"],["P",149,"Professor","Scegli un colore. Tutti i giocatori ottengono 1 Punto per Tesoro Comune o Raro che tocca un Gatto del colore scelto","Scegli il colore quando la carta viene giocata.","B","C"],["P",148,"Prospector","Tutti i giocatori ricevono 2 Punti per ogni Tesoro Comune a bordo","","B","C"],["L",134,"Prudent","9 punti se hai esattamente 5 Tesori Comuni/Rari a bordo","","B","A"],["L",224,"Puddle of Cats","10 Punti se hai almeno 1 gatto che tocca altri 5 gatti dello stesso colore","","K1","D"],["L",332,"Purple Teruvian","8 Punti se hai esattamente 4 gatti viola e 4 gatti rossi sulla tua barca","","KB","I"],["L",125,"Rat Lover","2 Punti per ogni Ratto visibile a bordo","Ma perdi comunque 1 per ogni ratto visibile (quindi il guadagno netto è 1 Punto per ratto visibile).","B",""],["L",142,"Reserved Treats","7 Punti se hai almeno 5 Punti a fine gioco","","B","B"],["P",230,"Run from Vesh","Tutti i giocatori perdono 5 Punti. Tranne il primo in ordine di turno","","K1","E"],["L",349,"Safe Place","10 Punti se hai almeno 4 gatti solitari di 4 colori diversi","","K2",""],["L",222,"Ship-Shape","10 Punti per ogni riga contenente gatti di 1 solo colore lunga almeno 12 quadrati","Tutti i 12 quadrati devono essere del colore scelto, non sono ammessi spazi vuoti o tesori.","K1","D"],["P",231,"Slacklines","Tutti i giocatori perdono 2 Punti per ogni carta Lesson per la quale non hanno ottenuto Punti","Escluse le Public Lessons.","K1","E"],["L",240,"Strange Friends","1 Punto per ogni gatto che tocca esattamente 1 ratto","","K1","F"],["L",113,"Sun Trap","12 Punti se non ci sono spazi vuoti lungo il bordo della Barca","","B",""],["L",135,"Sun-Powered","1 Punto per ogni 2 Gatti che toccano il bordo della Barca","","B","B"],["L",141,"Tear-Jerker","Conteggia 2 volte i punti ottenuti dalla tua 3a Famiglia più grande","","B","B"],["L",130,"Teruvian Cattery","9 Punti se hai esattamente 5 Gatti Rossi a bordo","","B","A"],["L",227,"Three-Fold","7 Punti se hai gatti di esattamente 3 colori sulla tua barca","","K1","D"],["P",232,"Unlucky for Some","Tutti i giocatori perdono 7 Punti se hanno meno di 13 gatti sulla propria barca","","K1","E"],["L",129,"Vandermill Cattery","9 Punti se hai esattamente 5 Gatti Viola a bordo","","B","A"],["L",226,"War Kitty","7 Punti se hai almeno 1 tesoro (raro o comune) che tocca almeno altri 4 tesori (rari o comuni)","","K1","D"],["L",116,"Water Lover","7 Punti se hai 1 o + Gatti di ogni colore che toccano il bordo della Barca","","B",""],["L",123,"Wealthy","1 Punto per Tesoro Comune a bordo.","","B",""],["L",137,"Well-Rested","18 punti se entrambe le Camere (Luna) sono vuote","Ma perdi comunque 5 Punti per una stanza vuota quindi il guadagno netto è 13 Punti.","B","B"],["L",117,"Window Seat","Scegli un colore. 1 Punto per ogni gatto del colore scelto che tocca il bordo della Barca","Scegli il colore alla fine del gioco.","B",""],["T",108,"Ancient Coins","Prendi qualsiasi Tesoro Piccolo o paga 1 Pesce per prendere 2 Tesori comuni qualsiasi","","B",""],["T",244,"Ancient Ruins","Prendi qualsiasi Tesoro Raro o 2 Tesori Comuni","","K1",""],["T",102,"Buried Urn","Prendi qualsiasi Tesoro Raro o 2 Tesori Comuni.","","B",""],["T",106,"Forgotten Cellar","Prendi qualsiasi Tesoro Raro o 2 Tesori Comuni.","","B",""],["T",98,"Hidden Chest","Prendi qualsiasi Tesoro Raro o 2 Tesori Comuni.","","B",""],["T",105,"Hollow Mound","Prendi qualsiasi Tesoro Raro o 2 Tesori Comuni.","","B",""],["T",112,"Lost Scrolls","Prendi qualsiasi Tesoro Piccolo o paga 1 Pesce per prendere 2 Tesori comuni qualsiasi","","B",""],["T",348,"Money Vault","Prendi qualsiasi Tesoro Raro o 2 Tesori Comuni","","K2",""],["T",103,"Overgrown Shrine","Prendi qualsiasi Tesoro Raro o 2 Tesori Comuni.","","B",""],["T",111,"Precious Rings","Prendi qualsiasi Tesoro Piccolo o paga 1 Pesce per prendere 2 Tesori comuni qualsiasi","","B",""],["T",104,"Rusted Lock-Box","Prendi qualsiasi Tesoro Raro o 2 Tesori Comuni.","","B",""],["T",100,"Sacred Spot","Prendi qualsiasi Tesoro Raro o 2 Tesori Comuni.","","B",""],["T",99,"Secret Vault","Prendi qualsiasi Tesoro Raro o 2 Tesori Comuni.","","B",""],["T",110,"Set of Runes","Prendi qualsiasi Tesoro Piccolo o paga 1 Pesce per prendere 2 Tesori comuni qualsiasi","","B",""],["T",107,"Small Gems","Prendi qualsiasi Tesoro Piccolo o paga 1 Pesce per prendere 2 Tesori comuni qualsiasi","","B",""],["T",101,"Smuggler Hideaway","Prendi qualsiasi Tesoro Raro o 2 Tesori Comuni.","","B",""],["T",109,"Strange Jewelry","Prendi qualsiasi Tesoro Piccolo o paga 1 Pesce per prendere 2 Tesori comuni qualsiasi","","B",""]];
@@ -125,16 +151,16 @@ const F = {kind:'',s:'',m:'',pub:'',q:'',sort:'n'};
 let list = CARDS.slice();
 
 // tab: Tutte / Anytime / Lesson (personali + Public) / Treasure
-const TABS = [{id:'',n:'Tutte',i:'cards',c:'#b9a2e0'},{id:'A',n:'Anytime',i:'lightning',c:KINDS.A.c},{id:'LP',n:'Lesson',i:'graduation-cap',c:KINDS.L.c},{id:'T',n:'Treasure',i:'diamond',c:KINDS.T.c}];
+const TABS = [{id:'',n:'Tutte',i:'cards',v:'all'},{id:'A',n:'Anytime',i:'lightning',v:'any'},{id:'LP',n:'Lesson',i:'graduation-cap',v:'les'},{id:'T',n:'Treasure',i:'diamond',v:'tre'}];
 const inTab = (c,t)=> !t || (t==='LP' ? c.lesson : c.k===t);
 
 function fillSelects(){
   $('fSet').innerHTML += Object.keys(SETS).map(k=>`<option value="${k}">${SETS[k]}</option>`).join('');
   const mods=[...new Set(CARDS.map(c=>c.m).filter(Boolean))].sort();
-  $('fMod').innerHTML += '<option value="-">Nessuno</option>' + mods.map(m=>`<option value="${m}">Modulo ${m}</option>`).join('');
+  $('fMod').innerHTML += '<option value="-">Base</option>' + mods.map(m=>`<option value="${m}">Modulo ${m}</option>`).join('');
 }
 function renderTabs(){
-  $('tabs').innerHTML = TABS.map(t=>`<button type="button" class="tab ${F.kind===t.id?'on':''}" data-tab="${t.id}" style="--tc:${t.c}"><i class="ph ph-${t.i}"></i>${t.n} <small>${CARDS.filter(c=>inTab(c,t.id)).length}</small></button>`).join('');
+  $('tabs').innerHTML = TABS.map(t=>`<button type="button" class="tab ${F.kind===t.id?'on':''}" data-tab="${t.id}" style="${kvars(t.v)}"><i class="ph ph-${t.i}"></i>${t.n} <small>${CARDS.filter(c=>inTab(c,t.id)).length}</small></button>`).join('');
 }
 function matches(c){
   const q=F.q.trim().toLowerCase();
@@ -164,8 +190,8 @@ function renderAlpha(){
 function cardHtml(c){
   const K=KINDS[c.k];
   const note=c.o?`<div class="note"><i class="ph ph-info"></i><span>${hl(c.o)}</span></div>`:'';
-  const mod=c.m?`<span class="chip"><i class="ph ph-squares-four"></i>Modulo ${c.m}</span>`:'';
-  return `<article class="card" style="--kc:${K.c}" data-l="${c.L}" data-num="${c.num}">
+  const mod=c.m?`<span class="chip"><i class="ph ph-squares-four"></i>Modulo ${c.m}</span>`:(c.lesson?'<span class="chip"><i class="ph ph-squares-four"></i>Modulo Base</span>':'');
+  return `<article class="card" style="${kvars(K.v)}" data-l="${c.L}" data-num="${c.num}">
     <div class="chead"><div class="cname">${esc(c.n)}</div><div class="cnum" title="Numero della carta">N° ${c.num}</div></div>
     <div class="desc">${hl(c.x)}</div>
     ${note}
@@ -188,6 +214,15 @@ $('fPub').onchange=e=>{ F.pub=e.target.value; if(F.pub&&F.kind&&F.kind!=='LP') F
 $('fSort').onchange=e=>{ F.sort=e.target.value; applyFilter(); };
 $('fQ').oninput=e=>{ F.q=e.target.value; applyFilter(); };
 $('fReset').onclick=()=>{ F.kind=F.s=F.m=F.pub=F.q=''; F.sort='n'; $('fSet').value=$('fMod').value=$('fPub').value=$('fQ').value=''; $('fSort').value='n'; applyFilter(); };
+
+function setTheme(dark,save){
+  if(dark) document.documentElement.setAttribute('data-theme','dark'); else document.documentElement.removeAttribute('data-theme');
+  $('themeSw').setAttribute('aria-checked',dark?'true':'false');
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=dark?'#0f1720':'#ffffff';
+  if(save){ try{ localStorage.setItem('ioc-theme',dark?'dark':'light'); }catch(e){} }
+}
+$('themeSw').onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')!=='dark',true);
+setTheme(document.documentElement.getAttribute('data-theme')==='dark',false);
 
 fillSelects();
 applyFilter();
