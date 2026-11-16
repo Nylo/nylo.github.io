@@ -210,7 +210,9 @@ details.hist[open] summary{margin-bottom:8px}
   .board{grid-template-columns:18px repeat(13,minmax(0,1fr));gap:1px}
   .mk{font-size:8px}
 }
+@media(max-width:600px){.seat-name .nm{padding:2px 6px;font-size:12px}}
 @media(max-width:380px){.topbar{gap:6px}.logo .t{font-size:36px}.badge{padding:4px 9px}}
+@media(max-width:340px){.logo .t{font-size:28px}.logo .rw{width:34px;height:34px;flex-basis:34px}.badge{font-size:11px;padding:3px 7px}.seat-name .nm{padding:2px 5px;font-size:11px}}
 </style>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -243,6 +245,7 @@ const HANDS_OPTS = [1,2,3,4];
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
+let LOGOPEN=false, HISTOPEN=false, RULESOPEN=false, RECAPOPEN=false;
 const OPT = {undo:true, hands:1};
 try{ let s=localStorage.getItem('rw-undo'); if(s!==null) OPT.undo=s==='1'; s=Number(localStorage.getItem('rw-hands')); if(HANDS_OPTS.includes(s)) OPT.hands=s; }catch(e){}
 const cname = c => `${c.r} ${SUITS[c.s].n}`;
@@ -251,6 +254,15 @@ const plural = (n,a,b) => n===1?a:b;
 const sgn = v => v>0?'+'+v:String(v);
 const ord = k => k+'°';
 const shortName = p => P(p).name.replace(/^AI /,'');
+// iniziale del marker: una lettera diversa per ogni posto (se due nomi iniziano uguale, si usa la lettera successiva del nome)
+function mkLab(p){
+  const key=G.pl.map(x=>x.name).join('|');
+  if(!G.labKey||G.labKey!==key){
+    const used=new Set(); G.lab=[]; G.labKey=key;
+    G.pl.forEach(x=>{ const nm=shortName(x.id).toUpperCase().replace(/[^A-Z0-9ÀÈÉÌÒÙ]/g,'')+'123456789'; let ch=nm.split('').find(c=>!used.has(c))||'?'; used.add(ch); G.lab[x.id]=ch; });
+  }
+  return G.lab[p];
+}
 const mpts = place => place===1?2:1;            // un marker sul 1° posto vale 2 punti, gli altri 1
 
 // ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
@@ -551,6 +563,7 @@ async function scoring(){
   logMsg(`Mano ${G.hn} conclusa: ${G.pl.map(p=>`${p.name} ${pts[p.id]} (totale ${p.total})`).join(' · ')}.`);
   const last=G.hn===G.handsN;
   G.show={pts,tb:G.tb.slice(),last};
+  G.tb=G.pl.map(()=>0);   // già sommati in p.tb: il tabellone non deve contarli due volte
   status(last?'Partita conclusa: ecco il risultato.':`Mano ${G.hn} conclusa.`);
   await ask(HUM,'Punteggio della mano',[{label:last?'Mostra risultato finale':'Prossima mano',value:1}]);
   G.show=null;
@@ -654,7 +667,7 @@ function centerHtml(){
   return `<div class="center">${top}${rb}
     <span class="trumpbox" title="La briscola batte tutti gli altri semi">${suitIcon(0)}Briscola · Cassette</span>
     ${ls>=0&&G.phase==='play'?`<span class="leadbox">seme di mano: ${chipHtml({s:ls,r:''})}</span>`:''}
-    <div>${G.phase==='play'?`Presa <b>${Math.min(G.trick,NT)}/${NT}</b>${G.round===2&&G.trick?`<br>(presa ${curT()} del Round I)`:''}`:`Mano <b>${G.hn}/${G.handsN}</b>`}</div>
+    <div>${G.phase==='play'&&G.trick?`Presa <b>${Math.min(G.trick,NT)}/${NT}</b>${G.round===2&&G.trick?`<br>(presa ${curT()} del Round I)`:''}`:`Mano <b>${G.hn}/${G.handsN}</b>`}</div>
     ${G.n===3&&G.removed>0?`<div class="hint">senza il seme ${SUITS[G.removed].n}</div>`:''}</div>`;
 }
 function boardHtml(){
@@ -666,12 +679,12 @@ function boardHtml(){
     for(let t=1;t<=NT;t++){
       const rec=G.r1[t-1], p=rec?rec.order[r-1]:-1;
       let m='';
-      if(p>=0){ const off=G.ok[t-1]&&G.ok[t-1][p]; m=`<span class="mk ${off?'off':''}" style="background:${SEATC[p]}" title="${esc(P(p).name)} · presa ${t} · ${ord(r)} posto${off?' · ripetuto':''}">${esc(shortName(p).charAt(0))}</span>`; }
+      if(p>=0){ const off=G.ok[t-1]&&G.ok[t-1][p]; m=`<span class="mk ${off?'off':''}" style="background:${SEATC[p]}" title="${esc(P(p).name)} · presa ${t} · ${ord(r)} posto${off?' · ripetuto':''}">${esc(mkLab(p))}</span>`; }
       h+=`<div class="bcell ${cur===t?'cur':''}">${m}</div>`;
     }
   }
   h+='</div>';
-  const tbr=G.pl.map(p=>{ const k=p.tb+(G.tb[p.id]||0); return `<span class="tbp"><span class="mk" style="background:${SEATC[p.id]}">${esc(shortName(p.id).charAt(0))}</span><b>${k}</b></span>`; }).join('');
+  const tbr=G.pl.map(p=>{ const k=p.tb+(G.tb[p.id]||0); return `<span class="tbp"><span class="mk" style="background:${SEATC[p.id]}">${esc(mkLab(p.id))}</span><b>${k}</b></span>`; }).join('');
   return `<div class="scorebox"><h3>TABELLONE · UNA COLONNA PER PRESA DEL ROUND I</h3>${h}<div class="tbrow">Spareggio (marker ripresi come migliori del round): ${tbr}</div>
     <div class="hint" style="margin-top:6px">Ogni cerchio è il marker del giocatore sul piazzamento ottenuto nel Round I. Se nel Round II ottiene lo stesso piazzamento nella presa corrispondente lo toglie (cerchio sbiadito); quelli che restano valgono 2 punti sul 1° posto, 1 sugli altri.</div></div>`;
 }
@@ -724,13 +737,13 @@ function dockHtml(){
     if(PR.sel!=null){
       const c=G.hands[HUM].find(x=>x.id===PR.sel);
       html+=`<div class="hint">${previewText(c)}</div><div class="opts"><button class="opt" data-go="play">${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
-    }else html+=`<div class="hint" style="visibility:hidden" aria-hidden="true">13 Pattini: tra le carte già giocate saresti 2° a pari merito con 1 altra carta (decide l'ultimo a giocare); 2 giocatori devono ancora giocare e può cambiare il piazzamento. Obiettivo: 4°.</div><div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 13 Occhiali</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+    }else if(OPT.undo) html+=`<div class="hint" style="visibility:hidden" aria-hidden="true">13 Pattini: tra le carte già giocate saresti 2° a pari merito con 1 altra carta (decide l'ultimo a giocare); 2 giocatori devono ancora giocare e può cambiare il piazzamento. Obiettivo: 4°.</div><div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 13 Occhiali</button><button class="opt" tabindex="-1">Annulla</button></div>`;
   }
   return html;
 }
 function recapHtml(){
   const n=G.n;
-  return `<details class="recap"><summary>RIEPILOGO</summary>
+  return `<details class="recap" ${RECAPOPEN?'open':''}><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span><span class="rv">${n===3?'39 carte (senza un seme a caso, mai le Cassette)':'52 carte'}, 13 a testa · briscola: Cassette (blu)</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">si risponde al seme se si può · si piazzano tutti: prima la briscola, poi il seme di mano, poi gli altri semi (pari merito: decide l'ultimo a giocare) · chi è 1° apre la presa dopo · le carte restano davanti a ognuno</span></div>
     <div class="recap-row"><span class="lbl">Round I</span><span class="rv">13 prese, ognuno segna il proprio piazzamento di ogni presa sul tabellone</span></div>
@@ -738,7 +751,7 @@ function recapHtml(){
     <div class="recap-row"><span class="lbl">Punti</span><span class="rv">marker rimasti: 2 punti sul 1° posto, 1 sugli altri · vince il totale più basso (spareggio: più marker nello spareggio)</span></div></details>`;
 }
 const RULES_HTML = `
-<details class="rules"><summary>REGOLAMENTO</summary>
+<details class="rules" ${RULESOPEN?'open':''}><summary>REGOLAMENTO</summary>
 <div class="rtext">
 <h4>Che gioco è</h4>
 <p>Rewind è un gioco di prese per 3–4 giocatori con obbligo di rispondere al seme e briscola fissa. Si gioca <b>due volte la stessa mano</b>: prima normalmente (Round I), poi al contrario (Round II). L'obiettivo è ottenere nel Round II lo <b>stesso piazzamento</b> che si è avuto nella presa corrispondente del Round I. L'ultima presa del primo round è la prima del secondo!</p>
@@ -749,7 +762,7 @@ const RULES_HTML = `
 <h4>Preparazione</h4>
 <p>Con 4 giocatori si mescolano tutte le 52 carte e si distribuiscono. Con 3 giocatori si toglie un seme (non le Cassette) e si distribuiscono le 39 carte rimaste. Ognuno ha 13 carte.</p>
 <h4>Round I</h4>
-<ol><li>Comincia il giocatore alla sinistra del mazziere: gioca la carta che vuole. Poi si gioca in senso orario, una carta a testa, <b>rispondendo al seme</b> se si può (altrimenti qualsiasi carta).</li>
+<ol><li>Comincia il giocatore alla sinistra del mazziere (nell'app il primo di mano della prima mano è casuale, poi ruota): gioca la carta che vuole. Poi si gioca in senso orario, una carta a testa, <b>rispondendo al seme</b> se si può (altrimenti qualsiasi carta).</li>
 <li>Le carte giocate restano davanti a ciascuno (non si danno al vincitore) e ogni giocatore mette un marker sul tabellone nella colonna della presa, sulla riga del <b>piazzamento</b> ottenuto.</li>
 <li>Forza delle carte: prima la <b>briscola</b> (Cassette), poi il <b>seme di mano</b>, poi gli <b>altri semi</b>; a parità di categoria vince il numero più alto. Se due o più carte pareggiano (stesso numero in semi che non sono né briscola né di mano) <b>l'ultimo giocatore che ha giocato in quel pareggio decide</b> i piazzamenti di tutti i giocatori in pareggio.</li>
 <li>Chi è 1° apre la presa successiva. Si va avanti finché le carte sono finite.</li></ol>
@@ -769,11 +782,13 @@ function menuHtml(){
       <label class="opt-toggle" title="Chiede conferma prima di giocare una carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
     </div>`:''}</div>`;
 }
-let LOGOPEN=false, HISTOPEN=false;
+
 document.getElementById('app').addEventListener('toggle',e=>{
   if(!e.target.matches) return;
   if(e.target.matches('details.log')) LOGOPEN=e.target.open;
   else if(e.target.matches('details.hist')) HISTOPEN=e.target.open;
+  else if(e.target.matches('details.rules')) RULESOPEN=e.target.open;
+  else if(e.target.matches('details.recap')) RECAPOPEN=e.target.open;
 },true);
 let MENUOPEN=false;
 function render(){

@@ -208,6 +208,9 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
   .bidbox .bc{--bw:26px}
 }
 @media(max-width:380px){.topbar{gap:6px}.logo{font-size:26px}.badge{padding:4px 9px}}
+@media(max-width:340px){table.score{font-size:11px}table.score td,table.score th{padding:4px 3px}}
+.stack{display:grid}.stack>*{grid-area:1/1}
+@media(max-width:600px){.dock .rl{display:none}}
 </style>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -433,6 +436,16 @@ function trickRest(S){
 function playOut(S){ while(!roundOver(S)) trickRest(S); return scoreRound(S,S.rd).pts; }
 // mondo possibile dal punto di vista di p: le sue carte sono vere, quelle degli altri sono campionate tra le carte non viste rispettando i semi mancanti
 function sampleWorld(p){
+  // il campionamento greedy a volte non rispetta un seme mancante pur esistendo una distribuzione valida: si riprova qualche volta
+  let S;
+  for(let t=0;t<6;t++){
+    S=sampleWorld1(p); let bad=false;
+    for(let q=0;q<G.n&&!bad;q++) if(q!==p&&G.voidM[q]) for(const c of S.hands[q]) if(G.voidM[q]>>c.s&1){ bad=true; break; }
+    if(!bad) break;
+  }
+  return S;
+}
+function sampleWorld1(p){
   const n=G.n;
   const S={n,cap:G.cap,rd:G.rd,tr:G.tr.slice(),bid:G.bid.slice(),failed:G.failed.slice(),nc:G.nc.slice(),taken:G.taken,nb:G.nb,nf:G.nf,leader:G.leader,voidM:G.voidM.slice(),rem:G.rem.slice(),plays:G.plays.map(x=>({p:x.p,c:x.c})),noise:0.05};
   const hands=Array.from({length:n},()=>[]); hands[p]=G.hands[p].slice();
@@ -536,7 +549,7 @@ function turnHint(){
   if(ls<0) s='sei di mano: gioca una carta qualsiasi.';
   else if(h.some(c=>c.s===ls)) s=`devi rispondere al seme ${SUITS[ls].n}.`;
   else s=`non hai carte ${SUITS[ls].n}: puoi giocare qualsiasi carta (anche briscola).`;
-  return `Vince la carta più alta del seme di mano, ma la briscola (<b>Blu</b>) batte tutto. Tocca a te: ${s}<br>${roleHint()}`;
+  return `<span class="rl">Vince la carta più alta del seme di mano, ma la briscola (<b>Blu</b>) batte tutto. </span>Tocca a te: ${s}<br>${roleHint()}`;
 }
 function previewText(c){
   const plays=G.plays, ls=plays.length?plays[0].c.s:c.s, kc=keyOf(c,ls); let bk=-2; plays.forEach(x=>{ bk=Math.max(bk,keyOf(x.c,ls)); });
@@ -691,7 +704,7 @@ function centerHtml(){
   if(G.over) top='<div><b>Partita conclusa</b></div>';
   else if(res) top=`<div>Presa a <b>${esc(P(res.w).name)}</b></div>`;
   const free=[0,1,2,3,4,5].map(k=>{
-    if(!(G.taken>>k&1)) return bcHtml(k,G.nb>=G.cap?'taken':'');
+    if(!(G.taken>>k&1)) return G.nb>=G.cap?failHtml():bcHtml(k);
     const o=G.bid.indexOf(k);
     return `<span class="bc taken" title="Bid ${k} preso da ${o>=0?esc(P(o).name):''}"><b>${k}</b><i>BID</i></span>`;
   }).join('');
@@ -760,17 +773,22 @@ function dockHtml(){
   }else if(PR&&PR.type==='bid'){
     html+=`<div class="hint">${bidHintHuman()}</div>
       <div class="bids pickrow">${[0,1,2,3,4,5].map(k=>bcHtml(k,`pick ${PR.sel===k?'sel':''}`,'button',`${PR.opts.has(k)?'':'disabled'} data-b="${k}"`)).join('')}</div>`;
-    if(PR.sel!=null) html+=`<div class="hint">Puntare ${PR.sel} significa fare <b>esattamente ${PR.sel}</b> ${plural(PR.sel,'presa','prese')} in questo round (ne hai già ${G.tr[HUM]}). Vincerne di più ti rende Invidioso.</div><div class="opts"><button class="opt" data-bgo="go">Punta ${PR.sel}</button><button class="opt" data-bgo="x">Annulla</button><button class="opt" data-bgo="pass">Non puntare ora</button></div>`;
-    else html+=`<div class="hint" style="visibility:hidden" aria-hidden="true">Puntare 5 significa fare esattamente 5 prese in questo round (ne hai già 0). Vincerne di più ti rende Invidioso.</div><div class="opts"><button class="opt" data-bgo="pass">Non puntare ora</button><button class="opt" tabindex="-1" style="visibility:hidden" aria-hidden="true">Annulla</button></div>`;
+    const bidPh='Puntare 5 significa fare esattamente 5 prese in questo round (ne hai già 0). Vincerne di più ti rende Invidioso.';
+    if(PR.sel!=null) html+=`${stackHint(`Puntare ${PR.sel} significa fare <b>esattamente ${PR.sel}</b> ${plural(PR.sel,'presa','prese')} in questo round (ne hai già ${G.tr[HUM]}). Vincerne di più ti rende Invidioso.`,bidPh)}<div class="opts"><button class="opt" data-bgo="go">Punta ${PR.sel}</button><button class="opt" data-bgo="x">Annulla</button><button class="opt" data-bgo="pass">Non puntare ora</button></div>`;
+    else if(OPT.undo) html+=`${stackHint('',bidPh)}<div class="opts"><button class="opt" tabindex="-1" style="visibility:hidden" aria-hidden="true">Punta 5</button><button class="opt" tabindex="-1" style="visibility:hidden" aria-hidden="true">Annulla</button><button class="opt" data-bgo="pass">Non puntare ora</button></div>`;
+    else html+=`<div class="opts"><button class="opt" data-bgo="pass">Non puntare ora</button></div>`;
   }else if(PR&&PR.type==='turn'){
     html+=`<div class="hint">${turnHint()}</div>`;
     if(PR.sel!=null){
       const c=G.hands[HUM].find(x=>x.id===PR.sel);
-      html+=`<div class="hint">${previewText(c)}</div><div class="opts"><button class="opt" data-go="play">${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
-    }else html+=`<div class="hint" style="visibility:hidden" aria-hidden="true">13 Viola: al momento è la carta che prende la presa, ma 3 giocatori possono ancora batterla. Attenzione: sei già a quota (5): se vinci questa presa diventi Invidioso.</div><div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 13 Viola</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+      html+=`${stackHint(previewText(c),TURN_PH)}<div class="opts"><button class="opt" data-go="play">${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    }else if(OPT.undo) html+=`${stackHint('',TURN_PH)}<div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 13 Viola</button><button class="opt" tabindex="-1">Annulla</button></div>`;
   }
   return html;
 }
+// il testo vero e il segnaposto invisibile (caso peggiore) stanno nella stessa cella: l'altezza non cambia quando si seleziona una carta
+const TURN_PH='13 Viola: al momento è la carta che prende la presa, ma 3 giocatori possono ancora batterla. Attenzione: sei già a quota (5): se vinci questa presa diventi Invidioso.';
+const stackHint=(real,ph)=>`<div class="stack"><div class="hint">${real}</div><div class="hint" style="visibility:hidden" aria-hidden="true">${ph}</div></div>`;
 function recapHtml(){
   const n=G.n;
   return `<details class="recap"><summary>RIEPILOGO</summary>
@@ -789,7 +807,7 @@ const RULES_HTML = `
 <ul><li><b>Carte gioco</b>: 4 semi (blu con il pianeta, rosso con il sole, verde con il cilindro, viola con il papillon), numeri 1–13. Il seme <b>blu</b> è la <b>briscola</b>.</li>
 <li><b>6 carte Bid</b> con i numeri da 0 a 5; il retro è la carta <b>Invidia</b>.</li></ul>
 <h4>Preparazione</h4>
-<p>Con 3 giocatori si usano i numeri 1–8 di ogni seme (32 carte), con 4 giocatori 1–11 (44 carte), con 5 giocatori 1–13 (52 carte). Chi apre il primo round è scelto a caso.</p>
+<p>Con 3 giocatori si usano i numeri 1–8 di ogni seme (32 carte), con 4 giocatori 1–11 (44 carte), con 5 giocatori 1–13 (52 carte). </p>
 <h4>Il round</h4>
 <ol><li>Si mescolano le carte e se ne danno <b>10</b> a ciascuno; le rimanenti restano da parte, coperte e non vengono mai guardate. Le carte Bid sono al centro.</li>
 <li>Si giocano 10 prese. Chi è di mano gioca una carta qualsiasi (anche briscola); il suo seme è il <b>seme di mano</b>.</li>
@@ -810,7 +828,7 @@ const RULES_HTML = `
 <p>Esempio (5 giocatori, round 2): A, C, D puntano; B ed E sono Guastafeste. A ha puntato 0 ma vince una presa: diventa Invidioso. C punta 2 e fa 2 prese: 30 punti. D punta 3 e ne fa 2: diventa Invidioso a fine round e A prende una carta Invidia. A fa 3 punti, D 0, B ed E 2 Invidiosi × 15 = 30 ciascuno.</p>
 <h4>Fine della partita</h4>
 <p>Il round dopo apre chi ha vinto l'ultima presa. Dopo il terzo round vince il totale più alto; in caso di parità la vittoria è condivisa.</p>
-<p><i>Nell'app:</i> le prese vinte non si possono riguardare secondo il regolamento, ma il log registra ogni carta giocata e dal menu si può attivare la tabella «Carte uscite». L'AI conosce la propria mano, le carte giocate e i semi che un giocatore non ha (non ha risposto), non le mani altrui né le carte avanzate. Se nessuno ha ancora puntato quando il round finisce, tutti sono Comparse. Nel menu ci sono «Abilita annulla» (conferma prima di giocare una carta o di puntare) e «Mostra le carte uscite».</p>
+<p><i>Nell'app:</i> le prese vinte non si possono riguardare secondo il regolamento, ma il log registra ogni carta giocata e dal menu si può attivare la tabella «Carte uscite». L'AI conosce la propria mano, le carte giocate e i semi che un giocatore non ha (non ha risposto), non le mani altrui né le carte avanzate. Chi apre il primo round è scelto a caso. Se i posti per puntare non si esauriscono nel round, chi non ha puntato è Comparsa. Nel menu ci sono «Abilita annulla» (conferma prima di giocare una carta o di puntare) e «Mostra le carte uscite».</p>
 </div></details>`;
 
 const LOGOC = ['#ff5ca8','#4fd1a5','#8fb0f5','#ffe21f','#5f86e8'];
