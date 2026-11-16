@@ -124,9 +124,6 @@ table.score tr.me td{font-weight:700}
 .hc .ci .ic{width:11px;height:11px;color:inherit}
 .hc .ci2{position:absolute;right:3px;bottom:3px;line-height:0;transform:rotate(180deg)}
 .hc .ci2 .ic{width:11px;height:11px;color:inherit}
-.hc .sl{position:absolute;right:3px;top:2px;font-size:9px;font-weight:800;display:none;font-family:'Inter',sans-serif}
-body.a11y .hc .sl{display:block}
-body.a11y .hc{border-width:3px;border-color:#fff}
 .hc.mini{width:42px;height:62px;--cw:42px}
 .hc.mini .cn{font-size:23px}
 .hc.fresh{box-shadow:0 0 0 3px #f0bd1c}
@@ -142,7 +139,6 @@ button.hc.sel:hover:not(:disabled){transform:translateY(-12px)}
 .pchips{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
 .pchip{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 4px;border-radius:5px;font-family:'Orbitron',sans-serif;font-weight:800;font-size:11px;border:1px solid rgba(10,30,92,.35)}
 .pchip.s0{background:var(--s0);color:var(--on0)} .pchip.s1{background:var(--s1);color:var(--on1)} .pchip.s2{background:var(--s2);color:var(--on2)} .pchip.s3{background:var(--s3);color:var(--on3)}
-body.a11y .pchip::after{content:attr(data-l);font-family:'Inter',sans-serif;font-size:8px;margin-left:2px}
 
 .center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;font-size:12px;line-height:1.45;color:var(--text-soft);min-width:0}
 .center b{color:var(--accent)}
@@ -278,8 +274,8 @@ const RN = ['Mazziere','A','B','C'];
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('hh-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('hh-a11y')==='1'; }catch(e){}
+const OPT = {undo:true};
+try{ const s=localStorage.getItem('hh-undo'); if(s!==null) OPT.undo=s==='1'; }catch(e){}
 const mk = (s,v) => ({s,v,id:s*16+v});
 const ALL = []; SUITS.forEach((S,s)=>{ for(let v=1;v<=S.max;v++) ALL.push(mk(s,v)); });
 const CARD = {}; ALL.forEach(c=>{ CARD[c.id]=c; });
@@ -749,8 +745,8 @@ async function run(){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
-const cardHtml = (c,cls='',tag='span',attrs='') => `<${tag} class="hc s${c.s} ${cls}" ${attrs} title="${cname(c)}"><b class="cn">${c.v}</b><i class="ci">${ico(c.s)}</i><i class="ci2">${ico(c.s)}</i><b class="sl">${SUITS[c.s].l}</b></${tag}>`;
-const chipHtml = c => `<span class="pchip s${c.s}" data-l="${SUITS[c.s].l}" title="${cname(c)}">${c.v}</span>`;
+const cardHtml = (c,cls='',tag='span',attrs='') => `<${tag} class="hc s${c.s} ${cls}" ${attrs} title="${cname(c)}"><b class="cn">${c.v}</b><i class="ci">${ico(c.s)}</i><i class="ci2">${ico(c.s)}</i></${tag}>`;
+const chipHtml = c => `<span class="pchip s${c.s}" title="${cname(c)}">${c.v}</span>`;
 const LOGO_SVG = `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9defc"/><stop offset=".5" stop-color="#2d62c8"/><stop offset="1" stop-color="#0a1e6e"/></linearGradient></defs><path d="M20 36C8 27.5 3 20.5 3 13.5A8.8 8.8 0 0 1 20 10a8.8 8.8 0 0 1 17 3.5C37 20.5 32 27.5 20 36z" fill="url(#rg)"/><path d="M6 31L34 7" stroke="#1c8fb5" stroke-width="3.2" stroke-linecap="round"/></svg>`;
 function tableauHtml(p){
   if(p===G.dealer){
@@ -966,14 +962,19 @@ const RULES_HTML = `
 <h4>Round successivo e fine</h4>
 <p>Il giocatore alla sinistra del mazziere (A) diventa il nuovo mazziere. Dopo 4 round (ognuno è mazziere una volta) vince il punteggio più alto; in caso di parità la vittoria è condivisa.</p>
 <p><i>Nell'app:</i> il primo mazziere è scelto a caso e la briscola di ogni round è una tessera diversa pescata a caso tra le quattro (le tessere usate non tornano al centro). Le tessere numerate sono illimitate. Quando sei il mazziere vedi le mani di tutti e piazzi le tessere con un modulo (puoi chiedere un «Suggerimento» dell'AI); scopri le tessere toccandole. Quando non sei il mazziere vedi solo la tua mano e le tessere scoperte: sotto ogni tessera scoperta della tua riga vedi a che punto sei. Le tessere coperte sono segrete anche per l'AI: A e B puntano a rendere vere le proprie tessere scoperte, C a rovinarle; l'AI ricorda le carte giocate e i semi mancanti ma non vede mai le carte altrui né le tessere coperte. Il mazziere AI vede tutte le mani e piazza le tessere simulando il round.</p>
-<p><i>Crediti:</i> gioco e componenti di Quoth Games; stampa JELLYJELLY PRINT.</p>
 </div></details>`;
 
+// menu senza «Modalità accessibile»: ridefinisce menuHtml di core.js
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+    </div>`:''}</div>`;
+}
 let LOGOPEN=false;
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 let MENUOPEN=false;
 function render(){
-  document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
   const top=`<div class="topbar"><div class="logo">${LOGO_SVG}<span>10/12 HEART</span></div>
     ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
@@ -1011,11 +1012,6 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.tile!==undefined) flipPick(b.dataset.tile);
 });
 document.getElementById('app').addEventListener('change',e=>{
-  if(e.target.id==='optA11y'){
-    OPT.a11y=e.target.checked;
-    try{ localStorage.setItem('hh-a11y',OPT.a11y?'1':'0'); }catch(err){}
-    render(); return;
-  }
   if(e.target.id!=='optUndo') return;
   OPT.undo=e.target.checked;
   try{ localStorage.setItem('hh-undo',OPT.undo?'1':'0'); }catch(err){}
