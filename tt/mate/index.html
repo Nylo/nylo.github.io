@@ -286,9 +286,10 @@ function polCard(S,p,ic,plays,noise){
   return best;
 }
 function playTrick(S,ic,plays,forced){
-  for(let k=plays.length;k<S.n;k++){
+  const k0=plays.length;
+  for(let k=k0;k<S.n;k++){
     const p=(S.leader+k)%S.n;
-    const c=(forced&&k===plays.length)?forced:polCard(S,p,ic,plays,S.noise);
+    const c=(forced&&k===k0)?forced:polCard(S,p,ic,plays,S.noise);
     S.hands[p]=S.hands[p].filter(x=>x!==c); S.cnt[c.n]++; plays.push({p,c});
   }
   const res=judge(plays,ic.n); settle(S,res,ic); S.leader=res.w;
