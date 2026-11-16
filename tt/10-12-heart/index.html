@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10/12 Heart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#1c8fb5;
+  --ink:#0a1e5c;
+  --surface:#f4fbfe;
+  --surface-raised:#dcf0f7;
+  --accent:#1a48b4;
+  --accent-soft:rgba(26,72,180,0.1);
+  --text:#0d1b3d;
+  --text-soft:#43566f;
+  --danger:#b3261e;
+  --success:#1c7a3c;
+  --border:rgba(10,30,92,0.3);
+  --radius:10px;
+  --s0:#2b52b8; --s1:#d9272e; --s2:#1e9b4b; --s3:#f0bd1c;
+  --t0:#1f45a6; --t1:#c11f26; --t2:#17803c; --t3:#8a6700;
+  --on0:#fff; --on1:#fff; --on2:#fff; --on3:#14213d;
+  --cw:46px; --ch:68px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:var(--bg);position:relative}
+/* nastro della cover appena accennato dietro la pagina */
+body::before{content:'';position:fixed;right:-18vmin;top:-8vmin;width:70vmin;height:130vmin;pointer-events:none;z-index:0;opacity:.2;
+  background:linear-gradient(160deg,#c9defc 0%,#2d62c8 38%,#0a1e6e 100%);border-radius:40vmin 40vmin 8vmin 40vmin;transform:rotate(38deg)}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px;position:relative;z-index:1}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Orbitron','Inter',sans-serif;font-size:23px;font-weight:800;line-height:1.05;flex:1;color:#fff;display:flex;align-items:center;gap:10px;min-width:0;letter-spacing:.04em;text-shadow:0 1px 0 rgba(10,30,92,.35)}
+.logo svg{flex:0 0 auto;width:34px;height:34px}
+.badge{background:var(--ink);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:var(--text);border:1px solid var(--ink)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:34px;height:19px;flex:0 0 34px;margin:0;border:1px solid var(--border);border-radius:999px;background:var(--surface-raised);cursor:pointer;transition:background .15s,border-color .15s}
+.opt-toggle input[type=checkbox]::before{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-soft);transition:transform .15s,background .15s}
+.opt-toggle input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.opt-toggle input[type=checkbox]:checked::before{transform:translateX(15px);background:#fff}
+.opt-toggle input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:#fff;color:var(--text);border:1px solid var(--ink);cursor:pointer}
+.hamb:hover{background:var(--surface-raised)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:230px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(10,30,92,0.3)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:normal;line-height:1.35;text-align:left;width:100%}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+/* nel menu le voci sono azioni a testo (home-btn.js): l'interruttore stilizzato deve restare nascosto e non occupare spazio */
+.menu-pop .opt-toggle.nylo-menu-action input[type=checkbox]{position:absolute;width:1px;height:1px;flex:none;margin:0;border:0;opacity:0;pointer-events:none}
+.menu-pop button.opt-toggle{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--text);text-align:left;background:transparent;border:0;box-shadow:none;cursor:pointer}
+.flag{display:inline-block;margin-left:5px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:var(--ink);color:#fff}
+.flag.lead{background:var(--accent);color:#fff}
+.flag.role{background:#f0bd1c;color:#14213d}
+.flag.win{background:var(--success);color:#fff}
+.flag.lose{background:var(--danger);color:#fff}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(10,30,92,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.4)}
+.name-box h3{font-family:'Orbitron',sans-serif;font-weight:800;font-size:16px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 18px rgba(10,30,92,0.25)}
+.dock.tall{position:static}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fff;border:1px solid var(--ink);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--ink);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft);line-height:1.5}
+.scroll-x{overflow-x:auto}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score .pos{color:var(--success)}
+table.score tr.me td{font-weight:700}
+
+/* semi: icona nel colore del seme */
+.ic{display:inline-block;width:14px;height:14px;vertical-align:-2px}
+.ic.s0{color:var(--s0)} .ic.s1{color:var(--s1)} .ic.s2{color:var(--s2)} .ic.s3{color:var(--s3)}
+.sfx{display:inline-flex;align-items:center;gap:4px}
+
+.table{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;background:#e4f5fb;border:2px solid var(--accent);outline:1px solid rgba(26,72,180,0.35);outline-offset:3px;border-radius:14px;padding:12px;margin:4px 4px 16px;min-height:480px;grid-template-areas:"top top top top top top" "left left center center right right" "bottom bottom bottom bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center} .seat.bottom{grid-area:bottom}
+.seat.leader{border:1px dashed rgba(26,72,180,0.6);background:rgba(26,72,180,0.05)}
+.seat.active{border:2px solid var(--accent);background:rgba(240,189,28,0.28);box-shadow:0 0 0 2px #f0bd1c}
+.seat.winner{border:2px solid var(--success);background:rgba(28,122,60,0.12)}
+.seat.loser{border:2px solid var(--danger);background:rgba(179,38,30,0.09)}
+.seat-name{font-weight:600;font-size:13px}
+.seat-meta{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(10,30,92,0.09);border-radius:4px;padding:2px 6px;color:var(--text);display:inline-flex;align-items:center;gap:4px}
+.tag b{color:var(--accent)}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px;align-items:center}
+.back{width:9px;height:14px;border-radius:2px;background:linear-gradient(135deg,#7ea6ff,#1f4fc0 55%,#0a1e6e);border:1px solid rgba(255,255,255,0.8);box-shadow:0 0 0 1px rgba(10,30,92,0.35)}
+.seat.top .backs,.seat.left .backs,.seat.right .backs{display:grid;grid-template-columns:repeat(7,9px);max-width:none}
+.tableau{display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;min-height:74px;padding:4px 6px;border-radius:8px;background:rgba(10,30,92,0.05);min-width:56px}
+.slot{display:inline-block;width:42px;height:62px;border:1px dashed rgba(10,30,92,0.4);border-radius:6px}
+.cap{font-size:10px;color:var(--text-soft);line-height:1.2}
+
+/* carte: colore pieno del seme, numero grande inclinato (come nella cover), icona del seme negli angoli */
+.hc{width:var(--cw);height:var(--ch);border-radius:6px;border:2px solid rgba(255,255,255,.85);display:inline-block;position:relative;flex-shrink:0;padding:0;overflow:hidden;box-shadow:0 2px 4px rgba(10,30,92,0.35),inset 0 0 0 1px rgba(10,30,92,.25);font-family:'Orbitron','Inter',sans-serif}
+.hc.s0{background:linear-gradient(160deg,#4a74da,#1f45a6);color:var(--on0)} .hc.s1{background:linear-gradient(160deg,#ef4a50,#b5171d);color:var(--on1)}
+.hc.s2{background:linear-gradient(160deg,#35be68,#13783a);color:var(--on2)} .hc.s3{background:linear-gradient(160deg,#ffd75a,#e0a90d);color:var(--on3)}
+.hc .cn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:27px;font-weight:800;transform:rotate(-9deg);line-height:1}
+.hc .ci{position:absolute;left:3px;top:3px;line-height:0}
+.hc .ci .ic{width:11px;height:11px;color:inherit}
+.hc .ci2{position:absolute;right:3px;bottom:3px;line-height:0;transform:rotate(180deg)}
+.hc .ci2 .ic{width:11px;height:11px;color:inherit}
+.hc .sl{position:absolute;right:3px;top:2px;font-size:9px;font-weight:800;display:none;font-family:'Inter',sans-serif}
+body.a11y .hc .sl{display:block}
+body.a11y .hc{border-width:3px;border-color:#fff}
+.hc.mini{width:42px;height:62px;--cw:42px}
+.hc.mini .cn{font-size:23px}
+.hc.fresh{box-shadow:0 0 0 3px #f0bd1c}
+.hc.win{box-shadow:0 0 0 3px var(--success)}
+button.hc{cursor:pointer;transition:transform 0.12s}
+button.hc:hover:not(:disabled){transform:translateY(-6px)}
+button.hc:disabled{cursor:default}
+.hc.dim{opacity:0.4;filter:saturate(0.5)}
+.hc.legal{box-shadow:0 0 0 2px var(--ink),0 0 0 4px rgba(240,189,28,0.95)}
+.hc.sel{transform:translateY(-12px);box-shadow:0 0 0 2px #fff,0 0 0 5px var(--accent)}
+button.hc.sel:hover:not(:disabled){transform:translateY(-12px)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:14px}
+.pchips{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+.pchip{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 4px;border-radius:5px;font-family:'Orbitron',sans-serif;font-weight:800;font-size:11px;border:1px solid rgba(10,30,92,.35)}
+.pchip.s0{background:var(--s0);color:var(--on0)} .pchip.s1{background:var(--s1);color:var(--on1)} .pchip.s2{background:var(--s2);color:var(--on2)} .pchip.s3{background:var(--s3);color:var(--on3)}
+body.a11y .pchip::after{content:attr(data-l);font-family:'Inter',sans-serif;font-size:8px;margin-left:2px}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;font-size:12px;line-height:1.45;color:var(--text-soft);min-width:0}
+.center b{color:var(--accent)}
+.trumpchip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-weight:700;font-size:12px;border:2px solid #fff;box-shadow:0 1px 4px rgba(10,30,92,.35)}
+.trumpchip .ic{width:18px;height:18px;color:inherit}
+.trumpchip.s0{background:var(--s0);color:var(--on0)} .trumpchip.s1{background:var(--s1);color:var(--on1)} .trumpchip.s2{background:var(--s2);color:var(--on2)} .trumpchip.s3{background:var(--s3);color:var(--on3)}
+.legend{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.lg{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:5px;font-weight:600;font-size:11px;border:1px solid var(--border);background:#fff;color:var(--text)}
+.mnote{font-weight:700;color:var(--success);font-size:12px}
+
+/* tavolette (spazio tavolette: 2 righe × 6 categorie) */
+.board{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 12px 10px;margin-bottom:12px}
+.board h3,.scorebox h3{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em;margin-bottom:8px}
+.bgrid{display:grid;grid-template-columns:minmax(54px,84px) repeat(6,minmax(0,1fr));gap:4px;align-items:stretch}
+.bh{font-size:9px;font-weight:700;text-align:center;line-height:1.15;color:var(--text-soft);padding:2px 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.bh .st{color:#c58a00;letter-spacing:-1px;font-size:10px}
+.brow{font-size:11px;font-weight:700;display:flex;flex-direction:column;justify-content:center;line-height:1.25;min-width:0}
+.brow span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile{min-height:48px;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-weight:800;font-size:16px;border:2px solid transparent;position:relative;padding:2px;line-height:1.1;text-align:center;min-width:0}
+.tile.empty{border:1px dashed rgba(10,30,92,.35)}
+.tile.down{background:linear-gradient(135deg,#7ea6ff,#1f4fc0 55%,#0a1e6e);border-color:#0a1e6e;color:rgba(255,255,255,.85);font-size:12px}
+.tile.up{background:#fff;border-color:var(--ink);color:var(--ink)}
+.tile.up.vy{color:var(--success)} .tile.up.vn{color:var(--danger)}
+.tile.up.ok{background:#e4f6e9;border-color:var(--success)} .tile.up.ko{background:#fdeceb;border-color:var(--danger)}
+.tile .sub{font-family:'Inter',sans-serif;font-weight:600;font-size:9px;color:var(--text-soft);line-height:1.15}
+.tile.mine{box-shadow:0 0 0 2px #f0bd1c}
+.tile.fresh{box-shadow:0 0 0 3px #f0bd1c}
+button.tile{cursor:default;font-family:'Orbitron',sans-serif}
+button.tile.pick{cursor:pointer;outline:3px solid #f0bd1c;outline-offset:1px;animation:tp 1.1s ease-in-out infinite}
+button.tile.pick:hover{filter:brightness(1.2)}
+@keyframes tp{50%{outline-color:rgba(240,189,28,.35)}}
+@media(prefers-reduced-motion:reduce){button.tile.pick{animation:none}}
+.bnote{font-size:11px;color:var(--text-soft);margin-top:8px;line-height:1.5}
+
+/* modulo tavolette del mazziere */
+.tf{display:flex;flex-direction:column;gap:4px}
+.tfr{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)}
+.tfr.h{border-bottom:2px solid var(--ink);font-size:11px;font-weight:700}
+.tfl{font-size:12px;font-weight:600;line-height:1.25}
+.tfl small{display:block;font-size:10px;color:var(--text-soft);font-weight:500}
+.ctl{display:flex;align-items:center;justify-content:center;gap:5px}
+.ctl .num{min-width:36px;text-align:center;font-family:'Orbitron',sans-serif;font-weight:800;font-size:15px}
+.stepb{width:30px;height:30px;border-radius:7px;border:1px solid var(--ink);background:#fff;font-size:18px;font-weight:700;color:var(--text);cursor:pointer;line-height:1}
+.stepb:hover:not(:disabled){background:var(--ink);color:#fff}
+.stepb:disabled{opacity:0.3;cursor:not-allowed}
+.tog{min-width:74px;height:30px;border-radius:7px;border:2px solid var(--ink);background:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:'Orbitron',sans-serif}
+.tog.yes{background:#e4f6e9;border-color:var(--success);color:var(--success)} .tog.no{background:#fdeceb;border-color:var(--danger);color:var(--danger)}
+
+.scorebox{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
+.prow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;margin-bottom:8px}
+.prow .lbl{font-weight:600;color:var(--text-soft)}
+.recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+.recap-row .lg{vertical-align:middle}
+details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Inter',sans-serif;font-weight:800;font-size:15px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul{padding-left:18px}
+
+@media(max-width:600px){
+  .logo{font-size:18px}
+  .logo svg{width:28px;height:28px}
+  :root{--cw:34px;--ch:50px}
+  .hc{border-radius:5px;border-width:1.5px}
+  .hc .cn{font-size:21px}
+  .hc .ci,.hc .ci2{display:none}
+  .hc.mini{width:34px;height:50px;--cw:34px}
+  .hc.mini .cn{font-size:19px}
+  .slot{width:34px;height:50px}
+  .table{padding:8px;gap:6px;margin:4px 3px 14px}
+  .back{width:7px;height:11px}
+  .seat.top .backs,.seat.left .backs,.seat.right .backs{grid-template-columns:repeat(7,7px)}
+  .hand{gap:3px}
+  .seat{padding:6px 4px}
+  .board{padding:10px 8px}
+  .bgrid{grid-template-columns:minmax(40px,56px) repeat(6,minmax(0,1fr));gap:3px}
+  .tile{min-height:44px;font-size:14px}
+  .tile.down{font-size:10px}
+  .bh{font-size:8px}
+  table.score td,table.score th{padding:5px 4px}
+  .tfr{gap:4px}
+  .tog{min-width:60px}
+  .stepb{width:28px;height:28px}
+  .ctl .num{min-width:28px}
+}
+@media(max-width:380px){.topbar{gap:6px}.logo{font-size:15px}.badge{padding:4px 9px}}
+</style>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a0c10">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="/pwa.js" defer></script>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script src="/tt/shared/core.js"></script>
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+// Semi: 0 Blu 1–9, 1 Rosso 1–8, 2 Verde 1–7, 3 Giallo 1–6 (30 carte)
+const SUITS = [{n:'Blu',l:'B',max:9},{n:'Rosso',l:'R',max:8},{n:'Verde',l:'V',max:7},{n:'Giallo',l:'G',max:6}];
+const ICON = [
+  '<path d="M12 21.5C5 16.2 2.5 12.6 2.5 8.8A5 5 0 0 1 12 6.4a5 5 0 0 1 9.5 2.4c0 3.8-2.5 7.4-9.5 12.7z" fill="currentColor"/>',
+  '<path d="M12 2.5l10 19h-6.2L12 14l-3.8 7.5H2z" fill="currentColor"/>',
+  '<g stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"><path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5L4.2 16.5"/></g><circle cx="12" cy="12" r="3" fill="currentColor"/>',
+  '<circle cx="12" cy="12" r="5" fill="currentColor"/><g stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></g>'
+];
+const ico = s => `<svg class="ic s${s}" viewBox="0 0 24 24" aria-hidden="true">${ICON[s]}</svg>`;
+const NAMES = ['Tu','AI Cuori','AI Nastro','AI Elica'];
+const HUM = 0, ROUNDS = 4, TRICKS = 10;
+// Categorie delle tavolette (ordine dello spazio tavolette, punti decrescenti)
+const KEYS = ['tr','s7','o','t','b','l'];
+const PTS = [4,3,2,2,2,2];
+const CATS = [
+  {k:'tr',lab:'Prese totali',sh:'Prese',pts:4},
+  {k:'s7',lab:'Totale 7',sh:'Totale 7',pts:3},
+  {k:'o',lab:'Esattamente due 1',sh:'Due 1',pts:2},
+  {k:'t',lab:'Briscola 3/5 (la briscola 3 e/o la briscola 5)',sh:'Brisc. 3/5',pts:2},
+  {k:'b',lab:'Somma dei valori tra 41 e 50',sh:'41–50',pts:2},
+  {k:'l',lab:'9ª/10ª presa (vinci la 9ª e/o la 10ª)',sh:'9ª/10ª',pts:2}
+];
+const RN = ['Mazziere','A','B','C'];
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false};
+try{ const s=localStorage.getItem('hh-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('hh-a11y')==='1'; }catch(e){}
+const mk = (s,v) => ({s,v,id:s*16+v});
+const ALL = []; SUITS.forEach((S,s)=>{ for(let v=1;v<=S.max;v++) ALL.push(mk(s,v)); });
+const CARD = {}; ALL.forEach(c=>{ CARD[c.id]=c; });
+const cname = c => `${c.v} ${SUITS[c.s].n}`;
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
+const plural = (n,a,b) => n===1?a:b;
+const roleOf = p => (p-G.dealer+4)%4;                       // 0 mazziere, 1 A, 2 B, 3 C
+const seatOfRole = r => (G.dealer+(r==='A'?1:r==='B'?2:3))%4;
+const ROLEKEY = ['','A','B','C'];
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+function legalIdx(hand,lead){
+  const all=hand.map((_,i)=>i);
+  if(lead<0) return all;
+  const f=all.filter(i=>hand[i].s===lead);
+  return f.length?f:all;
+}
+// la carta a batte la migliore attuale b (b è briscola o seme di mano)
+function beats(a,b,L,tr){
+  const sa=a>>4, sb=b>>4;
+  if(sa===tr) return sb!==tr||(a&15)>(b&15);
+  if(sb===tr) return false;
+  return sa===L&&(a&15)>(b&15);
+}
+// ids in ordine di gioco: vince la briscola più alta, altrimenti la carta più alta del seme di mano
+function winIdx(ids,tr){
+  const L=ids[0]>>4; let w=0;
+  for(let i=1;i<ids.length;i++) if(beats(ids[i],ids[w],L,tr)) w=i;
+  return w;
+}
+function newStats(){ return {n:[0,0,0,0],s7:[0,0,0,0],o:[0,0,0,0],f35:[false,false,false,false],sm:[0,0,0,0],lst:[false,false,false,false]}; }
+function takeStats(O,w,ids,tr,tn){
+  O.n[w]++;
+  for(const id of ids){
+    const v=id&15; O.sm[w]+=v;
+    if(v===7) O.s7[w]++;
+    if(v===1) O.o[w]++;
+    if((id>>4)===tr&&(v===3||v===5)) O.f35[w]=true;
+  }
+  if(tn>=9) O.lst[w]=true;
+}
+// tavoletta "vera" di un giocatore a partire dai suoi risultati
+function tileOf(O,s){
+  return {tr:Math.min(O.n[s],7),s7:O.s7[s],o:O.o[s]===2,t:O.f35[s],b:O.sm[s]>=41&&O.sm[s]<=50,l:O.lst[s]};
+}
+// punti del round per seggio: mazziere = punti di ogni tavoletta giusta; A/B = punti se giusta (doppi se è l'unico dei due a indovinare); C = 30 − mazziere
+function scoreTiles(tiles,O,d){
+  const sa=(d+1)%4, sb=(d+2)%4, sc=(d+3)%4;
+  const ra=tileOf(O,sa), rb=tileOf(O,sb);
+  let dl=0, a=0, b=0;
+  const mA=[], mB=[];
+  for(let i=0;i<6;i++){
+    const k=KEYS[i], ma=tiles.A[k]===ra[k], mb=tiles.B[k]===rb[k];
+    mA.push(ma); mB.push(mb);
+    if(ma){ dl+=PTS[i]; a+=ma&&mb?PTS[i]:2*PTS[i]; }
+    if(mb){ dl+=PTS[i]; b+=ma&&mb?PTS[i]:2*PTS[i]; }
+  }
+  const pts=[0,0,0,0]; pts[d]=dl; pts[sa]=a; pts[sb]=b; pts[sc]=30-dl;
+  return {pts,mA,mB,ra,rb};
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// L'AI di A/B/C conosce: la propria mano, le carte già giocate (tutte, anche nelle prese vinte), le tavolette già scoperte e i semi mancanti.
+// Mai le mani altrui né le tavolette coperte: per le proprie tavolette coperte assume che il mazziere abbia previsto l'esito "naturale" della mano.
+// A/B cercano di rendere vere le proprie tavolette; C cerca di renderle false. Decisioni: Monte Carlo con mani nascoste campionate e rollout con politica euristica.
+// Il mazziere AI conosce tutte le mani e piazza le tavolette simulando il round; sceglie quali tavolette scoprire confrontando rollout.
+const AIP = {ms:140, minW:24, maxW:300, eps:0.04};
+const clamp = (x,a,b) => x<a?a:(x>b?b:x);
+const strength = (id,tr) => (((id>>4)===tr?10:0)+(id&15))/19;
+function cloneS(S){
+  return {d:S.d,sa:S.sa,sb:S.sb,sc:S.sc,tr:S.tr,tn:S.tn,ld:S.ld,
+    h:S.h.map(a=>a.slice()),cp:S.cp.slice(),ci:S.ci.slice(),
+    n:S.n.slice(),s7:S.s7.slice(),o:S.o.slice(),f35:S.f35.slice(),sm:S.sm.slice(),lst:S.lst.slice(),
+    r7:S.r7,r1:S.r1,r35:S.r35,rp:S.rp,bel:S.bel,obj:S.obj,dump:S.dump};
+}
+// stato di simulazione dallo stato reale G con le mani date (array di id per seggio)
+function mkS(hands){
+  const d=G.dealer, S={d,sa:(d+1)%4,sb:(d+2)%4,sc:(d+3)%4,tr:G.trump,tn:Math.max(1,G.trickNo),ld:G.T.leader,
+    h:hands,cp:G.T.plays.map(x=>x.p),ci:G.T.plays.map(x=>x.c.id),
+    n:G.st.n.slice(),s7:G.st.s7.slice(),o:G.st.o.slice(),f35:G.st.f35.slice(),sm:G.st.sm.slice(),lst:G.st.lst.slice(),
+    r7:0,r1:0,r35:0,rp:0,bel:null,obj:null,dump:false};
+  const cnt=id=>{ const v=id&15; S.rp+=v; if(v===7)S.r7++; if(v===1)S.r1++; if((id>>4)===S.tr&&(v===3||v===5)) S.r35++; };
+  hands.forEach(h=>h.forEach(cnt)); S.ci.forEach(cnt);
+  return S;
+}
+const idsOf = hands => hands.map(h=>h.map(c=>c.id));
+// utilità (in punti) per il seggio s di prendersi la presa cs, secondo le tavolette t (campi mancanti = ignoti)
+function U(S,s,t,cs){
+  if(!t) return 0;
+  const R=TRICKS-S.tn;
+  let u=0;
+  if(t.tr!=null){
+    const f0=S.n[s]+R/3, f1=f0+1;
+    const d0=t.tr===7?Math.max(0,7-f0):Math.abs(f0-t.tr), d1=t.tr===7?Math.max(0,7-f1):Math.abs(f1-t.tr);
+    u+=4*clamp(d0-d1,-1,1);
+  }
+  let c7=0,c1=0,c35=0,sum=0;
+  for(const id of cs){ const v=id&15; sum+=v; if(v===7)c7++; else if(v===1)c1++; if((id>>4)===S.tr&&(v===3||v===5)) c35++; }
+  if(t.s7!=null&&c7){
+    const f0=S.s7[s]+(S.r7-c7)/3, f1=f0+c7;
+    u+=3*clamp(Math.abs(f0-t.s7)-Math.abs(f1-t.s7),-1,1);
+  }
+  if(t.o!=null&&c1){
+    const f0=S.o[s]+(S.r1-c1)/3, f1=f0+c1;
+    if(t.o) u+=2*clamp(Math.abs(f0-2)-Math.abs(f1-2),-1,1);
+    else u+=2*clamp(Math.min(1,Math.abs(f1-2))-Math.min(1,Math.abs(f0-2)),-1,1);
+  }
+  if(t.t!=null&&c35&&!S.f35[s]){
+    const pn=Math.pow(2/3,S.r35-c35);
+    u+=t.t?2*pn:-2*pn;
+  }
+  if(t.b!=null){
+    const p0=S.sm[s]+(S.rp-sum)/3, p1=p0+sum, d0=Math.abs(p0-45.5), d1=Math.abs(p1-45.5);
+    u+=2*clamp((t.b?d0-d1:d1-d0)/8,-1,1);
+  }
+  if(t.l!=null&&!S.lst[s]){
+    if(S.tn===9) u+=(t.l?2:-2)*(2/3);
+    else if(S.tn===10) u+=t.l?2:-2;
+  }
+  return u;
+}
+// valore, per il seggio q, dell'esito "vince w": A/B contano solo le proprie tavolette; C vuole il contrario di quanto serve ad A e B
+function valueFor(S,q,w,cs){
+  if(!S.bel) return w===q?1:0;
+  const b=S.bel[q];
+  if(q===S.sc){
+    if(w===S.sa&&b[0]) return -U(S,S.sa,b[0],cs);
+    if(w===S.sb&&b[1]) return -U(S,S.sb,b[1],cs);
+    return 0;
+  }
+  if(w!==q) return 0;
+  return U(S,q,q===S.sa?b[0]:b[1],cs);
+}
+function minBy(a,f){ let b=a[0],bv=f(b); for(let i=1;i<a.length;i++){ const v=f(a[i]); if(v<bv){ bv=v; b=a[i]; } } return b; }
+function maxBy(a,f){ let b=a[0],bv=f(b); for(let i=1;i<a.length;i++){ const v=f(a[i]); if(v>bv){ bv=v; b=a[i]; } } return b; }
+// giocata rapida dei seggi che devono ancora giocare nella presa (usata per valutare le carte candidate)
+function quick(S,r,cs,ps){
+  const h=S.h[r], L=cs[0]>>4;
+  let lg=h.filter(id=>(id>>4)===L); if(!lg.length) lg=h;
+  const bi=winIdx(cs,S.tr), bid=cs[bi], bs=ps[bi];
+  const want=S.bel?valueFor(S,r,r,cs)>valueFor(S,r,bs,cs):true;
+  const st=id=>strength(id,S.tr);
+  if(want){
+    const bt=lg.filter(id=>beats(id,bid,L,S.tr));
+    return bt.length?minBy(bt,st):minBy(lg,st);
+  }
+  const non=lg.filter(id=>!beats(id,bid,L,S.tr));
+  return non.length?maxBy(non,st):minBy(lg,st);
+}
+function polCard(S,q,ord,i){
+  const h=S.h[q]; let lg=h;
+  if(i>0){ const L=S.ci[0]>>4, f=h.filter(id=>(id>>4)===L); if(f.length) lg=f; }
+  if(lg.length===1) return lg[0];
+  if(Math.random()<AIP.eps) return lg[rnd(lg.length)];
+  let best=-1e9, bid=lg[0];
+  for(const c of lg){
+    const cs=S.ci.slice(), ps=S.cp.slice(); cs.push(c); ps.push(q);
+    for(let j=i+1;j<3;j++){ const r=ord[j]; cs.push(quick(S,r,cs,ps)); ps.push(r); }
+    const w=ps[winIdx(cs,S.tr)], st=strength(c,S.tr);
+    let sc=valueFor(S,q,w,cs);
+    sc+=w===q?-0.3*st:(S.dump?0.1:-0.1)*st;
+    if(sc>best){ best=sc; bid=c; }
+  }
+  return bid;
+}
+function nextSeat(S,p){ p=(p+1)%4; return p===S.d?(p+1)%4:p; }
+function playTrick(S){
+  const ord=[S.ld,0,0]; ord[1]=nextSeat(S,ord[0]); ord[2]=nextSeat(S,ord[1]);
+  for(let i=S.cp.length;i<3;i++){
+    const q=ord[i], id=polCard(S,q,ord,i), h=S.h[q];
+    h.splice(h.indexOf(id),1); S.cp.push(q); S.ci.push(id);
+  }
+  const w=S.cp[winIdx(S.ci,S.tr)];
+  takeStats(S,w,S.ci,S.tr,S.tn);
+  for(const id of S.ci){ const v=id&15; S.rp-=v; if(v===7)S.r7--; if(v===1)S.r1--; if((id>>4)===S.tr&&(v===3||v===5)) S.r35--; }
+  S.cp=[]; S.ci=[]; S.ld=w; S.tn++;
+}
+function finish(S){ while(S.tn<=TRICKS) playTrick(S); }
+const scoreS = S => scoreTiles(S.obj,S,S.d).pts;
+function setBel(S,ownA,ownB,cA,cB){
+  S.bel=[]; S.bel[S.sa]=[ownA,null]; S.bel[S.sb]=[null,ownB]; S.bel[S.sc]=[cA,cB]; S.dump=true;
+}
+function modalTiles(res){
+  const out={A:{},B:{}};
+  for(const r of ['A','B']){
+    const tr=Array(8).fill(0), s7=Array(4).fill(0), c={o:0,t:0,b:0,l:0};
+    res.forEach(x=>{ const t=x[r]; tr[t.tr]++; s7[t.s7]++; for(const k in c) if(t[k]) c[k]++; });
+    const am=a=>{ let bi=0,bv=-1; a.forEach((v,i)=>{ const x=v+Math.random()*0.5; if(x>bv){ bv=x; bi=i; } }); return bi; };
+    out[r].tr=am(tr); out[r].s7=am(s7);
+    for(const k in c) out[r][k]=c[k]*2+Math.random()-0.5>=res.length;
+  }
+  return out;
+}
+// credenze nei rollout del mazziere: A/B conoscono ciascuna propria tavoletta con prob. pa (altrimenti assumono l'esito naturale g0), C conosce ciascuna tavoletta con prob. pc
+function setBelDealer(S,T,g0,pa,pc){
+  const fa={},fb={},ca={},cb={};
+  KEYS.forEach(k=>{
+    fa[k]=Math.random()<pa?T.A[k]:g0.A[k]; fb[k]=Math.random()<pa?T.B[k]:g0.B[k];
+    if(Math.random()<pc) ca[k]=T.A[k];
+    if(Math.random()<pc) cb[k]=T.B[k];
+  });
+  setBel(S,fa,fb,ca,cb); S.obj=T;
+}
+// piazzamento delle 12 tavolette (mazziere AI e «Suggerimento»): conosce tutte le mani
+function aiPlaceTiles(){
+  const base=mkS(idsOf(G.hands));
+  const run=(N,setup,collect)=>{ for(let i=0;i<N;i++){ const S=cloneS(base); setup(S); finish(S); collect(S); } };
+  const tl=S=>({A:tileOf(S,S.sa),B:tileOf(S,S.sb)});
+  const nat=[]; run(250,S=>{ S.bel=null; S.dump=false; },S=>nat.push(tl(S)));
+  const g0=modalTiles(nat), sets=[g0]; let cur=g0;
+  for(let it=0;it<4;it++){
+    const out=[]; run(200,S=>setBelDealer(S,cur,g0,0.6,0.5),S=>out.push(tl(S)));
+    cur=modalTiles(out); sets.push(cur);
+  }
+  const evalSet=(T,N)=>{ let tot=0; run(N,S=>setBelDealer(S,T,g0,0.6,0.5),S=>{ tot+=scoreS(S)[S.d]; }); return tot/N; };
+  let best=g0, bv=-1;
+  sets.forEach(T=>{ const v=evalSet(T,250); if(v>bv){ bv=v; best=T; } });
+  // rifinitura: prova a ritoccare ogni tavoletta (±1 per i numeri, ✓/✗ per le altre) e tiene i ritocchi che migliorano chiaramente
+  const T={A:{...best.A},B:{...best.B}};
+  for(const r of ['A','B']) for(const k of KEYS){
+    const o=T[r][k], mx=k==='tr'?7:3;
+    const alts=(k==='tr'||k==='s7')?[o-1,o+1].filter(x=>x>=0&&x<=mx):[!o];
+    for(const a of alts){
+      T[r][k]=a; const v=evalSet(T,250);
+      if(v>bv+0.3){ bv=v; break; }
+      T[r][k]=o;
+    }
+  }
+  return T;
+}
+// tavolette già note ai giocatori (scoperte): oggetti parziali
+function revealed(role){
+  const o={}; KEYS.forEach(k=>{ if(G.rev[role+':'+k]) o[k]=G.tiles[role][k]; }); return o;
+}
+// quale tavoletta coperta scoprire (mazziere AI): massimizza i punti attesi del mazziere nei rollout
+function aiFlip(allowed){
+  if(allowed.length===1) return allowed[0];
+  const base=mkS(idsOf(G.hands));
+  const nat=[]; for(let i=0;i<24;i++){ const S=cloneS(base); S.bel=null; S.dump=false; finish(S); nat.push({A:tileOf(S,S.sa),B:tileOf(S,S.sb)}); }
+  const g0=modalTiles(nat), rA=revealed('A'), rB=revealed('B');
+  let best=allowed[0], bv=-1e9;
+  for(const key of allowed){
+    const [r,k]=key.split(':'), cA={...rA}, cB={...rB};
+    (r==='A'?cA:cB)[k]=G.tiles[r][k];
+    const oA={...g0.A,...cA}, oB={...g0.B,...cB};
+    let tot=0; const N=40;
+    for(let i=0;i<N;i++){ const S=cloneS(base); setBel(S,oA,oB,cA,cB); S.obj=G.tiles; finish(S); tot+=scoreS(S)[S.d]; }
+    const v=tot/N+Math.random()*0.15;
+    if(v>bv){ bv=v; best=key; }
+  }
+  return best;
+}
+// mondo plausibile per il seggio p: le carte non viste si distribuiscono agli altri due giocatori con mano nascosta, rispettando i semi mancanti
+function sampleHands(p){
+  const hands=[[],[],[],[]]; hands[p]=G.hands[p].map(c=>c.id);
+  const known=new Uint8Array(64); G.hands[p].forEach(c=>{ known[c.id]=1; }); G.played.forEach(id=>{ known[id]=1; });
+  const pool=ALL.map(c=>c.id).filter(id=>!known[id]);
+  const others=[0,1,2,3].filter(q=>q!==p&&q!==G.dealer), sizes=[0,0,0,0];
+  others.forEach(q=>{ sizes[q]=G.hands[q].length; });
+  const okQ=(q,s)=>sizes[q]>0&&!G.void[q][s];
+  const nElig=id=>{ let e=0; others.forEach(q=>{ if(okQ(q,id>>4)) e++; }); return e; };
+  shuffle(pool); pool.sort((a,b)=>nElig(a)-nElig(b));
+  const cnt=[0,0,0,0];
+  for(const id of pool){
+    const el=[]; others.forEach(q=>{ if(cnt[q]<sizes[q]&&okQ(q,id>>4)) for(let r=0;r<sizes[q]-cnt[q];r++) el.push(q); });
+    let q;
+    if(el.length) q=el[rnd(el.length)];
+    else{ const any=others.filter(z=>cnt[z]<sizes[z]); if(!any.length) break; q=any[rnd(any.length)]; }
+    hands[q].push(id); cnt[q]++;
+  }
+  return hands;
+}
+// carta da giocare per il seggio p (non mazziere): ritorna l'indice nella mano
+function aiPlay(p){
+  const h=G.hands[p], lg=legalIdx(h,G.T.lead);
+  if(lg.length===1) return lg[0];
+  const tot=lg.map(()=>0), t0=performance.now(), ms=window.HH_AIMS||AIP.ms, rA=revealed('A'), rB=revealed('B');
+  let nW=0;
+  while(nW<AIP.minW||(performance.now()-t0<ms&&nW<AIP.maxW)){
+    const base=mkS(sampleHands(p));
+    const nat=cloneS(base); nat.bel=null; nat.dump=false; finish(nat);
+    const oA={...tileOf(nat,base.sa),...rA}, oB={...tileOf(nat,base.sb),...rB};
+    setBel(base,oA,oB,rA,rB); base.obj={A:oA,B:oB};
+    lg.forEach((ci,k)=>{
+      const S=cloneS(base), id=h[ci].id, mh=S.h[p];
+      mh.splice(mh.indexOf(id),1); S.cp.push(p); S.ci.push(id);
+      finish(S);
+      tot[k]+=scoreS(S)[p];
+    });
+    nW++;
+  }
+  let bi=0,bv=-1e9; tot.forEach((v,k)=>{ const x=v/nW+Math.random()*0.01; if(x>bv){ bv=x; bi=k; } });
+  return lg[bi];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={round:0,msg:'',log:[],over:null,show:null,phase:'',dealer0:rnd(4),dealer:0,trumps:shuffle([0,1,2,3]),trump:0,
+     hands:[[],[],[],[]],won:[[],[],[],[]],played:[],void:[],st:newStats(),tiles:null,rev:{},lastFlip:null,
+     trickNo:0,leader:0,T:{lead:-1,plays:[],res:null,leader:0},turn:-1,win:-1,fresh:-1,
+     pl:Array.from({length:4},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  run();
+}
+function deal(){
+  const k=G.round, d=(G.dealer0+k)%4;
+  G.dealer=d; G.trump=G.trumps[k];
+  const deck=shuffle(ALL.map(c=>c.id)); let i=0;
+  G.hands=[[],[],[],[]];
+  for(let q=1;q<=3;q++){ G.hands[(d+q)%4]=sortHand(deck.slice(i,i+10).map(id=>CARD[id])); i+=10; }
+  G.won=[[],[],[],[]]; G.played=[]; G.void=[0,1,2,3].map(()=>[false,false,false,false]); G.st=newStats();
+  G.tiles=null; G.rev={}; G.lastFlip=null; G.show=null; G.phase='place';
+  G.trickNo=0; G.leader=(d+1)%4; G.T={lead:-1,plays:[],res:null,leader:G.leader}; G.turn=-1; G.win=-1; G.fresh=-1;
+}
+const tileTxt = (k,v) => k==='tr'?(v===7?'7–10':String(v)):(k==='s7'?String(v):(v?'✓':'✗'));
+function pick(legal,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askTiles(){
+  const g=G, mkT=()=>({tr:3,s7:1,o:false,t:false,b:false,l:false});
+  return new Promise((res,rej)=>{ PR={type:'tiles',v:{A:mkT(),B:mkT()},res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function tileAdj(role,k,d){
+  if(!PR||PR.type!=='tiles') return;
+  const t=PR.v[role], mx=k==='tr'?7:3;
+  t[k]=clamp(t[k]+d,0,mx); render();
+}
+function tileTog(role,k){ if(PR&&PR.type==='tiles'){ PR.v[role][k]=!PR.v[role][k]; render(); } }
+function tileSug(){
+  if(!PR||PR.type!=='tiles') return;
+  PR.v=aiPlaceTiles(); render();
+}
+function tileOk(){
+  if(!PR||PR.type!=='tiles') return;
+  const r=PR.res, v={A:{...PR.v.A},B:{...PR.v.B}}; PR=null; render(); r(v);
+}
+function askFlip(allowed,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'flip',allowed:new Set(allowed),hint,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function flipPick(key){
+  if(!PR||PR.type!=='flip'||!PR.allowed.has(key)) return;
+  const r=PR.res; PR=null; render(); r(key);
+}
+const faceDown = role => KEYS.map(k=>role+':'+k).filter(key=>!G.rev[key]);
+async function dealerFlip(roles,note){
+  const d=G.dealer, pl=P(d);
+  let allowed=[]; (roles||['A','B']).forEach(r=>{ allowed=allowed.concat(faceDown(r)); });
+  if(!allowed.length) return;
+  let key;
+  if(allowed.length===1){ key=allowed[0]; }
+  else if(d===HUM){
+    status(`${note||'Scopri una tavoletta'}`);
+    key=await askFlip(allowed,roles&&roles.length===1?`scopri una tavoletta della riga ${roles[0]} (${P(seatOfRole(roles[0])).name}) toccandola.`:'scopri una qualsiasi tavoletta coperta toccandola.');
+  }else{
+    status(`${pl.name} sceglie una tavoletta da scoprire…`);
+    await sleep(700);
+    key=aiFlip(allowed);
+  }
+  G.rev[key]=true; G.lastFlip=key;
+  const [r,k]=key.split(':'), c=CATS[KEYS.indexOf(k)];
+  logMsg(`${pl.name} scopre la tavoletta di ${P(seatOfRole(r)).name} (${r}): ${c.lab} = ${tileTxt(k,G.tiles[r][k])}.`);
+  status(`${pl.name} scopre: ${P(seatOfRole(r)).name} (${r}) · ${c.lab} = ${tileTxt(k,G.tiles[r][k])}.`);
+  await sleep(d===HUM?400:1100);
+}
+async function placement(){
+  const d=G.dealer, pl=P(d);
+  G.phase='place';
+  if(d===HUM){
+    status(`Sei il mazziere: guarda le mani dei tre giocatori e piazza le 12 tavolette (le tue previsioni sulle prese di ${P(seatOfRole('A')).name} e ${P(seatOfRole('B')).name}).`);
+    G.tiles=await askTiles();
+  }else{
+    status(`${pl.name} (mazziere) sta piazzando le 12 tavolette…`);
+    await sleep(900);
+    G.tiles=aiPlaceTiles();
+  }
+  logMsg(`${pl.name} ha piazzato le 12 tavolette coperte.`);
+  G.phase='play'; status(`Le 12 tavolette sono sul tavolo. Il mazziere ne scopre una per ogni riga.`); await sleep(700);
+  await dealerFlip(['A'],'Scopri una tavoletta della riga A.');
+  await dealerFlip(['B'],'Scopri una tavoletta della riga B.');
+}
+async function oneTrick(){
+  G.trickNo++;
+  const L=G.leader, d=G.dealer;
+  const T=G.T={lead:-1,plays:[],res:null,leader:L};
+  G.win=-1; G.fresh=-1; G.lastFlip=null;
+  for(let k=0;k<4;k++){
+    const p=(L+k)%4, pl=P(p), h=G.hands[p];
+    G.turn=p;
+    if(p===d){
+      status(`Presa ${G.trickNo}/${TRICKS} · tocca al mazziere ${pl.name}: scopre una tavoletta.`);
+      await sleep(d===HUM?250:500);
+      await dealerFlip(['A','B'],`Presa ${G.trickNo}/${TRICKS} · tocca a te, mazziere: scopri una tavoletta.`);
+      continue;
+    }
+    status(`Presa ${G.trickNo}/${TRICKS} · tocca a ${pl.name}.`);
+    let idx;
+    if(p===HUM){
+      const lg=legalIdx(h,T.lead);
+      let hint;
+      if(T.lead<0) hint='sei di mano: gioca una carta qualsiasi, il suo seme diventa il seme di mano.';
+      else if(h.some(c=>c.s===T.lead)) hint=`devi rispondere al seme ${SUITS[T.lead].n}.`;
+      else hint=`non hai carte ${SUITS[T.lead].n}: puoi giocare qualsiasi carta (la briscola ${SUITS[G.trump].n} vince).`;
+      if(lg.length===1){ status(`Presa ${G.trickNo}/${TRICKS} · hai una sola carta giocabile: ${cname(h[lg[0]])}.`); await sleep(1000); idx=lg[0]; }
+      else idx=await pick(lg,hint);
+    }else{
+      await sleep(650);
+      idx=aiPlay(p);
+    }
+    const c=h.splice(idx,1)[0];
+    T.plays.push({p,c}); G.played.push(c.id); G.fresh=p;
+    if(T.lead<0) T.lead=c.s;
+    else if(c.s!==T.lead) G.void[p][T.lead]=true;
+    logMsg(`${pl.name} ${T.plays.length===1?'apre con':'gioca'} ${cname(c)}${c.s===G.trump&&T.lead!==G.trump?' (briscola)':''}.`);
+  }
+  G.turn=-1;
+  const wi=winIdx(T.plays.map(x=>x.c.id),G.trump), w=T.plays[wi].p, wc=T.plays[wi].c;
+  T.res={winner:w,wi};
+  takeStats(G.st,w,T.plays.map(x=>x.c.id),G.trump,G.trickNo);
+  T.plays.forEach(x=>G.won[w].push(x.c));
+  G.win=w; G.leader=w;
+  const m=`${P(w).name} vince la presa ${G.trickNo} con ${cname(wc)}${wc.s===G.trump&&T.lead!==G.trump?' (briscola)':''}.`;
+  status(m); logMsg(m);
+  await sleep(1600);
+}
+async function scoring(){
+  const d=G.dealer, sc=scoreTiles(G.tiles,G.st,d);
+  G.pl.forEach(p=>{ p.total+=sc.pts[p.id]; p.hist.push({pts:sc.pts[p.id],role:roleOf(p.id)}); });
+  G.show={sc,act:{A:sc.ra,B:sc.rb}};
+  G.phase='score'; G.turn=-1; G.win=-1; G.lastFlip=null;
+  const ok=a=>a.filter(Boolean).length;
+  logMsg(`Round ${G.round+1}: ${P(seatOfRole('A')).name} (A) ${ok(sc.mA)}/6 giuste, ${P(seatOfRole('B')).name} (B) ${ok(sc.mB)}/6 giuste.`);
+  G.pl.forEach(p=>logMsg(`${p.name} (${RN[roleOf(p.id)]}): +${sc.pts[p.id]} punti, totale ${p.total}.`));
+  const last=G.round===ROUNDS-1;
+  status(`Round ${G.round+1} concluso.`);
+  await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
+}
+async function run(){
+  const g=G;
+  try{
+    for(let k=0;k<ROUNDS;k++){
+      g.round=k;
+      deal();
+      const d=g.dealer;
+      logMsg(`— Round ${k+1}/${ROUNDS}: mazziere ${P(d).name}, briscola ${SUITS[g.trump].n} · A ${P(seatOfRole('A')).name}, B ${P(seatOfRole('B')).name}, C ${P(seatOfRole('C')).name} —`);
+      if(!k){
+        status(`Buona partita a 10/12 Heart, ${P(HUM).name}!`);
+        await ask(HUM,`Mazziere: ${d===HUM?'tu':P(d).name} · briscola: ${SUITS[g.trump].n} · sei ${HUM===d?'il mazziere':'il giocatore '+RN[roleOf(HUM)]}`,[{label:'Ok, si parte',value:1}]);
+      }
+      await placement();
+      for(let t=0;t<TRICKS;t++) await oneTrick();
+      await scoring();
+    }
+    const m=Math.max(...g.pl.map(p=>p.total));
+    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    g.turn=-1; g.win=-1; g.show=null; render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const cardHtml = (c,cls='',tag='span',attrs='') => `<${tag} class="hc s${c.s} ${cls}" ${attrs} title="${cname(c)}"><b class="cn">${c.v}</b><i class="ci">${ico(c.s)}</i><i class="ci2">${ico(c.s)}</i><b class="sl">${SUITS[c.s].l}</b></${tag}>`;
+const chipHtml = c => `<span class="pchip s${c.s}" data-l="${SUITS[c.s].l}" title="${cname(c)}">${c.v}</span>`;
+const LOGO_SVG = `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9defc"/><stop offset=".5" stop-color="#2d62c8"/><stop offset="1" stop-color="#0a1e6e"/></linearGradient></defs><path d="M20 36C8 27.5 3 20.5 3 13.5A8.8 8.8 0 0 1 20 10a8.8 8.8 0 0 1 17 3.5C37 20.5 32 27.5 20 36z" fill="url(#rg)"/><path d="M6 31L34 7" stroke="#1c8fb5" stroke-width="3.2" stroke-linecap="round"/></svg>`;
+function tableauHtml(p){
+  if(p===G.dealer){
+    if(G.lastFlip&&G.phase==='play'){
+      const [r,k]=G.lastFlip.split(':');
+      return `<div class="tableau"><span class="tile up" style="min-width:56px">${tileTxt(k,G.tiles[r][k])}<span class="sub">${r} · ${CATS[KEYS.indexOf(k)].sh}</span></span></div>`;
+    }
+    return '<div class="tableau"><span class="cap">senza carte</span></div>';
+  }
+  const T=G.T, i=T.plays.findIndex(x=>x.p===p);
+  if(i<0) return '<div class="tableau"><span class="slot"></span></div>';
+  const x=T.plays[i], res=T.res;
+  const cls=`mini ${G.fresh===p&&!res?'fresh':''} ${res&&res.winner===p?'win':''}`;
+  const cap=res?(res.winner===p?'<span class="cap">vince la presa</span>':''):(T.lead>=0&&x.c.s!==T.lead?'<span class="cap">fuori seme</span>':'');
+  return `<div class="tableau">${cardHtml(x.c,cls)}${cap}</div>`;
+}
+function flagHtml(p){
+  if(G.over) return G.over.winners.includes(p)?'<span class="flag win">Vince</span>':'';
+  let h='';
+  if(p===G.dealer) h+='<span class="flag first">Mazziere</span>';
+  else h+=`<span class="flag role">${RN[roleOf(p)]}</span>`;
+  if(G.phase==='play'&&p!==G.dealer&&G.leader===p&&G.turn<0) h+='<span class="flag lead">Di mano</span>';
+  else if(G.phase==='play'&&p!==G.dealer&&G.T.leader===p&&G.turn>=0) h+='<span class="flag lead">Di mano</span>';
+  return h;
+}
+function handInfo(p){
+  const h=G.hands[p];
+  let s7=0,s1=0,t35=0,sum=0; h.forEach(c=>{ sum+=c.v; if(c.v===7)s7++; if(c.v===1)s1++; if(c.s===G.trump&&(c.v===3||c.v===5)) t35++; });
+  return `<span class="tag">somma <b>${sum}</b></span><span class="tag">7 <b>${s7}</b></span><span class="tag">1 <b>${s1}</b></span><span class="tag">brisc. 3/5 <b>${t35}</b></span>`;
+}
+function seatHtml(p,pos){
+  const pl=P(p), active=G.turn===p, hl=G.hands[p].length, d=G.dealer, over=!!G.over;
+  let h;
+  if(p===d) h='';
+  else if(p===HUM){
+    h=`<div class="hand">${G.hands[HUM].map((c,i)=>{
+      if(PR&&PR.type==='card'){
+        const lg=PR.legal.has(i);
+        return cardHtml(c,`${lg?'legal':'dim'} ${PR.sel===i?'sel':''}`,'button',`${lg?'':'disabled'} data-p="${i}"`);
+      }
+      return cardHtml(c);
+    }).join('')}</div>`;
+  }else if(d===HUM){
+    h=`<div class="pchips">${G.hands[p].map(chipHtml).join('')}</div>`;
+  }else{
+    h=`<div class="backs">${Array.from({length:hl},()=>'<span class="back"></span>').join('')}</div>`;
+  }
+  const dv=d===HUM&&G.phase==='place'&&p!==d;
+  const meta=`<div class="seat-meta">${p===d?'':`<span class="tag">prese <b>${G.st.n[p]}</b></span><span class="tag">carte <b>${hl}</b></span>`}${dv?handInfo(p):''}</div>`;
+  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${h}`:(pos==='top'?`${h}${name}${meta}${tableauHtml(p)}`:`${name}${meta}${tableauHtml(p)}${h}`);
+  const isW=G.win===p&&!over&&G.T.res;
+  const ld=G.phase==='play'&&p!==d&&(G.turn>=0?G.T.leader:G.leader)===p&&!over;
+  return `<div class="seat ${pos} ${ld?'leader':''} ${active?'active':''} ${over&&G.over.winners.includes(p)?'winner':''} ${isW?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const T=G.T, res=T.res;
+  const lead=T.lead>=0&&!res?`<div>Seme di mano: <b class="sfx">${ico(T.lead)}${SUITS[T.lead].n}</b></div>`:'<div>&nbsp;</div>';
+  let top='';
+  if(G.over) top='<div><b>Partita conclusa</b></div>';
+  else if(res) top=`<div>Vince la presa: <b>${esc(P(res.winner).name)}</b></div>`;
+  return `<div class="center">${top}
+    <span class="trumpchip s${G.trump}">${ico(G.trump)} Briscola ${SUITS[G.trump].n}</span>
+    <div>Presa <b>${Math.min(TRICKS,G.trickNo)}</b>/${TRICKS}</div>${lead}
+    <div class="legend">${SUITS.map((s,i)=>`<span class="lg">${ico(i)} 1–${s.max}</span>`).join('')}</div></div>`;
+}
+// stato attuale (visibile) di una categoria per un seggio, mostrato sotto le tavolette scoperte della propria riga
+function nowTxt(k,s){
+  const st=G.st;
+  if(k==='tr') return `ora ${st.n[s]}`;
+  if(k==='s7') return `ora ${st.s7[s]}`;
+  if(k==='o') return `ora ${st.o[s]}`;
+  if(k==='t') return st.f35[s]?'ottenuta':'non ancora';
+  if(k==='b') return `ora ${st.sm[s]}`;
+  return st.lst[s]?'vinta':'non vinta';
+}
+function tileCell(role,k,idx){
+  const t=G.tiles&&G.tiles[role];
+  if(!t) return '<div class="tile empty"></div>';
+  const key=role+':'+k, v=t[k], up=!!G.rev[key]||!!G.show;
+  const s=seatOfRole(role), mine=s===HUM&&G.phase!=='score';
+  const pickable=PR&&PR.type==='flip'&&PR.allowed.has(key);
+  const cls=[];
+  let inner, tag='div', attrs='';
+  if(up){
+    cls.push('up'); if(typeof v==='boolean') cls.push(v?'vy':'vn');
+    inner=tileTxt(k,v);
+    if(G.show){ const m=(role==='A'?G.show.sc.mA:G.show.sc.mB)[idx]; cls.push(m?'ok':'ko'); inner+=`<span class="sub">→ ${tileTxt(k,G.show.act[role][k])}</span>`; }
+    else if(mine) inner+=`<span class="sub">${nowTxt(k,s)}</span>`;
+    if(G.lastFlip===key&&G.phase==='play') cls.push('fresh');
+  }else{
+    cls.push('down');
+    inner=G.dealer===HUM?tileTxt(k,v):'';
+  }
+  if(mine) cls.push('mine');
+  if(pickable){ cls.push('pick'); tag='button'; attrs=`data-tile="${key}"`; }
+  return `<${tag} class="tile ${cls.join(' ')}" ${attrs} title="${esc(CATS[idx].lab)}">${inner}</${tag}>`;
+}
+function boardHtml(){
+  const head=`<div></div>${CATS.map(c=>`<div class="bh" title="${esc(c.lab)}">${c.sh}<span class="st">${'★'.repeat(c.pts===4?4:c.pts===3?3:2)}</span></div>`).join('')}`;
+  const rows=['A','B'].map(r=>{
+    const s=seatOfRole(r);
+    return `<div class="brow"><span>${r}</span><span style="font-weight:500;font-size:10px">${esc(P(s).name)}</span></div>${KEYS.map((k,i)=>tileCell(r,k,i)).join('')}`;
+  }).join('');
+  let note;
+  if(!G.tiles) note='Il mazziere sta per piazzare le 12 tavolette: una previsione per ognuna delle 6 categorie sulle prese di A e di B.';
+  else if(G.show) note='Risultato: verde = tavoletta giusta, rosso = sbagliata (sotto, → il risultato reale).';
+  else if(G.dealer===HUM) note='Le tue tavolette (le vedi solo tu) sono in blu; quelle scoperte diventano bianche.';
+  else note=`Le tavolette coperte restano segrete: se ne scopre una per presa. ${roleOf(HUM)===1||roleOf(HUM)===2?'La tua riga ha il bordo giallo.':''}`;
+  return `<div class="board"><h3>TAVOLETTE DEL MAZZIERE</h3><div class="bgrid">${head}${rows}</div><div class="bnote">${note}</div></div>`;
+}
+function pileHtml(){
+  if(HUM===G.dealer) return '';
+  const w=sortHand(G.won[HUM].slice()), st=G.st, me=HUM;
+  return `<div class="scorebox"><h3>LE TUE CARTE VINTE (SOLO TU PUOI GUARDARLE)</h3>
+    <div class="prow"><span class="tag">prese <b>${st.n[me]}</b></span><span class="tag">7 <b>${st.s7[me]}</b></span><span class="tag">1 <b>${st.o[me]}</b></span><span class="tag">brisc. 3/5 <b>${st.f35[me]?'sì':'no'}</b></span><span class="tag">somma <b>${st.sm[me]}</b></span><span class="tag">9ª/10ª <b>${st.lst[me]?'sì':'no'}</b></span></div>
+    ${w.length?`<div class="pchips" style="justify-content:flex-start">${w.map(chipHtml).join('')}</div>`:'<span class="cap">nessuna carta vinta</span>'}</div>`;
+}
+function scoreTable(){
+  const nr=G.pl[0].hist.length;
+  const rows=G.pl.map(p=>`<tr class="${p.id===HUM?'me':''}"><td>${esc(p.name)}</td>${p.hist.map(x=>`<td>${x.pts} <span class="cap">${x.role?RN[x.role]:'Mz'}</span></td>`).join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Punteggi</th>${Array.from({length:nr},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table></div>`;
+}
+function roundTable(){
+  const sc=G.show.sc, ok=a=>a.filter(Boolean).length;
+  const rows=G.pl.map(p=>{
+    const r=roleOf(p.id);
+    const info=r===0?`${ok(sc.mA)+ok(sc.mB)}/12 tavolette giuste`:(r===3?`30 − ${sc.pts[G.dealer]}`:`${ok(r===1?sc.mA:sc.mB)}/6 tavolette giuste`);
+    return `<tr class="${p.id===HUM?'me':''}"><td>${esc(p.name)}</td><td>${RN[r]}</td><td>${info}</td><td class="${sc.pts[p.id]?'pos':''}"><b>+${sc.pts[p.id]}</b></td><td>${p.total}</td></tr>`;
+  }).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th></th><th>Ruolo</th><th>Calcolo</th><th>Round</th><th>Totale</th></tr>${rows}</table></div>`;
+}
+function ctl(role,k){
+  const v=PR.v[role][k];
+  if(k==='tr'||k==='s7'){
+    const mx=k==='tr'?7:3;
+    return `<span class="ctl"><button class="stepb" data-ta="${role}:${k}:-1" ${v<=0?'disabled':''} aria-label="meno">−</button><span class="num">${tileTxt(k,v)}</span><button class="stepb" data-ta="${role}:${k}:1" ${v>=mx?'disabled':''} aria-label="più">+</button></span>`;
+  }
+  return `<span class="ctl"><button class="tog ${v?'yes':'no'}" data-tt="${role}:${k}">${v?'✓':'✗'}</button></span>`;
+}
+function tileForm(){
+  const nA=esc(P(seatOfRole('A')).name), nB=esc(P(seatOfRole('B')).name);
+  return `<div class="dock-title">PIAZZA LE TAVOLETTE: COSA FARANNO A E B?</div>
+    <div class="tf"><div class="tfr h"><span></span><span style="text-align:center">A · ${nA}</span><span style="text-align:center">B · ${nB}</span></div>
+    ${CATS.map(c=>`<div class="tfr"><span class="tfl">${c.lab}<small>${c.pts} punti${c.k==='tr'?' · «7–10» vale 7, 8, 9 o 10 prese':''}</small></span>${ctl('A',c.k)}${ctl('B',c.k)}</div>`).join('')}</div>
+    <div class="hint">Segna cosa pensi che otterranno A e B a fine round (carte vinte nelle prese). Ogni tavoletta giusta vale i punti indicati a te; A e B segnano per le proprie tavolette giuste (doppi se l'altro sbaglia); C segna 30 − i tuoi punti. «Suggerimento» compila le previsioni dell'AI.</div>
+    <div class="opts"><button class="opt" data-tsug="1">Suggerimento (AI)</button><button class="opt" data-tok="1">Conferma le 12 tavolette</button></div>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">10/12 Heart contro l'AI: si gioca in 4 (tu + 3 AI), 4 round.</div>
+    <div class="opts"><button class="opt" data-n="4">Inizia la partita (tu + 3 AI)</button></div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show) html+=roundTable();
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='tiles'){
+    html+=tileForm();
+  }else if(PR&&PR.type==='flip'){
+    html+=`<div class="hint">Tocca a te, mazziere: ${esc(PR.hint)} Le tavolette che puoi scegliere pulsano.</div>`;
+  }else if(PR&&PR.type==='card'){
+    html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null){
+      const c=G.hands[HUM][PR.sel];
+      html+=`<div class="opts"><button class="opt" data-cf="1">${esc('Conferma: gioca '+cname(c))}</button><button class="opt" data-cf="0">Annulla</button></div>`;
+    }else if(OPT.undo){
+      html+=`<div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Conferma: gioca 9 Giallo</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+    }
+  }
+  return html;
+}
+function recapHtml(){
+  return `<details class="recap"><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Mazzo</span>${SUITS.map((s,i)=>`<span class="lg">${ico(i)} ${s.n} 1–${s.max}</span>`).join('')}<span class="rv">30 carte, 10 a testa ai tre giocatori (il mazziere non ha mano)</span></div>
+    <div class="recap-row"><span class="lbl">Ruoli</span><span class="rv">Mazziere, poi in senso orario A, B, C · il mazziere cambia ogni round (a sinistra) · 4 round</span></div>
+    <div class="recap-row"><span class="lbl">Briscola</span><span class="rv">una tavoletta diversa per round, scelta a caso tra le quattro</span></div>
+    <div class="recap-row"><span class="lbl">Tavolette</span><span class="rv">il mazziere, vedendo tutte le mani, prevede 6 cose per A e 6 per B: prese totali (4), totale 7 (3), esattamente due 1, briscola 3/5, somma 41–50, 9ª/10ª presa (2 ciascuna)</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">A apre, poi vince la presa chi ha vinto la precedente · obbligo di rispondere al seme · vince la briscola più alta, altrimenti la carta più alta del seme di mano · quando tocca al mazziere scopre una tavoletta coperta</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">mazziere: i punti di ogni tavoletta giusta · A/B: i punti delle proprie tavolette giuste, doppi se sono l'unico dei due a indovinare · C: 30 − punti del mazziere</span></div>
+    <div class="recap-row"><span class="lbl">Fine</span><span class="rv">dopo 4 round vince il totale più alto (pari merito = vittoria condivisa)</span></div></details>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Che gioco è</h4>
+<p>10/12 Heart è un gioco di prese per <b>4 giocatori</b>. In ogni round uno di voi fa il <b>mazziere</b>: non ha carte in mano, ma vede quelle degli altri tre e deve prevedere come finirà la mano, piazzando 12 tavolette coperte. Gli altri tre giocano la mano e cercano di avverare (o rovinare) quelle previsioni.</p>
+<p>Una partita dura 4 round; il mazziere cambia a ogni round. Vince chi ha più punti alla fine.</p>
+<h4>Componenti</h4>
+<ul><li><b>30 carte</b>: Blu 1–9, Rosso 1–8, Verde 1–7, Giallo 1–6, una per valore.</li>
+<li><b>Tavolette giocatore</b> «A» e «B» e <b>6 tavolette categoria</b>: Prese totali (★★★★), Totale 7 (★★★), Esattamente due 1, Briscola 3/5, Somma 41–50, 9ª/10ª presa (★★ ciascuna).</li>
+<li><b>4 tavolette briscola</b> (una per seme) e <b>36 tavolette previsione</b>: 20 numerate, 8 «✓», 8 «✗». Sulle tavolette numerate «7–10» rappresenta un numero da 7 a 10 compreso.</li></ul>
+<h4>Preparazione</h4>
+<p>Si sceglie a caso il mazziere del primo round. Le 4 tavolette briscola si mettono coperte al centro e si mescolano.</p>
+<h4>Fasi del round</h4>
+<p><b>1. Preparazione.</b> Il mazziere sceglie una tavoletta briscola coperta dal centro e la gira: quel seme è la briscola del round. Dispone lo spazio tavolette: le tavolette giocatore A e B nella seconda e terza riga della prima colonna, le sei tavolette categoria nella prima riga (dalla colonna 2 alla 7, con le stelle in ordine decrescente). Poi mescola le 30 carte e le distribuisce <i>10 a testa agli altri tre giocatori</i>: i giocatori sono chiamati A, B e C in senso orario a partire da quello alla sinistra del mazziere.</p>
+<p><b>2. Piazzamento delle tavolette.</b> Dopo aver guardato di nascosto le mani, il mazziere prevede come andrà la presa delle carte e piazza coperte 12 tavolette sotto le categorie, 6 per la riga A e 6 per la riga B:</p>
+<ul><li><b>Prese totali:</b> un numero, le prese che quel giocatore vincerà.</li>
+<li><b>Totale 7:</b> un numero, quanti 7 otterrà.</li>
+<li><b>Esattamente due 1:</b> ✓ se otterrà esattamente due carte «1», altrimenti ✗.</li>
+<li><b>Briscola 3/5:</b> ✓ se otterrà il 3 della briscola e/o il 5 della briscola, altrimenti ✗.</li>
+<li><b>Somma 41–50:</b> ✓ se la somma dei valori di tutte le carte che otterrà è tra 41 e 50 compresi, altrimenti ✗.</li>
+<li><b>9ª/10ª presa:</b> ✓ se vincerà la 9ª e/o la 10ª presa, altrimenti ✗.</li></ul>
+<p><b>3. Svolgimento delle prese.</b> All'inizio il mazziere sceglie una tavoletta coperta dalla riga A e una dalla riga B e le gira. Poi si gioca, partendo da A e in senso orario, con l'obbligo di rispondere al seme. Se non si può rispondere si gioca una carta qualsiasi, anche una briscola. Vince la briscola più alta; se non ci sono briscole, la carta più alta del seme di mano. Dalla seconda presa apre chi ha vinto la precedente. Le carte vinte restano coperte accanto al vincitore, che è l'unico a poterle guardare.</p>
+<p><b>Importante:</b> quando, in senso orario, tocca al mazziere (che non ha carte) questi sceglie una qualsiasi tavoletta coperta tra quelle davanti a sé e la gira. Si continua finché le carte sono finite (10 prese): le tavolette scoperte sono così 2 + 10 = 12.</p>
+<p><b>4. Punteggio.</b></p>
+<ul><li><b>Mazziere:</b> per ogni tavoletta (di A o di B) che corrisponde al risultato prende i punti della categoria: Prese totali 4, Totale 7 3, le altre 2 ciascuna.</li>
+<li><b>Giocatori A e B:</b> se il risultato nella propria categoria corrisponde alla tavoletta ottengono i punti della categoria. Se sono l'unico dei due (A o B) ad aver indovinato quella categoria, i punti sono <b>doppi</b>.</li>
+<li><b>Giocatore C:</b> prende 30 meno i punti totali del mazziere.</li></ul>
+<p><i>Esempio:</i> A 4, 1, ✗, ✗, ✓, ✓ e B 2, 1, ✗, ✓, ✗, ✓. Il mazziere ha 4×1 + 3×2 + 2×1 + 2×1 = 14 punti; A ne fa 4×2 + 3 + 2×2 = 15; B 3 + 2×2 = 7; C 30 − 14 = 16.</p>
+<h4>Round successivo e fine</h4>
+<p>Il giocatore alla sinistra del mazziere (A) diventa il nuovo mazziere. Dopo 4 round (ognuno è mazziere una volta) vince il punteggio più alto; in caso di parità la vittoria è condivisa.</p>
+<p><i>Nell'app:</i> il primo mazziere è scelto a caso e la briscola di ogni round è una tavoletta diversa pescata a caso tra le quattro (le tavolette usate non tornano al centro). Le tavolette numerate sono illimitate. Quando sei il mazziere vedi le mani di tutti e piazzi le tavolette con un modulo (puoi chiedere un «Suggerimento» dell'AI); scopri le tavolette toccandole. Quando non sei il mazziere vedi solo la tua mano e le tavolette scoperte: sotto ogni tavoletta scoperta della tua riga vedi a che punto sei. Le tavolette coperte sono segrete anche per l'AI: A e B puntano a rendere vere le proprie tavolette scoperte, C a rovinarle; l'AI ricorda le carte giocate e i semi mancanti ma non vede mai le carte altrui né le tavolette coperte. Il mazziere AI vede tutte le mani e piazza le tavolette simulando il round.</p>
+<p><i>Crediti:</i> gioco e componenti di Quoth Games; stampa JELLYJELLY PRINT.</p>
+</div></details>`;
+
+let LOGOPEN=false;
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+let MENUOPEN=false;
+function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">${LOGO_SVG}<span>10/12 HEART</span></div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${ROUNDS}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,['bottom','left','top','right'][i])).join('')}${centerHtml()}</div>
+      ${boardHtml()}
+      ${pileHtml()}
+      ${G.pl[0].hist.length&&!G.over?`<div class="scorebox"><h3>PUNTEGGI</h3>${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  const lb=document.querySelector('.logbody'), lbTop=lb?lb.scrollTop:0;
+  app.innerHTML=top+`<div class="dock${G&&(G.show||G.over||(PR&&PR.type==='tiles'))?' tall':''}">${dockHtml()}</div>`+body;
+  if(lbTop){ const nb=app.querySelector('.logbody'); if(nb) nb.scrollTop=lbTop; }
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.n){ MENUOPEN=false; if(G) newMatch(); else askName(4); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')){ MENUOPEN=false; toSetup(); } }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+  else if(b.dataset.ta!==undefined){ const [r,k,d]=b.dataset.ta.split(':'); tileAdj(r,k,Number(d)); }
+  else if(b.dataset.tt!==undefined){ const [r,k]=b.dataset.tt.split(':'); tileTog(r,k); }
+  else if(b.dataset.tsug!==undefined) tileSug();
+  else if(b.dataset.tok!==undefined) tileOk();
+  else if(b.dataset.tile!==undefined) flipPick(b.dataset.tile);
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('hh-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('hh-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(!OPT.undo&&PR&&PR.type==='card'&&PR.sel!=null) PR.sel=null;
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
