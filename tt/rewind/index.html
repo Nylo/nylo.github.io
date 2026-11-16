@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rewind</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Yellowtail&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#2fb5c3;
+  --ink:#2a1840;
+  --surface:#ffffff;
+  --surface-raised:#f1eafa;
+  --accent:#6e45a8;
+  --accent-soft:rgba(110,69,168,0.12);
+  --pink:#e8358f;
+  --yellow:#fdc520;
+  --text:#24163a;
+  --text-soft:#5e4f7a;
+  --danger:#b3261e;
+  --success:#177a4c;
+  --border:rgba(42,24,64,0.3);
+  --radius:10px;
+  --shadow:4px 4px 0 var(--ink);
+  --cw:48px; --ch:70px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background-color:var(--bg);background-image:radial-gradient(rgba(20,80,110,0.38) 2px,transparent 2.6px);background-size:14px 14px;background-attachment:fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.logo .rw{width:42px;height:42px;flex:0 0 42px;display:block;filter:drop-shadow(3px 3px 0 #000)}
+.logo .t{font-family:'Yellowtail','Fredoka',cursive;font-size:52px;line-height:1;color:#fff;text-shadow:3px 3px 0 #000;letter-spacing:.01em}
+.badge{background:var(--pink);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap;border:2px solid var(--ink)}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:var(--text);border:2px solid var(--ink)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:34px;height:19px;flex:0 0 34px;margin:0;border:1px solid var(--border);border-radius:999px;background:var(--surface-raised);cursor:pointer;transition:background .15s,border-color .15s}
+.opt-toggle input[type=checkbox]::before{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-soft);transition:transform .15s,background .15s}
+.opt-toggle input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.opt-toggle input[type=checkbox]:checked::before{transform:translateX(15px);background:#fff}
+.opt-toggle input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:#fff;color:var(--text);border:2px solid var(--ink);cursor:pointer}
+.hamb:hover{background:var(--surface-raised)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:240px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:normal;line-height:1.35;text-align:left;width:100%}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+/* nel menu le voci sono azioni a testo (home-btn.js): l'interruttore stilizzato deve restare nascosto e non occupare spazio */
+.menu-pop .opt-toggle.nylo-menu-action input[type=checkbox]{position:absolute;width:1px;height:1px;flex:none;margin:0;border:0;opacity:0;pointer-events:none}
+.menu-pop button.opt-toggle{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--text);text-align:left;background:transparent;border:0;box-shadow:none;cursor:pointer}
+.flag{display:inline-block;margin-left:5px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.lead{background:var(--pink);color:#fff}
+.flag.win{background:var(--success);color:#fff}
+.log{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px 14px;margin-top:12px;margin-bottom:14px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(20,10,40,0.7);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:2px solid var(--ink);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.name-box h3{font-family:'Fredoka',sans-serif;font-weight:600;font-size:20px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.dock.tall{position:static}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fff;border:2px solid var(--ink);color:var(--text);border-radius:8px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--pink);border-color:var(--ink);color:#fff}
+.opt.on{background:var(--accent);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft);line-height:1.5}
+.hint b{color:var(--text)}
+.scroll-x{overflow-x:auto;max-width:100%}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score .pos{color:var(--success)}
+table.score .neg{color:var(--danger)}
+table.score tr.me td{background:var(--accent-soft)}
+table.score td.c{text-align:center}
+.chips{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+table.score td.l .chips{justify-content:flex-start}
+
+/* carte: fondo colorato con alone chiaro e puntinato, bordo bianco, numero nei quattro angoli e tante icone quanto il numero */
+.rc{--sc:#888;--sl:#eee;width:var(--cw);height:var(--ch);border-radius:7px;background:radial-gradient(circle at 50% 50%,var(--sl) 0 24%,var(--sc) 82%);display:inline-block;position:relative;overflow:hidden;flex-shrink:0;padding:0;border:2px solid #fff;box-shadow:0 0 0 1px rgba(30,15,50,0.55),0 2px 5px rgba(0,0,0,0.4)}
+.rc::before{content:'';position:absolute;inset:0;background:radial-gradient(rgba(40,15,70,0.22) 1px,transparent 1.4px) 0 0/5px 5px;pointer-events:none}
+.rc .pips{position:absolute;left:17%;right:17%;top:10%;bottom:10%;display:flex;flex-direction:column;justify-content:space-evenly;align-items:center}
+.rc .row{display:flex;justify-content:space-evenly;align-items:center;width:100%}
+.rc .row svg{width:calc(var(--cw)*var(--ps));height:auto;color:#2a1a45;display:block}
+.rc .pn{position:absolute;width:calc(var(--cw)*.3);height:calc(var(--cw)*.3);border-radius:50%;background:#fff;color:#2a1a45;font-family:'Fredoka',sans-serif;font-weight:700;font-size:calc(var(--cw)*.2);line-height:1;display:flex;align-items:center;justify-content:center;font-style:normal;z-index:2;box-shadow:0 0 0 1px rgba(30,15,50,0.35)}
+.rc .pn.a{left:calc(var(--cw)*.01);top:calc(var(--cw)*.01)}
+.rc .pn.b{right:calc(var(--cw)*.01);top:calc(var(--cw)*.01)}
+.rc .pn.c{left:calc(var(--cw)*.01);bottom:calc(var(--cw)*.01);transform:rotate(180deg)}
+.rc .pn.d{right:calc(var(--cw)*.01);bottom:calc(var(--cw)*.01);transform:rotate(180deg)}
+.rc.s0{--sc:#3aa7d6;--sl:#eaf8fd}
+.rc.s1{--sc:#f2b81c;--sl:#fff6cc}
+.rc.s2{--sc:#e8358f;--sl:#ffd9ec}
+.rc.s3{--sc:#6e45a8;--sl:#e6dbf7}
+.rc.mini{--cw:40px;--ch:58px}
+.rc.fresh{box-shadow:0 0 0 3px #ffd54a,0 2px 5px rgba(0,0,0,0.45)}
+.rc.win{box-shadow:0 0 0 3px var(--success),0 2px 5px rgba(0,0,0,0.45)}
+.rc.legal{box-shadow:0 0 0 2px var(--ink),0 0 0 4px rgba(255,213,74,0.95)}
+.rc.dim{opacity:0.4;filter:saturate(0.5)}
+.rc.sel{transform:translateY(-12px);box-shadow:0 0 0 2px #fff,0 0 0 5px var(--pink)}
+button.rc{cursor:pointer;transition:transform 0.12s}
+button.rc:hover:not(:disabled){transform:translateY(-6px)}
+button.rc.sel:hover:not(:disabled){transform:translateY(-12px)}
+button.rc:disabled{cursor:default}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:14px}
+.back{width:9px;height:14px;border-radius:2px;background:radial-gradient(circle at 50% 50%,#fff 0 22%,#6e45a8 26%);border:1px solid #fff;box-shadow:0 0 0 1px rgba(30,15,50,0.55)}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.seat.top .backs,.seat.left .backs,.seat.right .backs{display:grid;grid-template-columns:repeat(7,9px);max-width:none}
+.cchip{display:inline-flex;align-items:center;justify-content:center;gap:2px;min-width:24px;height:20px;padding:0 5px;border-radius:5px;font-family:'Fredoka',sans-serif;font-weight:600;font-size:12px;line-height:1;background:var(--sc,#888);color:var(--tx,#fff);border:1px solid rgba(30,15,50,0.5)}
+.cchip svg{width:11px;height:11px;display:block}
+.cchip.s0{--sc:#3aa7d6;--tx:#06303f} .cchip.s1{--sc:#f2b81c;--tx:#3a2a00} .cchip.s2{--sc:#e8358f;--tx:#fff} .cchip.s3{--sc:#6e45a8;--tx:#fff}
+
+.table{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr);gap:8px;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin:0 0 14px}
+.table.n3{grid-template-areas:"left center right" "bottom bottom bottom"}
+.table.n4{grid-template-areas:". top ." "left center right" "bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center} .seat.bottom{grid-area:bottom}
+.seat.leader{border:1px dashed rgba(232,53,143,0.8);background:rgba(232,53,143,0.05)}
+.seat.active{border:2px solid var(--pink);background:rgba(255,213,74,0.35);box-shadow:0 0 0 2px #ffd54a}
+.seat.winner{border:2px solid var(--success);background:rgba(23,122,76,0.12)}
+.seat-name{font-weight:600;font-size:13px;overflow-wrap:anywhere}
+.seat-name .nm{display:inline-block;padding:2px 10px;border-radius:999px;color:#24163a;font-weight:700;border:1px solid rgba(42,24,64,0.35)}
+.seat-meta{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(42,24,64,0.09);border-radius:4px;padding:2px 6px;color:var(--text)}
+.tag b{color:var(--pink)}
+.tag.goal{background:rgba(232,53,143,0.15);color:#8a1d56;font-weight:700}
+.tag.ok{background:rgba(23,122,76,0.16);color:#0f5a36;font-weight:700}
+.tag.ko{background:rgba(179,38,30,0.14);color:#8f1d17;font-weight:700}
+.rolebox{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap;min-height:22px;font-size:11px}
+.tableau{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:62px;min-width:44px;padding:3px;border-radius:8px;background:rgba(42,24,64,0.05)}
+.slot{display:inline-block;width:40px;height:58px;border:1px dashed rgba(42,24,64,0.4);border-radius:6px}
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.45;color:var(--text-soft);min-width:0}
+.center b{color:var(--pink)}
+.rbox{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;font-size:12px;font-family:'Fredoka',sans-serif;border:2px solid var(--ink)}
+.rbox svg{width:15px;height:15px;display:block}
+.rbox.r2{background:var(--pink)}
+.trumpbox{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;background:#3aa7d6;color:#06303f;font-weight:700;font-size:11px;font-family:'Fredoka',sans-serif;border:1px solid rgba(30,15,50,0.5)}
+.trumpbox svg{width:14px;height:14px;display:block}
+.leadbox{display:inline-flex;align-items:center;gap:5px;font-size:11px}
+
+/* tabellone: una colonna per presa del Round I, una riga per piazzamento */
+.board{max-width:720px;margin:0 auto;display:grid;grid-template-columns:22px repeat(13,minmax(0,1fr));gap:2px;background:var(--ink);padding:2px;border-radius:8px}
+.board>div{min-width:0}
+.bh{display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;font-family:'Fredoka',sans-serif;font-weight:700;font-size:10px;line-height:1;min-height:18px;border-radius:3px}
+.bh.cur{background:var(--pink)}
+.bl{display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;font-family:'Fredoka',sans-serif;font-weight:700;font-size:9px;border-radius:3px}
+.bcell{background:#fff;display:flex;align-items:center;justify-content:center;aspect-ratio:1/1;border-radius:3px;position:relative}
+.bcell.cur{box-shadow:inset 0 0 0 2px var(--pink)}
+.mk{width:84%;aspect-ratio:1/1;border-radius:50%;font-family:'Fredoka',sans-serif;font-size:9px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;color:#24163a;border:1.5px solid var(--ink)}
+.mk.off{opacity:.3;border-style:dashed}
+.mk.pend{box-shadow:0 0 0 2px var(--pink)}
+.tbrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:12px;color:var(--text-soft)}
+.tbrow .tbp{display:inline-flex;align-items:center;gap:3px}
+.tbrow .mk{width:16px;height:16px;aspect-ratio:auto}
+.tbrow b{color:var(--text)}
+
+.scorebox{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:14px}
+.scorebox h3{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em;margin-bottom:8px}
+.recap{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+details.rules{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+details.hist{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:14px}
+details.hist summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.hist[open] summary{margin-bottom:8px}
+.hc{display:flex;flex-direction:column;gap:2px;align-items:center}
+.hc .l2{opacity:.95}
+.hc .pl{font-size:10px;color:var(--text-soft)}
+.rtext h4{font-family:'Fredoka',sans-serif;font-weight:600;font-size:16px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul,.rtext ol{padding-left:20px}
+.rtext b{color:var(--text)}
+
+@media(max-width:600px){
+  .logo .t{font-size:42px}
+  .logo .rw{width:34px;height:34px;flex-basis:34px}
+  :root{--cw:36px;--ch:53px}
+  .rc{border-radius:5px;border-width:1.5px}
+  .rc.mini{--cw:34px;--ch:50px}
+  .slot{width:34px;height:50px}
+  .table{padding:8px;gap:6px}
+  .back{width:7px;height:11px}
+  .seat.top .backs,.seat.left .backs,.seat.right .backs{grid-template-columns:repeat(7,7px)}
+  .hand{gap:3px}
+  .seat{padding:6px 3px}
+  table.score td,table.score th{padding:5px 4px}
+  .board{grid-template-columns:18px repeat(13,minmax(0,1fr));gap:1px}
+  .mk{font-size:8px}
+}
+@media(max-width:380px){.topbar{gap:6px}.logo .t{font-size:36px}.badge{padding:4px 9px}}
+</style>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a0c10">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="/pwa.js" defer></script>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script src="/tt/shared/core.js"></script>
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+// 4 semi, 13 carte ciascuno: il seme 0 (Cassette, blu) è sempre briscola. id = seme*13 + (rango-1).
+const SUITS = [
+  {n:'Cassette', sym:'cass'},
+  {n:'Occhiali', sym:'shade'},
+  {n:'Pattini',  sym:'skate'},
+  {n:'TV',       sym:'tv'}
+];
+const CARDS = []; for(let s=0;s<4;s++) for(let r=1;r<=13;r++) CARDS.push({id:s*13+r-1,s,r});
+const NT = 13;                                  // prese per round
+const NAMES = ['Tu','AI Neon','AI Disco','AI Walkman'];
+const SEATC = ['#ffd7a8','#cfe8c0','#b9e0ea','#f3c3d6'];
+const HUM = 0;
+const POS = {3:['bottom','left','right'],4:['bottom','left','top','right']};
+const HANDS_OPTS = [1,2,3,4];
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+const OPT = {undo:true, hands:1};
+try{ let s=localStorage.getItem('rw-undo'); if(s!==null) OPT.undo=s==='1'; s=Number(localStorage.getItem('rw-hands')); if(HANDS_OPTS.includes(s)) OPT.hands=s; }catch(e){}
+const cname = c => `${c.r} ${SUITS[c.s].n}`;
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.r-b.r);
+const plural = (n,a,b) => n===1?a:b;
+const sgn = v => v>0?'+'+v:String(v);
+const ord = k => k+'°';
+const shortName = p => P(p).name.replace(/^AI /,'');
+const mpts = place => place===1?2:1;            // un marker sul 1° posto vale 2 punti, gli altri 1
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// forza di una carta nella presa: briscola, poi seme di mano, poi gli altri semi (questi ultimi possono pareggiare)
+const keyR = (c,ls) => c.s===0?200+c.r:(c.s===ls?100+c.r:c.r);
+function legalCards(hand,plays){
+  if(!plays.length) return hand;
+  const ls=plays[0].c.s, f=hand.filter(c=>c.s===ls);
+  return f.length?f:hand;
+}
+// piazzamenti di una presa. I pari merito (stesso numero in semi non briscola e non di mano) li ordina l'ultimo di loro a giocare: tieFn(gruppo in ordine di gioco, primo posto) -> ordine
+function orderOf(plays,tieFn){
+  const ls=plays[0].c.s;
+  const arr=plays.map((x,i)=>({p:x.p,k:keyR(x.c,ls),i})).sort((a,b)=>b.k-a.k);
+  const order=[], ties=[]; let i=0;
+  while(i<arr.length){
+    let j=i; while(j+1<arr.length&&arr[j+1].k===arr[i].k) j++;
+    if(j>i){
+      const grp=arr.slice(i,j+1).sort((a,b)=>a.i-b.i).map(x=>x.p), start=order.length+1;
+      const ord=tieFn?tieFn(grp,start):grp;
+      ties.push({grp,start,ord}); order.push(...ord);
+    }else order.push(arr[i].p);
+    i=j+1;
+  }
+  return {order,ties};
+}
+function permutations(a){
+  if(a.length<=1) return [a.slice()];
+  const out=[]; a.forEach((x,i)=>{ permutations(a.filter((_,j)=>j!==i)).forEach(r=>out.push([x,...r])); });
+  return out;
+}
+// Round I: chi decide si mette per ultimo nel gruppo, gli altri in ordine casuale
+const tieR1 = grp => { const ch=grp[grp.length-1], o=shuffle(grp.slice(0,-1)); o.push(ch); return o; };
+// Round II: si sceglie l'ordine che fa centrare il proprio obiettivo (se possibile) e, in secondo luogo, fa mancare quello degli altri
+const tieR2 = pl1t => (grp,start) => {
+  const ch=grp[grp.length-1]; let best=grp, bv=-1e9;
+  for(const o of permutations(grp)){
+    let v=Math.random()*0.01;
+    o.forEach((q,i)=>{ if(start+i===pl1t[q]) v+=q===ch?mpts(pl1t[q]):-0.3*mpts(pl1t[q]); });
+    if(v>bv){ bv=v; best=o; }
+  }
+  return best;
+};
+
+// ═════════════════════════ AI ═════════════════════════
+// Round II (informazione completa: le mani sono le 13 carte giocate da ciascuno nel Round I, che sono pubbliche): ognuno prova a ripetere il piazzamento
+// della presa corrispondente. Politica veloce = ognuno gioca la carta del Round I se è legale, altrimenti quella che si avvicina di più al suo obiettivo;
+// la scelta vera valuta ogni carta legale simulando il resto del Round II con questa politica.
+// Round I (informazione parziale): Monte Carlo sulle mani nascoste; il resto del Round I è simulato a caso, il Round II con la politica veloce.
+const AIP = {ms:110, minW:3, maxW:80};
+const TUN = {wo:0.25, tbw:0.3, closeW:0.05, deep:1};
+function pnow(sim,c,ls){ const k=keyR(c,ls); let n=1; for(const x of sim) if(keyR(x.c,ls)>k) n++; return n; }
+// probabilità di centrare il piazzamento `tg` e distanza attesa per p, dato l'insieme completo delle carte `sim`
+function hitOf(sim,p,tg){
+  const ls=sim[0].c.s, me=sim.find(x=>x.p===p), k=keyR(me.c,ls); let hi=0, eq=0;
+  for(const x of sim){ const kk=keyR(x.c,ls); if(kk>k) hi++; else if(kk===k) eq++; }
+  if(eq===1) return {h:hi+1===tg?1:0,pl:hi+1};
+  const last=sim.filter(x=>keyR(x.c,ls)===k).map(x=>x.p).pop();
+  const inSpan=tg>=hi+1&&tg<=hi+eq;
+  return {h:inSpan?(last===p?1:1/eq):0,pl:hi+1+(eq-1)/2};
+}
+function predR2(S,q,sim,ls,ti){
+  const hand=S.h[q]; let L=hand.filter(c=>c.s===ls); if(!L.length) L=hand;
+  const pref=S.c1[ti][q]; if(L.includes(pref)) return pref;
+  let best=L[0], bv=1e9; const tg=S.pl1[ti][q];
+  for(const c of L){ const d=Math.abs(pnow(sim,c,ls)-tg)+c.r*0.001; if(d<bv){ bv=d; best=c; } }
+  return best;
+}
+function fastR2(S,p){
+  const hand=S.h[p], plays=S.plays, L=legalCards(hand,plays);
+  if(L.length===1) return L[0];
+  const n=S.n, k0=plays.length, ti=NT-S.j, tg=S.pl1[ti][p], pref=S.c1[ti][p];
+  const later=[]; for(let k=k0+1;k<n;k++) later.push((S.leader+k)%n);
+  let best=L[0], bv=1e9;
+  for(const c of L){
+    const ls=k0?plays[0].c.s:c.s, sim=plays.concat([{p,c}]);
+    for(const q of later) sim.push({p:q,c:predR2(S,q,sim,ls,ti)});
+    const r=hitOf(sim,p,tg);
+    const v=mpts(tg)*(1-r.h)+TUN.closeW*Math.abs(r.pl-tg)+(c===pref?0:0.01)+Math.random()*0.002;
+    if(v<bv){ bv=v; best=c; }
+  }
+  return best;
+}
+function r2Finish(S){
+  const n=S.n, ti=NT-S.j;
+  for(let k=S.plays.length;k<n;k++){
+    const p=(S.leader+k)%n, c=(S.me===p&&TUN.deep)?deepR2(S,p):fastR2(S,p);
+    S.h[p].splice(S.h[p].indexOf(c),1); S.plays.push({p,c});
+  }
+  const o=orderOf(S.plays,tieR2(S.pl1[ti])).order; let hi=-1;
+  o.forEach((p,i)=>{ if(S.pl1[ti][p]===i+1){ S.rem[p]-=mpts(i+1); if(hi<0) hi=p; } });
+  if(hi>=0) S.tb[hi]++;
+  S.leader=o[0]; S.plays=[]; S.j++;
+}
+// il giocatore valutato non gioca con la politica veloce ma sceglie, a ogni presa, simulando il resto con la politica veloce
+function deepR2(S,p){
+  const L=legalCards(S.h[p],S.plays);
+  if(L.length===1) return L[0];
+  let best=L[0], bv=-1e9;
+  for(const c of L){
+    const X=cloneR2(S); X.me=-1; X.h[p].splice(X.h[p].indexOf(c),1); X.plays.push({p,c}); r2Play(X);
+    const v=valR2(X,p)+Math.random()*0.01; if(v>bv){ bv=v; best=c; }
+  }
+  return best;
+}
+function r2Play(S){ while(S.j<=NT) r2Finish(S); }
+function valR2(S,p){
+  let o=0; for(let q=0;q<S.n;q++) if(q!==p) o+=S.rem[q];
+  return -S.rem[p]+TUN.wo*o/(S.n-1)+TUN.tbw*S.tb[p];
+}
+function cloneR2(S){ return {n:S.n,h:S.h.map(x=>x.slice()),pl1:S.pl1,c1:S.c1,leader:S.leader,j:S.j,plays:S.plays.map(x=>({p:x.p,c:x.c})),rem:S.rem.slice(),tb:S.tb.slice(),me:-1}; }
+// stato del Round II dal punto di vista pubblico: le mani sono le carte giocate nel Round I meno quelle già giocate nel Round II
+function r2State(){
+  const n=G.n, played=Array.from({length:n},()=>new Set());
+  G.r2.forEach(r=>r.plays.forEach(x=>played[x.p].add(x.c.id))); G.plays.forEach(x=>played[x.p].add(x.c.id));
+  const h=Array.from({length:n},(_,p)=>G.c1.map(a=>a[p]).filter(c=>!played[p].has(c.id)));
+  return {n,h,pl1:G.pl1,c1:G.c1,leader:G.leader,j:G.trick,plays:G.plays.map(x=>({p:x.p,c:x.c})),rem:G.remPts.slice(),tb:G.tb.slice()};
+}
+function aiR2(p){
+  const S0=r2State(), L=legalCards(S0.h[p],S0.plays);
+  if(L.length===1) return L[0];
+  let best=L[0], bv=-1e9;
+  for(const c of L){
+    const S=cloneR2(S0); S.me=p; S.h[p].splice(S.h[p].indexOf(c),1); S.plays.push({p,c});
+    r2Play(S);
+    const v=valR2(S,p)+Math.random()*0.01;
+    if(v>bv){ bv=v; best=c; }
+  }
+  return best;
+}
+// mondo possibile del Round I dal punto di vista di p: le sue carte sono vere, le altre sono campionate tra quelle non viste rispettando i semi mancanti
+function sampleW(p){
+  const n=G.n, hands=Array.from({length:n},()=>[]); hands[p]=G.hands[p].slice();
+  const seen=new Set(G.hands[p].map(c=>c.id)); G.r1.forEach(r=>r.plays.forEach(x=>seen.add(x.c.id))); G.plays.forEach(x=>seen.add(x.c.id));
+  const pool=shuffle(G.deck.filter(c=>!seen.has(c.id))), cap=new Array(n).fill(0);
+  for(let q=0;q<n;q++) if(q!==p) cap[q]=G.hands[q].length;
+  const vs=[0,0,0,0]; for(let q=0;q<n;q++) if(q!==p) for(let s=0;s<4;s++) if(G.void[q][s]) vs[s]++;
+  pool.sort((a,b)=>vs[b.s]-vs[a.s]);
+  for(const c of pool){
+    let tw=0; const el=[];
+    for(let q=0;q<n;q++) if(q!==p&&cap[q]>0&&!G.void[q][c.s]){ el.push(q); tw+=cap[q]; }
+    if(!el.length) for(let q=0;q<n;q++) if(q!==p&&cap[q]>0){ el.push(q); tw+=cap[q]; }
+    let x=Math.random()*tw, q=el[0]; for(const e of el){ x-=cap[e]; if(x<0){ q=e; break; } }
+    cap[q]--; hands[q].push(c);
+  }
+  return {n,hands,leader:G.leader,plays:G.plays.map(x=>({p:x.p,c:x.c})),tn:G.trick,c1:G.c1.map(a=>a.slice()),pl1:G.pl1.map(a=>a.slice()),last:-1};
+}
+function cloneW(W){ return {n:W.n,hands:W.hands.map(h=>h.slice()),leader:W.leader,plays:W.plays.map(x=>({p:x.p,c:x.c})),tn:W.tn,c1:W.c1.map(a=>a.slice()),pl1:W.pl1.map(a=>a.slice()),last:W.last}; }
+function r1Finish(W){
+  const n=W.n;
+  for(let k=W.plays.length;k<n;k++){
+    const p=(W.leader+k)%n, L=legalCards(W.hands[p],W.plays), c=L[rnd(L.length)];
+    W.hands[p].splice(W.hands[p].indexOf(c),1); W.plays.push({p,c});
+  }
+  const o=orderOf(W.plays,tieR1).order, c1=new Array(n), pl=new Array(n);
+  W.plays.forEach(x=>{ c1[x.p]=x.c; }); o.forEach((p,i)=>{ pl[p]=i+1; });
+  W.c1.push(c1); W.pl1.push(pl); W.last=o[n-1]; W.leader=o[0]; W.plays=[]; W.tn++;
+}
+function wToR2(W){
+  const n=W.n, rem=new Array(n).fill(0);
+  W.pl1.forEach(pl=>pl.forEach((v,p)=>{ rem[p]+=mpts(v); }));
+  return {n,h:Array.from({length:n},(_,p)=>W.c1.map(a=>a[p])),pl1:W.pl1,c1:W.c1,leader:W.last,j:1,plays:[],rem,tb:new Array(n).fill(0)};
+}
+function aiR1(p){
+  const L=legalCards(G.hands[p],G.plays);
+  if(L.length===1) return L[0];
+  const tot=L.map(()=>0), t0=performance.now(), ms=window.RW_AIMS||AIP.ms; let nW=0;
+  while(nW<AIP.minW||(performance.now()-t0<ms&&nW<AIP.maxW)){
+    const W=sampleW(p);
+    L.forEach((c,i)=>{
+      const X=cloneW(W); X.hands[p].splice(X.hands[p].indexOf(c),1); X.plays.push({p,c});
+      while(X.tn<=NT) r1Finish(X);
+      const S=wToR2(X); r2Play(S); tot[i]+=valR2(S,p);
+    });
+    nW++;
+  }
+  let bi=0; tot.forEach((v,i)=>{ if(v>tot[bi]) bi=i; });
+  return L[bi];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,handsN:OPT.hands,hn:0,round:1,msg:'',log:[],over:null,show:null,phase:'',turn:-1,
+     deck:[],hands:[],orig:[],plays:[],leader:0,first:0,trick:0,r1:[],r2:[],c1:[],pl1:[],ok:[],remPts:[],tb:[],void:[],res:null,fresh:-1,removed:-1,
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,tb:0,hist:[]}))};
+  G.first=rnd(n);
+  run();
+}
+const curT = () => G.round===1?G.trick:NT+1-G.trick;      // numero della presa del Round I a cui si riferisce la presa in corso
+function dealHand(){
+  const n=G.n;
+  let deck=CARDS.slice();
+  if(n===3){ G.removed=1+rnd(3); deck=deck.filter(c=>c.s!==G.removed); } else G.removed=-1;
+  G.deck=deck; const sh=shuffle(deck.slice());
+  G.orig=G.pl.map((_,i)=>sortHand(sh.slice(i*NT,(i+1)*NT)));
+  G.hands=G.orig.map(h=>h.slice());
+  G.void=G.pl.map(()=>[false,false,false,false]);
+  G.r1=[]; G.r2=[]; G.c1=[]; G.pl1=[]; G.ok=[]; G.remPts=G.pl.map(()=>0); G.tb=G.pl.map(()=>0);
+  G.plays=[]; G.leader=G.first; G.trick=0; G.round=1; G.res=null; G.fresh=-1; G.phase='play';
+}
+function humanTie(tg){
+  const g=G, t=curT(), opts=permutations(tg.grp).map(o=>{
+    let lab=o.map((q,i)=>`${ord(tg.start+i)} ${shortName(q)}`).join(' · ');
+    if(G.round===2){ const hit=o.filter((q,i)=>G.pl1[t-1][q]===tg.start+i).map(shortName); lab+=hit.length?` (centrano l'obiettivo: ${hit.join(', ')})`:' (nessuno centra l\'obiettivo)'; }
+    return {label:lab,value:o};
+  });
+  return ask(HUM,`Pari merito: scegli l'ordine dal ${ord(tg.start)} posto`,opts);
+}
+function humanTurn(){
+  const g=G, L=legalCards(G.hands[HUM],G.plays);
+  if(L.length===1){ status(`Presa ${G.trick}: hai una sola carta giocabile, ${cname(L[0])}.`); return sleep(1000).then(()=>L[0]); }
+  return new Promise((res,rej)=>{ PR={type:'turn',legal:new Set(L.map(c=>c.id)),sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function tapCard(id){
+  if(!PR||PR.type!=='turn'||!PR.legal.has(id)) return;
+  const c=G.hands[HUM].find(x=>x.id===id);
+  if(!OPT.undo){ const r=PR.res; PR=null; render(); r(c); return; }
+  PR.sel=PR.sel===id?null:id; render();
+}
+function goTurn(kind){
+  if(!PR||PR.type!=='turn'||PR.sel==null) return;
+  if(kind==='x'){ PR.sel=null; render(); return; }
+  const c=G.hands[HUM].find(x=>x.id===PR.sel), r=PR.res; PR=null; render(); r(c);
+}
+function turnHint(){
+  const ls=G.plays.length?G.plays[0].c.s:-1, h=G.hands[HUM];
+  let s;
+  if(ls<0) s='sei di mano: gioca una carta qualsiasi.';
+  else if(h.some(c=>c.s===ls)) s=`devi rispondere al seme ${SUITS[ls].n}.`;
+  else s=`non hai carte ${SUITS[ls].n}: puoi giocare qualsiasi carta.`;
+  let a;
+  if(G.round===1) a=`<b>Round I</b>: il piazzamento che ottieni in ogni presa dovrai ripeterlo nel Round II, che si gioca al contrario (un 1° posto non ripetuto costa 2 punti, gli altri 1).`;
+  else{ const t=curT(); a=`<b>Round II</b> · presa ${G.trick}/${NT} (è la presa ${t} del Round I): obiettivo <b>${ord(G.pl1[t-1][HUM])} posto</b>. Nel Round I giocasti ${esc(cname(G.c1[t-1][HUM]))}.`; }
+  return `Vince la carta più alta: prima la briscola (Cassette, blu), poi il seme di mano, poi gli altri semi. Tocca a te: ${s}<br>${a}`;
+}
+function previewText(c){
+  const plays=G.plays, ls=plays.length?plays[0].c.s:c.s, sim=plays.concat([{p:HUM,c}]);
+  const r=G.n-plays.length-1, k=keyR(c,ls);
+  let hi=0, eq=0; for(const x of plays){ const kk=keyR(x.c,ls); if(kk>k) hi++; else if(kk===k) eq++; }
+  let st;
+  if(!plays.length) st=`sei di mano (seme di mano: ${SUITS[c.s].n})`;
+  else st=`tra le carte già giocate saresti ${ord(hi+1)}${eq?` a pari merito con ${eq} ${plural(eq,'altra carta','altre carte')} (decide l'ultimo a giocare)`:''}${r?`; ${r} ${plural(r,'giocatore deve','giocatori devono')} ancora giocare e può cambiare il piazzamento`:''}`;
+  let g='';
+  if(G.round===2) g=` Obiettivo: ${ord(G.pl1[curT()-1][HUM])}.`;
+  return `${esc(cname(c))}: ${st}.${g}`;
+}
+async function oneTrick(){
+  const n=G.n, rd=G.round; G.trick++; G.plays=[]; G.res=null; G.fresh=-1;
+  const t=curT();
+  logMsg(`Round ${rd===1?'I':'II'} · presa ${G.trick}/${NT}${rd===2?` (presa ${t} del Round I)`:''}: di mano ${P(G.leader).name}.`);
+  status(`Round ${rd===1?'I':'II'} · presa ${G.trick}/${NT}: di mano ${P(G.leader).name}.`);
+  await sleep(700);
+  const leader=G.leader;
+  for(let k=0;k<n;k++){
+    const p=(leader+k)%n, pl=P(p), ls=G.plays.length?G.plays[0].c.s:-1;
+    G.turn=p; status(`Round ${rd===1?'I':'II'} · presa ${G.trick}/${NT} · tocca a ${pl.name}.`);
+    let c;
+    if(p===HUM) c=await humanTurn();
+    else{ await sleep(600); c=rd===1?aiR1(p):aiR2(p); }
+    if(rd===1&&ls>=0&&c.s!==ls) G.void[p][ls]=true;
+    G.hands[p].splice(G.hands[p].indexOf(c),1); G.plays.push({p,c}); G.fresh=p;
+    logMsg(`${pl.name} gioca ${cname(c)}${ls<0?' (di mano)':c.s!==ls?` (non ha ${SUITS[ls].n})`:''}.`);
+  }
+  G.turn=-1;
+  // pari merito: li ordina l'ultimo giocatore del gruppo
+  const base=orderOf(G.plays,g=>g), ords=[];
+  for(const tg of base.ties){
+    const ch=tg.grp[tg.grp.length-1];
+    let o;
+    if(ch===HUM){ status(`Hai giocato per ultimo nel pari merito (${tg.grp.map(shortName).join(', ')}): decidi tu l'ordine.`); o=await humanTie(tg); }
+    else o=rd===1?tieR1(tg.grp):tieR2(G.pl1[t-1])(tg.grp,tg.start);
+    ords.push(o);
+    logMsg(`Pari merito tra ${tg.grp.map(shortName).join(', ')}: ${shortName(ch)} (ultimo a giocare) li ordina dal ${ord(tg.start)} posto: ${o.map(shortName).join(', ')}.`);
+  }
+  const q=ords.slice(), fin=orderOf(G.plays,()=>q.shift()), order=fin.order;
+  const plays=G.plays.map(x=>({p:x.p,c:x.c}));
+  let m;
+  if(rd===1){
+    const c1=new Array(n), pl=new Array(n); plays.forEach(x=>{ c1[x.p]=x.c; }); order.forEach((p,i)=>{ pl[p]=i+1; });
+    G.c1[t-1]=c1; G.pl1[t-1]=pl; G.r1[t-1]={leader,plays,order};
+    m=`Piazzamenti: ${order.map((p,i)=>`${ord(i+1)} ${shortName(p)}`).join(' · ')}.`;
+  }else{
+    const okv=new Array(n).fill(false); let hi=-1;
+    order.forEach((p,i)=>{ if(G.pl1[t-1][p]===i+1){ okv[p]=true; G.remPts[p]-=mpts(i+1); if(hi<0) hi=p; } });
+    if(hi>=0) G.tb[hi]++;
+    G.ok[t-1]=okv; G.r2[G.trick-1]={leader,plays,order,t};
+    m=`Piazzamenti: ${order.map((p,i)=>`${ord(i+1)} ${shortName(p)}`).join(' · ')}. Centrano l'obiettivo: ${okv.some(Boolean)?G.pl.filter(x=>okv[x.id]).map(x=>shortName(x.id)).join(', '):'nessuno'}.`+(hi>=0?` ${shortName(hi)} mette un marker nello spareggio.`:'');
+  }
+  G.res={order,okv:rd===2?G.ok[t-1]:null,t};
+  G.leader=order[0]; G.lastLow=order[n-1];
+  status(m); logMsg(m);
+  await sleep(2400);
+}
+async function scoring(){
+  const pts=G.remPts.slice();
+  G.pl.forEach(p=>{ p.total+=pts[p.id]; p.tb+=G.tb[p.id]; p.hist.push(pts[p.id]); });
+  logMsg(`Mano ${G.hn} conclusa: ${G.pl.map(p=>`${p.name} ${pts[p.id]} (totale ${p.total})`).join(' · ')}.`);
+  const last=G.hn===G.handsN;
+  G.show={pts,tb:G.tb.slice(),last};
+  status(last?'Partita conclusa: ecco il risultato.':`Mano ${G.hn} conclusa.`);
+  await ask(HUM,'Punteggio della mano',[{label:last?'Mostra risultato finale':'Prossima mano',value:1}]);
+  G.show=null;
+}
+async function run(){
+  const g=G;
+  try{
+    status(`Buona partita a Rewind, ${P(HUM).name}!`);
+    await ask(HUM,`Primo di mano: ${P(g.first).name} · briscola: Cassette (blu)`,[{label:'Ok, si parte',value:1}]);
+    for(let h=1;h<=g.handsN;h++){
+      g.hn=h; dealHand();
+      logMsg(`— Mano ${h}/${g.handsN}${g.n===3?` (senza il seme ${SUITS[g.removed].n})`:''}: Round I, di mano ${P(g.first).name} —`);
+      for(let i=0;i<NT;i++) await oneTrick();
+      // Rewind: stesse carte, ma al contrario
+      g.remPts=g.pl.map(p=>g.pl1.reduce((a,x)=>a+mpts(x[p.id]),0));
+      g.round=2; g.trick=0; g.plays=[]; g.res=null; g.phase='play';
+      g.hands=g.orig.map(x=>x.slice()); g.leader=g.lastLow; g.tb=g.pl.map(()=>0);
+      logMsg(`— Rewind! Round II: le stesse carte, dall'ultima presa. Comincia ${P(g.leader).name} (ultimo nella presa ${NT}) —`);
+      status(`Rewind! Si rigioca la stessa mano al contrario: l'obiettivo è ripetere i piazzamenti. Comincia ${P(g.leader).name}.`);
+      await ask(HUM,`Round II · comincia ${P(g.leader).name} (ultimo nella presa ${NT} del Round I)`,[{label:'Inizia il Round II',value:1}]);
+      for(let i=0;i<NT;i++) await oneTrick();
+      g.plays=[]; g.res=null; g.phase='end'; g.turn=-1;
+      await scoring();
+      g.first=(g.first+1)%g.n;
+    }
+    const m=Math.min(...g.pl.map(p=>p.total)); let w=g.pl.filter(p=>p.total===m);
+    if(w.length>1){ const mt=Math.max(...w.map(p=>p.tb)); w=w.filter(p=>p.tb===mt); }
+    g.over={winners:w.map(p=>p.id)};
+    g.turn=-1; g.show=null; render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const ICON = {
+  cass:'<rect x="1.500" y="5" width="21" height="14" rx="2.400"/><rect x="5.500" y="8" width="13" height="6" rx="3" fill="#fff" fill-opacity=".9"/><circle cx="9" cy="11" r="1.600"/><circle cx="15" cy="11" r="1.600"/><path d="M7 19l2-3h6l2 3z" fill="#fff" fill-opacity=".5"/>',
+  shade:'<path d="M1.500 7.500h21l-.6 4.200c-.4 3.200-2.400 5.300-5.200 5.300-2.300 0-3.800-1.300-4.700-3.500h-1.800C9.300 15.700 7.800 17 5.500 17 2.700 17 .7 15 .6 11.700z"/><path d="M3.500 10h5M15.500 10h5" stroke="#fff" stroke-opacity=".7" stroke-width="1.100" fill="none"/>',
+  skate:'<path d="M4 3h6.500v7.500L20 13v4.500H3.500z"/><circle cx="7" cy="20.200" r="2.300"/><circle cx="16.500" cy="20.200" r="2.300"/>',
+  tv:'<rect x="2" y="7" width="20" height="14" rx="2.400"/><rect x="4.500" y="9.500" width="12" height="9" rx="1.500" fill="#fff" fill-opacity=".85"/><circle cx="19" cy="12" r="1.100" fill="#fff"/><circle cx="19" cy="16" r="1.100" fill="#fff"/><path d="M8 2.500l4 4 4-4" stroke="currentColor" stroke-width="1.600" fill="none" stroke-linecap="round"/>'
+};
+const suitIcon = s => `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${ICON[SUITS[s].sym]}</svg>`;
+const RWSVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 6v12L2 12zM22 6v12l-9-6z"/></svg>';
+const PIPROWS = {1:[1],2:[1,1],3:[1,1,1],4:[2,2],5:[2,1,2],6:[2,2,2],7:[2,3,2],8:[3,2,3],9:[3,3,3],10:[3,4,3],11:[1,1,1],12:[1,1,1],13:[1,1,1]};
+const PIPSZ = {1:.4,2:.26,3:.19,4:.15};
+function rcHtml(c,cls='',tag='span',attrs=''){
+  const rows=PIPROWS[c.r], mx=Math.max(...rows), ps=c.r===1?.42:(c.r>=11?.3:(c.r<=3?.3:PIPSZ[mx]));
+  const ic=suitIcon(c.s), pips=rows.map(k=>`<span class="row">${ic.repeat(k)}</span>`).join('');
+  return `<${tag} class="rc s${c.s} ${cls}" ${attrs} style="--ps:${ps}" title="${cname(c)}"><span class="pips">${pips}</span><i class="pn a">${c.r}</i><i class="pn b">${c.r}</i><i class="pn c">${c.r}</i><i class="pn d">${c.r}</i></${tag}>`;
+}
+// la presa del seme e dei pip non deve cambiare il tag: gli attributi inline vanno uniti
+const chipHtml = c => `<span class="cchip s${c.s}" title="${cname(c)}">${suitIcon(c.s)}${c.r}</span>`;
+function tableauHtml(p){
+  const x=G.plays.find(y=>y.p===p), res=G.res;
+  if(x) return `<div class="tableau">${rcHtml(x.c,`mini ${res&&res.order[0]===p?'win':''} ${G.fresh===p&&!res?'fresh':''}`)}</div>`;
+  return `<div class="tableau">${G.phase==='play'?'<span class="slot"></span>':''}</div>`;
+}
+function flagHtml(p){
+  if(G.over) return G.over.winners.includes(p)?'<span class="flag win">Vince</span>':'';
+  return G.phase==='play'&&p===G.leader?'<span class="flag lead">Di mano</span>':'';
+}
+function placeInfo(p){
+  // piazzamento ottenuto in questa presa e, nel Round II, obiettivo e esito
+  if(G.phase!=='play') return '<div class="rolebox"></div>';
+  const t=G.trick?curT():0; let h='';
+  if(G.round===2&&t&&G.pl1[t-1]) h+=`<span class="tag goal">obiettivo ${ord(G.pl1[t-1][p])}</span>`;
+  if(G.res){
+    const i=G.res.order.indexOf(p)+1;
+    h+=`<span class="tag ${G.res.okv?(G.res.okv[p]?'ok':'ko'):''}">${ord(i)}${G.res.okv?(G.res.okv[p]?' ✓':' ✗'):''}</span>`;
+  }
+  return `<div class="rolebox">${h}</div>`;
+}
+function riskPts(p){
+  if(G.round===1) return G.pl1.reduce((a,x)=>a+(x?mpts(x[p]):0),0);
+  return G.remPts[p];
+}
+function seatHtml(p,pos){
+  const pl=P(p), active=G.turn===p, hl=G.hands[p].length;
+  let h;
+  if(p===HUM){
+    h=`<div class="hand">${G.hands[HUM].map(c=>{
+      if(PR&&PR.type==='turn'){ const lg=PR.legal.has(c.id); return rcHtml(c,`${lg?'legal':'dim'} ${PR.sel===c.id?'sel':''}`,'button',`${lg?'':'disabled'} data-t="${c.id}"`); }
+      return rcHtml(c);
+    }).join('')}</div>`;
+  }else h=`<div class="backs">${Array.from({length:hl},()=>'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag">mano <b>${hl}</b></span><span class="tag">punti <b>${riskPts(p)}</b></span><span class="tag">totale <b>${pl.total}</b></span></div>`;
+  const name=`<div class="seat-name"><span class="nm" style="background:${SEATC[p]}">${esc(pl.name)}</span>${flagHtml(p)}</div>`;
+  const tb=G.phase==='play'?tableauHtml(p):'';
+  const rb=placeInfo(p);
+  const inner=pos==='bottom'?`${tb}${name}${rb}${meta}${h}`:(pos==='top'?`${h}${name}${rb}${meta}${tb}`:`${name}${rb}${meta}${tb}${h}`);
+  const ld=G.phase==='play'&&!G.over&&p===G.leader&&G.turn<0&&!G.plays.length;
+  return `<div class="seat ${pos} ${ld?'leader':''} ${active?'active':''} ${G.over&&G.over.winners.includes(p)?'winner':''} ${G.res&&G.res.order[0]===p&&!G.over?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  const res=G.res, ls=G.plays.length?G.plays[0].c.s:-1;
+  let top='';
+  if(G.over) top='<div><b>Partita conclusa</b></div>';
+  else if(res) top=`<div>Presa a <b>${esc(P(res.order[0]).name)}</b></div>`;
+  const rb=G.round===1?`<span class="rbox">${'Round I'}</span>`:`<span class="rbox r2">${RWSVG}Round II</span>`;
+  return `<div class="center">${top}${rb}
+    <span class="trumpbox" title="La briscola batte tutti gli altri semi">${suitIcon(0)}Briscola · Cassette</span>
+    ${ls>=0&&G.phase==='play'?`<span class="leadbox">seme di mano: ${chipHtml({s:ls,r:''})}</span>`:''}
+    <div>${G.phase==='play'?`Presa <b>${Math.min(G.trick,NT)}/${NT}</b>${G.round===2&&G.trick?`<br>(presa ${curT()} del Round I)`:''}`:`Mano <b>${G.hn}/${G.handsN}</b>`}</div>
+    ${G.n===3&&G.removed>0?`<div class="hint">senza il seme ${SUITS[G.removed].n}</div>`:''}</div>`;
+}
+function boardHtml(){
+  const n=G.n, cur=G.phase==='play'&&G.trick?curT():0;
+  let h='<div class="board"><div></div>';
+  for(let t=1;t<=NT;t++) h+=`<div class="bh ${cur===t?'cur':''}">${t}</div>`;
+  for(let r=1;r<=n;r++){
+    h+=`<div class="bl">${ord(r)}</div>`;
+    for(let t=1;t<=NT;t++){
+      const rec=G.r1[t-1], p=rec?rec.order[r-1]:-1;
+      let m='';
+      if(p>=0){ const off=G.ok[t-1]&&G.ok[t-1][p]; m=`<span class="mk ${off?'off':''}" style="background:${SEATC[p]}" title="${esc(P(p).name)} · presa ${t} · ${ord(r)} posto${off?' · ripetuto':''}">${esc(shortName(p).charAt(0))}</span>`; }
+      h+=`<div class="bcell ${cur===t?'cur':''}">${m}</div>`;
+    }
+  }
+  h+='</div>';
+  const tbr=G.pl.map(p=>{ const k=p.tb+(G.tb[p.id]||0); return `<span class="tbp"><span class="mk" style="background:${SEATC[p.id]}">${esc(shortName(p.id).charAt(0))}</span><b>${k}</b></span>`; }).join('');
+  return `<div class="scorebox"><h3>TABELLONE · UNA COLONNA PER PRESA DEL ROUND I</h3>${h}<div class="tbrow">Spareggio (marker ripresi come migliori del round): ${tbr}</div>
+    <div class="hint" style="margin-top:6px">Ogni cerchio è il marker del giocatore sul piazzamento ottenuto nel Round I. Se nel Round II ottiene lo stesso piazzamento nella presa corrispondente lo toglie (cerchio sbiadito); quelli che restano valgono 2 punti sul 1° posto, 1 sugli altri.</div></div>`;
+}
+function statusTable(){
+  const rows=G.pl.map(p=>{
+    const i=p.id, left=G.r1.reduce((a,r,k)=>a+(r&&!(G.ok[k]&&G.ok[k][i])?1:0),0);
+    return `<tr class="${i===HUM?'me':''}"><td>${esc(p.name)}</td><td>${G.hands[i].length}</td><td>${left}</td><td><b>${riskPts(i)}</b></td><td>${p.tb+G.tb[i]}</td><td>${p.total}</td></tr>`;
+  }).join('');
+  return `<div class="scorebox"><h3>SITUAZIONE DELLA MANO</h3><div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Mano</th><th>Marker</th><th>${G.round===1?'Punti a rischio':'Punti ora'}</th><th>Spareggio</th><th>Totale</th></tr>${rows}</table></div></div>`;
+}
+function histHtml(){
+  if(!G.r1.length) return '';
+  const hd=G.pl.map(p=>`<th>${esc(shortName(p.id))}</th>`).join('');
+  const rows=G.r1.map((r,k)=>{
+    if(!r) return '';
+    const t=k+1, r2=G.r2.find(x=>x&&x.t===t);
+    const cells=G.pl.map(p=>{
+      const i=p.id, c=G.c1[k][i];
+      let l2='';
+      if(r2){ const x=r2.plays.find(y=>y.p===i), pl2=r2.order.indexOf(i)+1, ok=G.ok[k][i]; l2=`<span class="l2">${chipHtml(x.c)} <span class="tag ${ok?'ok':'ko'}">${ord(pl2)} ${ok?'✓':'✗'}</span></span>`; }
+      return `<td class="c"><div class="hc"><span>${chipHtml(c)} <span class="pl">${ord(G.pl1[k][i])}</span></span>${l2}</div></td>`;
+    }).join('');
+    return `<tr><td class="c"><b>${t}</b></td>${cells}</tr>`;
+  }).join('');
+  return `<details class="hist" ${HISTOPEN?'open':''}><summary>STORIA DELLA MANO (carte giocate e piazzamenti)</summary><div class="hint" style="margin-bottom:6px">Riga: presa del Round I. Sopra la carta giocata nel Round I e il piazzamento, sotto (dal Round II) la carta giocata ora e il nuovo piazzamento.</div><div class="scroll-x"><table class="score"><tr><th class="c">Presa</th>${hd}</tr>${rows}</table></div></details>`;
+}
+function scoreTable(){
+  const nr=G.pl[0].hist.length;
+  const rows=G.pl.map(p=>`<tr class="${p.id===HUM?'me':''}"><td>${esc(p.name)}</td>${p.hist.map(x=>`<td>${x}</td>`).join('')}<td><b>${p.total}</b></td><td>${p.tb}</td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Punteggi (meno è meglio)</th>${Array.from({length:nr},(_,i)=>`<th>M${i+1}</th>`).join('')}<th>Totale</th><th>Spareggio</th></tr>${rows}</table></div>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Rewind contro l'AI. Ogni mano si gioca due volte: Round I e Round II al contrario. Quante mani?</div>
+    <div class="opts">${HANDS_OPTS.map(h=>`<button class="opt ${OPT.hands===h?'on':''}" data-h="${h}">${h} ${plural(h,'mano','mani')}</button>`).join('')}</div>
+    <div class="dock-title">QUANTI GIOCATORI IN TUTTO?</div>
+    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show){
+    const rows=G.pl.map(p=>`<tr class="${p.id===HUM?'me':''}"><td>${esc(p.name)}</td><td><b>${G.show.pts[p.id]}</b></td><td>${G.show.tb[p.id]}</td><td>${p.total}</td></tr>`).join('');
+    html+=`<div class="scroll-x"><table class="score"><tr><th></th><th>Punti della mano</th><th>Marker spareggio</th><th>Totale</th></tr>${rows}</table></div>`;
+  }
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='turn'){
+    html+=`<div class="hint">${turnHint()}</div>`;
+    if(PR.sel!=null){
+      const c=G.hands[HUM].find(x=>x.id===PR.sel);
+      html+=`<div class="hint">${previewText(c)}</div><div class="opts"><button class="opt" data-go="play">${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    }else html+=`<div class="hint" style="visibility:hidden" aria-hidden="true">13 Pattini: tra le carte già giocate saresti 2° a pari merito con 1 altra carta (decide l'ultimo a giocare); 2 giocatori devono ancora giocare e può cambiare il piazzamento. Obiettivo: 4°.</div><div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 13 Occhiali</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n;
+  return `<details class="recap"><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Carte</span><span class="rv">${n===3?'39 carte (senza un seme a caso, mai le Cassette)':'52 carte'}, 13 a testa · briscola: Cassette (blu)</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">si risponde al seme se si può · si piazzano tutti: prima la briscola, poi il seme di mano, poi gli altri semi (pari merito: decide l'ultimo a giocare) · chi è 1° apre la presa dopo · le carte restano davanti a ognuno</span></div>
+    <div class="recap-row"><span class="lbl">Round I</span><span class="rv">13 prese, ognuno segna il proprio piazzamento di ogni presa sul tabellone</span></div>
+    <div class="recap-row"><span class="lbl">Round II</span><span class="rv">si rigiocano le stesse 13 carte al contrario (la presa 13 diventa la prima) · apre l'ultimo della presa 13 · chi ottiene lo stesso piazzamento toglie il marker</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">marker rimasti: 2 punti sul 1° posto, 1 sugli altri · vince il totale più basso (spareggio: più marker nello spareggio)</span></div></details>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Che gioco è</h4>
+<p>Rewind è un gioco di prese per 3–4 giocatori con obbligo di rispondere al seme e briscola fissa. Si gioca <b>due volte la stessa mano</b>: prima normalmente (Round I), poi al contrario (Round II). L'obiettivo è ottenere nel Round II lo <b>stesso piazzamento</b> che si è avuto nella presa corrispondente del Round I. L'ultima presa del primo round è la prima del secondo!</p>
+<h4>Componenti</h4>
+<ul><li><b>52 carte</b>, numeri 1–13 in quattro semi: Cassette (blu, <b>briscola</b>), Occhiali, Pattini, TV.</li>
+<li>Il <b>tabellone</b> con 13 colonne (le prese) e righe 1°–4° (con 3 giocatori la quarta non serve), più l'area dello <b>spareggio</b>.</li>
+<li>13 <b>marker</b> per giocatore.</li></ul>
+<h4>Preparazione</h4>
+<p>Con 4 giocatori si mescolano tutte le 52 carte e si distribuiscono. Con 3 giocatori si toglie un seme (non le Cassette) e si distribuiscono le 39 carte rimaste. Ognuno ha 13 carte.</p>
+<h4>Round I</h4>
+<ol><li>Comincia il giocatore alla sinistra del mazziere: gioca la carta che vuole. Poi si gioca in senso orario, una carta a testa, <b>rispondendo al seme</b> se si può (altrimenti qualsiasi carta).</li>
+<li>Le carte giocate restano davanti a ciascuno (non si danno al vincitore) e ogni giocatore mette un marker sul tabellone nella colonna della presa, sulla riga del <b>piazzamento</b> ottenuto.</li>
+<li>Forza delle carte: prima la <b>briscola</b> (Cassette), poi il <b>seme di mano</b>, poi gli <b>altri semi</b>; a parità di categoria vince il numero più alto. Se due o più carte pareggiano (stesso numero in semi che non sono né briscola né di mano) <b>l'ultimo giocatore che ha giocato in quel pareggio decide</b> i piazzamenti di tutti i giocatori in pareggio.</li>
+<li>Chi è 1° apre la presa successiva. Si va avanti finché le carte sono finite.</li></ol>
+<h4>Round II (il Rewind)</h4>
+<p>Si riprendono le stesse 13 carte. Comincia l'<b>ultimo piazzato dell'ultima presa del Round I</b>. Le regole di gioco sono le stesse (obbligo di rispondere al seme, chi è 1° apre la presa dopo), ma ora si cerca di ottenere lo <b>stesso piazzamento</b> che si aveva nella presa corrispondente, andando al contrario: la presa 13 del Round I è la prima del Round II, e così via fino alla presa 1. Si può giocare qualsiasi carta (rispettando il seme di mano).</p>
+<p>Se un giocatore ottiene lo stesso piazzamento, toglie il suo marker dal tabellone, altrimenti lo lascia. Tra i giocatori che in quella presa riprendono il marker, il <b>meglio piazzato</b> mette un marker nell'area dello spareggio.</p>
+<h4>Punteggio</h4>
+<p>I marker rimasti sul tabellone valgono <b>2 punti sul 1° posto</b> e <b>1 punto sugli altri</b>. <b>Vince il punteggio più basso.</b> In caso di parità vince chi ha più marker nell'area dello spareggio; se c'è ancora parità la vittoria è condivisa.</p>
+<h4>Più mani</h4>
+<p>Il gioco è pensato per una mano (Round I + Round II). Per una partita più lunga si può giocare due, tre o quattro volte: dopo ogni Round II si annotano punti e marker dello spareggio, si rimescola e si ridistribuisce.</p>
+<p><i>Nell'app:</i> con 3 giocatori il seme tolto è scelto a caso (mai le Cassette). Il primo di mano è casuale e nelle mani successive passa al giocatore dopo. Nel Round II tutti sanno quali carte ha ciascuno (sono quelle giocate nel Round I): l'AI le usa e la tabella «Storia della mano» mostra anche a te le carte giocate da ognuno in ogni presa. Nel Round I l'AI conosce solo la propria mano, le carte giocate e i semi che un giocatore non ha (non ha risposto). Quando l'ultimo giocatore di un pari merito è l'AI, sceglie l'ordine da solo: nel Round I si mette dietro agli altri del gruppo, nel Round II sceglie l'ordine che fa centrare il proprio obiettivo e, se può, fa mancare quello degli altri. Se sei tu, scegli l'ordine dal dock. Nel menu c'è «Abilita annulla» (chiede conferma prima di giocare una carta).</p>
+</div></details>`;
+
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma prima di giocare una carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+    </div>`:''}</div>`;
+}
+let LOGOPEN=false, HISTOPEN=false;
+document.getElementById('app').addEventListener('toggle',e=>{
+  if(!e.target.matches) return;
+  if(e.target.matches('details.log')) LOGOPEN=e.target.open;
+  else if(e.target.matches('details.hist')) HISTOPEN=e.target.open;
+},true);
+let MENUOPEN=false;
+function render(){
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo"><svg class="rw" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#fff" stroke="#b8588f" stroke-width="4"/><path d="M23 12v24L7 24zM41 12v24L25 24z" fill="#6b4a94"/></svg><span class="t">Rewind</span></div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over&&G.hn?`<span class="badge">Mano ${G.hn}/${G.handsN} · Round ${G.round===1?'I':'II'}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    const ready=G.hands.length>0;
+    body=`${ready?`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>`:''}
+      ${ready?boardHtml():''}
+      ${ready&&!G.over&&G.phase==='play'?statusTable():''}
+      ${ready?histHtml():''}
+      ${G.pl[0].hist.length&&!G.over?`<div class="scorebox"><h3>PUNTEGGI</h3>${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML}`;
+  }
+  const lb=app.querySelector('.logbody'), lbTop=lb?lb.scrollTop:0;
+  app.innerHTML=top+`<div class="dock${G&&(G.show||G.over)?' tall':''}">${dockHtml()}</div>`+body;
+  if(lbTop){ const nb=app.querySelector('.logbody'); if(nb) nb.scrollTop=lbTop; }
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.h){
+    OPT.hands=Number(b.dataset.h);
+    try{ localStorage.setItem('rw-hands',String(OPT.hands)); }catch(err){}
+    render(); return;
+  }
+  if(b.dataset.n){ MENUOPEN=false; const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')){ MENUOPEN=false; toSetup(); } }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.t!==undefined) tapCard(Number(b.dataset.t));
+  else if(b.dataset.go!==undefined) goTurn(b.dataset.go);
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('rw-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(!OPT.undo&&PR&&PR.type==='turn'&&PR.sel!=null) PR.sel=null;
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
