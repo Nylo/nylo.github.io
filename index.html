@@ -67,6 +67,22 @@
         </form>
     </div>
 
+    <!-- Accesso rapido: entra in una stanza aperta con il solo codice -->
+    <div id="quickGate" hidden class="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0c10]/60 p-4 backdrop-blur-md">
+        <form id="quickForm" autocomplete="off" novalidate
+              class="w-full max-w-xs rounded-xl border border-slate-700/50 bg-[#0a0c10]/95 p-4 text-sm shadow-2xl">
+            <label for="quickInput" class="mb-2 flex items-center gap-2 text-slate-300"><i class="ph-fill ph-lightning text-teal-400"></i>Codice stanza</label>
+            <div class="flex gap-2">
+                <input id="quickInput" type="text" maxlength="14" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text"
+                       class="min-w-0 flex-1 rounded-lg border border-slate-700 bg-white/5 px-3 py-2 font-mono uppercase tracking-widest text-slate-100 outline-none focus:border-teal-500">
+                <button type="submit" id="quickGo" aria-label="Entra nella stanza" title="Entra nella stanza"
+                        class="flex w-11 items-center justify-center rounded-lg bg-teal-600 py-2 text-lg font-semibold text-white transition-colors hover:bg-teal-500 disabled:cursor-wait disabled:opacity-60"><i class="ph-fill ph-arrow-right"></i></button>
+            </div>
+            <p id="quickErr" role="alert" hidden class="mt-2 text-xs text-red-400"></p>
+            <button type="button" id="quickCancel" class="mt-3 text-xs text-slate-400 hover:text-slate-200">Annulla</button>
+        </form>
+    </div>
+
     <script>
         (function () {
             // Struttura del menu: 4 schede principali; le schede con "children" aprono una vista con le schede figlie.
@@ -155,13 +171,18 @@
                 return '<button type="button" data-view="' + item.id + '" class="' + CARD_LINK + 'w-full">' + icon(item.icon) + body(item) + topBadges(item) + '</button>';
             }
 
+            function quickCard() {
+                return '<button type="button" data-quick class="' + CARD_LINK + 'w-full sm:col-span-2">' +
+                    icon('lightning') + body({ title: 'Accesso rapido', desc: 'Unisciti subito ad una stanza aperta' }) + '</button>';
+            }
+
             // ----- viste -----
             function renderHome() {
                 var name = playerName() || 'Utente';
                 app.innerHTML =
                     '<div class="mb-6 flex items-center gap-3 sm:mb-8"><h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Nylo HomePage</h1>' +
                     (isOpen(GATE) ? '<span class="relative ml-auto inline-flex"><button type="button" data-user aria-label="Account: ' + esc(name) + '" title="' + esc(name) + '" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu" class="flex h-10 w-10 items-center justify-center rounded-full text-xl text-slate-400 transition-colors hover:bg-white/5 hover:text-teal-300"><i class="ph-fill ph-user-list"></i></button><div id="userMenu" data-user-menu hidden role="menu" class="absolute right-0 top-full z-20 mt-2 min-w-56 rounded-lg border border-slate-700 bg-[#101820] p-3 text-sm text-slate-100 shadow-xl"><p class="mb-3 whitespace-nowrap">Sei connesso come <strong>' + esc(name) + '</strong></p><button type="button" data-logout role="menuitem" class="w-full rounded-md px-2 py-2 text-left text-slate-300 hover:bg-white/5 hover:text-white">Esci</button></div></span>' : '') + '</div>' +
-                    '<div class="grid gap-3 sm:grid-cols-2 sm:gap-4 [&>*]:min-h-[96px]">' + HOME.map(card).join('') + '</div>';
+                    '<div class="grid gap-3 sm:grid-cols-2 sm:gap-4 [&>*]:min-h-[96px]">' + HOME.map(card).join('') + quickCard() + '</div>';
             }
             function renderSection(sec) {
                 app.innerHTML =
@@ -182,6 +203,7 @@
                 if (location.hash !== (id === 'home' ? '' : '#' + id)) history.pushState(null, '', id === 'home' ? location.pathname : '#' + id);
             }
             app.addEventListener('click', function (e) {
+                if (e.target.closest('[data-quick]')) { openQuick(); return; }
                 if (e.target.closest('[data-logout]')) { logout(); return; }
                 var userButton = e.target.closest('[data-user]');
                 if (userButton) {
@@ -306,6 +328,113 @@
             });
             document.getElementById('labCancel').addEventListener('click', closeLab);
             document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !labGate.hidden) closeLab(); });
+
+            // ----- accesso rapido: entra in una stanza aperta con il solo codice -----
+            // I giochi a stanze hanno tutti lo stesso schema Firebase: rooms/CODICE/lobby = { game, playerCount, started, closed, players }.
+            // Qui si controlla la stanza e poi si apre /tt/<gioco>/#join=CODICE, dove il gioco fa l'ingresso vero e proprio.
+            var QUICK_GAMES = ['9-lives', 'american-bookshop', 'apocalypse', 'bannish', 'bubble-gum', 'quashars', 'six-forces', 'spy-team', 'utsuke'];
+            var FB_CONFIG = {
+                apiKey: 'AIzaSyAoOMLytOqFY9GRXpi2kUGEyzLK-r00nvQ',
+                authDomain: 'gachapon-trick.firebaseapp.com',
+                databaseURL: 'https://gachapon-trick-default-rtdb.europe-west1.firebasedatabase.app',
+                projectId: 'gachapon-trick',
+                storageBucket: 'gachapon-trick.firebasestorage.app',
+                messagingSenderId: '869677835302',
+                appId: '1:869677835302:web:85768d5a6ac0d94f8372e7'
+            };
+            var quickGate = document.getElementById('quickGate');
+            var quickForm = document.getElementById('quickForm');
+            var quickInput = document.getElementById('quickInput');
+            var quickErr = document.getElementById('quickErr');
+            var quickGo = document.getElementById('quickGo');
+            var quickBusy = false;
+            var fbReady = null;
+
+            function openQuick() {
+                quickErr.hidden = true; quickInput.value = ''; setQuickBusy(false);
+                quickGate.hidden = false; app.setAttribute('aria-hidden', 'true');
+                document.body.classList.add('locked');
+                quickInput.focus();
+            }
+            function closeQuick() {
+                quickGate.hidden = true; app.removeAttribute('aria-hidden');
+                document.body.classList.remove('locked');
+            }
+            function quickError(msg) { quickErr.textContent = msg; quickErr.hidden = false; quickInput.focus(); quickInput.select(); }
+            function setQuickBusy(b) {
+                quickBusy = b; quickGo.disabled = b; quickInput.readOnly = b;
+                quickGo.innerHTML = '<i class="ph-fill ' + (b ? 'ph-circle-notch animate-spin' : 'ph-arrow-right') + '"></i>';
+            }
+            function loadScript(src) {
+                return new Promise(function (ok, ko) {
+                    var s = document.createElement('script');
+                    s.src = src; s.onload = ok; s.onerror = function () { ko(new Error('Firebase non raggiungibile: controlla la connessione.')); };
+                    document.head.appendChild(s);
+                });
+            }
+            function loadFirebase() {
+                if (!fbReady) {
+                    var base = 'https://www.gstatic.com/firebasejs/10.12.2/firebase-';
+                    fbReady = ['app', 'auth', 'database'].reduce(function (p, n) {
+                        return p.then(function () { return loadScript(base + n + '-compat.js'); });
+                    }, Promise.resolve()).then(function () {
+                        if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+                        return firebase.auth().signInAnonymously();
+                    }).then(function (cred) { return cred.user; });
+                    fbReady.catch(function () { fbReady = null; });
+                }
+                return fbReady;
+            }
+            function withTimeout(p, ms, msg) {
+                return new Promise(function (res, rej) {
+                    var t = setTimeout(function () { rej(new Error(msg)); }, ms);
+                    p.then(function (v) { clearTimeout(t); res(v); }, function (e) { clearTimeout(t); rej(e); });
+                });
+            }
+            // controlla la stanza: restituisce l'id del gioco oppure lancia un Error con il messaggio da mostrare
+            function checkRoom(code) {
+                return withTimeout(loadFirebase(), 15000, 'Connessione scaduta: riprova.').then(function (user) {
+                    var ref = firebase.database().ref('rooms/' + code);
+                    var notFound = new Error('Codice non valido: nessuna stanza con questo codice.');
+                    return withTimeout(ref.child('members/' + user.uid).set(true).then(function () {
+                        return ref.child('lobby').once('value');
+                    }).catch(function (e) {
+                        throw e && e.code === 'PERMISSION_DENIED' ? notFound : e;
+                    }), 15000, 'Connessione scaduta: riprova.').then(function (snap) {
+                        if (!snap.exists()) throw notFound;
+                        var d = snap.val() || {};
+                        if (QUICK_GAMES.indexOf(d.game) < 0) throw new Error('Questa stanza non è raggiungibile dall\'accesso rapido.');
+                        var mine = d.players && d.players[user.uid];
+                        if (!mine) {
+                            if (d.closed) throw new Error('La stanza è chiusa.');
+                            if (d.started) throw new Error('La partita in questa stanza è già iniziata.');
+                            if (Object.keys(d.players || {}).length >= (d.playerCount || 0)) throw new Error('La stanza è piena.');
+                        }
+                        return d.game;
+                    });
+                });
+            }
+            quickForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (quickBusy) return;
+                var code = quickInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                quickInput.value = code;
+                if (code.length !== 12) { quickError(code ? 'Codice non valido: il codice stanza è di 12 caratteri.' : 'Inserisci il codice della stanza.'); return; }
+                quickErr.hidden = true; setQuickBusy(true);
+                checkRoom(code).then(function (game) {
+                    location.href = '/tt/' + game + '/#join=' + code;
+                }, function (err) {
+                    setQuickBusy(false);
+                    quickError(err && err.message ? err.message : 'Errore durante l\'accesso alla stanza.');
+                });
+            });
+            quickInput.addEventListener('input', function () {
+                quickInput.value = quickInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                quickErr.hidden = true;
+            });
+            document.getElementById('quickCancel').addEventListener('click', closeQuick);
+            quickGate.addEventListener('click', function (e) { if (e.target === quickGate && !quickBusy) closeQuick(); });
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !quickGate.hidden && !quickBusy) closeQuick(); });
         })();
     </script>
 
