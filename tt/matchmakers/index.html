@@ -614,7 +614,7 @@ async function doExchange(){
       else logMsg(`${nameOf(I)} e ${nameOf(R)} si scambiano 3 carte.`);
     }else logMsg(`${nameOf(I)} e ${nameOf(R)} (avversari) si scambiano 3 carte.`);
   }
-  G.phase='play';
+  G.phase='play'; ckpt();
   status(`Scambio concluso. Apre ${nameOf(G.start)}.`);
   await ask(HUM,`Round ${G.rd}/${G.R} · apre la prima presa ${nameOf(G.start)}`,[{label:'Ok, si gioca',value:1}]);
 }
@@ -757,15 +757,19 @@ async function roundEnd(){
   G.show=null;
   return last;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let rd=1;rd<=g.R;rd++){
-      g.rd=rd; dealRound();
-      logMsg(`— Round ${rd}/${g.R}: inizia ${nameOf(g.start)}; scambiano per primi ${nameOf(g.init[0])} e ${nameOf(g.init[1])}. —`);
-      if(rd===1) status(`Buona partita a Matchmakers, ${P(HUM).name}! ${nameOf(g.start)} ha le carte iniziali.`);
-      await doExchange();
-      while(!roundOver(g)) await oneTrick();
+    let res=!!rs;
+    for(let rd=res?g.rd:1;rd<=g.R;rd++){
+      if(res){ res=false; status(`Partita ripresa: round ${rd}/${g.R}${g.phase==='xchg'?', scambio carte':`, presa ${g.trick+1}`}.`); }
+      else{
+        g.rd=rd; dealRound(); ckpt();
+        logMsg(`— Round ${rd}/${g.R}: inizia ${nameOf(g.start)}; scambiano per primi ${nameOf(g.init[0])} e ${nameOf(g.init[1])}. —`);
+        if(rd===1) status(`Buona partita a Matchmakers, ${P(HUM).name}! ${nameOf(g.start)} ha le carte iniziali.`);
+      }
+      if(g.phase==='xchg') await doExchange();
+      while(!roundOver(g)){ ckpt(); await oneTrick(); }
       if(await roundEnd()) break;
     }
     const w=g.tt[0]===g.tt[1]?[0,1,2,3]:(g.tt[0]>g.tt[1]?[0,2]:[1,3]);
@@ -1033,6 +1037,15 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+// dopo il ripristino JSON: cnt torna un Int8Array e le mani tornano a condividere gli oggetti di G.deck (lo scambio li confronta per identità)
+function mmRestore(g){
+  const c0=g.cnt; g.cnt=Int8Array.from({length:80},(_,i)=>c0[i]|0);
+  const fx=cs=>cs.map(c=>g.deck[c.u]);
+  g.hands=g.hands.map(fx); g.pcards=g.pcards.map(fx);
+  g.plays=[]; g.shown=null; g.res=null; g.fresh=-1;
+  return g;
+}
+nyloSaveInit('matchmakers',snap=>{ G=mmRestore(snap); PR=null; render(); run(true); });
 
 </script>
 </body>

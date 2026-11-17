@@ -301,6 +301,7 @@ function aiChoose(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,first0:rnd(n),first:0,msg:'',log:[],over:null,cenKo:[],center:[],revealed:null,known:[],
      table:[],led:null,broke:false,order:[],leader:0,turn:-1,winner:-1,show:null,fresh:-1,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],ko:[],kept:[],total:0,hist:[]}))};
@@ -314,6 +315,7 @@ function deal(){
   G.pl.forEach((p,i)=>{ p.ko=kos.slice(i*cfg.ko,(i+1)*cfg.ko).sort((a,b)=>a-b); });
   G.cenKo=kos.slice(G.n*cfg.ko).sort((a,b)=>a-b);
   G.known=[]; G.table=[]; G.revealed=null; G.led=null; G.broke=false; G.winner=-1; G.show=null; G.turn=-1;
+  G.ph='deal';   // fasi del round: deal (attesa dell'Ok) → tricks (prese) → score (punteggio)
 }
 async function humanPick(){
   const pl=P(HUM), leading=!G.table.length;
@@ -354,38 +356,52 @@ async function oneTrick(){
   G.leader=win;
 }
 async function tricks(){
-  G.leader=G.first;
+  const resumed=G.ph==='tricks';   // già in fase prese = ripresa a inizio presa (G.leader è quello della presa)
+  G.ph='tricks';
+  if(!resumed) G.leader=G.first;
   while(true){
+    ckpt();
     await oneTrick();
     if(G.pl.some(p=>p.hand.length===0)) break;
   }
   G.winner=-1; G.turn=-1; G.table=[]; G.revealed=null;
 }
 async function scoring(){
-  const rows=G.pl.map(p=>{
-    const mal=malusOf(p.kept,p.ko,G.cenKo), left=p.hand.length, pt=mal+left;
-    p.total+=pt; p.hist.push(pt);
-    return {p:p.id,mal,left,pt};
-  });
-  G.show={rows};
-  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} malus ${r.mal} + ${r.left} carte in mano = ${r.pt} punti.`));
+  if(G.ph!=='score'){   // ph==='score' = ripresa dalla schermata del punteggio (totali già applicati)
+    G.ph='score';
+    const rows=G.pl.map(p=>{
+      const mal=malusOf(p.kept,p.ko,G.cenKo), left=p.hand.length, pt=mal+left;
+      p.total+=pt; p.hist.push(pt);
+      return {p:p.id,mal,left,pt};
+    });
+    G.show={rows};
+    rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} malus ${r.mal} + ${r.left} carte in mano = ${r.pt} punti.`));
+    ckpt();
+  }
   status(`Round ${G.round+1} concluso.`);
   const last=G.round===G.n-1;
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<g.n;k++){
-      g.round=k; g.first=(g.first0+k)%g.n;
-      deal();
-      logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.first).name} —`);
-      status(k?g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`:`Buona partita a Don't Take Me, ${P(HUM).name}!`);
-      await ask(HUM,`${g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
-      await tricks();
+    let res=!!rs;
+    for(let k=res?g.round:0;k<g.n;k++){
+      if(res){ res=false; }
+      else{
+        g.round=k; g.first=(g.first0+k)%g.n;
+        deal(); ckpt();
+        logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.first).name} —`);
+      }
+      if(g.ph==='deal'){
+        status(k?g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`:`Buona partita a Don't Take Me, ${P(HUM).name}!`);
+        await ask(HUM,`${g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+      }
+      if(g.ph==='deal'||g.ph==='tricks') await tricks();
       await scoring();
     }
+    NYLO_CK=null;
     const m=Math.min(...g.pl.map(p=>p.total));
     g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
     render();
@@ -553,6 +569,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('dont-take-me',snap=>{ G=snap; PR=null; render(); run(true); });
 </script>
 </body>
 </html>

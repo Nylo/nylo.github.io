@@ -341,6 +341,7 @@ function aiGoal(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,first0:rnd(n),first:0,leader:0,t:0,T:0,stage:'goal',msg:'',log:[],over:null,table:[],led:null,order:[],turn:-1,winner:-1,
      deck:[],show:null,fresh:-1,revealed:false,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],goals:GOAL_IDS.slice(),goal:null,taken:[],won:0,hist:[],total:0}))};
@@ -378,12 +379,14 @@ function hintFor(pl,legal){
   }
   return h;
 }
-async function tricks(){
-  G.stage='play'; G.leader=G.first;
+async function tricks(t0){
+  G.stage='play';
+  if(t0==null){ G.leader=G.first; t0=0; }
   const T=G.T;
-  for(G.t=0;G.t<T;G.t++){
+  for(G.t=t0;G.t<T;G.t++){
     const order=Array.from({length:G.n},(_,i)=>(G.leader+i)%G.n);
     G.order=order; G.table=[]; G.led=null; G.winner=-1; G.fresh=-1;
+    ckpt();
     for(let i=0;i<G.n;i++){
       const p=order[i], pl=P(p); G.turn=p;
       status(`Round ${G.round+1}/${ROUNDS} · presa ${G.t+1}/${T}. Tocca a ${pl.name}.`);
@@ -416,20 +419,25 @@ async function scoring(){
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Hearts and Minds, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<ROUNDS;r++){
-      g.round=r;
-      g.first=r===0?g.first0:(g.first+1)%g.n;
-      deal();
-      logMsg(`— Round ${r+1}/${ROUNDS}: primo giocatore ${P(g.first).name} —`);
-      status(g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`);
-      g.stage='goal';
-      await ask(HUM,(g.first===HUM?'Sei tu il primo giocatore':`Primo giocatore: ${P(g.first).name}`)+` · Round ${r+1}/${ROUNDS}`,[{label:'Ok, scelgo l\'obiettivo',value:1}]);
-      await chooseGoals();
-      await tricks();
+    let res=!!rs;
+    if(!res) await ask(HUM,`Buona partita a Hearts and Minds, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let r=res?g.round:0;r<ROUNDS;r++){
+      let t0=null;
+      if(res){ res=false; if(g.stage==='play') t0=g.t; status(`Partita ripresa: round ${r+1}/${ROUNDS}.`); }
+      else{
+        g.round=r;
+        g.first=r===0?g.first0:(g.first+1)%g.n;
+        g.stage='goal';
+        deal(); ckpt();
+        logMsg(`— Round ${r+1}/${ROUNDS}: primo giocatore ${P(g.first).name} —`);
+        status(g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`);
+        await ask(HUM,(g.first===HUM?'Sei tu il primo giocatore':`Primo giocatore: ${P(g.first).name}`)+` · Round ${r+1}/${ROUNDS}`,[{label:'Ok, scelgo l\'obiettivo',value:1}]);
+      }
+      if(g.stage==='goal') await chooseGoals();
+      await tricks(t0);
       await scoring();
     }
     const m=Math.max(...G.pl.map(p=>p.total));
@@ -601,6 +609,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('hearts-and-minds',snap=>{ G=snap; PR=null; render(); run(true); });
 </script>
 </body>
 </html>

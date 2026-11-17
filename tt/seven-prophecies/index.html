@@ -519,19 +519,24 @@ async function scoring(){
   if(!last) G.show=null;
   return last;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<g.rounds;k++){
-      g.round=k; g.start=(g.start0+k)%g.n;
-      deal();
-      logMsg(`— Round ${k+1}/${g.rounds}: apre ${P(g.start).name} (carte Futuro: ${g.fut.map(s=>SUITS[s].n).join(', ')}) —`);
-      if(!k){
-        status(`Buona partita a Seven Prophecies, ${P(HUM).name}!`);
-        await ask(HUM,g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let k=res?g.round:0;k<g.rounds;k++){
+      if(res){ res=false; status(`Partita ripresa: round ${k+1}/${g.rounds}.`); }
+      else{
+        g.round=k; g.start=(g.start0+k)%g.n;
+        deal(); g.phase='bid';
+        logMsg(`— Round ${k+1}/${g.rounds}: apre ${P(g.start).name} (carte Futuro: ${g.fut.map(s=>SUITS[s].n).join(', ')}) —`);
+        ckpt();
+        if(!k){
+          status(`Buona partita a Seven Prophecies, ${P(HUM).name}!`);
+          await ask(HUM,g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name,[{label:'Ok, si parte',value:1}]);
+        }
       }
-      await bidding();
-      while(!g.done) await oneTrick();
+      if(g.phase==='bid'){ await bidding(); g.phase='play'; }
+      while(!g.done){ ckpt(); await oneTrick(); }
       if(await scoring()) break;
     }
     const m=Math.max(...g.pl.map(p=>p.total));
@@ -735,6 +740,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('seven-prophecies',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

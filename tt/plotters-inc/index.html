@@ -358,6 +358,7 @@ function aiPickCard(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,start:rnd(n),msg:'',log:[],over:null,show:null,
      leader:0,turn:-1,win:-1,low:-1,trickNo:0,trick:[],order:[],played:[],ended:-1,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],st:[0,0,0,0],chosen:null,disc:0,tot:0,hist:[]}))};
@@ -391,9 +392,10 @@ async function collectFor(p,cards){
   const pl=P(p);
   if(addCards(pl,cards)) await chooseColors(p);
 }
-async function playRound(){
-  G.leader=G.start;
+async function playRound(rs){
+  if(!rs) G.leader=G.start;
   while(P(G.leader).hand.length){
+    ckpt();                                               // punto sicuro: inizio presa
     G.trickNo++; G.trick=[]; G.win=-1; G.low=-1;
     G.order=[];
     for(let k=0;k<G.n;k++) G.order.push((G.leader+k)%G.n);
@@ -449,17 +451,22 @@ async function scoreRound(){
   await ask(HUM,'Risultato del round',[{label:G.round>=G.n-1?'Mostra risultato finale':'Round successivo',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let r=0;r<g.n;r++){
-      g.round=r;
-      if(r>0) g.start=(g.start+1)%g.n;
-      deal();
-      logMsg(`— Round ${r+1}/${g.n}: inizia ${P(g.start).name} —`);
-      status(r?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Plotters, Inc., ${P(HUM).name}!`);
-      await ask(HUM,`Round ${r+1}/${g.n}: ${g.start===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
-      await playRound();
+    let res=!!rs;
+    for(let r=res?g.round:0;r<g.n;r++){
+      if(res) status(`Partita ripresa: round ${r+1}/${g.n}, presa ${g.trickNo+1}/${HAND}.`);
+      else{
+        g.round=r;
+        if(r>0) g.start=(g.start+1)%g.n;
+        deal();
+        logMsg(`— Round ${r+1}/${g.n}: inizia ${P(g.start).name} —`);
+        status(r?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Plotters, Inc., ${P(HUM).name}!`);
+        await ask(HUM,`Round ${r+1}/${g.n}: ${g.start===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
+      }
+      await playRound(res);
+      res=false;
       await scoreRound();
     }
     const mx=Math.max(...g.pl.map(p=>p.tot));
@@ -671,6 +678,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('plotters-inc',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

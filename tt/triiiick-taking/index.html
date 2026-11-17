@@ -335,6 +335,7 @@ function newMatch(n,rider){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,rider:!!rider,round:0,first0:rnd(n),first:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  NYLO_CK=null;
   run();
 }
 function deal(){
@@ -343,7 +344,7 @@ function deal(){
   if(G.rider){ const ri=t.indexOf('R'); if(ri>=n){ const j=rnd(n); [t[ri],t[j]]=[t[j],t[ri]]; } }
   const S={tok:t.slice(0,n),aside:t.slice(n),removed:[],neg:false,deck:d,market:[],
     priv:Array.from({length:n},()=>[]),pub:Array.from({length:n},()=>[]),trick:[],lead:G.first,won:Array(n).fill(0),
-    void:Array.from({length:n},()=>new Set()),played:[],phase:'draft',started:false,done:0};
+    void:Array.from({length:n},()=>new Set()),played:[],phase:'draft',started:false,done:0,dk:0};
   for(let p=0;p<n;p++) S.priv[p]=sortHand(d.splice(0,2));
   G.S=S;
 }
@@ -390,13 +391,16 @@ async function negotiate(p){
 async function draft(){
   const S=G.S, n=G.n;
   S.phase='draft';
+  // S.dk = quanti turni del giro corrente sono già stati fatti (serve a riprendere una partita salvata a metà pianificazione)
   while(P(0)&&Array.from({length:n},(_,p)=>cnt(p)).some(c=>c<HAND)){
-    for(let k=0;k<n;k++){
-      const p=(G.first+k)%n;
-      if(cnt(p)>=HAND) continue;
+    while(S.dk<n){
+      const p=(G.first+S.dk)%n;
+      if(cnt(p)>=HAND){ S.dk++; continue; }
       G.turn=p; status(p===HUM?'Tocca a te: pianificazione.':`Tocca a ${P(p).name}.`);
       await draftTurn(p);
+      S.dk++; ckpt();
     }
+    S.dk=0;
   }
   G.turn=-1;
 }
@@ -412,6 +416,7 @@ async function playRound(){
   S.phase='play'; S.started=true;
   while(S.done<HAND){
     S.trick=[]; S.lastWin=-1;
+    ckpt();
     logMsg(`Presa ${S.done+1}: apre ${P(S.lead).name}.`);
     for(let k=0;k<n;k++){
       const p=(S.lead+k)%n; G.turn=p;
@@ -442,17 +447,23 @@ async function scoring(){
   await ask(HUM,'Rapporto del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let r=0;r<g.n;r++){
-      g.round=r; g.first=(g.first0+r)%g.n;
-      deal();
-      logMsg(`— Round ${r+1}/${g.n}: primo giocatore ${P(g.first).name} —`);
-      const t=g.S.tok[HUM];
-      status(r?(t==='R'?'Sei il RIDER: nessun obiettivo, sabota gli altri.':`La tua Direttiva: vincere ${t} ${t===1?'presa':'prese'}.`):`Buona partita a Triiiick Taking, ${P(HUM).name}!`);
-      await ask(HUM,(t==='R'?'Sei il Rider! Ottieni −1 per ogni avversario che completa la sua Direttiva':`Il tuo obiettivo: ${plu(t,'presa','prese')}. Primo giocatore: ${P(g.first).name}`),[{label:'Ok, si parte',value:1}]);
-      await draft();
+    let res=!!rs;
+    for(let r=res?g.round:0;r<g.n;r++){
+      g.round=r;
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}/${g.n}.`); }
+      else{
+        g.first=(g.first0+r)%g.n;
+        deal();
+        ckpt();
+        logMsg(`— Round ${r+1}/${g.n}: primo giocatore ${P(g.first).name} —`);
+        const t=g.S.tok[HUM];
+        status(r?(t==='R'?'Sei il RIDER: nessun obiettivo, sabota gli altri.':`La tua Direttiva: vincere ${t} ${t===1?'presa':'prese'}.`):`Buona partita a Triiiick Taking, ${P(HUM).name}!`);
+        await ask(HUM,(t==='R'?'Sei il Rider! Ottieni −1 per ogni avversario che completa la sua Direttiva':`Il tuo obiettivo: ${plu(t,'presa','prese')}. Primo giocatore: ${P(g.first).name}`),[{label:'Ok, si parte',value:1}]);
+      }
+      if(g.S.phase==='draft') await draft();
       await playRound();
       await scoring();
     }
@@ -677,6 +688,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('triiiick-taking',snap=>{ G=snap; PR=null; ckpt(); render(); run(true); });
 
 </script>
 </body>

@@ -417,6 +417,7 @@ function aiOrder(ch){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,seasons:OPT.short?2:3,season:0,first:-1,msg:'',log:[],over:null,show:null,res:null,turn:-1,freshT:-1,pinfo:[],
      ord:[HUM,...shuffle(Array.from({length:n-1},(_,i)=>i+1))],S:null,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
@@ -425,6 +426,7 @@ function newMatch(n){
 function startSeason(){
   G.S=newSeason(G.n,G.ord);
   G.pinfo=G.pl.map(()=>[]); G.res=null; G.show=null; G.turn=-1; G.freshT=-1; G.first=-1;
+  G.ph='pass';   // fasi della stagione: pass (scambio) → play (mosse) → score (punteggio) → reseat (nuovi posti)
 }
 async function passStage(dir){
   const S=G.S, n=G.n, picks=new Array(n);
@@ -478,6 +480,7 @@ async function showComp(x){
 async function playSeason(){
   const S=G.S;
   while(S.hands.some(h=>h.length)){
+    ckpt();
     const p=S.ord[S.ti]; G.turn=p;
     status(p===HUM?'Tocca a te.':`Tocca a ${P(p).name}.`);
     let m;
@@ -494,12 +497,16 @@ async function playSeason(){
   for(const x of comps) await showComp(x);
 }
 async function scoring(){
-  const S=G.S, sc=seasonScore(S);
-  const rows=sc.rows.map((r,p)=>({p,w:S.wins[p],...r}));
-  rows.forEach(r=>{ P(r.p).total+=r.pts; P(r.p).hist.push(r.pts); });
-  G.show={rows,zeros:sc.zeros};
-  rows.forEach(r=>logMsg(`Stagione ${G.season+1}: ${P(r.p).name} ${r.w} ${r.w===1?'vittoria':'vittorie'} → ${r.pts} punti (tecniche ${r.tile}, relazioni ${r.rel}).`));
-  if(sc.zeros.length) logMsg(`Chi non ha vinto nessuna competizione prende 5 punti e il suo Discepolo 3: nessun altro punto per le relazioni.`);
+  const S=G.S;
+  if(G.ph!=='score'){   // ph==='score' = partita ripresa dalla schermata del punteggio (totali già applicati)
+    const sc=seasonScore(S);
+    const rows=sc.rows.map((r,p)=>({p,w:S.wins[p],...r}));
+    rows.forEach(r=>{ P(r.p).total+=r.pts; P(r.p).hist.push(r.pts); });
+    G.show={rows,zeros:sc.zeros}; G.ph='score';
+    rows.forEach(r=>logMsg(`Stagione ${G.season+1}: ${P(r.p).name} ${r.w} ${r.w===1?'vittoria':'vittorie'} → ${r.pts} punti (tecniche ${r.tile}, relazioni ${r.rel}).`));
+    if(sc.zeros.length) logMsg(`Chi non ha vinto nessuna competizione prende 5 punti e il suo Discepolo 3: nessun altro punto per le relazioni.`);
+    ckpt();
+  }
   const last=G.season===G.seasons-1;
   status(`Stagione ${G.season+1} conclusa.`);
   await ask(HUM,'Punteggio della stagione',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
@@ -528,17 +535,25 @@ async function reseat(){
   status(`Nuovi posti: il tuo Maestro è ${nm(ord[(ord.indexOf(HUM)+1)%G.n])}, il tuo Discepolo ${nm(ord[(ord.indexOf(HUM)+G.n-1)%G.n])}.`);
   await ask(HUM,`Nuovi posti: il tuo Maestro (sinistra) è ${nm(ord[(ord.indexOf(HUM)+1)%G.n])}, il tuo Discepolo (destra) ${nm(ord[(ord.indexOf(HUM)+G.n-1)%G.n])}`,[{label:'Ok, nuova stagione',value:1}]);
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<g.seasons;k++){
-      g.season=k; startSeason();
-      logMsg(`— Stagione ${k+1}/${g.seasons} —`);
-      await passing();
-      await playSeason();
-      await scoring();
-      if(k<g.seasons-1) await reseat();
+    let res=!!rs;
+    for(let k=res?g.season:0;k<g.seasons;k++){
+      if(res){ res=false; status(`Partita ripresa: stagione ${k+1}/${g.seasons}.`); }
+      else{
+        g.season=k; startSeason(); ckpt();
+        logMsg(`— Stagione ${k+1}/${g.seasons} —`);
+      }
+      if(g.ph==='pass'){ await passing(); g.ph='play'; }
+      if(g.ph==='play'||g.ph==='score'){
+        if(g.ph==='play') await playSeason();
+        await scoring();
+        g.ph='reseat';
+      }
+      if(k<g.seasons-1){ ckpt(); await reseat(); }
     }
+    NYLO_CK=null;
     const m=Math.max(...g.pl.map(p=>p.total));
     g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
     render();
@@ -733,6 +748,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('kung-fu-trick',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

@@ -339,6 +339,7 @@ function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,round:0,first:rnd(n),msg:'',log:[],over:null,show:null,turn:-1,S:null,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  NYLO_CK=null;
   run();
 }
 function deal(){
@@ -359,6 +360,7 @@ async function playRound(){
   S.started=true;
   while(S.done<HANDN){
     S.trick=[]; S.res=null;
+    ckpt();
     logMsg(`Presa ${S.done+1}: apre ${P(S.lead).name}.`);
     for(let k=0;k<n;k++){
       const p=(S.lead+k)%n; G.turn=p;
@@ -410,15 +412,20 @@ async function scoring(){
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let r=0;r<ROUNDS;r++){
+    let res=!!rs;
+    for(let r=res?g.round:0;r<ROUNDS;r++){
       g.round=r;
-      deal();
-      logMsg(`— Round ${r+1}/${ROUNDS}: apre ${P(g.first).name} —`);
-      status(r?g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`:`Buona partita a Kamisama no iu toori, ${P(HUM).name}!`);
-      await ask(HUM,`${g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}/${ROUNDS}.`); }
+      else{
+        deal();
+        ckpt();
+        logMsg(`— Round ${r+1}/${ROUNDS}: apre ${P(g.first).name} —`);
+        status(r?g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`:`Buona partita a Kamisama no iu toori, ${P(HUM).name}!`);
+        await ask(HUM,`${g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+      }
       await playRound();
       g.first=g.S.lead;
       await scoring();
@@ -651,6 +658,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('kamisama-no-iu-toori',snap=>{ G=snap; PR=null; ckpt(); render(); run(true); });
 
 </script>
 </body>

@@ -382,6 +382,7 @@ function aiAct(p){
 
 function newMatch(){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={round:0,dealer:rnd(4),msg:'',log:[],over:null,show:null,
      leader:0,turn:-1,win:-1,trickNo:0,trick:[],took:[],order:[],played:[],avail:TIDS.slice(),
      pl:NAMES.map((name,i)=>({id:i,name,hand:[],team:null,tricks:0,fours:0,tot:0,hist:[]}))};
@@ -403,9 +404,10 @@ function humanHint(){
   if(pl.team) h=h.replace(/; oppure puoi prendere una carta Squadra|, oppure prendere una carta Squadra| oppure prendere una carta Squadra/,'')+' (hai già la carta Squadra.)';
   return h;
 }
-async function playRound(){
-  G.leader=G.dealer;
+async function playRound(rs){
+  if(!rs) G.leader=G.dealer;
   while(true){
+    ckpt();
     G.trickNo++; G.trick=[]; G.took=[]; G.win=-1;
     G.order=[];
     for(let k=0;k<4;k++) G.order.push((G.leader+k)%4);
@@ -460,17 +462,21 @@ async function scoreRound(){
   await ask(HUM,'Risultato del round',[{label:G.round>=ROUNDS-1?'Mostra risultato finale':'Round successivo',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let r=0;r<ROUNDS;r++){
-      g.round=r;
-      if(r>0) g.dealer=(g.dealer+1)%4;
-      deal();
-      logMsg(`— Round ${r+1}/${ROUNDS}: primo giocatore ${P(g.dealer).name} —`);
-      status(r?g.dealer===HUM?'Sei tu il primo giocatore: guidi la prima presa.':`Primo giocatore: ${P(g.dealer).name}.`:`Buona partita a Pack Tricks, ${P(HUM).name}!`);
-      await ask(HUM,`Round ${r+1}/${ROUNDS}: ${g.dealer===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.dealer).name}`,[{label:'Ok, si parte',value:1}]);
-      await playRound();
+    let res=!!rs;
+    for(let r=res?g.round:0;r<ROUNDS;r++){
+      if(res){ status(`Partita ripresa: round ${r+1}/${ROUNDS}.`); }
+      else{
+        g.round=r;
+        if(r>0) g.dealer=(g.dealer+1)%4;
+        deal(); ckpt();
+        logMsg(`— Round ${r+1}/${ROUNDS}: primo giocatore ${P(g.dealer).name} —`);
+        status(r?g.dealer===HUM?'Sei tu il primo giocatore: guidi la prima presa.':`Primo giocatore: ${P(g.dealer).name}.`:`Buona partita a Pack Tricks, ${P(HUM).name}!`);
+        await ask(HUM,`Round ${r+1}/${ROUNDS}: ${g.dealer===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.dealer).name}`,[{label:'Ok, si parte',value:1}]);
+      }
+      await playRound(res); res=false;
       await scoreRound();
     }
     const mx=Math.max(...g.pl.map(p=>p.tot));
@@ -669,6 +675,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('pack-tricks',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

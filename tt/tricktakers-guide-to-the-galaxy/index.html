@@ -488,6 +488,7 @@ function aiPlay(p){
 
 function newMatch(N,mode){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={N,mode,pl:[],log:[],round:0,S:null,msg:'',over:null,show:null,dealNo:0};
   for(let i=0;i<N;i++) G.pl.push({name:NAMES[i],hist:[],gp:[],total:0});
   render(); run();
@@ -501,7 +502,7 @@ function deal(){
   PICK.clear(); G.dealNo++; FP=OPT.facePar;
   const S={N,NT:cf.hand,hs:cf.hand,deal:G.dealNo,hands,revealed,coins:Array(N).fill(cf.coins),fl:-1,pile:{c:0,fl:true},rdeck,target:null,
     acc:Array.from({length:N},()=>[]),act:Array.from({length:N},()=>[]),st:Array.from({length:N},newStats),won:Array(N).fill(0),
-    trick:[],leader:0,turn:0,done:0,res:null,void:Array.from({length:N},()=>[false,false,false,false]),seen:new Set(),phase:'draft',dc:new Map()};
+    trick:[],leader:0,turn:0,done:0,res:null,void:Array.from({length:N},()=>[false,false,false,false]),seen:new Set(),phase:'draft',dc:new Map(),fp:FP,dp:null};
   S.target=S.rdeck.shift();
   G.S=S; G.show=null;
 }
@@ -517,8 +518,8 @@ function humanDraft(){
   return choose('Regola bersaglio: cosa fai?',opts,info);
 }
 async function draftPhase(){
-  const S=G.S, N=G.N; let p=G.round%N;
-  logMsg(`— Round ${G.round+1}: draft delle regole. Comincia ${who(p)}.`);
+  const S=G.S, N=G.N; let p=S.dp!=null?S.dp:G.round%N;
+  if(S.dp==null) logMsg(`— Round ${G.round+1}: draft delle regole. Comincia ${who(p)}.`);
   while(S.target){
     S.turn=p;
     const R=S.target;
@@ -546,6 +547,7 @@ async function draftPhase(){
       p=(p+1)%N;
       await sleep(350);
     }
+    S.dp=p; ckpt();
   }
   for(let q=0;q<N;q++) S.acc[q].sort((a,b)=>a.L<b.L?-1:a.L>b.L?1:a.id<b.id?-1:1);
 }
@@ -576,7 +578,7 @@ async function activePhase(){
     }
     render();
   }
-  S.phase='play';
+  S.phase='play'; S.leader=S.fl;
   logMsg(`— Draft concluso. ${who(S.fl)} ha il segnalino Primo giocatore e apre la prima presa.`);
 }
 function humanPlay(){
@@ -594,9 +596,8 @@ function finishPlay(k){
 }
 async function trickPhase(){
   const S=G.S, N=G.N;
-  S.leader=S.fl;
-  for(S.done=0;S.done<S.NT;S.done++){
-    S.trick=[]; S.res=null;
+  for(;S.done<S.NT;S.done++){
+    S.trick=[]; S.res=null; S.turn=-1; ckpt();
     for(let k=0;k<N;k++){
       const p=(S.leader+k)%N; S.turn=p;
       let c;
@@ -661,17 +662,25 @@ async function scoring(){
   render();
   return false;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await choose(`Buona partita a The Tricktaker's Guide To The Galaxy, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    if(!res) await choose(`Buona partita a The Tricktaker's Guide To The Galaxy, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     while(true){
-      deal();
-      await sleep(300);
-      await draftPhase();
-      await activePhase();
-      await trickPhase();
-      if(await scoring()) break;
+      if(res) status(`Partita ripresa: round ${G.round+1}.`);
+      else{
+        deal(); ckpt();
+        await sleep(300);
+      }
+      const S=G.S;
+      if(S.phase==='draft'){ await draftPhase(); await activePhase(); }
+      if(S.phase!=='score'){
+        await trickPhase();
+        if(await scoring()){ NYLO_CK=null; break; }
+        ckpt();
+      }
+      res=false;
       await choose('Round concluso',[{label:'Prossimo round',value:1}],`<div class="hint">Nessuno ha ancora raggiunto 6 Punti Galassia (o c'è parità in testa): si gioca un altro round.</div>`);
       G.round++;
     }
@@ -908,6 +917,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('tricktakers-guide-to-the-galaxy',snap=>{ G=snap; FP=!!snap.S.fp; PR=null; render(); run(true); });
 
 </script>
 </body>

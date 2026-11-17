@@ -427,6 +427,7 @@ function aiBidCard(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,start:rnd(n),msg:'',log:[],over:null,maxR:MAXR[n],trump:-1,trumpCard:null,left:[],res:9-n,
      table:[],lead:null,order:[],leader:0,turn:-1,win:-1,fresh:-1,trickNo:0,played:[],show:null,cid:0,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],cards:CV.map((v,k)=>({id:i*100+k,v,moved:false,zero:false})),wins:0,zero:false,disc:{2:0,3:0,5:0,7:0},hist:[]}))};
@@ -512,8 +513,8 @@ async function oneTrick(){
   G.leader=w;
 }
 async function tricks(){
-  G.leader=G.start;
-  for(let t=0;t<TRICKS;t++) await oneTrick();
+  if(!G.trickNo) G.leader=G.start;
+  for(let t=G.trickNo;t<TRICKS;t++){ ckpt(); await oneTrick(); }
   G.win=-1; G.turn=-1; G.table=[]; G.lead=null;
 }
 function discard(pl,c){
@@ -561,15 +562,19 @@ function winners(){
   }
   return w;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<g.n;k++){
-      g.round=k; g.start=(g.start+(k?1:0))%g.n;
-      deal();
-      logMsg(`— Round ${k+1}/${g.n}: briscola ${SUITS[g.trump].n} (carta scoperta ${cname(g.trumpCard)}), primo giocatore ${P(g.start).name} —`);
-      status(k?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Bid COIN, ${P(HUM).name}!`);
-      await ask(HUM,`Briscola: ${SUITS[g.trump].n}. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let k=res?g.round:0;k<g.n;k++){
+      if(res){ res=false; status(`Partita ripresa: round ${k+1}/${g.n}.`); }
+      else{
+        g.round=k; g.start=(g.start+(k?1:0))%g.n;
+        deal(); ckpt();
+        logMsg(`— Round ${k+1}/${g.n}: briscola ${SUITS[g.trump].n} (carta scoperta ${cname(g.trumpCard)}), primo giocatore ${P(g.start).name} —`);
+        status(k?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Bid COIN, ${P(HUM).name}!`);
+        await ask(HUM,`Briscola: ${SUITS[g.trump].n}. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
+      }
       await tricks();
       await scoring();
       if(g.pl.some(p=>!p.cards.length)) break;
@@ -744,6 +749,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('bid-coin',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

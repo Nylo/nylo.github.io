@@ -283,6 +283,7 @@ function aiChoose(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,first0:rnd(n),first:0,msg:'',log:[],over:null,seen:[],
      table:[],led:null,order:[],leader:0,turn:-1,hi:-1,lo:-1,show:null,fresh:-1,trick:0,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],won:[],total:0,hist:[]}))};
@@ -327,8 +328,8 @@ async function oneTrick(){
   G.leader=r.hi;
 }
 async function tricks(){
-  G.leader=G.first;
-  for(let t=0;t<HANDN;t++) await oneTrick();
+  if(!G.trick) G.leader=G.first;
+  for(let t=G.trick;t<HANDN;t++){ ckpt(); await oneTrick(); }
   G.hi=-1; G.lo=-1; G.turn=-1; G.table=[];
 }
 async function scoring(){
@@ -345,15 +346,19 @@ async function scoring(){
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<g.n;k++){
-      g.round=k; g.first=(g.first0+k)%g.n;
-      deal();
-      logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.first).name} —`);
-      status(k?g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`:`Buona partita a David & Goliath, ${P(HUM).name}!`);
-      await ask(HUM,`${g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let k=res?g.round:0;k<g.n;k++){
+      if(res){ res=false; status(`Partita ripresa: round ${k+1}/${g.n}.`); }
+      else{
+        g.round=k; g.first=(g.first0+k)%g.n;
+        deal(); ckpt();
+        logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.first).name} —`);
+        status(k?g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`:`Buona partita a David & Goliath, ${P(HUM).name}!`);
+        await ask(HUM,`${g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+      }
       await tricks();
       await scoring();
     }
@@ -509,6 +514,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('david-and-goliath',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

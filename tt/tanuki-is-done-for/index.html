@@ -512,20 +512,25 @@ async function roundEnd(){
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let rd=1;rd<=g.R;rd++){
-      g.rd=rd; dealRound();
-      logMsg(`— Round ${rd}/${g.R}: colori in gioco ${colTxt()} (${g.cols.length*9} carte, 9 a testa). Di mano ${nameOf(g.leader)}. —`);
-      if(rd===1){
-        status(`Buona partita a The Tanuki Is Done For, ${P(HUM).name}!`);
-        await ask(HUM,`Round 1/${g.R} · colori in gioco: ${colTxt()} · di mano ${nameOf(g.leader)}`,[{label:'Ok, si parte',value:1}]);
-      }else{
-        status(`Round ${rd}/${g.R} · colori in gioco: ${colTxt()} · di mano ${nameOf(g.leader)}.`);
-        await sleep(1200);
+    let res=!!rs;
+    for(let rd=res?g.rd:1;rd<=g.R;rd++){
+      if(res){ res=false; status(`Partita ripresa: round ${rd}/${g.R}, presa ${g.trick+1}/${HS}.`); }
+      else{
+        g.rd=rd; dealRound();
+        logMsg(`— Round ${rd}/${g.R}: colori in gioco ${colTxt()} (${g.cols.length*9} carte, 9 a testa). Di mano ${nameOf(g.leader)}. —`);
+        ckpt();
+        if(rd===1){
+          status(`Buona partita a The Tanuki Is Done For, ${P(HUM).name}!`);
+          await ask(HUM,`Round 1/${g.R} · colori in gioco: ${colTxt()} · di mano ${nameOf(g.leader)}`,[{label:'Ok, si parte',value:1}]);
+        }else{
+          status(`Round ${rd}/${g.R} · colori in gioco: ${colTxt()} · di mano ${nameOf(g.leader)}.`);
+          await sleep(1200);
+        }
       }
-      for(let i=0;i<HS;i++) await oneTrick();
+      for(let i=g.trick;i<HS;i++){ ckpt(); await oneTrick(); }
       await roundEnd();
     }
     const m=Math.max(...g.pl.map(p=>p.total));
@@ -756,6 +761,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('tanuki-is-done-for',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

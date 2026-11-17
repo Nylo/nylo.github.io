@@ -331,6 +331,7 @@ function aiPickCard(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,leader:rnd(n),lastNear:0,msg:'',log:[],over:null,show:null,
      turn:-1,win:-1,oth:-1,trickNo:0,trick:[],order:[],played:[],
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],fac:0,kaii:0,tot:0,deaths:0,elim:false,hist:[]}))};
@@ -351,6 +352,7 @@ function humanHint(){
 async function playRound(){
   const total=G.n===4?12:10;
   while(P(G.leader).hand.length){
+    ckpt();
     G.trickNo++; G.trick=[]; G.win=-1; G.oth=-1;
     G.order=[];
     for(let k=0;k<G.n;k++) G.order.push((G.leader+k)%G.n);
@@ -404,16 +406,20 @@ function winners(){
   const mx=Math.max(...c.map(p=>p.tot));
   return c.filter(p=>p.tot===mx).map(p=>p.id);
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let r=0;r<3;r++){
-      g.round=r;
-      if(r>0) g.leader=g.lastNear;
-      deal();
-      logMsg(`— Round ${r+1}/3 (bonus sopravvivenza +${BONUS[r]}): inizia ${P(g.leader).name} —`);
-      status(r?g.leader===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.leader).name}.`:`Buona partita a Otherside Trick, ${P(HUM).name}!`);
-      await ask(HUM,`Round ${r+1}/3: ${g.leader===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.leader).name}`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let r=res?g.round:0;r<3;r++){
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}/3.`); }
+      else{
+        g.round=r;
+        if(r>0) g.leader=g.lastNear;
+        deal(); ckpt();
+        logMsg(`— Round ${r+1}/3 (bonus sopravvivenza +${BONUS[r]}): inizia ${P(g.leader).name} —`);
+        status(r?g.leader===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.leader).name}.`:`Buona partita a Otherside Trick, ${P(HUM).name}!`);
+        await ask(HUM,`Round ${r+1}/3: ${g.leader===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.leader).name}`,[{label:'Ok, si parte',value:1}]);
+      }
       await playRound();
       if(await scoreRound()) break;
     }
@@ -624,6 +630,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('otherside-trick',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

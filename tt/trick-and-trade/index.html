@@ -406,6 +406,7 @@ function aiDraft(p,restOrder,canLead){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   const H=HANDN[n];
   const tricks=shuffle(makeTricks()), trades=shuffle(makeTrades());
   const pl=Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:sortHand(tricks.slice(i*H,(i+1)*H)),icons:[0,0,0,0],trades:[]}));
@@ -496,12 +497,16 @@ async function doDraft(){
   render();
   await sleep(900);
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await askWelcome(`Buona partita a Trick and Trade, ${P(HUM).name}!`);
-    logMsg(`Partita a ${g.n} giocatori: ${g.H} carte Trick a testa, ${g.deck.length+g.r1.length+g.r2.length} carte Trade in gioco. Inizia ${P(g.leader).name}.`);
+    if(rs) status(`Partita ripresa: presa ${g.trickNo+1}/${g.H}.`);
+    else{
+      await askWelcome(`Buona partita a Trick and Trade, ${P(HUM).name}!`);
+      logMsg(`Partita a ${g.n} giocatori: ${g.H} carte Trick a testa, ${g.deck.length+g.r1.length+g.r2.length} carte Trade in gioco. Inizia ${P(g.leader).name}.`);
+    }
     while(g.trickNo<g.H){
+      ckpt();                                            // punto sicuro: inizio presa (presa + scelta Trade precedenti completate)
       await playTrick();
       await doDraft();
     }
@@ -710,6 +715,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('trick-and-trade',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

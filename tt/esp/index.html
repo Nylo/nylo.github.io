@@ -384,6 +384,7 @@ function aiPickPlay(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,start:rnd(n),msg:'',log:[],over:null,vision:null,vrev:false,asp:{sup:null,sd:null},aside:[],
      order:[],leader:0,turn:-1,win:-1,fresh:-1,trickNo:0,lead:null,table:[],played:[],show:null,taken:[],
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],fd:[],won:0,pred:null,total:0,rs:[]}))};
@@ -485,8 +486,8 @@ async function oneTrick(){
   G.leader=w;
 }
 async function tricks(){
-  G.leader=G.start;
-  for(let t=0;t<5;t++) await oneTrick();
+  if(!G.trickNo) G.leader=G.start;
+  for(let t=G.trickNo;t<5;t++){ ckpt(); await oneTrick(); }
   G.win=-1; G.turn=-1; G.table=[]; G.lead=null;
 }
 async function scoring(){
@@ -507,19 +508,23 @@ function winners(){
   const mx=Math.max(...G.pl.map(p=>p.total));
   return G.pl.filter(p=>p.total===mx).map(p=>p.id);
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<ROUNDS;k++){
-      g.round=k;
-      if(k) g.start=(g.start+1)%g.n;
-      deal();
-      logMsg(`— Round ${k+1}/${ROUNDS}: primo veggente ${P(g.start).name} · ${FD[k]} carte coperte —`);
-      status(k?g.start===HUM?'Sei tu il primo veggente.':`Primo veggente: ${P(g.start).name}.`:`Buona partita a ESP, ${P(HUM).name}!`);
-      await ask(HUM,`Round ${k+1}/${ROUNDS}: ${FD[k]} carte coperte e ${6-FD[k]} in mano. ${g.start===HUM?'Sei tu il primo veggente':'Primo veggente: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
-      await predictions();
-      await reveal();
-      await placeFD();
+    let res=!!rs;
+    for(let k=res?g.round:0;k<ROUNDS;k++){
+      if(res){ res=false; status(`Partita ripresa: round ${k+1}/${ROUNDS}.`); }
+      else{
+        g.round=k;
+        if(k) g.start=(g.start+1)%g.n;
+        deal(); g.ph='pred'; ckpt();
+        logMsg(`— Round ${k+1}/${ROUNDS}: primo veggente ${P(g.start).name} · ${FD[k]} carte coperte —`);
+        status(k?g.start===HUM?'Sei tu il primo veggente.':`Primo veggente: ${P(g.start).name}.`:`Buona partita a ESP, ${P(HUM).name}!`);
+        await ask(HUM,`Round ${k+1}/${ROUNDS}: ${FD[k]} carte coperte e ${6-FD[k]} in mano. ${g.start===HUM?'Sei tu il primo veggente':'Primo veggente: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
+      }
+      // fasi (g.ph): 'pred' = previsioni + rivelazione, 'fd' = carte coperte, 'play' = prese; i punti di salvataggio sono tra una fase e l'altra e a inizio presa
+      if(g.ph==='pred'){ await predictions(); await reveal(); g.ph='fd'; ckpt(); }
+      if(g.ph==='fd'){ await placeFD(); g.ph='play'; }
       await tricks();
       await scoring();
     }
@@ -725,6 +730,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('esp',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

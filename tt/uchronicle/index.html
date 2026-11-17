@@ -381,6 +381,7 @@ function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,expert:OPT.exp,round:0,first0:rnd(n),first:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  NYLO_CK=null;
   run();
 }
 function deal(){
@@ -404,6 +405,7 @@ async function playRound(){
   const S=G.S, n=G.n;
   S.started=true;
   while(S.done<TRICKS){
+    ckpt();
     S.tricks.push([]); S.cur=S.tricks.length-1;
     if(n===2){ const c=S.deck.shift(); S.tricks[S.cur].push({p:-1,c}); logMsg(`Presa ${S.done+1}: dal mazzo si scopre ${cname(c)}, prima carta della presa.`); }
     else logMsg(`Presa ${S.done+1}: apre ${P(S.lead).name}.`);
@@ -434,15 +436,21 @@ async function scoring(){
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let r=0;r<g.n;r++){
-      g.round=r; g.first=(g.first0+r)%g.n;
-      deal();
-      logMsg(`— Round ${r+1}/${g.n}: apre ${P(g.first).name} —`);
-      status(r?g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`:`Buona partita a Uchronicle, ${P(HUM).name}!`);
-      await ask(HUM,`${g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let r=res?g.round:0;r<g.n;r++){
+      g.round=r;
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}/${g.n}.`); }
+      else{
+        g.first=(g.first0+r)%g.n;
+        deal();
+        ckpt();
+        logMsg(`— Round ${r+1}/${g.n}: apre ${P(g.first).name} —`);
+        status(r?g.first===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.first).name}.`:`Buona partita a Uchronicle, ${P(HUM).name}!`);
+        await ask(HUM,`${g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name}`,[{label:'Ok, si parte',value:1}]);
+      }
       await playRound();
       await scoring();
     }
@@ -682,6 +690,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('uchronicle',snap=>{ G=snap; PR=null; ckpt(); render(); run(true); });
 
 </script>
 </body>

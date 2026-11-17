@@ -401,6 +401,7 @@ function aiClaim(p,ups){ return bestClaim(P(p).right,ups.map(x=>x.c)); }
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,msg:'',log:[],over:null,show:null,phase:'idle',leader:-1,turn:-1,win:-1,claimed:-1,trickNo:0,trick:[],order:[],pend:{},
      deck:[],seen:new Set(),void:[],unused:0,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],right:[],left:[],score:START,hist:[]}))};
@@ -446,6 +447,7 @@ function humanHint(h){
 async function playRound(){
   G.phase='play';
   while(G.trickNo<TRICKS){
+    ckpt();
     G.trickNo++; G.trick=[]; G.win=-1; G.claimed=-1;
     const first=G.leader;
     G.order=[]; for(let k=0;k<G.n;k++) G.order.push((first+k)%G.n);
@@ -522,15 +524,22 @@ async function scoreRound(){
   if(!last) G.show=null;
   return last;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Phantom Trick, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<ROUNDS;r++){
-      g.round=r;
-      deal();
-      logMsg(`— Round ${r+1}/${ROUNDS}: ${g.n*HAND} carte distribuite, ${g.unused} non usate —`);
-      await pickPhase();
+    if(!rs) await ask(HUM,`Buona partita a Phantom Trick, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let r=res?g.round:0;r<ROUNDS;r++){
+      // punti di salvataggio: dopo la distribuzione (phase 'pick': si rifà la scelta della carta a destra) e a inizio di ogni presa (phase 'play')
+      let ph='new';
+      if(res){ ph=g.phase; res=false; status(`Partita ripresa: round ${r+1}/${ROUNDS}.`); }
+      if(ph==='new'){
+        g.round=r;
+        deal(); g.phase='pick'; ckpt();
+        logMsg(`— Round ${r+1}/${ROUNDS}: ${g.n*HAND} carte distribuite, ${g.unused} non usate —`);
+        ph='pick';
+      }
+      if(ph==='pick') await pickPhase();
       await playRound();
       if(await scoreRound()) break;
     }
@@ -730,6 +739,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('phantom-trick',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

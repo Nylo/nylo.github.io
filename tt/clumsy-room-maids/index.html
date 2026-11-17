@@ -302,12 +302,14 @@ function aiPlay(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n:N,round:0,msg:'',log:[],over:null,show:null,phase:'idle',holder:rnd(N),leader:-1,turn:-1,win:-1,trickNo:0,trick:[],
      draw:[],drawn:null,trump:-1,firstBid:false,fresh:null,
      pl:Array.from({length:N},(_,i)=>({id:i,name:NAMES[i],hand:[],bids:[],q:{...QUOTA},won:0,vert:0,horiz:0,score:0,hist:[]}))};
   run();
 }
 function deal(){
+  G.phase='idle'; G.dt=null; G.dp=-1;
   G.draw=shuffle(makeDeck()); G.drawn=null; G.trick=[]; G.trickNo=0; G.win=-1; G.turn=-1; G.leader=-1; G.show=null; G.fresh=null;
   G.trump=TRUMPS[G.round]; G.firstBid=false;
   G.pl.forEach(p=>{ p.hand=[]; p.bids=[]; p.q={...QUOTA}; p.won=0; p.vert=0; p.horiz=0; });
@@ -315,8 +317,9 @@ function deal(){
 // 27 turni in senso orario dal possessore della carta leader: si pesca, si guarda la carta e si sceglie cosa farne
 async function distPhase(){
   G.phase='dist';
-  let p=G.holder;
-  for(let t=0;t<27;t++){
+  if(G.dt==null){ G.dt=0; G.dp=G.holder; ckpt(); }
+  let p=G.dp;
+  for(let t=G.dt;t<27;t++){
     const pl=P(p), card=G.draw.shift(); G.turn=p;
     let act;
     if(p===HUM){
@@ -351,6 +354,7 @@ async function distPhase(){
     sortHand(P(HUM).hand);
     await sleep(p===HUM?250:350);
     p=nextOf(p);
+    G.dt=t+1; G.dp=p; G.turn=-1; ckpt();
   }
   G.turn=-1; G.drawn=null;
 }
@@ -361,10 +365,11 @@ function humanHint(h){
     ?`colore di mano ${SUITS[lead].n}: devi giocarne una.`
     :`non hai carte ${SUITS[lead].n}: puoi giocare qualsiasi carta${tr}.`;
 }
-async function playRound(){
-  G.phase='play'; G.leader=G.holder; G.fresh=null;
-  for(let t=0;t<TRICKS;t++){
-    G.trickNo=t+1; G.trick=[]; G.win=-1;
+async function playRound(res){
+  const t0=res?G.trickNo-1:0;
+  G.phase='play'; if(!res){ G.leader=G.holder; G.fresh=null; }
+  for(let t=t0;t<TRICKS;t++){
+    G.trickNo=t+1; G.trick=[]; G.win=-1; G.turn=-1; ckpt();
     const first=G.leader;
     for(let k=0;k<N;k++){
       const p=(first+k)%N, pl=P(p); G.turn=p;
@@ -388,8 +393,9 @@ async function playRound(){
   }
   G.trick=[]; G.win=-1; G.turn=-1; G.leader=-1;
 }
-async function scoreRound(){
+async function scoreRound(res){
   G.phase='score';
+  if(!res){
   const sums=G.pl.map(bidSum), ok=G.pl.map((p,i)=>sums[i]===p.vert), nok=ok.filter(Boolean).length;
   const bonus=[0,30,20,10][nok];
   const extra=G.pl.map(()=>0);
@@ -405,27 +411,41 @@ async function scoreRound(){
   });
   G.show={rows};
   logMsg(`Round ${G.round+1} concluso: `+rows.map(r=>`${P(r.p).name} ${r.d>0?'+':''}${r.d} (${r.score})`).join(' · ')+'.');
+  const last0=G.round>=ROUNDS-1;
+  status(last0?'Ultimo round concluso.':'Round concluso: le puntate coperte sono state rivelate.');
+  ckpt();
+  }
   const last=G.round>=ROUNDS-1;
-  status(last?'Ultimo round concluso.':'Round concluso: le puntate coperte sono state rivelate.');
   await askChoose('Risultato del round',[{label:last?'Mostra risultato finale':'Round successivo',value:1}]);
   if(!last) G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await askChoose(`Buona partita a Clumsy Room Maids, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<ROUNDS;r++){
-      g.round=r;
-      deal();
-      logMsg(`— Round ${r+1}/${ROUNDS}: ${g.trump>=0?`${SUITS[g.trump].n} è briscola`:'nessuna briscola'}; ${P(g.holder).name} ha la carta leader e pesca per primo —`);
-      status(`Round ${r+1}/${ROUNDS}: si mescolano le 27 carte.`);
-      await sleep(700);
-      await distPhase();
-      await playRound();
-      await scoreRound();
+    let res=!!rs;
+    if(!res) await askChoose(`Buona partita a Clumsy Room Maids, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let r=res?g.round:0;r<ROUNDS;r++){
+      if(res) status(`Partita ripresa: round ${r+1}/${ROUNDS}.`);
+      else{
+        g.round=r;
+        deal();
+        logMsg(`— Round ${r+1}/${ROUNDS}: ${g.trump>=0?`${SUITS[g.trump].n} è briscola`:'nessuna briscola'}; ${P(g.holder).name} ha la carta leader e pesca per primo —`);
+        status(`Round ${r+1}/${ROUNDS}: si mescolano le 27 carte.`);
+        ckpt();
+        await sleep(700);
+      }
+      const ph=g.phase;
+      if(ph==='idle'||ph==='dist') await distPhase();
+      if(g.phase==='score') await scoreRound(true);
+      else{
+        await playRound(g.phase==='play');
+        await scoreRound(false);
+      }
+      res=false;
     }
-    const res=gameWinner(g.pl.map(p=>p.score),g.holder);
-    g.over={winner:res.w,tie:res.tie};
+    NYLO_CK=null;
+    const gw=gameWinner(g.pl.map(p=>p.score),g.holder);
+    g.over={winner:gw.w,tie:gw.tie};
     g.phase='over';
     render();
   }catch(e){
@@ -445,7 +465,7 @@ function handHtml(p){
   if(p===HUM){
     return `<div class="hand">${pl.hand.map((c,i)=>{
       if(PR&&PR.type==='card') return cardHtml(c,`${PR.legal.has(i)?'legal':'dim'} ${PR.sel===i?'sel':''}`,'button',`${PR.legal.has(i)?'':'disabled'} data-p="${i}"`);
-      return cardHtml(c,G.fresh&&G.fresh===c?'fresh':'');
+      return cardHtml(c,G.fresh&&G.fresh.c===c.c&&G.fresh.n===c.n?'fresh':'');
     }).join('')}</div>`;
   }
   return `<div class="backs">${pl.hand.map(()=>`<span class="bn" title="Carta coperta"></span>`).join('')}</div>`;
@@ -624,6 +644,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('clumsy-room-maids',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

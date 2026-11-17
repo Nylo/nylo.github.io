@@ -371,6 +371,7 @@ function aiPass(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,starter:rnd(n),
      v4:Math.random()<0.5?'A':'B',v6:Math.random()<0.5?'A':'B',
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
@@ -397,7 +398,9 @@ async function passPhase(){
 async function gravePhase(){
   const S=G.S, n=G.n; S.phase='grave';
   for(let k=0;k<n;k++){
-    const p=(S.lead+k)%n; G.turn=p;
+    const p=(S.lead+k)%n;
+    if(S.prepDone.includes(p)) continue;     // già preparate (ripresa da un salvataggio a metà preparazione)
+    G.turn=p; ckpt();
     status(p===HUM?'Prepara le lapidi: da 0 a 3 carte dalla tua mano.':`${P(p).name} prepara le lapidi.`);
     let cards;
     if(p===HUM){ const idx=await humanPick('hand',0,3,'Scegli da 0 a 3 carte da mettere come lapidi (restano coperte per gli altri).'); cards=idx.map(i=>S.hands[HUM][i]); }
@@ -440,10 +443,11 @@ function actText(X,w,c,ch,res){
   if(nd.kind==='send') return `${nm} manda ${plu((ch.send||[]).length,'lapide','lapidi')} al campo di battaglia.`;
   return (ch.ret||[]).length?`${nm} riporta 1 lapide in mano${me?` (${cname(ch.ret[0])})`:''}.`:`${nm} non ha lapidi da riprendere.`;
 }
-async function playRound(){
+async function playRound(rs){
   const S=G.S, n=G.n; S.phase='play'; S.started=true;
-  logMsg(`Apre ${P(S.lead).name}.`);
+  if(!rs) logMsg(`Apre ${P(S.lead).name}.`);
   while(activeList(S).length>=2){
+    ckpt();     // inizio presa: mani, lapidi, campo di battaglia e vuoti coerenti (le carte si confrontano per chiave solo tra stati dello stesso checkpoint)
     S.trick=[]; S.res=null;
     for(const p of order(S)){
       G.turn=p;
@@ -473,31 +477,43 @@ async function playRound(){
     S.done++; S.trick=[]; S.res=null;
   }
 }
-async function scoring(){
+async function scoring(again){
   const S=G.S, n=G.n;
-  const rows=G.pl.map((_,p)=>({p,...scoreOf(S,p)}));
-  rows.forEach(r=>{ P(r.p).total+=r.tot; P(r.p).hist.push(r.tot); });
-  G.show={rows};
-  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ha ${plu(r.g,'lapide','lapidi')} (${r.gp}) e ${plu(r.cards,'carta','carte')} in mano (${r.hp}${r.pride?', Orgoglio del guerriero':''}) → ${r.tot} punti umiliazione.`));
-  const rem=activeList(S);
-  G.starter=rem.length===1?rem[0]:S.lastP;
-  status(`Round ${G.round+1} concluso.`);
-  S.phase='end';
+  if(!again){
+    const rows=G.pl.map((_,p)=>({p,...scoreOf(S,p)}));
+    rows.forEach(r=>{ P(r.p).total+=r.tot; P(r.p).hist.push(r.tot); });
+    G.show={rows};
+    rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ha ${plu(r.g,'lapide','lapidi')} (${r.gp}) e ${plu(r.cards,'carta','carte')} in mano (${r.hp}${r.pride?', Orgoglio del guerriero':''}) → ${r.tot} punti umiliazione.`));
+    const rem=activeList(S);
+    G.starter=rem.length===1?rem[0]:S.lastP;
+    status(`Round ${G.round+1} concluso.`);
+    S.phase='end';
+    ckpt();     // punteggi già applicati: alla ripresa si ripropone solo il risultato del round
+  }
   const last=G.round+1>=ROUNDS;
   await ask(HUM,'Punti umiliazione del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Warrior's Testament, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<ROUNDS;r++){
-      g.round=r; deal();
-      logMsg(`— Round ${r+1}/${ROUNDS} — apre ${P(g.starter).name}.`);
-      await passPhase();
-      await gravePhase();
-      await playRound();
-      await scoring();
+    let res=!!rs;
+    if(!res) await ask(HUM,`Buona partita a Warrior's Testament, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let r=res?g.round:0;r<ROUNDS;r++){
+      const resumed=res;
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}/${ROUNDS}.`); }
+      else{
+        g.round=r; deal();
+        logMsg(`— Round ${r+1}/${ROUNDS} — apre ${P(g.starter).name}.`);
+        ckpt();
+      }
+      const again=resumed&&g.S.phase==='end', inPlay=resumed&&g.S.phase==='play';
+      if(!again){
+        if(g.S.phase==='pass') await passPhase();
+        if(g.S.phase==='pass'||g.S.phase==='grave') await gravePhase();
+        await playRound(inPlay);
+      }
+      await scoring(again);
     }
     const m=Math.min(...g.pl.map(p=>p.total));
     g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
@@ -705,6 +721,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('warriors-testament',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

@@ -232,7 +232,7 @@ function evalPlay(S,c){
     if(!o||c.v>o.v){ wins.push(sk); if(o) dis.push({o,sk}); occ2[sk]=c; } else loses.push(sk);
   }
   const removedOthers=[]; const here=new Set(SEATS.map(k=>occ2[k]&&occ2[k].id));
-  for(const d of dis) if(!here.has(d.o.id)&&!removedOthers.includes(d.o)) removedOthers.push(d.o);
+  for(const d of dis) if(!here.has(d.o.id)&&!removedOthers.some(x=>x.id===d.o.id)) removedOthers.push(d.o);
   return {wins,loses,dis,occ2,removedOthers,selfRemoved:!wins.length,complete:!!(occ2.V&&occ2.G&&occ2.D&&occ2.B)};
 }
 function playCard(S,p,c){
@@ -373,8 +373,9 @@ const aiPick = (p,avail) => polPick(G,p,avail,false);
 // ═════════════════════════ PARTITA ═════════════════════════
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,msg:'',log:[],over:null,show:null,phase:'',turn:-1,hands:[],area:[],occ:emptyOcc(),own:new Array(50).fill(-1),gone:[],
-     start:0,last:0,rank:null,bandLeft:null,note:null,fresh:-1,
+     start:0,last:0,rank:null,bandLeft:null,note:null,fresh:-1,picked:null,ri:0,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i]}))};
   run();
 }
@@ -426,11 +427,12 @@ function goPick(kind){
   if(kind==='x'){ PR.sel=null; render(); return; }
   const c=PR.avail.find(x=>x.id===PR.sel), r=PR.res; PR=null; render(); r(c);
 }
-async function audition(){
-  const n=G.n; G.phase='audition'; G.rank=null; G.bandLeft=null; G.note=null;
-  let p=firstWithCards(G,G.start);
+async function audition(rs){
+  const n=G.n; let p;
+  if(rs) p=G.turn;
+  else{ G.phase='audition'; G.rank=null; G.bandLeft=null; G.note=null; p=firstWithCards(G,G.start); }
   while(p>=0){
-    G.turn=p; G.fresh=-1;
+    G.turn=p; G.fresh=-1; ckpt();
     status(p===HUM?'Tocca a te: gioca un membro.':`Tocca a ${P(p).name}.`);
     let c;
     if(p===HUM) c=await humanPlay();
@@ -452,18 +454,27 @@ async function audition(){
   }
   return false;
 }
-async function exhibition(){
-  const n=G.n; G.phase='perform';
-  const ownOf=id=>G.own[id], ranked=rankMembers(G.occ,ownOf,G.start,n), kind=G.occ.K?'grande band':'piccola band';
-  G.rank=ranked.map((c,i)=>({r:i+1,c,p:G.own[c.id]})); G.bandLeft=new Set(ranked.map(c=>c.id)); G.fresh=-1; G.turn=-1;
-  const oldStart=G.start; G.start=(G.last+1)%n;
-  logMsg(`Band completa (${kind}). Classifica: ${G.rank.map(r=>`${r.r}° ${P(r.p).name} (${cname(r.c)})`).join(' · ')}.`);
-  logMsg(`Il segnalino di mano passa a ${P(G.start).name}.`);
-  status(`Band completa: ${kind}. Si assegnano le posizioni: il membro più basso è 1°${ranked.length>1&&ranked[0].v===ranked[1].v?' (a parità conta chi è più vicino al giocatore di mano)':''}.`);
-  await sleep(2300);
-  const picked=G.pl.map(()=>[]);
-  for(const r of G.rank){
-    const p=r.p; G.turn=p; G.note=null;
+async function exhibition(rs){
+  const n=G.n;
+  if(!(rs&&G.show)){
+  let ranked;
+  if(rs){ ranked=G.rank.map(r=>r.c); status(`Partita ripresa: esibizione del round ${G.round}.`); }
+  else{
+    G.phase='perform';
+    const ownOf=id=>G.own[id]; ranked=rankMembers(G.occ,ownOf,G.start,n); const kind=G.occ.K?'grande band':'piccola band';
+    G.rank=ranked.map((c,i)=>({r:i+1,c,p:G.own[c.id]})); G.bandLeft=new Set(ranked.map(c=>c.id)); G.fresh=-1; G.turn=-1;
+    G.picked=G.pl.map(()=>[]); G.ri=0;
+    const oldStart=G.start; G.start=(G.last+1)%n;
+    logMsg(`Band completa (${kind}). Classifica: ${G.rank.map(r=>`${r.r}° ${P(r.p).name} (${cname(r.c)})`).join(' · ')}.`);
+    logMsg(`Il segnalino di mano passa a ${P(G.start).name}.`);
+    status(`Band completa: ${kind}. Si assegnano le posizioni: il membro più basso è 1°${ranked.length>1&&ranked[0].v===ranked[1].v?' (a parità conta chi è più vicino al giocatore di mano)':''}.`);
+    ckpt();
+    await sleep(2300);
+  }
+  const picked=G.picked;
+  for(let ri=G.ri;ri<G.rank.length;ri++){
+    const r=G.rank[ri]; G.ri=ri;
+    const p=r.p; G.turn=p; G.note=null; ckpt();
     const avail=ranked.filter(c=>G.bandLeft.has(c.id));
     status(p===HUM?`Tocca a te (${r.r}° posto): scegli un membro.`:`${P(p).name} (${r.r}° posto) sceglie un membro.`);
     let c;
@@ -475,10 +486,12 @@ async function exhibition(){
     logMsg(`${r.r}° posto: ${P(p).name} prende ${cname(c)}.`);
     await sleep(p===HUM?500:700);
   }
-  G.turn=-1; G.occ=emptyOcc(); G.bandLeft=null; G.rank=null; G.own=new Array(50).fill(-1);
+  G.turn=-1; G.occ=emptyOcc(); G.bandLeft=null; G.rank=null; G.own=new Array(50).fill(-1); G.picked=null;
   const rows=G.pl.map(p=>({p:p.id,got:picked[p.id],sc:scoreOf(G.area[p.id])}));
   const more=G.hands.some(h=>h.length);
-  G.show={rows,more};
+  G.show={rows,more}; ckpt();
+  }
+  const more=G.show.more;
   status(`Round ${G.round} concluso.`);
   await ask(HUM,'Risultato del round',[{label:more?'Prossimo round':'Mostra risultato finale',value:1}]);
   G.show=null;
@@ -489,22 +502,28 @@ function finish(){
   const m=Math.max(...rows.map(r=>r.total));
   G.over={rows,winners:rows.filter(r=>r.total===m).map(r=>r.p)}; G.turn=-1; G.show=null; G.phase='end';
 }
-async function run(){
+async function run(rs){
   const g=G; let asked=false;
   try{
-    deal();
-    status(`Buona partita a 1st Band, ${P(HUM).name}!`);
-    await ask(HUM,`Di mano: ${P(G.start).name}${G.hands.some(h=>h.some(c=>c.v===1&&c.s.length===1&&c.s[0]==='V'))?' (ha Vocal 1)':' (Vocal 1 non è in gioco)'}`,[{label:'Ok, si parte',value:1}]);
+    if(!rs){
+      deal(); ckpt();
+      status(`Buona partita a 1st Band, ${P(HUM).name}!`);
+      await ask(HUM,`Di mano: ${P(G.start).name}${G.hands.some(h=>h.some(c=>c.v===1&&c.s.length===1&&c.s[0]==='V'))?' (ha Vocal 1)':' (Vocal 1 non è in gioco)'}`,[{label:'Ok, si parte',value:1}]);
+    }
     for(;;){
-      g.round++;
-      logMsg(`— Round ${g.round}: apre ${P(g.start).name} —`);
-      const full=await audition();
+      const inAu=rs&&g.phase==='audition', inEx=rs&&g.phase==='perform'; rs=false;
+      let full=true;
+      if(!inEx){
+        if(!inAu){ g.round++; logMsg(`— Round ${g.round}: apre ${P(g.start).name} —`); }
+        else status(`Partita ripresa: round ${g.round}.`);
+        full=await audition(inAu);
+      }
       if(!full){
         const left=membersOf(g.occ);
         if(left.length) logMsg(`Le carte sono finite: la band incompleta (${left.map(cname).join(', ')}) viene rimossa.`);
         g.occ=emptyOcc(); break;
       }
-      const more=await exhibition();
+      const more=await exhibition(inEx);
       if(!more){ asked=true; break; }
     }
     g.phase='end'; status('Partita conclusa: ecco il risultato.');
@@ -706,6 +725,11 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('1st-band',snap=>{
+  G=snap; PR=null;
+  for(const k of SEATS){ const c=G.occ[k]; if(c) for(const j of SEATS){ const d=G.occ[j]; if(d&&d!==c&&d.id===c.id) G.occ[j]=c; } }
+  render(); run(true);
+});
 
 </script>
 </body>

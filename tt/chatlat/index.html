@@ -408,7 +408,7 @@ function newMatch(n){
      deckIds:CARDS.filter(c=>n!==3||c.c!==6).map(c=>c.id),
      hands:[],choc:[],cu:[],myDisc:[],discAll:[],played:[],void:[],plays:[],disc:8,used:0,leader:0,start:0,trickNo:0,tricks:0,res:null,fresh:-1,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
-  G.start=rnd(n);
+  G.start=rnd(n); NYLO_CK=null;
   run();
 }
 function dealRound(){
@@ -501,34 +501,47 @@ async function oneTrick(){
   status(m); logMsg(m);
   await sleep(2300);
 }
-async function scoring(){
-  const rc=G.pl.map(p=>roundCalc(p.id)), sc=rc.map(x=>x.pts);
-  G.pl.forEach(p=>{ p.total+=sc[p.id]; p.hist.push(sc[p.id]); });
-  logMsg(`Round ${G.round} concluso: ${G.pl.map(p=>`${p.name} ${sgn(sc[p.id])} (totale ${p.total})`).join(' · ')}.`);
-  const last=G.round===G.rounds;
-  if(!last){
-    // di mano nel prossimo round: il punteggio totale più basso; a parità chi ha fatto meno in questo round
-    const mt=Math.min(...G.pl.map(p=>p.total)); let c=G.pl.filter(p=>p.total===mt);
-    if(c.length>1){ const mr=Math.min(...c.map(p=>sc[p.id])); c=c.filter(p=>sc[p.id]===mr); }
-    G.start=c[rnd(c.length)].id;
+async function scoring(rs){
+  if(!rs){
+    const rc=G.pl.map(p=>roundCalc(p.id)), sc=rc.map(x=>x.pts);
+    G.pl.forEach(p=>{ p.total+=sc[p.id]; p.hist.push(sc[p.id]); });
+    logMsg(`Round ${G.round} concluso: ${G.pl.map(p=>`${p.name} ${sgn(sc[p.id])} (totale ${p.total})`).join(' · ')}.`);
+    const last=G.round===G.rounds;
+    if(!last){
+      // di mano nel prossimo round: il punteggio totale più basso; a parità chi ha fatto meno in questo round
+      const mt=Math.min(...G.pl.map(p=>p.total)); let c=G.pl.filter(p=>p.total===mt);
+      if(c.length>1){ const mr=Math.min(...c.map(p=>sc[p.id])); c=c.filter(p=>sc[p.id]===mr); }
+      G.start=c[rnd(c.length)].id;
+    }
+    G.show={rc,last,next:last?-1:G.start}; ckpt();
   }
-  G.show={rc,last,next:last?-1:G.start};
+  const last=G.show.last;
   status(last?'Partita conclusa: ecco il risultato.':`Round ${G.round} concluso.`);
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    status(`Buona partita a Chatlat, ${P(HUM).name}!`);
-    await ask(HUM,`Primo di mano: ${P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
-    for(let r=1;r<=g.rounds;r++){
-      g.round=r; dealRound();
-      logMsg(`— Round ${r}/${g.rounds}: di mano ${P(g.start).name} —`);
-      await discardPhase();
-      while(g.hands[0].length) await oneTrick();
-      g.plays=[]; g.res=null; g.phase='end';
-      await scoring();
+    let res=!!rs&&g.round>0;
+    if(!res){
+      status(`Buona partita a Chatlat, ${P(HUM).name}!`);
+      await ask(HUM,`Primo di mano: ${P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
+    }
+    for(let r=res?g.round:1;r<=g.rounds;r++){
+      const ph=res?g.phase:'';
+      if(res){ res=false; status(`Partita ripresa: round ${r}/${g.rounds}.`); }
+      if(!ph){
+        g.round=r; dealRound();
+        logMsg(`— Round ${r}/${g.rounds}: di mano ${P(g.start).name} —`);
+        ckpt();
+      }
+      if(!ph||ph==='discard') await discardPhase();
+      if(ph!=='end'){
+        while(g.hands[0].length){ ckpt(); await oneTrick(); }
+        g.plays=[]; g.res=null; g.phase='end';
+      }
+      await scoring(ph==='end');
     }
     const m=Math.max(...g.pl.map(p=>p.total));
     g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
@@ -754,6 +767,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('chatlat',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

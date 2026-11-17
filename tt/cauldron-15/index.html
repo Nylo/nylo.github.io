@@ -409,6 +409,7 @@ function aiPlay(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   const favDeck=shuffle([...Array(ncOf(n)).keys()]);
   G={n,round:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,starter:rnd(n),favDeck,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i]}))};
@@ -465,10 +466,13 @@ async function rewardPhase(tr,w){
   gives.forEach(g=>S.rewards[g.to].push(g.card));
   tr.forEach(e=>{ if(!gives.some(g=>g.card===e.c)){ S.disc.push(e.c); } S.discR.push(e.c); });
 }
-async function playRound(){
+async function playRound(rs){
   const S=G.S, n=G.n;
-  logMsg(`— Round ${S.round}/2 — colore preferito: ${COLS[S.fav].n}. Apre ${P(S.lead).name}.`);
-  for(let t=0;t<HAND;t++){
+  let t0=0;
+  if(rs) t0=S.done-(S.round-1)*HAND;     // ripresa: prese già concluse in questo round
+  else logMsg(`— Round ${S.round}/2 — colore preferito: ${COLS[S.fav].n}. Apre ${P(S.lead).name}.`);
+  for(let t=t0;t<HAND;t++){
+    ckpt();     // inizio presa: mani, ricompense, pila e scarti coerenti (le carte non si confrontano per identità tra checkpoint diversi)
     S.trick=[]; S.res=null;
     for(let k=0;k<n;k++){
       const p=(S.lead+k)%n; G.turn=p;
@@ -495,7 +499,7 @@ async function playRound(){
   }
 }
 async function endGame(){
-  const S=G.S, n=G.n; S.phase='destroy';
+  const S=G.S, n=G.n; S.phase='destroy'; ckpt();
   const ks=S.rewards.map(r=>maxSets(r,ncOf(n)));
   const dest=Array.from({length:n},()=>[]);
   for(let p=0;p<n;p++){
@@ -513,17 +517,29 @@ async function endGame(){
   fr.rows.forEach(r=>logMsg(`${P(r.p).name}: totale ${r.tot}/${S.C}${r.elim?' → eliminato (ha superato il calderone)':''}.`));
   render();
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    G.welcome=true; await ask(HUM,`Buona partita a Cauldron 15, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
-    dealRound(1); await playRound();
-    // fine del primo round
-    status('Primo round concluso.'); logMsg('Fine del primo round: si rimescolano gli scarti con il mazzo e si danno 8 carte a testa.');
-    G.show={mid:true};
-    await ask(HUM,'Round 1 concluso',[{label:'Inizia il secondo round',value:1}]);
-    G.show=null;
-    dealRound(2); await playRound();
+    // st: 0 nuova partita, 1 round 1 in corso, 2 tra i due round, 3 round 2 in corso, 4 fase finale (ripresa da salvataggio)
+    let st=0;
+    if(rs) st=g.S.phase==='destroy'?4:(g.show&&g.show.mid?2:(g.S.round===1?1:3));
+    if(rs) status('Partita ripresa.');
+    if(st===0){
+      G.welcome=true; await ask(HUM,`Buona partita a Cauldron 15, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
+      dealRound(1);
+    }
+    if(st<=1) await playRound(st===1);
+    if(st<=2){
+      if(st<2){
+        // fine del primo round
+        status('Primo round concluso.'); logMsg('Fine del primo round: si rimescolano gli scarti con il mazzo e si danno 8 carte a testa.');
+        G.show={mid:true}; ckpt();
+      }
+      await ask(HUM,'Round 1 concluso',[{label:'Inizia il secondo round',value:1}]);
+      G.show=null;
+      dealRound(2);
+    }
+    if(st<=3) await playRound(st===3);
     await endGame();
   }catch(e){
     if(e===ABORT||g!==G) return;
@@ -729,6 +745,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('cauldron-15',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

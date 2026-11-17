@@ -375,6 +375,7 @@ function aiReserve(p,cnt,leader){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   const suits=shuffle([0,1,2,3,4]).slice(0,n).sort();
   const deck=[]; suits.forEach(s=>{ for(let v=1;v<=12;v++) deck.push({s,v}); });
   G={n,round:0,first0:rnd(n),first:0,msg:'',log:[],over:null,show:null,res:null,turn:-1,deck,suits,stamp:0,ledAt:Array(n).fill(-1),
@@ -410,6 +411,7 @@ async function playRound(){
   const S=G.S, n=G.n;
   S.started=true;
   for(;;){
+    ckpt();
     const st=checkStart(S);
     if(st.end){
       const m=st.end==='songs'?'Nessuno ha più canzoni prenotate: il round finisce.':`${P(st.p).name} non ha più carte in mano e non potrebbe giocare: il round finisce.`;
@@ -449,29 +451,39 @@ async function playRound(){
   }
 }
 async function scoring(){
-  const S=G.S, pts=roundPoints(S), T=Math.max(...S.tr);
-  const rows=S.tr.map((t,p)=>({p,tr:t,cw:S.cw[p],pts:pts[p],top:t===T&&pts[p]===T&&t>0}));
-  rows.forEach(r=>{ P(r.p).total+=r.pts; P(r.p).hist.push(r.pts); });
-  G.show={rows};
-  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ${plu(r.tr,'presa','prese')}, ${plu(r.cw,'carta','carte')} → ${r.pts} ${r.pts===1?'punto':'punti'}${r.top?' (conta le prese)':' (contano le carte)'}.`));
+  const S=G.S;
+  if(!G.show){   // G.show già presente = partita ripresa dalla schermata del punteggio (totali già applicati)
+    const pts=roundPoints(S), T=Math.max(...S.tr);
+    const rows=S.tr.map((t,p)=>({p,tr:t,cw:S.cw[p],pts:pts[p],top:t===T&&pts[p]===T&&t>0}));
+    rows.forEach(r=>{ P(r.p).total+=r.pts; P(r.p).hist.push(r.pts); });
+    G.show={rows};
+    rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ${plu(r.tr,'presa','prese')}, ${plu(r.cw,'carta','carte')} → ${r.pts} ${r.pts===1?'punto':'punti'}${r.top?' (conta le prese)':' (contano le carte)'}.`));
+    ckpt();
+  }
   status(`Round ${G.round+1} concluso.`);
   const last=G.round===G.n-1;
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Karaoke Trick, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<g.n;r++){
-      g.round=r; g.first=(g.first0+r)%g.n;
-      deal();
-      logMsg(`— Round ${r+1}/${g.n}: Leader ${P(g.first).name} —`);
-      status(g.first===HUM?'Sei tu il primo Leader del round.':`Primo Leader del round: ${P(g.first).name}.`);
-      await reserve();
-      await playRound();
+    let res=!!rs;
+    if(!res) await ask(HUM,`Buona partita a Karaoke Trick, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let r=res?g.round:0;r<g.n;r++){
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}/${g.n}.`); }
+      else{
+        g.round=r; g.first=(g.first0+r)%g.n;
+        deal(); ckpt();
+        logMsg(`— Round ${r+1}/${g.n}: Leader ${P(g.first).name} —`);
+        status(g.first===HUM?'Sei tu il primo Leader del round.':`Primo Leader del round: ${P(g.first).name}.`);
+      }
+      // fasi: scelta delle canzoni (S.started=false) → prese → punteggio (G.show valorizzato)
+      if(!g.S.started&&!g.show) await reserve();
+      if(!g.show) await playRound();
       await scoring();
     }
+    NYLO_CK=null;
     const m=Math.max(...g.pl.map(p=>p.total)), top=g.pl.filter(p=>p.total===m);
     const ml=Math.max(...top.map(p=>g.ledAt[p.id]));
     g.over={winners:top.filter(p=>g.ledAt[p.id]===ml).map(p=>p.id),tie:top.length>1};
@@ -659,6 +671,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('karaoke-trick',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

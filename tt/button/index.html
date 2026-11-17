@@ -529,6 +529,7 @@ function confirmMove(ok){
 
 function newMatch(n,team){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   team=!!team&&n===4;
   const cfg=CFG[n];
   G={n,team,cfg,rounds:cfg.rounds,round:0,dealer0:rnd(n),dealer:0,phase:'idle',turn:-1,msg:'',log:[],over:null,show:null,S:null,
@@ -552,6 +553,7 @@ function deal(){
   g.S=S; g.seen=new Set(S.open.map(t=>t.start));
   g.pl.forEach(p=>{ p.tokens=0; p.passed=false; p.decided=false; });
   g.pool=cfg.tokens; g.gave=[]; g.recv=-1; g.lastRes=null; g.show=null; g.turn=-1;
+  g.phase='deal';
 }
 // versione a squadre: ogni giocatore passa una carta coperta al compagno (scambio simultaneo)
 async function exchange(){
@@ -575,6 +577,7 @@ async function bettingPhase(){
   const g=G, n=g.n; g.phase='bet';
   const order=[]; for(let k=1;k<=n;k++) order.push((g.dealer+k)%n);
   while(g.pool>0&&g.pl.some(p=>!p.passed)){
+    ckpt();   // inizio di ogni giro di scommesse: stato coerente
     for(const p of order){
       const pl=P(p); if(pl.passed||g.pool===0) continue;
       g.turn=p; let k;
@@ -608,10 +611,12 @@ function describeRes(r){
   return `${base}: pareggio anche sulla carta più bassa, spareggio con la seconda: vince ${cardName(r.card)} di ${w} (${pts}).`;
 }
 async function playRound(){
-  const g=G, S=g.S; g.phase='play';
-  let last=g.dealer, guard=0;
-  logMsg(`Fase prese: inizia ${P((g.dealer+1)%g.n).name}, poi in senso orario.`);
+  const g=G, S=g.S, cont=g.phase==='play'&&g.last!=null;   // ripresa a metà della fase prese
+  g.phase='play';
+  let last=cont?g.last:g.dealer, guard=0;
+  if(!cont) logMsg(`Fase prese: inizia ${P((g.dealer+1)%g.n).name}, poi in senso orario.`);
   for(;;){
+    g.last=last; ckpt();   // tra una mossa e l'altra (presa risolta): stato coerente
     const p=nextMover(S,last); if(p<0||++guard>600) break;
     g.turn=p; const pl=P(p), lt=legalTricks(S,p);
     let mv;
@@ -658,15 +663,20 @@ async function scoreRound(){
   await ask(HUM,'Round concluso',[{label:'Prossimo round',value:1}]);
   g.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    G.welcome=true; await ask(HUM,`Buona partita a Button, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
-    for(let r=0;r<g.rounds;r++){
-      g.round=r; deal();
-      logMsg(`— Round ${r+1}/${g.rounds}: mazziere ${P(g.dealer).name}; ${g.cfg.hand} carte a testa, ${g.cfg.open} prese aperte, ${g.S.draw.length} carte nel mazzo di pesca —`);
-      if(g.team) await exchange();
-      await bettingPhase();
+    let res=!!rs;
+    if(!res){ G.welcome=true; await ask(HUM,`Buona partita a Button, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false; }
+    for(let r=res?g.round:0;r<g.rounds;r++){
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}/${g.rounds}.`); }
+      else{
+        g.round=r; deal(); g.last=null; ckpt();
+        logMsg(`— Round ${r+1}/${g.rounds}: mazziere ${P(g.dealer).name}; ${g.cfg.hand} carte a testa, ${g.cfg.open} prese aperte, ${g.S.draw.length} carte nel mazzo di pesca —`);
+      }
+      // fasi in sequenza: un checkpoint a metà fase rientra da quella fase (deal → scambio → scommesse → prese)
+      if(g.phase==='deal'&&g.team) await exchange();
+      if(g.phase==='deal'||g.phase==='swap'||g.phase==='bet') await bettingPhase();
       await playRound();
       await scoreRound();
       if(g.instant) break;
@@ -912,6 +922,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('button',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
 
 </script>
 </body>

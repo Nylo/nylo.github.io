@@ -363,6 +363,7 @@ function aiBid(p,maxBid){
 function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,game:0,start0:rnd(n),start:0,msg:'',log:[],over:null,black:BLACK,trump:-1,revealed:[],mull:[],
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],sh:{s:-1,n:0},bid:null,won:0,total:0,hist:[]})),
      leader:0,turn:-1,winner:-1,t:0,led:null,done:[],fresh:{},show:null};
@@ -397,6 +398,8 @@ async function bidding(){
   const order=Array.from({length:G.n},(_,i)=>(G.start+i)%G.n);
   for(const p of order){
     const pl=P(p);
+    if(pl.bid!=null) continue;   // ripresa: ha già puntato
+    ckpt();
     status(`Puntate: tocca a ${pl.name}.`);
     const maxBid=Math.min(TRICKS,G.black);
     if(p!==HUM){
@@ -451,10 +454,11 @@ async function aiPlay(p,isLeader,first){
   o.idx.slice().sort((a,b)=>b-a).forEach(i=>{ placeCard(pl,pl.hand.splice(i,1)[0],p); });
 }
 
-async function tricks(){
-  G.leader=G.start;
-  for(let t=0;t<TRICKS;t++){
+async function tricks(cont){
+  if(!cont) G.leader=G.start;
+  for(let t=cont?G.t:0;t<TRICKS;t++){
     G.t=t; G.fresh={}; G.winner=-1; G.led=null; G.done=[];
+    ckpt();   // inizio presa: carte mostrate e mani coerenti (alla ripresa si rigioca la presa)
     const order=Array.from({length:G.n},(_,i)=>(G.leader+i)%G.n);
     G.order=order;
     for(let i=0;i<G.n;i++){
@@ -488,18 +492,26 @@ async function scoring(){
   G.show=null;
 }
 
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<HANDS;k++){
-      g.game=k; g.start=(g.start0+k)%g.n;
-      deal();
-      logMsg(`— Round ${k+1}/${HANDS}: primo giocatore ${P(g.start).name}. Briscola: ${SUITS[g.trump].n} —`);
-      if(g.mull.length) logMsg(`Mano rimescolata per ${g.mull.map(i=>P(i).name).join(', ')} (meno di 3 carte seme o numero).`);
-      if(k===0) await announceFirst(true);
-      await bidding();
-      if(k>0) await announceFirst();
-      await tricks();
+    let res=!!rs;
+    for(let k=res?g.game:0;k<HANDS;k++){
+      let cont=false;
+      if(res){ res=false; cont=g.stage==='play'; status(`Partita ripresa: round ${k+1}/${HANDS}${cont?`, presa ${g.t+1}/${TRICKS}`:' (puntate)'}.`); }
+      else{
+        g.game=k; g.start=(g.start0+k)%g.n;
+        deal(); g.stage='bid'; ckpt();
+        logMsg(`— Round ${k+1}/${HANDS}: primo giocatore ${P(g.start).name}. Briscola: ${SUITS[g.trump].n} —`);
+        if(g.mull.length) logMsg(`Mano rimescolata per ${g.mull.map(i=>P(i).name).join(', ')} (meno di 3 carte seme o numero).`);
+        if(k===0) await announceFirst(true);
+      }
+      if(g.stage==='bid'){
+        await bidding();
+        if(k>0) await announceFirst();
+        g.stage='play';
+      }
+      await tricks(cont);
       await scoring();
     }
     const m=Math.min(...g.pl.map(p=>p.total));
@@ -670,7 +682,10 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
-if(window.NYLO_START&&NYLO_START.mode==='ai'){NAMES[0]=NYLO_START.name||'Tu';newMatch(NYLO_START.n);}
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('charms',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){NAMES[0]=NYLO_START.name||'Tu';newMatch(NYLO_START.n);}
+}
 </script>
 <script type="text/plain" id="src-room">
 var RULES_HTML = `
@@ -1331,6 +1346,9 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
   // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
   var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
   if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.n)rsm={n:sg.n}}}catch(e){}}
   function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
   function draw(){
     var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
@@ -1385,6 +1403,7 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
     }
   });
   app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-ai');return}
   draw();
   if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
 })();

@@ -315,8 +315,9 @@ function aiPass(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
-  G={n,round:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,starter:0,
+  G={n,round:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,starter:0,adv:OPT.adv,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  NYLO_CK=null;
   run();
 }
 function deal(){
@@ -340,16 +341,19 @@ async function passPhase(){
 }
 async function playRound(){
   const S=G.S, n=G.n;
-  const hd=blueHolder(S.hands);
-  S.lead=hd.p; S.forced=hd.c; S.started=true; S.phase='play';
-  logMsg(`Apre ${P(hd.p).name}, che ha ${cname(hd.c)}: deve giocarlo.`);
+  if(S.phase!=='play'){   // se ripresa da un salvataggio la mano è già avviata
+    const hd=blueHolder(S.hands);
+    S.lead=hd.p; S.forced=hd.c; S.started=true; S.phase='play';
+    logMsg(`Apre ${P(hd.p).name}, che ha ${cname(hd.c)}: deve giocarlo.`);
+  }
   while(S.done<S.tot){
+    ckpt();
     S.trick=[]; S.res=null;
     for(let k=0;k<n;k++){
       const p=(S.lead+k)%n; G.turn=p;
       status(p===HUM?'Tocca a te: gioca una carta.':`Tocca a ${P(p).name}.`);
       let c;
-      if(S.done===0&&k===0) c=S.forced;
+      if(S.done===0&&k===0) c=S.hands[p].find(x=>key(x)===key(S.forced));
       else if(p===HUM) c=await humanPlay();
       else { await sleep(650); c=aiPlay(p); }
       if(S.done===0&&k===0) await sleep(400);
@@ -382,16 +386,21 @@ async function scoring(){
   await ask(HUM,'Punti persi nel round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Le donne amate da Zeus, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    let r=0;
+    if(!rs) await ask(HUM,`Buona partita a Le donne amate da Zeus, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    let r=rs?g.round:0, res=!!rs;
     for(;;){
-      g.round=r; deal();
-      logMsg(`— Round ${r+1}${r>=ROUNDS?' (spareggio)':`/${ROUNDS}`} —`);
-      if(g.n===3) logMsg(`Carte scoperte e messe da parte: ${g.S.aside.map(cname).join(', ')}.`);
-      await passPhase();
+      g.round=r;
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}.`); }
+      else{
+        deal();
+        logMsg(`— Round ${r+1}${r>=ROUNDS?' (spareggio)':`/${ROUNDS}`} —`);
+        if(g.n===3) logMsg(`Carte scoperte e messe da parte: ${g.S.aside.map(cname).join(', ')}.`);
+        ckpt();
+      }
+      if(g.S.phase==='pass') await passPhase();
       await playRound();
       await scoring();
       r++;
@@ -597,6 +606,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('women-zeus-loved',snap=>{ G=snap; OPT.adv=!!G.adv; PR=null; ckpt(); render(); run(true); });
 
 </script>
 </body>

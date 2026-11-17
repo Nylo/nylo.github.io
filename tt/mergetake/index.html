@@ -390,6 +390,7 @@ function aiPickPass(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,start:rnd(n),msg:'',log:[],over:null,show:null,
      leader:0,turn:-1,win:-1,tIdx:0,trickNo:0,trick:[],order:[],played:[],pass:[],newIds:new Set(),
      ind:null,hidden:null,trump:-1,revealed:false,peek:false,phase:'setup',
@@ -430,9 +431,10 @@ function humanHint(led){
   if(led<0) return 'Sei di mano: gioca la carta che vuoi.';
   return P(HUM).hand.some(c=>c.c===led)?`Devi giocare ${COLS[led].n} (colore di mano).`:`Non hai ${COLS[led].n}: puoi giocare qualsiasi carta (briscola: ${COLS[G.trump].n}).`;
 }
-async function playGame(){
-  G.leader=G.start;
-  for(let t=0;t<HAND;t++){
+async function playGame(rs){
+  if(!rs) G.leader=G.start;
+  for(let t=rs?G.trickNo:0;t<HAND;t++){                   // G.trickNo = prese già giocate (checkpoint prima di t+1)
+    ckpt();                                               // punto sicuro: inizio presa
     G.tIdx=t; G.trickNo=t+1; G.trick=[]; G.win=-1;
     G.order=[]; for(let k=0;k<G.n;k++) G.order.push((G.leader+k)%G.n);
     for(const p of G.order){
@@ -481,16 +483,23 @@ async function scoreGame(){
   status('Partita conclusa.');
   render();
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    G.welcome=true; await ask(HUM,`Buona partita a MergeTake, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
-    deal();
-    logMsg(`— Briscola: ${cname(g.ind)} (${COLS[g.trump].n}). Primo giocatore: ${P(g.start).name}. —`);
-    status(`Colore briscola: ${COLS[g.trump].n}. Primo giocatore: ${P(g.start).name}.${g.peek?' Chiaroveggenza: vedi la carta coperta al centro.':''}`);
-    await ask(HUM,`Briscola ${COLS[g.trump].n} · primo giocatore: ${P(g.start).name}${g.peek?' · puoi sbirciare la carta coperta':''}`,[{label:'Passa 3 carte a sinistra',value:1}]);
-    await exchange();
-    await playGame();
+    const fromPlay=!!rs&&g.phase!=='deal';
+    if(rs) ckpt();                                         // dopo la ripresa si può subito risalvare
+    if(!rs){
+      G.welcome=true; await ask(HUM,`Buona partita a MergeTake, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]); G.welcome=false;
+      deal();
+      logMsg(`— Briscola: ${cname(g.ind)} (${COLS[g.trump].n}). Primo giocatore: ${P(g.start).name}. —`);
+      g.phase='deal'; ckpt();                              // checkpoint dopo la distribuzione: lo scambio delle carte si rifà da capo
+    }
+    if(g.phase==='deal'){
+      status(`${rs?'Partita ripresa. ':''}Colore briscola: ${COLS[g.trump].n}. Primo giocatore: ${P(g.start).name}.${g.peek?' Chiaroveggenza: vedi la carta coperta al centro.':''}`);
+      await ask(HUM,`Briscola ${COLS[g.trump].n} · primo giocatore: ${P(g.start).name}${g.peek?' · puoi sbirciare la carta coperta':''}`,[{label:'Passa 3 carte a sinistra',value:1}]);
+      await exchange();
+    }else status(`Partita ripresa: presa ${g.trickNo+1}/${HAND}. Briscola ${COLS[g.trump].n}.`);
+    await playGame(fromPlay);
     await scoreGame();
   }catch(e){
     if(e===ABORT||g!==G) return;
@@ -695,6 +704,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('mergetake',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

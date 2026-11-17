@@ -439,6 +439,7 @@ function aiClean(p,final){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,rounds:ROUNDS[n],round:0,dealer:rnd(n),msg:'',log:[],over:null,show:null,res:null,turn:-1,
      stock:shuffle(DECK.slice()),trash:[],R:null,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],bargain:[],junk:[]}))};
@@ -480,6 +481,7 @@ async function playRound(){
   R.started=true;
   while(R.done<R.tricks){
     R.ts={lead:null,trump:null,plays:[]};
+    ckpt();
     let p=R.leader;
     for(let k=0;k<G.n;k++){
       G.turn=p;
@@ -542,27 +544,35 @@ async function springCleaning(){
   }
 }
 const pts = p => p.bargain.length-p.junk.length;
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Bargain Hunter, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<g.rounds;r++){
-      g.round=r;
-      if(!dealRound()){ logMsg('Carte insufficienti per un nuovo round: la partita termina qui.'); break; }
-      logMsg(`— Round ${r+1}/${g.rounds} · mazziere ${P(g.dealer).name} —`);
-      if(r===0){
-        status(`Round 1: ogni giocatore sceglie un Affare dalla sua mano, da sinistra del mazziere (${P((g.dealer+1)%g.n).name}).`);
-        await chooseBargains();
+    let res=!!rs;
+    if(!res) await ask(HUM,`Buona partita a Bargain Hunter, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let r=res?g.round:0;r<g.rounds;r++){
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}/${g.rounds}.`); }
+      else{
+        g.round=r;
+        if(!dealRound()){ logMsg('Carte insufficienti per un nuovo round: la partita termina qui.'); break; }
+        ckpt();
+        logMsg(`— Round ${r+1}/${g.rounds} · mazziere ${P(g.dealer).name} —`);
+        if(r===0) status(`Round 1: ogni giocatore sceglie un Affare dalla sua mano, da sinistra del mazziere (${P((g.dealer+1)%g.n).name}).`);
       }
+      // fasi: Affare iniziale (R.started=false, solo round 1) → prese (R.done) → pulizie → punteggio (g.show)
+      if(r===0&&!g.R.started&&!g.show) await chooseBargains();
       await playRound();
-      await springCleaning();
-      g.show=true;
+      if(!g.show){
+        ckpt();
+        await springCleaning();
+        g.show=true; ckpt();
+      }
       const last=r===g.rounds-1;
       status(last?'Partita conclusa: ecco i punteggi.':`Round ${r+1} concluso.`);
       await ask(HUM,'Punteggio dopo le pulizie',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
       g.show=null;
       g.dealer=(g.dealer+1)%g.n;
     }
+    NYLO_CK=null;
     const m=Math.max(...g.pl.map(pts)), top=g.pl.filter(p=>pts(p)===m), mj=Math.min(...top.map(p=>p.junk.length));
     g.over={winners:top.filter(p=>p.junk.length===mj).map(p=>p.id)};
     render();
@@ -763,6 +773,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('bargain-hunter',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

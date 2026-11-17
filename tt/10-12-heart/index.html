@@ -719,20 +719,25 @@ async function scoring(){
   status(`Round ${G.round+1} concluso.`);
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<ROUNDS;k++){
-      g.round=k;
-      deal();
-      const d=g.dealer;
-      logMsg(`— Round ${k+1}/${ROUNDS}: mazziere ${P(d).name}, briscola ${SUITS[g.trump].n} · A ${P(seatOfRole('A')).name}, B ${P(seatOfRole('B')).name}, C ${P(seatOfRole('C')).name} —`);
-      if(!k){
-        status(`Buona partita a 10/12 Heart, ${P(HUM).name}!`);
-        await ask(HUM,`Mazziere: ${d===HUM?'tu':P(d).name} · briscola: ${SUITS[g.trump].n} · sei ${HUM===d?'il mazziere':'il giocatore '+RN[roleOf(HUM)]}`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let k=res?g.round:0;k<ROUNDS;k++){
+      if(res){ res=false; status(`Partita ripresa: round ${k+1}/${ROUNDS}.`); }
+      else{
+        g.round=k;
+        deal();
+        const d=g.dealer;
+        logMsg(`— Round ${k+1}/${ROUNDS}: mazziere ${P(d).name}, briscola ${SUITS[g.trump].n} · A ${P(seatOfRole('A')).name}, B ${P(seatOfRole('B')).name}, C ${P(seatOfRole('C')).name} —`);
+        ckpt();
+        if(!k){
+          status(`Buona partita a 10/12 Heart, ${P(HUM).name}!`);
+          await ask(HUM,`Mazziere: ${d===HUM?'tu':P(d).name} · briscola: ${SUITS[g.trump].n} · sei ${HUM===d?'il mazziere':'il giocatore '+RN[roleOf(HUM)]}`,[{label:'Ok, si parte',value:1}]);
+        }
       }
-      await placement();
-      for(let t=0;t<TRICKS;t++) await oneTrick();
+      if(g.phase==='place') await placement();
+      for(let t=g.trickNo;t<TRICKS;t++){ ckpt(); await oneTrick(); }
       await scoring();
     }
     const m=Math.max(...g.pl.map(p=>p.total));
@@ -1021,6 +1026,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('10-12-heart',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

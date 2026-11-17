@@ -535,16 +535,21 @@ async function roundEnd(){
   G.show=null;
   return fin;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let rd=1;;rd++){
-      g.rd=rd; dealRound();
-      logMsg(`— Round ${rdLabel()}: tesori sacri ${trTxt()} (${g.remT} carte esorcismo${g.aside?`; ${cname(g.aside)} messo da parte`:''}). —`);
-      if(rd===1) status(`Buona partita a Haratama, ${P(HUM).name}!`);
-      else status(`Round ${rdLabel()} · tesori sacri: ${trTxt()}.`);
-      await doPass();
-      for(let i=0;i<HS&&g.remT>0;i++) await oneTrick();
+    let res=!!rs;
+    for(let rd=res?g.rd:1;;rd++){
+      if(res){ res=false; status(`Partita ripresa: round ${rdLabel()}${g.phase==='pass'?', passaggio delle carte':`, presa ${g.trick+1}/${HS}`}.`); }
+      else{
+        g.rd=rd; dealRound();
+        logMsg(`— Round ${rdLabel()}: tesori sacri ${trTxt()} (${g.remT} carte esorcismo${g.aside?`; ${cname(g.aside)} messo da parte`:''}). —`);
+        ckpt();
+        if(rd===1) status(`Buona partita a Haratama, ${P(HUM).name}!`);
+        else status(`Round ${rdLabel()} · tesori sacri: ${trTxt()}.`);
+      }
+      if(g.phase==='pass') await doPass();
+      for(let i=g.trick;i<HS&&g.remT>0;i++){ ckpt(); await oneTrick(); }
       if(await roundEnd()) break;
     }
     const m=Math.max(...g.pl.map(p=>p.total));
@@ -786,6 +791,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('haratama',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

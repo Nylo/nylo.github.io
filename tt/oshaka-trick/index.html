@@ -338,6 +338,7 @@ function aiPlaceChoice(w,cards,i){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,start:rnd(n),msg:'',log:[],over:null,
      table:[],lead:null,order:[],leader:0,turn:-1,win:-1,fresh:-1,trickNo:0,played:[],show:null,void:[],
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],tops:[0,0,0,0],cnt:[0,0,0,0],pen:0,osh:[],oshSum:0,r1:null,r2:null}))};
@@ -409,8 +410,8 @@ async function resolveTrick(w){
   if(w!==HUM) await sleep(600);
 }
 async function tricks(){
-  G.leader=G.start;
-  for(let t=0;t<TRICKS;t++) await oneTrick();
+  if(!G.trickNo) G.leader=G.start;
+  for(let t=G.trickNo;t<TRICKS;t++){ ckpt(); await oneTrick(); }
   G.win=-1; G.turn=-1; G.table=[]; G.lead=null;
 }
 async function scoring(){
@@ -444,16 +445,22 @@ async function chooseStart(){
   logMsg(`${P(ch).name} (punteggio più basso) sceglie se stesso come primo giocatore.`);
   return ch;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<2;k++){
-      g.round=k;
-      deal();
-      if(k===1) g.start=await chooseStart();
-      logMsg(`— ${HALF[k]}: primo giocatore ${P(g.start).name}${g.n===3?' (una carta tolta coperta dal mazzo)':''} —`);
-      status(k?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Oshaka Trick, ${P(HUM).name}!`);
-      await ask(HUM,`${HALF[k]}${k===1?' · regola in più: un 4° colore diventa penalità Oshaka':''}. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let k=res?g.round:0;k<2;k++){
+      if(res){
+        res=false; status(`Partita ripresa: ${HALF[k].toLowerCase()}.`);
+        if(g.pickStart){ g.start=await chooseStart(); g.pickStart=false; ckpt(); }
+      }else{
+        g.round=k;
+        deal(); g.pickStart=k===1; ckpt();
+        if(k===1){ g.start=await chooseStart(); g.pickStart=false; ckpt(); }
+        logMsg(`— ${HALF[k]}: primo giocatore ${P(g.start).name}${g.n===3?' (una carta tolta coperta dal mazzo)':''} —`);
+        status(k?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Oshaka Trick, ${P(HUM).name}!`);
+        await ask(HUM,`${HALF[k]}${k===1?' · regola in più: un 4° colore diventa penalità Oshaka':''}. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
+      }
       await tricks();
       await scoring();
     }
@@ -636,6 +643,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('oshaka-trick',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

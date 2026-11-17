@@ -526,6 +526,7 @@ function aiPlay(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,rounds:n,round:0,beg:OPT.beg,dealer0:rnd(n),dealer:-1,start:-1,leader:-1,turn:-1,win:-1,trickNo:0,trick:[],order:[],
      msg:'',log:[],over:null,show:null,phase:'idle',deck:makeDeck(n),seen:new Set(),void:[],supply:SUPTOK,aiPlan:null,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],tile:-1,bid:null,won:0,first:null,sup:0,T:0,P:0,hist:[]}))};
@@ -537,6 +538,7 @@ function deal(){
   G.pl.forEach((p,i)=>{ p.hand=sortHand(deck.slice(i*HAND,(i+1)*HAND)); p.tile=-1; p.bid=null; p.won=0; p.first=null; });
   G.start=-1; G.leader=-1; G.turn=-1; G.win=-1; G.trickNo=0; G.trick=[]; G.order=[]; G.show=null; G.aiPlan=null;
   G.seen=new Set(); G.void=G.pl.map(()=>[false,false,false,false]);
+  G.phase='choose';   // fasi del round: choose (vincoli/puntate) → play (prese) → score (punteggio)
 }
 async function chooseTile(p){
   const pl=P(p), free=freeTiles();
@@ -589,10 +591,12 @@ function humanHint(h){
   return (has?`colore di mano ${SUITS[lc]}: devi giocarne una.`:`non hai carte ${SUITS[lc]}: puoi giocare qualsiasi carta.`)+tail+side;
 }
 async function playRound(){
+  const resumed=G.phase==='play';   // già in fase di gioco = ripresa a inizio presa (leader e G.trickNo della presa precedente)
   G.phase='play';
-  G.leader=G.start;
+  if(!resumed) G.leader=G.start;
   const n=G.n;
-  for(let t=1;t<=TRICKS;t++){
+  for(let t=resumed?G.trickNo+1:1;t<=TRICKS;t++){
+    ckpt();
     G.trickNo=t; G.trick=[]; G.win=-1;
     G.order=[]; for(let k=0;k<n;k++) G.order.push((G.leader+k)%n);
     for(let k=0;k<n;k++){
@@ -618,6 +622,7 @@ async function playRound(){
   }
 }
 async function scoreRound(){
+  if(G.phase!=='score'){   // phase==='score' = ripresa dalla schermata del punteggio (totali già applicati)
   G.phase='score'; G.turn=-1;
   const rows=G.pl.map((pl,i)=>{
     const exact=pl.bid===pl.won, sup0=G.beg?pl.sup:0;
@@ -633,23 +638,30 @@ async function scoreRound(){
   });
   G.show={rows};
   logMsg(`Round ${G.round+1} concluso: `+rows.map(r=>`${P(r.p).name} ${r.won}/${r.bid} → ${r.pts} ${r.pts===1?'punto':'punti'}`).join(' · ')+'.');
+  ckpt();
+  }
   const last=G.round>=G.rounds-1;
   status(last?'Ultimo round concluso: ecco il punteggio finale.':'Round concluso: ecco i punti.');
   await ask(HUM,'Risultato del round',[{label:last?'Mostra risultato finale':'Round successivo',value:1}]);
   if(!last) G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Can't Win, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<g.rounds;r++){
-      g.round=r;
-      deal();
-      logMsg(`— Round ${r+1}/${g.rounds}: mazziere ${P(g.dealer).name}, ${HAND} carte a testa —`);
-      await choosePhase();
-      await playRound();
+    let res=!!rs;
+    if(!res) await ask(HUM,`Buona partita a Can't Win, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let r=res?g.round:0;r<g.rounds;r++){
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}/${g.rounds}.`); }
+      else{
+        g.round=r;
+        deal(); ckpt();
+        logMsg(`— Round ${r+1}/${g.rounds}: mazziere ${P(g.dealer).name}, ${HAND} carte a testa —`);
+      }
+      if(g.phase==='choose') await choosePhase();
+      if(g.phase==='choose'||g.phase==='play') await playRound();
       await scoreRound();
     }
+    NYLO_CK=null;
     const F=g.pl.map(p=>p.T*p.P), PP=g.pl.map(p=>p.P);
     g.over={winners:winnersOf(F,PP),F};
     g.phase='over';
@@ -873,6 +885,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('cant-win',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

@@ -450,7 +450,7 @@ function newMatch(n){
   G={n,handsN:OPT.hands,hn:0,round:1,msg:'',log:[],over:null,show:null,phase:'',turn:-1,
      deck:[],hands:[],orig:[],plays:[],leader:0,first:0,trick:0,r1:[],r2:[],c1:[],pl1:[],ok:[],remPts:[],tb:[],void:[],res:null,fresh:-1,removed:-1,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,tb:0,hist:[]}))};
-  G.first=rnd(n);
+  G.first=rnd(n); NYLO_CK=null;
   run();
 }
 const curT = () => G.round===1?G.trick:NT+1-G.trick;      // numero della presa del Round I a cui si riferisce la presa in corso
@@ -558,36 +558,57 @@ async function oneTrick(){
   status(m); logMsg(m);
   await sleep(2400);
 }
-async function scoring(){
-  const pts=G.remPts.slice();
-  G.pl.forEach(p=>{ p.total+=pts[p.id]; p.tb+=G.tb[p.id]; p.hist.push(pts[p.id]); });
-  logMsg(`Mano ${G.hn} conclusa: ${G.pl.map(p=>`${p.name} ${pts[p.id]} (totale ${p.total})`).join(' · ')}.`);
-  const last=G.hn===G.handsN;
-  G.show={pts,tb:G.tb.slice(),last};
-  G.tb=G.pl.map(()=>0);   // già sommati in p.tb: il tabellone non deve contarli due volte
+async function scoring(rs){
+  if(!rs){
+    const pts=G.remPts.slice();
+    G.pl.forEach(p=>{ p.total+=pts[p.id]; p.tb+=G.tb[p.id]; p.hist.push(pts[p.id]); });
+    logMsg(`Mano ${G.hn} conclusa: ${G.pl.map(p=>`${p.name} ${pts[p.id]} (totale ${p.total})`).join(' · ')}.`);
+    G.show={pts,tb:G.tb.slice(),last:G.hn===G.handsN};
+    G.tb=G.pl.map(()=>0);   // già sommati in p.tb: il tabellone non deve contarli due volte
+    ckpt();
+  }
+  const last=G.show.last;
   status(last?'Partita conclusa: ecco il risultato.':`Mano ${G.hn} conclusa.`);
   await ask(HUM,'Punteggio della mano',[{label:last?'Mostra risultato finale':'Prossima mano',value:1}]);
   G.show=null;
 }
-async function run(){
+// dopo il ripristino le carte di G sono copie JSON: si rimettono gli oggetti originali di CARDS (il codice li confronta per identità: indexOf, includes, ===)
+function canonCards(o){
+  const isCard = x => x&&typeof x==='object'&&typeof x.id==='number'&&typeof x.s==='number'&&typeof x.r==='number'&&!('name' in x);
+  for(const k of Object.keys(o)){ const x=o[k]; if(!x||typeof x!=='object') continue; if(isCard(x)) o[k]=CARDS[x.id]; else canonCards(x); }
+}
+async function run(rs){
   const g=G;
   try{
-    status(`Buona partita a Rewind, ${P(HUM).name}!`);
-    await ask(HUM,`Primo di mano: ${P(g.first).name} · briscola: Cassette (blu)`,[{label:'Ok, si parte',value:1}]);
-    for(let h=1;h<=g.handsN;h++){
-      g.hn=h; dealHand();
-      logMsg(`— Mano ${h}/${g.handsN}${g.n===3?` (senza il seme ${SUITS[g.removed].n})`:''}: Round I, di mano ${P(g.first).name} —`);
-      for(let i=0;i<NT;i++) await oneTrick();
-      // Rewind: stesse carte, ma al contrario
-      g.remPts=g.pl.map(p=>g.pl1.reduce((a,x)=>a+mpts(x[p.id]),0));
-      g.round=2; g.trick=0; g.plays=[]; g.res=null; g.phase='play';
-      g.hands=g.orig.map(x=>x.slice()); g.leader=g.lastLow; g.tb=g.pl.map(()=>0);
-      logMsg(`— Rewind! Round II: le stesse carte, dall'ultima presa. Comincia ${P(g.leader).name} (ultimo nella presa ${NT}) —`);
-      status(`Rewind! Si rigioca la stessa mano al contrario: l'obiettivo è ripetere i piazzamenti. Comincia ${P(g.leader).name}.`);
-      await ask(HUM,`Round II · comincia ${P(g.leader).name} (ultimo nella presa ${NT} del Round I)`,[{label:'Inizia il Round II',value:1}]);
-      for(let i=0;i<NT;i++) await oneTrick();
-      g.plays=[]; g.res=null; g.phase='end'; g.turn=-1;
-      await scoring();
+    let res=!!rs&&g.hn>0;
+    if(!res){
+      status(`Buona partita a Rewind, ${P(HUM).name}!`);
+      await ask(HUM,`Primo di mano: ${P(g.first).name} · briscola: Cassette (blu)`,[{label:'Ok, si parte',value:1}]);
+    }
+    for(let h=res?g.hn:1;h<=g.handsN;h++){
+      const ph=res?(g.phase==='end'?'end':g.round===2?'r2':'r1'):'';
+      if(res){ res=false; status(`Partita ripresa: mano ${h}/${g.handsN}, Round ${g.round===1?'I':'II'}, presa ${g.trick+1}/${NT}.`); }
+      if(!ph){
+        g.hn=h; dealHand();
+        logMsg(`— Mano ${h}/${g.handsN}${g.n===3?` (senza il seme ${SUITS[g.removed].n})`:''}: Round I, di mano ${P(g.first).name} —`);
+        ckpt();
+      }
+      if(!ph||ph==='r1'){
+        for(let i=g.trick;i<NT;i++){ ckpt(); await oneTrick(); }
+        // Rewind: stesse carte, ma al contrario
+        g.remPts=g.pl.map(p=>g.pl1.reduce((a,x)=>a+mpts(x[p.id]),0));
+        g.round=2; g.trick=0; g.plays=[]; g.res=null; g.phase='play';
+        g.hands=g.orig.map(x=>x.slice()); g.leader=g.lastLow; g.tb=g.pl.map(()=>0);
+        logMsg(`— Rewind! Round II: le stesse carte, dall'ultima presa. Comincia ${P(g.leader).name} (ultimo nella presa ${NT}) —`);
+        status(`Rewind! Si rigioca la stessa mano al contrario: l'obiettivo è ripetere i piazzamenti. Comincia ${P(g.leader).name}.`);
+        ckpt();
+        await ask(HUM,`Round II · comincia ${P(g.leader).name} (ultimo nella presa ${NT} del Round I)`,[{label:'Inizia il Round II',value:1}]);
+      }
+      if(ph!=='end'){
+        for(let i=g.trick;i<NT;i++){ ckpt(); await oneTrick(); }
+        g.plays=[]; g.res=null; g.phase='end'; g.turn=-1;
+      }
+      await scoring(ph==='end');
       g.first=(g.first+1)%g.n;
     }
     const m=Math.min(...g.pl.map(p=>p.total)); let w=g.pl.filter(p=>p.total===m);
@@ -841,6 +862,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('rewind',snap=>{ G=snap; PR=null; canonCards(G); render(); run(true); });
 
 </script>
 </body>

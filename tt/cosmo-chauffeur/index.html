@@ -505,7 +505,7 @@ function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,cap:CAP[n],rd:0,msg:'',log:[],over:null,show:null,phase:'',turn:-1,hands:[],hm:[],rem:new Int32Array(4),voidM:[],tr:[],bid:[],failed:[],nc:[],taken:0,nb:0,nf:0,plays:[],leader:0,start:0,trickNo:0,res:null,fresh:-1,early:false,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
-  G.start=rnd(n);
+  G.start=rnd(n); NYLO_CK=null;
   run();
 }
 function dealRound(){
@@ -613,30 +613,47 @@ async function oneTrick(){
   status(m); logMsg(m);
   await sleep(2400);
 }
-async function scoring(){
-  const sc=scoreRound(G,G.rd);
-  G.pl.forEach(p=>{ p.total+=sc.pts[p.id]; p.hist.push(sc.pts[p.id]); });
-  logMsg(`Round ${G.rd} concluso: ${G.pl.map(p=>`${p.name} ${sgn(sc.pts[p.id])} (totale ${p.total})`).join(' · ')}.`);
-  const last=G.rd===ROUNDS;
-  if(!last) G.start=G.leader;    // di mano nel round dopo: chi ha vinto l'ultima presa
-  G.show={sc,last,next:last?-1:G.start,tr:G.tr.slice(),bid:G.bid.slice(),early:G.early};
+async function scoring(rs){
+  if(!rs){
+    const sc=scoreRound(G,G.rd);
+    G.pl.forEach(p=>{ p.total+=sc.pts[p.id]; p.hist.push(sc.pts[p.id]); });
+    logMsg(`Round ${G.rd} concluso: ${G.pl.map(p=>`${p.name} ${sgn(sc.pts[p.id])} (totale ${p.total})`).join(' · ')}.`);
+    const last=G.rd===ROUNDS;
+    if(!last) G.start=G.leader;    // di mano nel round dopo: chi ha vinto l'ultima presa
+    G.show={sc,last,next:last?-1:G.start,tr:G.tr.slice(),bid:G.bid.slice(),early:G.early}; ckpt();
+  }
+  const last=G.show.last;
   status(last?'Partita conclusa: ecco il risultato.':`Round ${G.rd} concluso.`);
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+// checkpoint della pagina: G contiene Int32Array (hm, rem) che il JSON non conserva, quindi si salvano come array semplici (ripristinati in nyloSaveInit)
+function ckpt(){
+  try{ NYLO_CK=G&&!G.over?nyloSer(Object.assign({},G,{hm:G.hm.map(m=>Array.from(m)),rem:Array.from(G.rem)})):null; }catch(e){ NYLO_CK=null; }
+}
+async function run(rs){
   const g=G;
   try{
-    status(`Buona partita a Cosmo Chauffeur, ${P(HUM).name}!`);
-    await ask(HUM,`Primo di mano: ${P(g.start).name} · briscola: Blu (pianeta)`,[{label:'Ok, si parte',value:1}]);
-    for(let r=1;r<=ROUNDS;r++){
-      g.rd=r; dealRound();
-      logMsg(`— Round ${r}/${ROUNDS}: ${TRICKS} carte a testa, di mano ${P(g.start).name} —`);
-      while(!roundOver(g)) await oneTrick();
-      g.early=g.hands[0].length>0;
-      if(g.early) logMsg('Tutti quelli che avevano puntato sono Invidiosi: il round finisce subito.');
-      g.plays=[]; g.res=null; g.phase='end'; g.turn=-1;
-      await scoring();
+    let res=!!rs&&g.rd>0;
+    if(!res){
+      status(`Buona partita a Cosmo Chauffeur, ${P(HUM).name}!`);
+      await ask(HUM,`Primo di mano: ${P(g.start).name} · briscola: Blu (pianeta)`,[{label:'Ok, si parte',value:1}]);
+    }
+    for(let r=res?g.rd:1;r<=ROUNDS;r++){
+      const ph=res?g.phase:'';
+      if(res){ res=false; status(`Partita ripresa: round ${r}/${ROUNDS}.`); }
+      if(!ph){
+        g.rd=r; dealRound();
+        logMsg(`— Round ${r}/${ROUNDS}: ${TRICKS} carte a testa, di mano ${P(g.start).name} —`);
+        ckpt();
+      }
+      if(ph!=='end'){
+        while(!roundOver(g)){ ckpt(); await oneTrick(); }
+        g.early=g.hands[0].length>0;
+        if(g.early) logMsg('Tutti quelli che avevano puntato sono Invidiosi: il round finisce subito.');
+        g.plays=[]; g.res=null; g.phase='end'; g.turn=-1;
+      }
+      await scoring(ph==='end');
     }
     const m=Math.max(...g.pl.map(p=>p.total));
     g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
@@ -896,6 +913,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('cosmo-chauffeur',snap=>{ G=snap; PR=null; G.hm=G.hm.map(m=>Int32Array.from(m)); G.rem=Int32Array.from(G.rem); render(); run(true); });
 
 </script>
 </body>

@@ -377,6 +377,7 @@ function aiChoosePlan(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,hand:0,start:rnd(n),u:0,ring:[],plan:180,msg:'',log:[],over:null,
      order:[],leader:0,turn:-1,win:-1,fresh:-1,trickNo:0,tIdx:0,trick:[],played:[],show:null,uc:[],ucLast:null,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],coll:[],mins:0,talk:0,sim:3,hist:[]}))};
@@ -441,10 +442,11 @@ async function oneTrick(){
   await sleep(1800);
   G.leader=nl; G.tIdx++;
 }
-async function playHand(){
-  G.leader=G.start;
+async function playHand(rs){
+  if(!rs) G.leader=G.start;
   let overage=false;
-  for(let t=0;t<HAND&&!overage;t++){
+  for(let t=rs?G.trickNo:0;t<HAND&&!overage;t++){
+    ckpt();                                               // punto sicuro: inizio presa (G.trickNo = prese già giocate)
     await oneTrick();
     if(G.pl.some(p=>p.mins>G.plan)) overage=true;
   }
@@ -477,25 +479,29 @@ async function choosePlan(chooser){
   await sleep(700);
   return aiChoosePlan(chooser);
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    G.u=(G.start+2)%G.n;                                  // 3 giocatori: il mazzo del chiamante ignoto sta a destra del primo giocatore
-    let chooser=null;
-    for(let h=0;;h++){
-      g.hand=h;
-      if(g.n===3) g.u=(((g.u)+(h?1:0))%3);
-      deal();
-      if(h===0) g.plan=180;
+    if(!rs) G.u=(G.start+2)%G.n;                          // 3 giocatori: il mazzo del chiamante ignoto sta a destra del primo giocatore
+    let chooser=null, res=!!rs;
+    for(let h=res?g.hand:0;;h++){
+      const resumed=res;
+      if(res){ res=false; status(`Partita ripresa: round ${h+1}, piano ${g.plan} minuti, presa ${g.trickNo+1}/${HAND}.`); }
       else{
-        const pl=await choosePlan(chooser);
-        g.plan=pl;
-        logMsg(`${P(chooser).name} sceglie il piano da ${pl} minuti.`);
+        g.hand=h;
+        if(g.n===3) g.u=(((g.u)+(h?1:0))%3);
+        deal();
+        if(h===0) g.plan=180;
+        else{
+          const pl=await choosePlan(chooser);
+          g.plan=pl;
+          logMsg(`${P(chooser).name} sceglie il piano da ${pl} minuti.`);
+        }
+        logMsg(`— Round ${h+1}: piano ${g.plan} minuti, primo giocatore ${P(g.start).name}${g.n===3?' (con il chiamante ignoto)':''} —`);
+        status(h?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Daytime Minutes, ${P(HUM).name}!`);
+        await ask(HUM,`Round ${h+1}: piano da ${g.plan} minuti. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
       }
-      logMsg(`— Round ${h+1}: piano ${g.plan} minuti, primo giocatore ${P(g.start).name}${g.n===3?' (con il chiamante ignoto)':''} —`);
-      status(h?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Daytime Minutes, ${P(HUM).name}!`);
-      await ask(HUM,`Round ${h+1}: piano da ${g.plan} minuti. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
-      const overage=await playHand();
+      const overage=await playHand(resumed);
       const r=await scoring(overage);
       if(g.pl.some(p=>p.sim<=0)) break;
       // round successivo: inizia chi ha raccolto meno minuti; sceglie il piano chi ha superato (a pari merito il totale di conversazione più alto), se nessuno chi ha meno minuti
@@ -692,6 +698,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('daytime-minutes',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

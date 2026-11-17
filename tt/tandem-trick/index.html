@@ -400,6 +400,7 @@ function aiAct(p){
 // ═════════════════════════ PARTITA ═════════════════════════
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,first0:rnd(n),first:0,nextFirst:0,leader:0,tl:0,lastLead:0,msg:'',log:[],over:null,show:null,
      hands:[],bid:[],tk:[],bc:0,pub:[],voids:[],played:[],T:{entries:[],led:null},order:[],trickNo:0,turn:-1,win:[],fresh:-1,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
@@ -504,18 +505,23 @@ async function scoring(){
   G.show=null;
   return done;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;;k++){
-      g.round=k; g.first=k?g.nextFirst:g.first0; g.leader=g.first;
-      deal();
-      logMsg(`— Round ${k+1}: primo giocatore ${P(g.first).name} —`);
-      if(!k){
-        status(`Buona partita a Tandem Trick, ${P(HUM).name}!`);
-        await ask(HUM,g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let k=res?g.round:0;;k++){
+      let t0=0;
+      if(res){ res=false; t0=g.trickNo; status(`Partita ripresa: round ${k+1}, presa ${t0+1}/${HANDN}.`); }
+      else{
+        g.round=k; g.first=k?g.nextFirst:g.first0; g.leader=g.first;
+        deal(); ckpt();
+        logMsg(`— Round ${k+1}: primo giocatore ${P(g.first).name} —`);
+        if(!k){
+          status(`Buona partita a Tandem Trick, ${P(HUM).name}!`);
+          await ask(HUM,g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name,[{label:'Ok, si parte',value:1}]);
+        }
       }
-      for(let t=0;t<HANDN;t++){ g.lastLead=g.leader; await oneTrick(); }
+      for(let t=t0;t<HANDN;t++){ g.lastLead=g.leader; ckpt(); await oneTrick(); }
       g.nextFirst=g.lastLead;                       // il round dopo apre chi ha aperto l'ultima presa
       if(await scoring()) break;
     }
@@ -696,6 +702,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('tandem-trick',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

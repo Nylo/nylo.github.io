@@ -366,6 +366,7 @@ function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,round:0,start:rnd(n),msg:'',log:[],over:null,show:null,turn:-1,S:null,spare:null,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  NYLO_CK=null;
   run();
 }
 function deal(){
@@ -409,6 +410,7 @@ async function playTricks(){
   S.phase='play'; S.started=true;
   while(S.done<S.tot){
     S.trick=[]; S.res=null; S.extra=null;
+    ckpt();
     if(S.left){ S.extra=S.left.shift(); S.flips++; S.played.push(S.extra); logMsg(`Dal mazzo avanzato si scopre ${cname(S.extra)} (non vince, ma si può scegliere come punti presa).`); }
     logMsg(`Presa ${S.done+1}/${S.tot}: apre ${P(S.lead).name}.`);
     for(let k=0;k<n;k++){
@@ -448,16 +450,21 @@ async function scoring(){
   await ask(HUM,'Punti esperienza del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Shadow Cards, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<roundsOf(g.n);r++){
+    if(!rs) await ask(HUM,`Buona partita a Shadow Cards, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let r=res?g.round:0;r<roundsOf(g.n);r++){
       g.round=r;
-      if(r>0) g.start=(g.start+1)%g.n;
-      deal();
-      logMsg(`— Round ${r+1}/${roundsOf(g.n)}: apre ${P(g.start).name} —`);
-      await predictPhase();
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}/${roundsOf(g.n)}.`); }
+      else{
+        if(r>0) g.start=(g.start+1)%g.n;
+        deal();
+        logMsg(`— Round ${r+1}/${roundsOf(g.n)}: apre ${P(g.start).name} —`);
+        ckpt();
+      }
+      if(g.S.phase==='predict') await predictPhase();
       await playTricks();
       await scoring();
     }
@@ -658,6 +665,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('shadow-cards',snap=>{ G=snap; PR=null; ckpt(); render(); run(true); });
 
 </script>
 </body>

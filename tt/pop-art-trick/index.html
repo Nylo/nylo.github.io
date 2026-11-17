@@ -540,20 +540,25 @@ async function scoring(){
   status(last?'Partita conclusa: ecco il risultato.':`Round ${G.round+1} concluso.`);
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<g.rounds;k++){
-      g.round=k;
-      deal();
-      const d=g.dealer;
-      logMsg(`— Round ${k+1}/${g.rounds}: mazziere e primo di mano ${P(d).name} —`);
-      if(!k){
-        status(`Buona partita a Pop Art Trick, ${P(HUM).name}!`);
-        await ask(HUM,d===HUM?'Sei tu il mazziere e il primo di mano':'Mazziere e primo di mano: '+P(d).name,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let k=res?g.round:0;k<g.rounds;k++){
+      if(res){ res=false; status(`Partita ripresa: round ${k+1}/${g.rounds}.`); }
+      else{
+        g.round=k;
+        deal();
+        const d=g.dealer;
+        logMsg(`— Round ${k+1}/${g.rounds}: mazziere e primo di mano ${P(d).name} —`);
+        ckpt();
+        if(!k){
+          status(`Buona partita a Pop Art Trick, ${P(HUM).name}!`);
+          await ask(HUM,d===HUM?'Sei tu il mazziere e il primo di mano':'Mazziere e primo di mano: '+P(d).name,[{label:'Ok, si parte',value:1}]);
+        }
       }
-      await passPhase();
-      do{ await oneTrick(); }while(!g.hands.some(h=>!h.length));
+      if(g.phase==='pass') await passPhase();
+      do{ ckpt(); await oneTrick(); }while(!g.hands.some(h=>!h.length));
       await scoring();
     }
     const m=Math.max(...g.pl.map(p=>p.total));
@@ -771,6 +776,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('pop-art-trick',snap=>{ snap.seen=Uint8Array.from({length:32},(_,i)=>snap.seen[i]||0); G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

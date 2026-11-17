@@ -345,6 +345,7 @@ function aiPlay(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,msg:'',log:[],over:null,show:null,phase:'idle',dealer:rnd(n),dealer0:0,leader:-1,turn:-1,win:-1,trickNo:0,trick:[],discard:0,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],played:[],bid:null,won:0,lastWin:-1,score:0,hist:[]}))};
   G.dealer0=G.dealer;
@@ -360,7 +361,9 @@ const firstPlayer = () => (G.dealer+1)%G.n;      // a sinistra del mazziere: fa 
 async function bidPhase(){
   G.phase='bid';
   for(let k=0;k<G.n;k++){
-    const p=(firstPlayer()+k)%G.n, pl=P(p); G.turn=p;
+    const p=(firstPlayer()+k)%G.n, pl=P(p);
+    if(pl.bid!==null) continue;     // già previsto (ripresa da un salvataggio a metà previsioni)
+    G.turn=p; ckpt();
     let v;
     if(p===HUM){
       status('Previsione: quante prese pensi di vincere?');
@@ -384,8 +387,11 @@ function humanHint(h){
     :`non hai un ${n}: puoi giocare qualsiasi carta.`;
 }
 async function playRound(){
-  G.phase='play'; G.leader=firstPlayer();
-  for(let t=0;t<TRICKS;t++){
+  let t0=0;
+  if(G.phase==='play') t0=G.trickNo;      // ripresa: trickNo = prese già concluse, leader già impostato
+  else{ G.phase='play'; G.leader=firstPlayer(); }
+  for(let t=t0;t<TRICKS;t++){
+    ckpt();
     G.trickNo=t+1; G.trick=[]; G.win=-1;
     const first=G.leader;
     for(let k=0;k<G.n;k++){
@@ -410,33 +416,40 @@ async function playRound(){
   }
   G.trick=[]; G.win=-1; G.turn=-1; G.leader=-1;
 }
-async function scoreRound(){
-  G.phase='score';
-  const res=roundPoints(G.pl);
-  const rows=G.pl.map((p,i)=>{
-    p.score+=res[i].d; p.hist.push(res[i].d);
-    return {p:i,bid:p.bid,won:p.won,d:res[i].d,note:res[i].note,score:p.score};
-  });
-  G.show={rows};
-  logMsg(`Round ${G.round+1} concluso: `+rows.map(r=>`${P(r.p).name} +${r.d} (${r.score})`).join(' · ')+'.');
+async function scoreRound(again){
+  if(!again){
+    G.phase='score';
+    const res=roundPoints(G.pl);
+    const rows=G.pl.map((p,i)=>{
+      p.score+=res[i].d; p.hist.push(res[i].d);
+      return {p:i,bid:p.bid,won:p.won,d:res[i].d,note:res[i].note,score:p.score};
+    });
+    G.show={rows};
+    logMsg(`Round ${G.round+1} concluso: `+rows.map(r=>`${P(r.p).name} +${r.d} (${r.score})`).join(' · ')+'.');
+    ckpt();     // punteggi già applicati: alla ripresa si ripropone solo il risultato del round
+  }
   const last=G.round>=G.n-1;
   status(last?'Ultimo round concluso.':'Round concluso: ecco i punteggi.');
   await askChoose('Risultato del round',[{label:last?'Mostra risultato finale':'Round successivo',value:1}]);
   if(!last) G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await askChoose(`Buona partita a Inflation, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<g.n;r++){
-      g.round=r; g.dealer=(g.dealer0+r)%g.n;
-      deal();
-      logMsg(`— Round ${r+1}/${g.n}: ${P(g.dealer).name} è il mazziere, ${P(firstPlayer()).name} prevede per primo e apre —`);
-      status(`Round ${r+1}/${g.n}: carte distribuite, ${g.discard} scartate.`);
-      await sleep(600);
-      await bidPhase();
-      await playRound();
-      await scoreRound();
+    let res=!!rs;
+    if(!res) await askChoose(`Buona partita a Inflation, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let r=res?g.round:0;r<g.n;r++){
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}/${g.n}.`); }
+      else{
+        g.round=r; g.dealer=(g.dealer0+r)%g.n;
+        deal(); g.phase='bid'; ckpt();
+        logMsg(`— Round ${r+1}/${g.n}: ${P(g.dealer).name} è il mazziere, ${P(firstPlayer()).name} prevede per primo e apre —`);
+        status(`Round ${r+1}/${g.n}: carte distribuite, ${g.discard} scartate.`);
+        await sleep(600);
+      }
+      if(g.phase==='bid') await bidPhase();
+      if(g.phase==='bid'||g.phase==='play') await playRound();
+      await scoreRound(g.phase==='score');
     }
     g.over={winners:gameWinners(g.pl.map(p=>p.score))};
     g.phase='over';
@@ -615,6 +628,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('inflation',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

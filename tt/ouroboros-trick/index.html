@@ -622,14 +622,18 @@ async function oneTrick(){
   const lost=G.pl.filter(p=>!G.hands[p.id].length&&!G.pool[p.id].length).map(p=>p.id);
   if(lost.length) G.over={losers:lost,winners:G.pl.map(p=>p.id).filter(i=>!lost.includes(i))};
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    deal();
-    logMsg(`— Partita a ${g.n} giocatori: ${g.n*HAND0} carte (1–${g.V} in 4 semi), ${HAND0} a testa. Di mano: ${P(g.leader).name} —`);
-    status(`Buona partita a Ouroboros Trick, ${P(HUM).name}!`);
-    await ask(HUM,g.leader===HUM?'Sei tu il primo di mano':'Primo di mano: '+P(g.leader).name,[{label:'Ok, si parte',value:1}]);
-    while(!g.over) await oneTrick();
+    if(rs) status(`Partita ripresa: presa ${g.trickNo+1}.`);
+    else{
+      deal();
+      logMsg(`— Partita a ${g.n} giocatori: ${g.n*HAND0} carte (1–${g.V} in 4 semi), ${HAND0} a testa. Di mano: ${P(g.leader).name} —`);
+      ckpt();
+      status(`Buona partita a Ouroboros Trick, ${P(HUM).name}!`);
+      await ask(HUM,g.leader===HUM?'Sei tu il primo di mano':'Primo di mano: '+P(g.leader).name,[{label:'Ok, si parte',value:1}]);
+    }
+    while(!g.over){ ckpt(); await oneTrick(); }
     g.turn=-1; g.win=-1;
     const L=g.over.losers, W=g.over.winners;
     const m=W.length?`Fine partita: ${L.map(i=>P(i).name).join(' e ')} ${plural(L.length,'ha perso','hanno perso')}.`:'Fine partita: tutti hanno perso, il serpente ha divorato se stesso!';
@@ -832,6 +836,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('ouroboros-trick',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

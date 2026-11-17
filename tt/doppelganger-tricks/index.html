@@ -532,19 +532,24 @@ async function bidding(){
   logMsg(`Puntate: ${G.pl.map(p=>`${p.name} ${G.bid[p.id]}`).join(' · ')}.`);
   status('Puntate rivelate: ora si gioca.'); await sleep(900);
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<g.rounds;k++){
-      g.round=k; g.start=(g.start0+k)%g.n; g.leader=g.start;
-      deal();
-      logMsg(`— Round ${k+1}/${g.rounds}: ${handSize(g.n)} carte a testa, apre ${P(g.start).name} —`);
-      if(!k){
-        status(`Buona partita a Doppelgänger Tricks, ${P(HUM).name}!`);
-        await ask(HUM,g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let k=res?g.round:0;k<g.rounds;k++){
+      if(res){ res=false; status(`Partita ripresa: round ${k+1}/${g.rounds}.`); }
+      else{
+        g.round=k; g.start=(g.start0+k)%g.n; g.leader=g.start;
+        deal(); g.phase='bid';
+        logMsg(`— Round ${k+1}/${g.rounds}: ${handSize(g.n)} carte a testa, apre ${P(g.start).name} —`);
+        ckpt();
+        if(!k){
+          status(`Buona partita a Doppelgänger Tricks, ${P(HUM).name}!`);
+          await ask(HUM,g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name,[{label:'Ok, si parte',value:1}]);
+        }
       }
-      await bidding();
-      for(let t=0;t<handSize(g.n);t++) await oneTrick();
+      if(g.phase==='bid'){ await bidding(); g.phase='play'; }
+      for(let t=g.trickNo;t<handSize(g.n);t++){ ckpt(); await oneTrick(); }
       if(await scoring()) break;
     }
     const m=Math.max(...g.pl.map(p=>p.total));
@@ -716,6 +721,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('doppelganger-tricks',snap=>{ snap.seen=Uint8Array.from({length:40},(_,i)=>snap.seen[i]||0); G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

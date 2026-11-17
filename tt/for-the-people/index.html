@@ -412,12 +412,18 @@ function aiMan(s,mode){
 }
 
 // ═════════════════════════ PARTITA ═════════════════════════
+// dopo il ripristino le carte di G sono copie JSON: si rimettono gli oggetti originali di CARD (il codice li confronta per identità: indexOf, ===)
+function canonCards(o){
+  const isCard = x => x&&typeof x==='object'&&typeof x.id==='number'&&typeof x.k==='number'&&typeof x.r==='number'&&!('name' in x)&&!('n' in x);
+  for(const k of Object.keys(o)){ const x=o[k]; if(!x||typeof x!=='object') continue; if(isCard(x)) o[k]=CARD[x.id]; else canonCards(x); }
+}
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   const ns=n===2?4:n;
   G={n,ns,own:n===2?[0,1,0,1]:Array.from({length:n},(_,i)=>i),lab:n===2?['L','R','R','L']:null,R:OPT.rounds==='n'?n:3,rd:0,
      msg:'',log:[],over:null,show:null,phase:'',turn:-1,hands:[],rows:[],man:[],ind:[BLACK,...shuffle([0,1,2,3])],plays:[],leader:0,trick:0,ntr:0,rem:[0,0,0,0,0],res:null,fresh:-1,set:0,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  NYLO_CK=null;
   run();
 }
 function dealRound(){
@@ -505,35 +511,49 @@ async function oneTrick(){
   status(msg); logMsg(msg);
   await sleep(2300);
 }
-async function roundEnd(){
-  const sc=G.rows.map(r=>scoreRows(r)), pts=roundPts(G);
-  G.pl.forEach(p=>{ p.total+=pts[p.id]; p.hist.push(pts[p.id]); });
-  logMsg(`Round ${G.rd} concluso: ${G.pl.map(p=>`${p.name} ${sgn(pts[p.id])} (totale ${p.total})`).join(' · ')}.`);
-  const last=G.rd===G.R;
-  G.show={sc,pts,bd:G.rows.map(r=>breakdown(r)),last}; G.phase='end'; G.plays=[]; G.res=null; G.turn=-1;
+async function roundEnd(rs){
+  if(!rs){
+    const sc=G.rows.map(r=>scoreRows(r)), pts=roundPts(G);
+    G.pl.forEach(p=>{ p.total+=pts[p.id]; p.hist.push(pts[p.id]); });
+    logMsg(`Round ${G.rd} concluso: ${G.pl.map(p=>`${p.name} ${sgn(pts[p.id])} (totale ${p.total})`).join(' · ')}.`);
+    G.show={sc,pts,bd:G.rows.map(r=>breakdown(r)),last:G.rd===G.R}; G.phase='end'; G.plays=[]; G.res=null; G.turn=-1;
+    ckpt();
+  }
+  const last=G.show.last;
   status(last?'Partita conclusa: ecco il risultato.':`Round ${G.rd} concluso.`);
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    status(`Buona partita a For the People, ${P(HUM).name}!`);
-    await ask(HUM,`Round 1/${g.R} · all'inizio il Nero è il colore più forte (poi: ${g.ind.slice(1).map(k=>COLS[k].n).join(', ')})`,[{label:'Ok, si parte',value:1}]);
-    for(let rd=1;rd<=g.R;rd++){
-      g.rd=rd; dealRound();
-      logMsg(`— Round ${rd}/${g.R}: ${g.ns} mani da ${HS[g.n]} carte, ${g.set} ${plural(g.set,'carta','carte')} messe da parte. Forza: ${indTxt()} —`);
-      // manifesti
-      for(let s=0;s<g.ns;s++){
-        if(g.own[s]===HUM){ const pv=seatsOf(HUM).filter(x=>x<s&&g.man[x]); status('Scegli il tuo manifesto.'+(pv.length?` Per l'altra mano hai scelto: ${pv.map(x=>cname(g.man[x])).join(', ')}.`:'')); takeMan(s,await humanMan(s)); }
-        else takeMan(s,aiMan(s));
+    let res=!!rs&&g.rd>0;
+    if(!res){
+      status(`Buona partita a For the People, ${P(HUM).name}!`);
+      await ask(HUM,`Round 1/${g.R} · all'inizio il Nero è il colore più forte (poi: ${g.ind.slice(1).map(k=>COLS[k].n).join(', ')})`,[{label:'Ok, si parte',value:1}]);
+    }
+    for(let rd=res?g.rd:1;rd<=g.R;rd++){
+      const ph=res?g.phase:'';
+      if(res){ res=false; status(`Partita ripresa: round ${rd}/${g.R}${ph==='play'?`, presa ${g.trick+1}/${g.ntr}`:''}.`); }
+      if(!ph){
+        g.rd=rd; dealRound();
+        logMsg(`— Round ${rd}/${g.R}: ${g.ns} mani da ${HS[g.n]} carte, ${g.set} ${plural(g.set,'carta','carte')} messe da parte. Forza: ${indTxt()} —`);
+        ckpt();
       }
-      revealMan();
-      logMsg(`Manifesti: ${g.man.map((c,s)=>`${nameOf(s)} ${cname(c)}`).join(' · ')}. Di mano ${nameOf(g.leader)}.`);
-      status(`Manifesti rivelati. Di mano ${nameOf(g.leader)} (manifesto più alto).`);
-      await ask(HUM,`Manifesti rivelati · di mano ${nameOf(g.leader)}`,[{label:'Inizia le prese',value:1}]);
-      for(let i=0;i<g.ntr;i++) await oneTrick();
-      await roundEnd();
+      if(!ph||ph==='man'){
+        // manifesti
+        for(let s=0;s<g.ns;s++){
+          if(g.own[s]===HUM){ const pv=seatsOf(HUM).filter(x=>x<s&&g.man[x]); status('Scegli il tuo manifesto.'+(pv.length?` Per l'altra mano hai scelto: ${pv.map(x=>cname(g.man[x])).join(', ')}.`:'')); takeMan(s,await humanMan(s)); }
+          else takeMan(s,aiMan(s));
+        }
+        revealMan();
+        logMsg(`Manifesti: ${g.man.map((c,s)=>`${nameOf(s)} ${cname(c)}`).join(' · ')}. Di mano ${nameOf(g.leader)}.`);
+        status(`Manifesti rivelati. Di mano ${nameOf(g.leader)} (manifesto più alto).`);
+        ckpt();
+        await ask(HUM,`Manifesti rivelati · di mano ${nameOf(g.leader)}`,[{label:'Inizia le prese',value:1}]);
+      }
+      if(ph!=='end'){ for(let i=g.trick;i<g.ntr;i++){ ckpt(); await oneTrick(); } }
+      await roundEnd(ph==='end');
     }
     const m=Math.max(...g.pl.map(p=>p.total));
     g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
@@ -770,6 +790,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('for-the-people',snap=>{ G=snap; PR=null; canonCards(G); render(); run(true); });
 
 </script>
 </body>

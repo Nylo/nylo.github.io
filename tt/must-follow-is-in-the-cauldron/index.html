@@ -366,10 +366,11 @@ function cloneForSim(hands){
 }
 // carte che l'AI non vede: sono tutte e sole quelle nelle mani degli avversari
 function unseenCards(p){
-  const seen=new Set();
-  G.pl[p].hand.forEach(c=>seen.add(c)); G.cauldron.forEach(c=>seen.add(c));
-  G.played.forEach(c=>seen.add(c)); G.trick.forEach(x=>seen.add(x.card));
-  return G.deck.filter(c=>!seen.has(c));
+  // confronto per seme+rango (non per identità): dopo una ripresa da salvataggio le carte sono oggetti nuovi
+  const seen=new Set(), key=c=>c.s*16+c.r;
+  G.pl[p].hand.forEach(c=>seen.add(key(c))); G.cauldron.forEach(c=>seen.add(key(c)));
+  G.played.forEach(c=>seen.add(key(c))); G.trick.forEach(x=>seen.add(key(x.card)));
+  return G.deck.filter(c=>!seen.has(key(c)));
 }
 function candidateMoves(S,p){
   const lm=legalMoves(S,p), hand=S.pl[p].hand, out=[];
@@ -409,6 +410,7 @@ function aiMove(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,msg:'',log:[],over:null,show:null,phase:'idle',leader:rnd(n),first:-1,turn:-1,win:-1,trickNo:0,trick:[],
      deck:[],played:[],cauldron:[],cNew:-1,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],won:0,bonus:0,score:0,hist:[]}))};
@@ -460,40 +462,50 @@ async function playTrick(){
   G.leader=w;
 }
 async function playRound(){
-  G.phase='play';
-  for(let t=0;t<TRICKS;t++){
+  let t0=0;
+  if(G.phase==='play') t0=G.trickNo;      // ripresa: trickNo = prese già concluse
+  else G.phase='play';
+  for(let t=t0;t<TRICKS;t++){
+    ckpt();
     G.trickNo=t+1;
     await playTrick();
   }
   G.trick=[]; G.win=-1; G.turn=-1; G.cNew=-1;
 }
-async function scoreRound(){
-  G.phase='score';
-  const rows=G.pl.map(p=>{
-    const d=ptsFor(p.won,G.n);
-    p.score+=d; p.hist.push(d);
-    return {p:p.id,won:p.won,bonus:p.bonus,d,score:p.score};
-  });
-  G.show={rows};
-  logMsg(`Round ${G.round+1} concluso: `+rows.map(r=>`${P(r.p).name} ${r.won} prese, +${r.d} (${r.score})`).join(' · ')+'.');
+async function scoreRound(again){
+  if(!again){
+    G.phase='score';
+    const rows=G.pl.map(p=>{
+      const d=ptsFor(p.won,G.n);
+      p.score+=d; p.hist.push(d);
+      return {p:p.id,won:p.won,bonus:p.bonus,d,score:p.score};
+    });
+    G.show={rows};
+    logMsg(`Round ${G.round+1} concluso: `+rows.map(r=>`${P(r.p).name} ${r.won} prese, +${r.d} (${r.score})`).join(' · ')+'.');
+    ckpt();     // punteggi già applicati: alla ripresa si ripropone solo il risultato del round
+  }
   const ended=G.pl.some(p=>p.score>=WINSCORE);
   status(ended?'Round concluso: qualcuno ha raggiunto 3 punti.':'Round concluso: ecco i punteggi.');
   await askChoose('Risultato del round',[{label:ended?'Mostra risultato finale':'Round successivo',value:1}]);
   if(!ended) G.show=null;
   return ended;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await askChoose(`Buona partita a Must-Follow is in the Cauldron, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;;r++){
-      g.round=r; g.first=g.leader;
-      deal();
-      logMsg(`— Round ${r+1}: ${P(g.leader).name} apre la prima presa; nel calderone ci sono ${g.cauldron.length} carte scoperte —`);
-      status(`Round ${r+1}: carte distribuite, ${P(g.leader).name} apre.`);
-      await sleep(600);
-      await playRound();
-      if(await scoreRound()) break;
+    let res=!!rs;
+    if(!res) await askChoose(`Buona partita a Must-Follow is in the Cauldron, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let r=res?g.round:0;;r++){
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}.`); }
+      else{
+        g.round=r; g.first=g.leader;
+        deal(); g.phase='deal'; ckpt();
+        logMsg(`— Round ${r+1}: ${P(g.leader).name} apre la prima presa; nel calderone ci sono ${g.cauldron.length} carte scoperte —`);
+        status(`Round ${r+1}: carte distribuite, ${P(g.leader).name} apre.`);
+        await sleep(600);
+      }
+      if(g.phase!=='score') await playRound();
+      if(await scoreRound(g.phase==='score')) break;
     }
     g.over={winners:gameWinners(g.pl.map(p=>p.score))};
     g.phase='over';
@@ -709,6 +721,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('must-follow-is-in-the-cauldron',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

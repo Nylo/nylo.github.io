@@ -387,6 +387,7 @@ function newMatch(n){
   const all=shuffle(ALL.map(c=>({...c})));
   G={n,race:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,ring,pl,horse0,odds:[2,2,2,2],
      setCards:[0,1,2,3].map(i=>all.slice(i*12,(i+1)*12)),know:[new Set(),new Set(),new Set(),new Set()],lastRank:null};
+  NYLO_CK=null;
   run();
 }
 function startRace(){
@@ -447,9 +448,10 @@ async function betting(){
 }
 async function racePhase(){
   const S=G.S;
-  S.started=true; S.lead=S.first;
+  if(!S.started){ S.started=true; S.lead=S.first; }   // se ripresa da un salvataggio la gara è già avviata
   while(true){
     S.trick=[]; S.whipUsed=false; S.res=null; S.shown=null;
+    ckpt();
     logMsg(`Presa ${S.done+1}: apre ${P(S.lead).name} (${HORSES[S.H[S.lead]].n}).`);
     for(let k=0;k<4;k++){
       const p=(S.lead+k)%4; G.turn=p;
@@ -495,16 +497,21 @@ async function payout(){
   await ask(HUM,'Pagamenti della gara',[{label:last?'Mostra risultato finale':'Prossima gara (i cavalli passano a sinistra)',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Trick Stakes, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<g.n;r++){
+    if(!rs) await ask(HUM,`Buona partita a Trick Stakes, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let r=res?g.race:0;r<g.n;r++){
       g.race=r;
-      startRace();
-      logMsg(`— Gara ${r+1}/${g.n}: primo giocatore ${P(g.S.first).name} (Vanilla Bean) —`);
-      await paddock();
-      await betting();
+      if(res){ res=false; status(`Partita ripresa: gara ${r+1}/${g.n}.`); }
+      else{
+        startRace();
+        logMsg(`— Gara ${r+1}/${g.n}: primo giocatore ${P(g.S.first).name} (Vanilla Bean) —`);
+        ckpt();
+      }
+      if(g.S.phase==='paddock'){ await paddock(); ckpt(); }
+      if(g.S.phase==='bet') await betting();
       await racePhase();
       await payout();
     }
@@ -742,6 +749,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('trick-stakes',snap=>{ G=snap; PR=null; ckpt(); render(); run(true); });
 
 </script>
 </body>

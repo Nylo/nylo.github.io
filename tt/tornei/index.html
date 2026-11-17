@@ -616,18 +616,23 @@ async function scoring(){
   if(!last) G.show=null;
   return last;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<g.rounds;k++){
-      g.round=k; g.dealer=(g.dealer0+k)%g.n; g.leader=(g.dealer+1)%g.n;
-      deal();
-      logMsg(`— Round ${k+1}/${g.rounds}: mazziere ${P(g.dealer).name}, inizia ${P(g.leader).name} —`);
-      if(!k){
-        status(`Buona partita a Tornei, ${P(HUM).name}!`);
-        await ask(HUM,`Mazziere: ${P(g.dealer).name} · inizia ${P(g.leader).name}`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let k=res?g.round:0;k<g.rounds;k++){
+      if(res){ res=false; status(`Partita ripresa: round ${k+1}/${g.rounds}.`); }
+      else{
+        g.round=k; g.dealer=(g.dealer0+k)%g.n; g.leader=(g.dealer+1)%g.n;
+        deal();
+        logMsg(`— Round ${k+1}/${g.rounds}: mazziere ${P(g.dealer).name}, inizia ${P(g.leader).name} —`);
+        ckpt();
+        if(!k){
+          status(`Buona partita a Tornei, ${P(HUM).name}!`);
+          await ask(HUM,`Mazziere: ${P(g.dealer).name} · inizia ${P(g.leader).name}`,[{label:'Ok, si parte',value:1}]);
+        }
       }
-      for(let t=0;t<TRICKS;t++) await oneTrick();
+      for(let t=g.trickNo;t<TRICKS;t++){ ckpt(); await oneTrick(); }
       if(await scoring()) break;
     }
     const m=Math.max(...g.pl.slice(0,g.n).map(p=>p.total));
@@ -821,6 +826,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('tornei',snap=>{ snap.seen=Uint8Array.from({length:56},(_,i)=>snap.seen[i]||0); G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

@@ -368,6 +368,7 @@ function aiMove(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,starter:rnd(n),
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
   run();
@@ -393,11 +394,12 @@ function selPlay(){
   const ks=new Set(PR.sel);
   return PR.plays.find(pl=>pl.cards.length===ks.size&&pl.cards.every(c=>ks.has(key(c))))||null;
 }
-async function playRound(){
+async function playRound(rs){
   const S=G.S, n=G.n;
-  logMsg(`— Round ${G.round+1}/${n} — limite ${S.L}. Apre ${P(S.lead).name}; caffè al centro: ${cname(S.center)}.`);
+  if(!rs) logMsg(`— Round ${G.round+1}/${n} — limite ${S.L}. Apre ${P(S.lead).name}; caffè al centro: ${cname(S.center)}.`);
   for(;;){
     const l=S.lead;
+    ckpt();     // inizio presa: mani, colonne, presi e caffè al centro sono coerenti (le carte si confrontano per chiave, non per identità)
     S.trick=[]; S.res=null;
     let mv=null;
     if(S.center===null){
@@ -442,24 +444,32 @@ async function playRound(){
   }
   G.turn=-1; S.phase='end';
 }
-async function scoring(){
-  const S=G.S, rows=roundRows(S.got,S.cols,S.L);
-  rows.forEach(r=>{ P(r.p).total+=r.tot; P(r.p).hist.push(r.tot); });
-  G.show={rows};
-  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} caffè ${r.t}/${S.L}${r.over?' (oltre il limite: 0)':r.exact?' (esatto: ×2)':''} = ${r.cs} + ${r.cnt} inutilizzati² = ${r.sq} → ${r.tot} punti.`));
-  status(`Round ${G.round+1} concluso.`);
+async function scoring(again){
+  const S=G.S;
+  if(!again){
+    const rows=roundRows(S.got,S.cols,S.L);
+    rows.forEach(r=>{ P(r.p).total+=r.tot; P(r.p).hist.push(r.tot); });
+    G.show={rows};
+    rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} caffè ${r.t}/${S.L}${r.over?' (oltre il limite: 0)':r.exact?' (esatto: ×2)':''} = ${r.cs} + ${r.cnt} inutilizzati² = ${r.sq} → ${r.tot} punti.`));
+    status(`Round ${G.round+1} concluso.`);
+    ckpt();     // punteggi già applicati: alla ripresa si ripropone solo il risultato del round
+  }
   const last=G.round+1>=G.n;
   await ask(HUM,'Punteggi del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Catte, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<g.n;r++){
-      g.round=r; g.starter=(g.starter+(r?1:0))%g.n; deal();
-      await playRound();
-      await scoring();
+    let res=!!rs;
+    if(!res) await ask(HUM,`Buona partita a Catte, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let r=res?g.round:0;r<g.n;r++){
+      const resumed=res;
+      if(res){ res=false; status(`Partita ripresa: round ${r+1}/${g.n}.`); }
+      else{ g.round=r; g.starter=(g.starter+(r?1:0))%g.n; deal(); }
+      const again=resumed&&g.S.phase==='end';     // salvato dopo il conteggio del round: si ripropone solo il risultato
+      if(!again) await playRound(resumed);
+      await scoring(again);
     }
     const m=Math.max(...g.pl.map(p=>p.total));
     g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
@@ -634,6 +644,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('catte',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

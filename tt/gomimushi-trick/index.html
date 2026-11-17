@@ -452,6 +452,7 @@ function aiPlay(p){
 
 function newMatch(){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={round:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,
      pl:Array.from({length:4},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
   run();
@@ -487,7 +488,11 @@ async function bidPhase(){
   logMsg(`Nakagawa (${P(na).name}) guarda la mano di Haruta e gli impone: «Fai in modo di vincere ${plu(S.bid.ha,'presa','prese')}».`);
   logMsg(`Haruta (${P(ha).name}) risponde: «Vincerò ${plu(S.bid.ha,'presa','prese')}». Nakagawa dichiara: «Vincerò ${plu(S.bid.na,'presa','prese')}».`);
   if(ki!==HUM){ const e=estimate(ki,24,null,[ki]).map(w=>w[ki]); S.kMu=e.reduce((a,b)=>a+b,0)/e.length; }
-  S.phase='play';
+  S.phase='play'; ckpt();
+  await declPrompt();
+}
+async function declPrompt(){
+  const S=G.S, na=S.seatOf[NA];
   const rows=ROLES.map((r,i)=>{ const q=S.seatOf[i]; return `<tr class="${q===HUM?'me':''}"><td>${r}</td><td class="l">${esc(P(q).name)}</td><td>${i===SA?S.bid.sa:i===NA?S.bid.na:i===HA?S.bid.ha+' (imposta)':'—'}</td></tr>`; }).join('');
   status(`Round ${G.round+1}: dichiarazioni fatte.${na===HUM?' Ora giochi senza guardare il tavolo: ascolta gli annunci.':''}`);
   await choose('Dichiarazioni del round',[{label:'Inizia il round',value:1}],`<table class="score"><tr><th>Ruolo</th><th class="l">Giocatore</th><th>Dichiarazione</th></tr>${rows}</table>`);
@@ -518,10 +523,9 @@ async function frenzy(p){
 }
 async function playRound(){
   const S=G.S;
-  S.started=true;
-  logMsg(`Apre Sasaki (${P(S.sas).name}).`);
+  if(!S.started){ S.started=true; logMsg(`Apre Sasaki (${P(S.sas).name}).`); }
   while(S.done<NT){
-    S.trick=[]; S.res=null;
+    S.trick=[]; S.res=null; G.turn=-1; ckpt();
     for(let k=0;k<4;k++){
       const p=(S.lead+k)%4, role=roleOf(p); G.turn=p;
       status(p===HUM?'Tocca a te: gioca una carta.':`Tocca a ${P(p).name}.`);
@@ -556,26 +560,40 @@ function scoreRound(){
   mk(ha,HA,[[w[ha]===b.ha?3:0,'dichiarazione rispettata'],[w[na]===b.na?2:0,'Nakagawa ha rispettato la sua'],[w[ha]!==b.ha&&S.frenzy&&w[ha]!==S.pred?1:0,'previsione di Sasaki sventata']]);
   return rows;
 }
-async function scoring(){
-  const rows=scoreRound();
-  rows.forEach(r=>{ P(r.p).total+=r.pts; P(r.p).hist.push(r.pts); });
-  G.show={rows};
-  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} (${ROLES[r.role]}) ha vinto ${plu(r.won,'presa','prese')} → ${r.pts} punti${r.parts.length?` (${r.parts.join(', ')})`:''}.`));
-  status(`Round ${G.round+1} concluso.`);
+async function scoring(res){
+  if(!res){
+    const rows=scoreRound();
+    rows.forEach(r=>{ P(r.p).total+=r.pts; P(r.p).hist.push(r.pts); });
+    G.show={rows};
+    rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} (${ROLES[r.role]}) ha vinto ${plu(r.won,'presa','prese')} → ${r.pts} punti${r.parts.length?` (${r.parts.join(', ')})`:''}.`));
+    status(`Round ${G.round+1} concluso.`);
+    G.S.scored=true; ckpt();
+  }
   await choose('Punti del round',[{label:G.round<ROUNDS-1?'Round successivo':'Mostra risultato finale',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await choose(`Buona partita a Gomimushi Trick, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<ROUNDS;r++){
-      g.round=r; deal();
-      logMsg(`— Round ${r+1}/${ROUNDS} —`);
-      await bidPhase();
-      await playRound();
-      await scoring();
+    let res=!!rs;
+    if(!res) await choose(`Buona partita a Gomimushi Trick, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let r=res?g.round:0;r<ROUNDS;r++){
+      if(res) status(`Partita ripresa: round ${r+1}/${ROUNDS}.`);
+      else{
+        g.round=r; deal();
+        logMsg(`— Round ${r+1}/${ROUNDS} —`);
+        ckpt();
+      }
+      const S=g.S, scored=!!S.scored;
+      if(!scored){
+        if(S.phase==='bid') await bidPhase();
+        else if(!S.started) await declPrompt();
+        await playRound();
+      }
+      res=false;
+      await scoring(scored);
     }
+    NYLO_CK=null;
     const m=Math.max(...g.pl.map(p=>p.total));
     g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
     g.S=g.S; render();
@@ -764,6 +782,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('gomimushi-trick',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

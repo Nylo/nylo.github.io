@@ -541,7 +541,7 @@ function goPass(kind){
   const cs=PR.sel.map(u=>G.hands[HUM].find(x=>x.u===u)), r=PR.res; PR=null; render(); r(cs);
 }
 async function doPass(){
-  const n=G.n, rd=G.rd; G.phase='pass';
+  const n=G.n, rd=G.rd; G.phase='pass'; ckpt();
   status(`Round ${G.rd}/${G.R}: puntate fatte. Ora passa 2 carte (coperte) ${rd%2===1?'a sinistra':'a destra'}.`);
   await sleep(40);
   const outs=[]; for(let p=1;p<n;p++) outs[p]=aiPass(p);
@@ -550,7 +550,7 @@ async function doPass(){
   for(let p=0;p<n;p++){ G.hands[p]=sortHand(G.pre[p].filter(c=>!G.out[p].includes(c)).concat(G.inn[p])); }
   const to=recvOf(HUM,rd), from=sendOf(HUM,rd);
   logMsg(`Passi ${G.out[HUM].map(cname).join(' e ')} a ${nameOf(to)}; ricevi ${G.inn[HUM].map(cname).join(' e ')} da ${nameOf(from)}.`);
-  G.phase='play';
+  G.phase='play'; ckpt();
   status(`Hai ricevuto ${G.inn[HUM].map(cname).join(' e ')} da ${nameOf(from)}.`);
   await ask(HUM,`Di mano ${nameOf(G.leader)}${G.bot?` · il bot ${G.botKind} gioca ${G.ring.indexOf(G.botId)===0?'per primo':'dopo '+nameOf(G.ring[G.ring.indexOf(G.botId)-1])}`:''}`,[{label:'Ok, si gioca',value:1}]);
 }
@@ -645,15 +645,19 @@ async function roundEnd(){
   await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let rd=1;rd<=g.R;rd++){
-      g.rd=rd; dealRound();
-      logMsg(`— Round ${rd}/${g.R}: di mano ${nameOf(g.fp)}${g.bot?`, il bot ${g.botKind} è seduto prima di ${nameOf(g.ring[(g.ring.indexOf(g.botId)+1)%g.nh])}`:''}${rd===4&&g.bot?' e apre la prima presa':''}. —`);
-      await doBids();
-      await doPass();
-      for(let i=0;i<HS;i++) await oneTrick();
+    let res=!!rs;
+    for(let rd=res?g.rd:1;rd<=g.R;rd++){
+      if(res){ res=false; status(`Partita ripresa: round ${rd}/${g.R}${g.phase==='play'?`, presa ${g.trick+1}/${HS}`:(g.phase==='pass'?', passaggio delle carte':', puntate')}.`); }
+      else{
+        g.rd=rd; dealRound(); ckpt();
+        logMsg(`— Round ${rd}/${g.R}: di mano ${nameOf(g.fp)}${g.bot?`, il bot ${g.botKind} è seduto prima di ${nameOf(g.ring[(g.ring.indexOf(g.botId)+1)%g.nh])}`:''}${rd===4&&g.bot?' e apre la prima presa':''}. —`);
+      }
+      if(g.phase==='bid') await doBids();
+      if(g.phase!=='play') await doPass();
+      for(let i=g.trick;i<HS;i++){ ckpt(); await oneTrick(); }
       await roundEnd();
     }
     const m=Math.max(...g.pl.map(p=>p.total)), top=g.pl.filter(p=>p.total===m), mo=Math.max(...top.map(p=>p.ok));
@@ -913,6 +917,14 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+// dopo il ripristino JSON le carte sono copie: si riallacciano tutti i riferimenti agli oggetti di G.deck (si confrontano per identità)
+function nwRestore(g){
+  const cv=new Map(g.deck.map(c=>[c.u,c])), fx=a=>a&&a.map(c=>cv.get(c.u));
+  g.hands=g.hands.map(fx); g.pre=g.pre.map(fx); g.out=g.out.map(fx); g.inn=g.inn.map(fx); g.playedBy=g.playedBy.map(fx);
+  g.plays=g.plays.map(x=>({s:x.s,c:cv.get(x.c.u)}));
+  return g;
+}
+nyloSaveInit('numberwang',snap=>{ G=nwRestore(snap); PR=null; render(); run(true); });
 
 </script>
 </body>

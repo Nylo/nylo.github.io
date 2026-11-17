@@ -398,6 +398,7 @@ function aiDeclare(d){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,start:rnd(n),msg:'',log:[],over:null,show:null,deck:[],seen:[],aside:null,removed:0,
      leader:0,turn:-1,win:-1,trickNo:0,trick:[],order:[],hl:null,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],cov:Array(8).fill(false),sup:3,tricks:0,fdOwn:[],tot:0,hist:[]}))};
@@ -475,18 +476,23 @@ async function scoreRound(){
   await ask(HUM,'Risultato del round',[{label:G.round>=ROUNDS-1?'Mostra risultato finale':'Round successivo',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let r=0;r<ROUNDS;r++){
-      g.round=r;
-      if(r>0) g.start=(g.start+1)%g.n;
-      deal();
-      logMsg(`— Round ${r+1}/${ROUNDS}: inizia ${P(g.start).name}${g.n===3?`; fuori gioco: ${CL[g.removed].n}`:''} —`);
-      status(r?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Yokai Fuwafuwa, ${P(HUM).name}!`);
-      await ask(HUM,`Round ${r+1}/${ROUNDS}: ${g.start===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
-      g.leader=g.start;
-      while(P(g.leader).hand.length) await playTrick();
+    let res=!!rs;
+    for(let r=res?g.round:0;r<ROUNDS;r++){
+      if(res) status(`Partita ripresa: round ${r+1}/${ROUNDS}, presa ${g.trickNo+1}.`);
+      else{
+        g.round=r;
+        if(r>0) g.start=(g.start+1)%g.n;
+        deal();
+        logMsg(`— Round ${r+1}/${ROUNDS}: inizia ${P(g.start).name}${g.n===3?`; fuori gioco: ${CL[g.removed].n}`:''} —`);
+        status(r?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Yokai Fuwafuwa, ${P(HUM).name}!`);
+        await ask(HUM,`Round ${r+1}/${ROUNDS}: ${g.start===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.start).name}`,[{label:'Ok, si parte',value:1}]);
+        g.leader=g.start;
+      }
+      res=false;
+      while(P(g.leader).hand.length){ ckpt(); await playTrick(); }   // punto sicuro: inizio presa
       await scoreRound();
     }
     const mx=Math.max(...g.pl.map(p=>p.tot));
@@ -677,6 +683,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('yokai-fuwafuwa',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

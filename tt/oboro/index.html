@@ -388,6 +388,7 @@ function aiGiveUp(p,k){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,long:OPT.long,round:0,rounds:OPT.long?n:1,start:rnd(n),msg:'',log:[],over:null,show:null,xchg:null,phase:'idle',showBids:false,
      leader:0,turn:-1,win:-1,trickNo:0,trick:[],order:[],played:[],ended:false,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],bid:0,won:0,paints:2,pts:0,hist:[]}))};
@@ -482,10 +483,11 @@ function humanHint(h,cols){
   if(has) return `Colore di apertura: ${COLN[lead.col]}. Hai numeri ${COLN[lead.col]}: devi giocarne uno (oppure un pennello).`;
   return `Colore di apertura: ${COLN[lead.col]}. Non hai numeri ${COLN[lead.col]}: puoi giocare qualsiasi carta.`;
 }
-async function playRound(){
+async function playRound(rs){
   G.phase='play'; G.xchg=null;
-  G.leader=G.start;
+  if(!rs) G.leader=G.start;
   while(G.trickNo<HAND){
+    ckpt();
     G.trickNo++; G.trick=[]; G.win=-1;
     G.order=[]; for(let k=0;k<G.n;k++) G.order.push((G.leader+k)%G.n);
     for(const p of G.order){
@@ -529,23 +531,33 @@ async function scoreRound(){
   await ask(HUM,'Risultato del round',[{label:last?'Mostra risultato finale':'Round successivo',value:1}]);
   if(!last) G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Oboro, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<g.rounds;r++){
-      g.round=r;
-      if(r>0) g.start=(g.start+1)%g.n;
-      deal();
-      logMsg(`— ${g.long?`Round ${r+1}/${g.rounds}`:'Partita'}: inizia ${P(g.start).name} —`);
-      G.phase='deal';
-      status('Mani distribuite (9 carte a testa, ordine fisso). Prima si pareggiano i pennelli: ogni mano deve averne 2.');
-      await ask(HUM,`${g.long?`Round ${r+1}/${g.rounds}: `:''}${g.start===HUM?'inizi tu':'inizia '+P(g.start).name} · mani distribuite`,[{label:'Scambio dei pennelli',value:1}]);
-      await doExchange();
-      status('Scambio concluso: ecco la tua mano, con i colori aggiornati.');
-      await ask(HUM,'Scambio concluso',[{label:'Vai alle puntate',value:1}]);
-      await doBids();
-      await playRound();
+    if(!rs) await ask(HUM,`Buona partita a Oboro, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let r=res?g.round:0;r<g.rounds;r++){
+      // fasi con punto di salvataggio: 'deal' (mani distribuite), 'exchange' (scambio concluso), 'play' (inizio di ogni presa)
+      let ph='new';
+      if(res){ ph=g.phase; res=false; status(`Partita ripresa${g.long?`: round ${r+1}/${g.rounds}`:''}.`); }
+      if(ph==='new'){
+        g.round=r;
+        if(r>0) g.start=(g.start+1)%g.n;
+        deal();
+        G.phase='deal'; ckpt();
+        logMsg(`— ${g.long?`Round ${r+1}/${g.rounds}`:'Partita'}: inizia ${P(g.start).name} —`);
+        status('Mani distribuite (9 carte a testa, ordine fisso). Prima si pareggiano i pennelli: ogni mano deve averne 2.');
+        await ask(HUM,`${g.long?`Round ${r+1}/${g.rounds}: `:''}${g.start===HUM?'inizi tu':'inizia '+P(g.start).name} · mani distribuite`,[{label:'Scambio dei pennelli',value:1}]);
+        ph='deal';
+      }
+      if(ph==='deal'){ await doExchange(); ckpt(); ph='exchange'; }
+      if(ph==='exchange'){
+        status('Scambio concluso: ecco la tua mano, con i colori aggiornati.');
+        await ask(HUM,'Scambio concluso',[{label:'Vai alle puntate',value:1}]);
+        ph='bid';
+      }
+      if(ph==='bid') await doBids();
+      await playRound(ph==='play');
       await scoreRound();
     }
     let winners;
@@ -746,6 +758,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('oboro',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

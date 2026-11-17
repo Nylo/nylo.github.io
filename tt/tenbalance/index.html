@@ -318,6 +318,7 @@ function aiPickCard(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,start:rnd(n),msg:'',log:[],over:null,show:null,
      ref:0,center:[],leader:0,turn:-1,win:-1,trickNo:0,trick:[],order:[],gone:[],
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],up:[],dn:[],ang:[],rw:0}))};
@@ -395,9 +396,10 @@ async function gainFlow(w){
     if(totalOf(pl)>10) discardAll(w);
   }
 }
-async function playRound(){
-  G.leader=G.start;
+async function playRound(rs){
+  if(!rs) G.leader=G.start;
   while(P(G.leader).hand.length){
+    ckpt();                                               // punto sicuro: inizio presa
     G.trickNo++; G.trick=[]; G.win=-1;
     G.order=[]; for(let k=0;k<G.n;k++) G.order.push((G.leader+k)%G.n);
     for(const p of G.order){
@@ -473,16 +475,21 @@ function finalWinners(){
   const mn=Math.min(...c.map(i=>cardsOf(P(i))));
   return c.filter(i=>cardsOf(P(i))===mn);
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let r=0;r<g.n;r++){
-      g.round=r;
-      deal();
-      logMsg(`— Round ${r+1}/${g.n}: inizia ${P(g.start).name}; riferimento ${COLS[g.ref].n} —`);
-      status(r?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a TenBalance, ${P(HUM).name}!`);
-      await ask(HUM,`Round ${r+1}/${g.n}: ${g.start===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.start).name}. Riferimento ${COLS[g.ref].n}`,[{label:'Ok, si parte',value:1}]);
-      await playRound();
+    let res=!!rs;
+    for(let r=res?g.round:0;r<g.n;r++){
+      if(res) status(`Partita ripresa: round ${r+1}/${g.n}.`);
+      else{
+        g.round=r;
+        deal();
+        logMsg(`— Round ${r+1}/${g.n}: inizia ${P(g.start).name}; riferimento ${COLS[g.ref].n} —`);
+        status(r?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a TenBalance, ${P(HUM).name}!`);
+        await ask(HUM,`Round ${r+1}/${g.n}: ${g.start===HUM?'sei tu il primo giocatore':'primo giocatore: '+P(g.start).name}. Riferimento ${COLS[g.ref].n}`,[{label:'Ok, si parte',value:1}]);
+      }
+      await playRound(res);
+      res=false;
       if(await endRound()) break;
     }
     if(!g.over) g.over={winners:finalWinners(),why:'Nessuno ha vinto durante la partita: vince chi ha un Angelo (poi meno carte in area).'};
@@ -664,6 +671,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('tenbalance',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

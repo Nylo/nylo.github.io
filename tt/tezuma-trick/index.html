@@ -749,18 +749,20 @@ async function handEnd(){
   await ask(HUM,'Punteggio della mano',[{label:last?'Mostra risultato finale':'Prossima mano',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let rd=1;rd<=g.R;rd++){
-      g.rd=rd; dealHand();
-      logMsg(`— Mano ${rd}/${g.R}: inizia la pesca ${nameOf(g.start)}. —`);
-      await doDraft();
-      g.phase='play';
-      status(`Mano ${rd}/${g.R}: pesca conclusa. Apre ${nameOf(g.start)}.`);
-      await ask(HUM,`Mano ${rd}/${g.R} · apre la prima presa ${nameOf(g.start)}`,[{label:'Ok, si gioca',value:1}]);
-      g.leader=g.start;
-      for(let i=0;i<HS;i++) await oneTrick();
+    let res=!!rs;
+    for(let rd=res?g.rd:1;rd<=g.R;rd++){
+      if(res){ res=false; status(`Partita ripresa: mano ${rd}/${g.R}${g.phase==='draft'?', pesca':`, presa ${g.trick+1}/${HS}`}.`); }
+      else{ g.rd=rd; dealHand(); ckpt(); logMsg(`— Mano ${rd}/${g.R}: inizia la pesca ${nameOf(g.start)}. —`); }
+      if(g.phase==='draft'){
+        await doDraft();
+        g.phase='play'; g.leader=g.start; ckpt();
+        status(`Mano ${rd}/${g.R}: pesca conclusa. Apre ${nameOf(g.start)}.`);
+        await ask(HUM,`Mano ${rd}/${g.R} · apre la prima presa ${nameOf(g.start)}`,[{label:'Ok, si gioca',value:1}]);
+      }
+      for(let i=g.trick;i<HS;i++){ ckpt(); await oneTrick(); }
       await handEnd();
     }
     const m=Math.max(...g.pl.map(p=>p.total));
@@ -1043,6 +1045,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('tezuma-trick',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

@@ -348,6 +348,7 @@ function aiPickMove(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   const gall=shuffle(GRIM.map((v,i)=>({v,id:i})));
   const fam=shuffle(fullDeck());
   if(n===4) gall.splice(0,2);                            // 4 giocatori: 2 grimori tolti coperti
@@ -428,8 +429,8 @@ async function oneTrick(){
   G.leader=w;
 }
 async function tricks(){
-  G.leader=G.start;
-  for(let t=0;t<G.T;t++) await oneTrick();
+  if(!G.trickNo) G.leader=G.start;
+  for(let t=G.trickNo;t<G.T;t++){ ckpt(); await oneTrick(); }
   G.win=-1; G.turn=-1; G.lead=null;
 }
 async function scoring(){
@@ -449,15 +450,19 @@ function winners(){
   const mx=Math.max(...G.pl.map(p=>p.total));
   return G.pl.filter(p=>p.total===mx).map(p=>p.id);
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<g.n;k++){
-      g.round=k;
-      setupRound(k);
-      logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.start).name}${k?' (riceve la mano del primo giocatore del round precedente)':''} —`);
-      status(k?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Chimera Tricks, ${P(HUM).name}!`);
-      await ask(HUM,`Round ${k+1}/${g.n}. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}${k?' · le carte sono passate in senso orario':''}`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    for(let k=res?g.round:0;k<g.n;k++){
+      if(res){ res=false; status(`Partita ripresa: round ${k+1}/${g.n}.`); }
+      else{
+        g.round=k;
+        setupRound(k); ckpt();
+        logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.start).name}${k?' (riceve la mano del primo giocatore del round precedente)':''} —`);
+        status(k?g.start===HUM?'Sei tu il primo giocatore.':`Primo giocatore: ${P(g.start).name}.`:`Buona partita a Chimera Tricks, ${P(HUM).name}!`);
+        await ask(HUM,`Round ${k+1}/${g.n}. ${g.start===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.start).name}${k?' · le carte sono passate in senso orario':''}`,[{label:'Ok, si parte',value:1}]);
+      }
       await tricks();
       await scoring();
     }
@@ -644,6 +649,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('chimera-tricks',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>
