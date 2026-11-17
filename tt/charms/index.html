@@ -695,7 +695,7 @@ var RULES_HTML = `
 <p><i>Nelle stanze online</i> si gioca solo tra persone (3–4): i posti al tavolo sono assegnati a caso, si punta a turno a partire dal primo giocatore (le puntate sono visibili a tutti) e le mani restano visibili solo al proprietario. Chiunque può passare al round successivo.</p>
 </div></details>`;
 // ═════════════════════════ CHARMS · ONLINE ═════════════════════════
-var GAME={id:'charms',logo:'<small>TAIKI SHINZAWA\'S · ONLINE</small>Charms',counts:[3,4],
+var GAME={id:'charms',logo:'<small>TAIKI SHINZAWA\'S</small>Charms',counts:[3,4],
   lobbyNote:'Servono 3 o 4 giocatori. Quando la stanza è piena, i posti al tavolo vengono assegnati a caso.'};
 var SUITS=[
   {n:'Moneta',            icon:'coin'},
@@ -830,7 +830,7 @@ function gameReduce(S,seat,a){
     S.bid[seat]=a.n;S.black-=a.n;
     ms=[S.names[seat]+' punta '+a.n+' '+(a.n===1?'presa':'prese')+'.'];
     var left=0;for(i=0;i<n;i++)if(S.bid[i]===null)left++;
-    if(left){S.turn=(seat+1)%n;ms.push('Tocca a '+S.names[S.turn]+' (gettoni neri rimasti: '+S.black+').')}
+    if(left)S.turn=(seat+1)%n;
     else{
       S.phase='play';S.t=0;S.step=0;S.led=null;S.done=[];S.winner=-1;S.fresh={};S.leader=S.start;S.turn=S.start;
       ms.push('Puntate concluse. Presa 1/'+TRICKS+': di mano '+S.names[S.start]+'.');
@@ -855,7 +855,7 @@ function gameReduce(S,seat,a){
     S.done.push(seat);
     ms=[S.names[seat]+' gioca '+SUITS[S.sh[seat].s].n+' '+S.sh[seat].n+'.'];
     if(S.done.length===n)finishTrick(S,ms);
-    else{S.turn=(seat+1)%n;ms.push('Tocca a '+S.names[S.turn]+'.')}
+    else S.turn=(seat+1)%n;
     S.msg=ms.join(' ');
     break;}
   case 'next':{

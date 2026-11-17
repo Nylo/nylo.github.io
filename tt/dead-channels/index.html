@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dead Channels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#18a4c9;
+  --surface:#ffffff;
+  --surface-raised:#e6f4f9;
+  --accent:#0aa7d8;
+  --accent-d:#0a5f78;
+  --accent-soft:rgba(10,167,216,0.14);
+  --ink:#16202a;
+  --text:#1b1f27;
+  --text-soft:#4c5866;
+  --danger:#c62828;
+  --success:#1f7a3a;
+  --border:rgba(22,32,42,0.28);
+  --radius:12px;
+  --cw:48px; --ch:70px;
+  --wood:#6a4426;
+}
+.s0{--sc:#d6202b;--sd:#7a0f16}
+.s1{--sc:#2f9a3f;--sd:#14501d}
+.s2{--sc:#2563d0;--sd:#0f336f}
+.s3{--sc:#2c2c32;--sd:#0d0d10}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background-color:var(--bg);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='360'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.05' numOctaves='3' seed='4' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 .04  0 0 0 0 .42  0 0 0 0 .58  0 0 0 9 -4.4'/></filter><rect width='360' height='360' filter='url(%23n)'/></svg>");background-attachment:fixed}
+.app{max-width:940px;margin:0 auto;padding:0 14px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.logo .nm1{align-self:flex-start;font-family:'Press Start 2P',monospace;font-size:17px;line-height:1.3;color:var(--accent);background:#fff;border-radius:12px;padding:9px 12px 8px;box-shadow:3px 3px 0 var(--accent-d);white-space:nowrap}
+.logo .by{font-size:10px;color:#fff;letter-spacing:.04em;text-shadow:0 1px 2px rgba(0,0,0,.5);padding-left:4px}
+.badge{background:var(--ink);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:8px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:var(--ink);border:2px solid var(--ink)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:34px;height:19px;flex:0 0 34px;margin:0;border:1px solid var(--border);border-radius:999px;background:#dde5ea;cursor:pointer;transition:background .15s,border-color .15s}
+.opt-toggle input[type=checkbox]::before{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-soft);transition:transform .15s,background .15s}
+.opt-toggle input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.opt-toggle input[type=checkbox]:checked::before{transform:translateX(15px);background:#fff}
+.opt-toggle input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:8px;background:#fff;color:var(--ink);border:2px solid var(--ink);cursor:pointer}
+.hamb:hover{background:var(--surface-raised)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:250px;display:flex;flex-direction:column;gap:4px;padding:8px;background:#fff;border:2px solid var(--ink);border-radius:var(--radius);box-shadow:4px 4px 0 var(--ink)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:normal;line-height:1.35;text-align:left;width:100%}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+/* nel menu le voci sono azioni a testo (home-btn.js): l'interruttore stilizzato deve restare nascosto e non occupare spazio */
+.menu-pop .opt-toggle.nylo-menu-action input[type=checkbox]{position:absolute;width:1px;height:1px;flex:none;margin:0;border:0;opacity:0;pointer-events:none}
+.menu-pop button.opt-toggle{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--text);text-align:left;background:transparent;border:0;box-shadow:none;cursor:pointer}
+.flag{display:inline-block;margin-left:5px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#fff;color:#16202a}
+.flag.lead{background:#ffd93d;color:#2a2000}
+.flag.win{background:#7fe0a8;color:#10301d}
+
+.log{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:4px 4px 0 var(--accent-d);padding:10px 14px;margin-top:12px;margin-bottom:14px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(5,40,52,0.7);padding:16px}
+.name-box{background:#fff;color:var(--text);border:2px solid var(--ink);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:5px 5px 0 var(--accent-d)}
+.name-box h3{font-family:'Press Start 2P',monospace;font-weight:400;font-size:13px;line-height:1.5;color:var(--accent)}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:8px;border:2px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:4px 4px 0 var(--accent-d);padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.dock.tall{position:static}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-family:'Press Start 2P',monospace;font-size:9px;line-height:1.6;color:var(--accent)}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:var(--surface-raised);border:2px solid var(--ink);color:var(--ink);border-radius:8px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.12s;text-align:left;box-shadow:0 2px 0 var(--ink)}
+.opt:hover:not(:disabled){background:var(--accent);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft);line-height:1.5}
+.hint b{color:var(--ink)}
+.stack{display:grid}.stack>*{grid-area:1/1}
+.scroll-x{overflow-x:auto;max-width:100%}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score tr.me td{background:var(--accent-soft)}
+table.score td.ok{background:rgba(31,122,58,.18);font-weight:800;color:#145a2a}
+.mode{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;font-family:'Press Start 2P',monospace;font-size:9px;line-height:1.4;padding:6px 10px;border-radius:6px;border:2px solid var(--ink)}
+.mode.f{background:#d6202b;color:#fff}
+.mode.n{background:#1d1d22;color:#e8e8e8}
+
+/* carte: due valori (angolo in alto a sinistra = Must follow, in alto a destra = Must not follow, sommano 12) e il quadrante della TV al centro */
+.cd{width:var(--cw);height:var(--ch);border-radius:7px;background-color:var(--sc);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9 .04' numOctaves='2' seed='7'/><feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 -.18'/></filter><rect width='120' height='120' filter='url(%23n)' opacity='.32'/></svg>");border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.45);position:relative;display:inline-block;overflow:hidden;flex-shrink:0;padding:0;color:#fff;font-family:'Press Start 2P','Inter',monospace;text-align:left}
+.cd::before{content:'';position:absolute;left:50%;top:56%;width:calc(var(--cw)*.62);height:calc(var(--cw)*.62);transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,.6) 0 26%,rgba(255,255,255,.28) 27% 32%,rgba(0,0,0,.32) 33% 62%,rgba(255,255,255,.22) 63% 70%,transparent 71%);box-shadow:0 0 0 calc(var(--cw)*.03) rgba(0,0,0,.35)}
+.cd i{position:absolute;top:calc(var(--ch)*.04);font-style:normal;line-height:1;text-shadow:0 1px 2px rgba(0,0,0,.65);font-weight:400}
+.cd .ca{left:calc(var(--cw)*.09)}
+.cd .cb{right:calc(var(--cw)*.09)}
+.cd i.big{font-size:calc(var(--cw)*.27);opacity:1}
+.cd i.sm{font-size:calc(var(--cw)*.17);opacity:.5;top:calc(var(--ch)*.075)}
+.cd.mini{--cw:42px;--ch:61px}
+.cd.dec{background-image:none}
+.cd.fresh{box-shadow:0 0 0 3px #fff,0 0 0 5px #ffd93d,0 2px 6px rgba(0,0,0,.6)}
+.cd.win{box-shadow:0 0 0 3px #7fe0a8,0 2px 6px rgba(0,0,0,.6)}
+.cd.nov{opacity:.55;filter:grayscale(.6)}
+.cd.legal{box-shadow:0 0 0 2px var(--ink),0 0 0 4px #ffd93d}
+.cd.dim{opacity:.38;filter:saturate(.4)}
+.cd.sel{transform:translateY(-12px);box-shadow:0 0 0 2px var(--ink),0 0 0 5px #ffd93d}
+button.cd{cursor:pointer;transition:transform .12s}
+button.cd:hover:not(:disabled){transform:translateY(-6px)}
+button.cd.sel:hover:not(:disabled){transform:translateY(-12px)}
+button.cd:disabled{cursor:default}
+body.a11y .s0{--pat:repeating-linear-gradient(45deg,rgba(255,255,255,.3) 0 3px,transparent 3px 8px)}
+body.a11y .s1{--pat:radial-gradient(rgba(255,255,255,.5) 22%,transparent 24%)}
+body.a11y .s2{--pat:repeating-linear-gradient(0deg,rgba(255,255,255,.34) 0 3px,transparent 3px 8px)}
+body.a11y .s3{--pat:repeating-linear-gradient(90deg,rgba(255,255,255,.28) 0 3px,transparent 3px 8px)}
+body.a11y .cd::after{content:'';position:absolute;inset:0;background:var(--pat);background-size:8px 8px;pointer-events:none}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:14px}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.seat.top .backs,.seat.left .backs,.seat.right .backs{display:grid;grid-template-columns:repeat(6,9px);max-width:none}
+.cbk{width:9px;height:14px;border-radius:2px;background:linear-gradient(135deg,#444,#111);border:1px solid #f1e7d0}
+.nm{display:inline-block;padding:2px 10px;border-radius:999px;color:#16202a;font-weight:700;border:1px solid rgba(0,0,0,0.4);background:var(--sc,#eee)}
+.legend{display:flex;gap:8px;align-items:stretch;justify-content:center;flex-wrap:wrap}
+.lg{display:flex;align-items:center;gap:7px;padding:5px 10px 5px 6px;border-radius:10px;background:var(--surface-raised);font-size:12px;font-weight:700;flex:1 1 130px;min-width:120px}
+.lg .dot{width:18px;height:18px;border-radius:50%;background:var(--sc);border:2px solid var(--ink);flex:0 0 18px}
+.lg small{display:block;font-weight:500;color:var(--text-soft);font-size:11px;line-height:1.3}
+
+/* tavolo in legno come la TV dello zio */
+.table{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr);gap:8px;background:repeating-linear-gradient(90deg,#6a4426 0 26px,#573719 26px 28px,#734b2a 28px 54px,#573719 54px 56px);border:3px solid #2a1808;border-radius:14px;box-shadow:inset 0 0 0 3px #8e5f33,4px 4px 0 var(--accent-d);padding:14px;margin:0 0 14px;color:#f6ead2}
+.table.n3{grid-template-areas:"left center right" "bottom bottom bottom"}
+.table.n4{grid-template-areas:". top ." "left center right" "bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center} .seat.bottom{grid-area:bottom}
+.seat.leader{border:1px dashed rgba(255,217,61,.9);background:rgba(255,217,61,.08)}
+.seat.active{border:2px solid #ffd93d;background:rgba(255,217,61,.2);box-shadow:0 0 0 2px rgba(255,217,61,.45)}
+.seat.winner{border:2px solid #7fe0a8;background:rgba(127,224,168,.16)}
+.seat-name{font-weight:600;font-size:13px;overflow-wrap:anywhere;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nmrow{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap}.nmrow .flag{margin-left:0}
+.seat-meta{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(0,0,0,0.32);border-radius:4px;padding:2px 6px;color:#f6ead2;white-space:nowrap}
+.tag b{color:#ffd93d}
+.tag.ok{background:#1f7a3a;color:#fff}.tag.ok b{color:#fff}
+.tag.bad{background:#b3261e;color:#fff}.tag.bad b{color:#fff}
+.sub{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;min-width:0;padding:4px;border-radius:8px}
+.tableau{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:65px;min-width:46px;padding:3px;border-radius:8px;background:rgba(0,0,0,0.22)}
+.tableau .row{display:flex;align-items:center;justify-content:center}
+.slot{display:inline-block;width:42px;height:61px;border:1px dashed rgba(255,255,255,0.4);border-radius:6px}
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;font-size:12px;line-height:1.45;color:#f6ead2;min-width:0}
+.center b{color:#ffd93d}
+.rbox{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:#fff;color:var(--ink);font-weight:700;font-size:12px;border:2px solid var(--ink)}
+.tv{width:132px;padding:8px 8px 10px;border-radius:12px;background:#9a6a3a;border:2px solid #2a1808;box-shadow:inset 0 0 0 3px #c08a48,0 3px 6px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;gap:6px}
+.tv .scr{width:100%;height:62px;border-radius:12px/10px;border:2px solid #111;display:flex;align-items:center;justify-content:center;text-align:center;font-family:'Press Start 2P',monospace;font-size:9px;line-height:1.5;padding:4px;background:#d6202b;color:#fff;box-shadow:inset 0 0 12px rgba(0,0,0,.45)}
+.tv.n .scr{background-color:#1d1d22;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' seed='3'/><feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.3 -.55'/></filter><rect width='80' height='80' filter='url(%23n)'/></svg>");color:#fff;text-shadow:0 0 3px #000,0 0 6px #000}
+.tv .kn{display:flex;gap:10px}
+.tv .kn i{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9d9d9,#555);border:1px solid #111}
+
+.scorebox{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:4px 4px 0 var(--accent-d);padding:14px 16px;margin-bottom:14px}
+.scorebox h3{font-family:'Press Start 2P',monospace;font-weight:400;font-size:9px;line-height:1.6;color:var(--accent);margin-bottom:8px}
+.acq{display:flex;flex-direction:column;gap:12px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;background:var(--sc);color:#fff;font-weight:800;font-size:10px;line-height:1;border:1px solid rgba(0,0,0,.5)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
+.recap{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:4px 4px 0 var(--accent-d);padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:700;color:var(--accent-d)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+details.rules{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:4px 4px 0 var(--accent-d);padding:14px 16px}
+details.rules summary{cursor:pointer;font-family:'Press Start 2P',monospace;font-size:9px;line-height:1.6;color:var(--accent);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-family:'Press Start 2P',monospace;font-size:9px;line-height:1.6;color:var(--accent);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Press Start 2P',monospace;font-weight:400;font-size:10px;line-height:1.6;color:var(--accent-d);margin:16px 0 6px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul,.rtext ol{padding-left:20px}
+.rtext b{color:var(--ink)}
+
+@media(max-width:600px){
+  .app{padding:0 12px 48px}
+  .logo .nm1{font-size:13px;padding:8px 10px 7px}
+  :root{--cw:29px;--ch:43px}
+  .cd{border-radius:5px;border-width:1.5px}
+  .cd.mini{--cw:34px;--ch:50px}
+  .slot{width:34px;height:50px}
+  .table{padding:8px;gap:6px}
+  .cbk{width:6px;height:10px}
+  .seat.top .backs,.seat.left .backs,.seat.right .backs{grid-template-columns:repeat(6,6px);gap:1px}
+  .hand{gap:3px;row-gap:12px}
+  .seat{padding:6px 3px}
+  .nm{padding:2px 6px;font-size:12px}
+  .tv{width:104px;padding:6px 6px 8px}
+  .tv .scr{height:50px;font-size:7px}
+  table.score td,table.score th{padding:5px 4px}
+}
+@media(max-width:380px){.topbar{gap:6px}.logo .nm1{font-size:11px}.badge{padding:4px 9px}}
+@media(max-width:340px){.badge{font-size:11px;padding:3px 7px}.nm{padding:2px 5px;font-size:11px}}
+</style>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#18a4c9">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="/pwa.js" defer></script>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script src="/tt/shared/core.js"></script>
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+// 44 carte Canale: 1–11 in 4 colori (AV-1 Rosso, AV-2 Verde, AV-3 Blu, AV-4 Nero). Ogni carta ha due valori che sommano 12:
+// in alto a sinistra (a) vale in modalità Must follow, in alto a destra (b = 12 − a) in Must not follow.
+const SU = [
+  {n:'Rosso', av:'AV-1', c:'#d6202b'},
+  {n:'Verde', av:'AV-2', c:'#2f9a3f'},
+  {n:'Blu',   av:'AV-3', c:'#2563d0'},
+  {n:'Nero',  av:'AV-4', c:'#2c2c32'}
+];
+const NAMES = ['Tu','AI Statico','AI Antenna','AI Sintonia'];
+const SEATC = ['#ffd93d','#ffb3b3','#b8d8ff','#c9f0c0'];
+const HUM = 0, HS = 11;
+const POS = {3:['bottom','left','right'],4:['bottom','left','top','right']};
+const tgOf = n => n===4?2:3;           // prese da vincere esattamente
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+let LOGOPEN=false, RULESOPEN=false, RECAPOPEN=false, MENUOPEN=false;
+const OPT = {undo:true, a11y:false, memo:false};
+try{ let s=localStorage.getItem('dc-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('dc-a11y')==='1'; OPT.memo=localStorage.getItem('dc-memo')==='1'; }catch(e){}
+const isAuto = s => s!==HUM||!!window.DC_AUTO;
+const cname = c => `${SU[c.s].n} ${c.a}/${c.b}`;
+const rkOf = (c,m) => m==='F'?c.a:c.b;
+const sortHand = h => h.sort((a,b)=>a.s-b.s||a.a-b.a);
+const plural = (n,a,b) => n===1?a:b;
+const nameOf = s => P(s).name;
+const orderFrom = (n,l) => Array.from({length:n},(_,i)=>(l+i)%n);
+const MODE = {F:'Must follow',N:'Must not follow'};
+const S_ = ms => window.DC_FAST?Promise.resolve():sleep(ms);
+const okAsk = (t,l) => isAuto(HUM)?Promise.resolve():ask(HUM,t,[{label:l,value:1}]);
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+function buildDeck(n){
+  const d=[];
+  for(let s=0;s<(n===3?3:4);s++) for(let a=1;a<=11;a++) d.push({u:s*11+a-1,s,a,b:12-a});
+  return d;
+}
+// carte giocabili. Must follow: il seme di apertura se ce l'hai. Must not follow: solo semi non ancora usciti in questa presa.
+function legalCards(h,pl,m){
+  if(!pl.length) return h.slice();
+  if(m==='F'){ const l=pl[0].c.s, f=h.filter(c=>c.s===l); return f.length?f:h.slice(); }
+  const used=new Set(pl.map(x=>x.c.s)), ok=h.filter(c=>!used.has(c.s));
+  return ok.length?ok:h.slice();
+}
+// la carta "conta" per la presa? (chi apre sempre; Must follow: seme di apertura; Must not follow: seme non ancora uscito)
+function elig(c,pl,m){
+  if(!pl.length) return true;
+  return m==='F'?c.s===pl[0].c.s:!pl.some(x=>x.c.s===c.s);
+}
+// vince il valore più alto tra le carte che contano (a pari valore, chi ha giocato dopo); il canale cambia se qualcuno non ha potuto rispondere
+function resolve(pl,m){
+  let w=-1,bv=-1;
+  for(const x of pl){ if(!x.e) continue; const v=rkOf(x.c,m); if(v>=bv){ bv=v; w=x.s; } }
+  return {w,flip:pl.some(x=>!x.e)};
+}
+const bestEl = (pl,m) => { let b=-1; for(const x of pl) if(x.e){ const v=rkOf(x.c,m); if(v>b) b=v; } return b; };
+
+// ═════════════════════════ IA ═════════════════════════
+// politica veloce usata nei rollout: chi è sotto bersaglio punta a vincere, altrimenti cerca di perdere (scaricando le carte alte)
+function polPick(S,p,leg,pl,m){
+  if(leg.length===1) return leg[0];
+  const left=S.hands[p].length, need=S.tg-S.won[p], ww=need>0&&need>=left*0.34;
+  const cur=bestEl(pl,m), rem=S.n-pl.length-1;
+  let bc=null, bs=-Infinity;
+  for(const c of leg){
+    const e=elig(c,pl,m), r=rkOf(c,m);
+    let pw=0;
+    if(e&&r>=cur) pw=Math.pow(r/12,rem*0.8);
+    const sc=ww?pw-0.01*r:-pw+0.01*Math.max(c.a,c.b)+(e?0:0.005);
+    if(sc>bs){ bs=sc; bc=c; }
+  }
+  return bc;
+}
+// finisce la mano da uno stato: S.hands/won/mode, presa in corso (pl con i giocatori già giocati), ordine e indice del prossimo
+function finishTrick(S,order,idx,pl,forced){
+  for(let i=idx;i<order.length;i++){
+    const p=order[i], leg=legalCards(S.hands[p],pl,S.mode);
+    const c=(forced&&forced.p===p)?forced.c:polPick(S,p,leg,pl,S.mode);
+    const e=elig(c,pl,S.mode); pl.push({s:p,c,e});
+    S.hands[p].splice(S.hands[p].indexOf(c),1);
+  }
+  const r=resolve(pl,S.mode); S.won[r.w]++; if(r.flip) S.mode=S.mode==='F'?'N':'F';
+  return r.w;
+}
+function finishHand(S,leader){
+  while(S.hands[0].length||S.hands.some(h=>h.length)){
+    leader=finishTrick(S,orderFrom(S.n,leader),0,[]);
+  }
+}
+function sampleWorld(p){
+  const n=G.n, mine=new Set(G.hands[p].map(c=>c.u));
+  const un=G.deck.filter(c=>!G.played.has(c.u)&&!mine.has(c.u));
+  const others=[...Array(n).keys()].filter(q=>q!==p), need={};
+  for(const q of others) need[q]=G.hands[q].length;
+  for(let tr=0;tr<30;tr++){
+    const d=shuffle(un.slice()), hands={}, cnt={}; for(const q of others){ hands[q]=[]; cnt[q]=0; }
+    let ok=true;
+    for(const c of d){
+      const cand=others.filter(q=>cnt[q]<need[q]&&!G.voids[q].has(c.s));
+      if(!cand.length){ ok=false; break; }
+      const q=cand[rnd(cand.length)]; hands[q].push(c); cnt[q]++;
+    }
+    if(ok) return hands;
+  }
+  const d=shuffle(un.slice()), hands={}; let k=0;
+  for(const q of others){ hands[q]=d.slice(k,k+need[q]); k+=need[q]; }
+  return hands;
+}
+function aiPlay(p,legal){
+  if(legal.length===1) return legal[0];
+  const n=G.n, order=orderFrom(n,G.leader), idx=order.indexOf(p), cost=new Map(legal.map(c=>[c,0]));
+  const t0=performance.now(), lim=window.DC_FAST?14:120; let w=0;
+  while(w<8||(performance.now()-t0<lim&&w<400)){
+    const wh=sampleWorld(p);
+    for(const c of legal){
+      const S={n,tg:G.tg,mode:G.mode,won:G.won.slice(),hands:G.hands.map((h,q)=>q===p?h.slice():(wh[q]?wh[q].slice():h.slice()))};
+      const pl=G.plays.map(x=>({s:x.s,c:x.c,e:x.e}));
+      const e=elig(c,pl,S.mode); pl.push({s:p,c,e}); S.hands[p].splice(S.hands[p].indexOf(c),1);
+      let ld=finishTrick(S,order,idx+1,pl);
+      finishHand(S,ld);
+      cost.set(c,cost.get(c)+Math.abs(S.won[p]-G.tg));
+    }
+    w++;
+  }
+  let bc=null,bs=Infinity;
+  for(const c of legal){ const v=cost.get(c)/w+Math.random()*0.002; if(v<bs){ bs=v; bc=c; } }
+  return bc;
+}
+
+// ═════════════════════════ STATO E MANI ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,R:n,rd:0,msg:'',log:[],over:null,show:null,phase:'',turn:-1,deck:[],hands:[],won:[],tg:tgOf(n),mode:'F',starter:rnd(n),leader:0,plays:[],
+     trick:0,res:null,fresh:-1,shown:null,played:new Set(),voids:[],
+     pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
+  run();
+}
+function dealHand(){
+  const n=G.n;
+  G.deck=buildDeck(n); const d=shuffle(G.deck.slice());
+  G.hands=[]; for(let p=0;p<n;p++) G.hands.push(sortHand(d.slice(p*HS,(p+1)*HS)));
+  G.won=new Array(n).fill(0); G.played=new Set(); G.voids=Array.from({length:n},()=>new Set()); G.mode='F';
+  G.plays=[]; G.trick=0; G.res=null; G.fresh=-1; G.shown=null; G.show=null; G.turn=-1;
+  G.leader=G.starter; G.phase='play';
+}
+function removeFromHand(p,c){ const h=G.hands[p], i=h.indexOf(c); if(i>=0) h.splice(i,1); }
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+function humanTurn(legal){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'turn',seat:HUM,legal:new Set(legal.map(c=>c.u)),sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function tapCard(u){
+  if(!PR||PR.type!=='turn'||!PR.legal.has(u)) return;
+  PR.sel=(PR.sel===u&&OPT.undo)?null:u;
+  if(!OPT.undo&&PR.sel!=null){ submitTurn(); return; }
+  render();
+}
+function submitTurn(){
+  if(!PR||PR.type!=='turn'||PR.sel==null) return;
+  const c=G.hands[PR.seat].find(x=>x.u===PR.sel), r=PR.res; PR=null; render(); r(c);
+}
+function clearSel(){ if(PR&&PR.sel!=null){ PR.sel=null; render(); } }
+
+// ═════════════════════════ SVOLGIMENTO ═════════════════════════
+async function oneTrick(){
+  const n=G.n; G.trick++; G.plays=[]; G.res=null; G.shown=null; G.fresh=-1;
+  const order=orderFrom(n,G.leader), m0=G.mode;
+  for(let i=0;i<n;i++){
+    const p=order[i]; G.turn=p;
+    const legal=legalCards(G.hands[p],G.plays,G.mode);
+    let c;
+    if(isAuto(p)){ status(`${nameOf(p)} sceglie la carta…`); await S_(i===0?650:450); c=aiPlay(p,legal); }
+    else c=await humanTurn(legal);
+    removeFromHand(p,c);
+    const e=elig(c,G.plays,G.mode);
+    if(!e){
+      if(G.mode==='F') G.voids[p].add(G.plays[0].c.s);
+      else{ const used=new Set(G.plays.map(x=>x.c.s)); for(let s=0;s<4;s++) if(!used.has(s)) G.voids[p].add(s); }
+    }
+    G.plays.push({s:p,c,e}); G.played.add(c.u); G.fresh=p;
+    const t=`${nameOf(p)} gioca ${cname(c)}${e?` (vale ${rkOf(c,G.mode)})`:' · non può rispondere: la carta non conta per la presa'}.`;
+    logMsg(t); status(t);
+    await S_(e?350:900);
+  }
+  G.turn=-1;
+  const r=resolve(G.plays,G.mode), wc=G.plays.find(x=>x.s===r.w).c;
+  G.won[r.w]++; G.res={w:r.w}; G.shown=G.plays.slice(); G.leader=r.w;
+  let t=`Presa ${G.trick}/${HS}: vince ${nameOf(r.w)} con ${cname(wc)} (${rkOf(wc,m0)}).`;
+  if(r.flip){ G.mode=G.mode==='F'?'N':'F'; t+=` Il canale cambia: ${MODE[G.mode]}.`; }
+  logMsg(t); status(t);
+  await S_(1700);
+  G.shown=null; G.plays=[]; G.res=null; G.fresh=-1;
+}
+async function handEnd(){
+  const n=G.n, rows=G.pl.map(p=>({s:p.id,won:G.won[p.id],pts:Math.abs(G.won[p.id]-G.tg)}));
+  rows.forEach(r=>{ G.pl[r.s].total+=r.pts; G.pl[r.s].hist.push(r.pts); });
+  logMsg(`Mano ${G.rd} conclusa.`);
+  rows.forEach(r=>logMsg(`${nameOf(r.s)}: ${r.won} ${plural(r.won,'presa','prese')} (obiettivo ${G.tg}) → ${r.pts} ${plural(r.pts,'punto','punti')} · totale ${G.pl[r.s].total}.`));
+  const last=G.rd===G.R;
+  G.show={rows,last}; G.phase='end';
+  status(last?`Mano ${G.rd} conclusa: ecco il risultato della partita.`:`Mano ${G.rd} conclusa: ecco i punti (i punti sono cattivi).`);
+  await okAsk(`Fine della mano ${G.rd}`,last?'Mostra il risultato finale':'Prossima mano');
+  G.show=null;
+}
+async function run(){
+  const g=G;
+  try{
+    for(let rd=1;rd<=g.R;rd++){
+      g.rd=rd; if(rd>1) g.starter=(g.starter+1)%g.n; dealHand();
+      logMsg(`— Mano ${rd}/${g.R} —`);
+      const hello=rd===1?`Buona partita a Dead Channels, ${P(HUM).name}!¶`:'';
+      status(`${hello}Mano ${rd}/${g.R}: obiettivo ${g.tg} prese. Il canale parte su ${MODE.F}. Apre ${nameOf(g.starter)}.`);
+      await okAsk(`Mano ${rd}/${g.R} · apre ${nameOf(g.starter)}`,'Ok, si parte');
+      for(let i=0;i<HS;i++) await oneTrick();
+      await handEnd();
+    }
+    const m=Math.min(...g.pl.map(p=>p.total));
+    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    g.turn=-1; g.show=null; g.phase='over'; render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+function cardHtml(c,cls='',tag='span',attrs=''){
+  const m=G?G.mode:'F';
+  return `<${tag} class="cd s${c.s} ${cls}" ${attrs} title="${esc(cname(c))} · ${SU[c.s].av}"><i class="ca ${m==='F'?'big':'sm'}">${c.a}</i><i class="cb ${m==='N'?'big':'sm'}">${c.b}</i></${tag}>`;
+}
+const chipN = (c,cls='') => `<span class="nc s${c.s} ${cls}" title="${esc(cname(c))}">${c.a}/${c.b}</span>`;
+function tvHtml(){
+  const m=G?G.mode:'F';
+  return `<div class="tv ${m==='N'?'n':'f'}" title="Canale attuale"><div class="scr">${m==='F'?'MUST<br>FOLLOW':'MUST NOT<br>FOLLOW'}</div><div class="kn"><i></i><i></i></div></div>`;
+}
+function legendHtml(){
+  const items=SU.slice(0,G.n===3?3:4).map((s,k)=>`<span class="lg s${k}"><span class="dot"></span><span>${s.n} <small>${s.av}</small></span></span>`).join('');
+  return `<div class="legend">${items}</div>
+    <div class="hint" style="margin-top:8px">Ogni carta ha due valori che sommano 12: <b>in alto a sinistra</b> conta in <b>Must follow</b> (si risponde al seme), <b>in alto a destra</b> in <b>Must not follow</b> (nessun seme si può ripetere nella presa). Obiettivo: vincere <b>esattamente ${G.tg} prese</b>.</div>`;
+}
+function playedHtml(s){
+  const src=G.shown||G.plays, x=src.find(y=>y.s===s), win=G.res&&G.res.w===s&&G.shown;
+  if(x) return `<div class="tableau"><div class="row">${cardHtml(x.c,`mini ${win?'win':''} ${x.e?'':'nov'} ${G.fresh===s&&!G.res?'fresh':''}`)}</div></div>`;
+  return `<div class="tableau">${G.phase==='play'?'<span class="slot"></span>':''}</div>`;
+}
+function subHtml(s,pos){
+  const human=s===HUM, hl=G.hands[s].length;
+  let h='';
+  if(human){
+    const ty=PR&&PR.type==='turn'?'turn':null;
+    h=`<div class="hand">${G.hands[s].map(c=>{
+      if(ty){ const lg=PR.legal.has(c.u); return cardHtml(c,`${lg?'legal':'dim'} ${PR.sel===c.u?'sel':''}`,'button',`${lg?'':'disabled'} data-t="${c.u}"`); }
+      return cardHtml(c);
+    }).join('')}</div>`;
+  }else h=`<div class="backs">${Array.from({length:hl},()=>'<span class="cbk"></span>').join('')}</div>`;
+  const pl=G.phase==='play'||G.phase==='end', w=G.won[s]||0;
+  const st=pl?(w===G.tg?'ok':(w>G.tg?'bad':'')):'';
+  const meta=`<div class="seat-meta">${pl?`<span class="tag ${st}" title="Prese vinte / obiettivo"><b>${w}</b>/${G.tg} ${plural(w,'presa','prese')}</span>`:''}<span class="tag" title="Punti (cattivi)">punti <b>${P(s).total}</b></span><span class="tag"><b>${hl}</b> ${plural(hl,'carta','carte')}</span></div>`;
+  const tb=playedHtml(s);
+  const inner=pos==='bottom'?`${tb}${meta}${h}`:(pos==='top'?`${h}${meta}${tb}`:`${meta}${tb}${h}`);
+  return `<div class="sub">${inner}</div>`;
+}
+function flagHtml(s){
+  if(G.over) return G.over.winners.includes(s)?'<span class="flag win">Vince</span>':'';
+  let f='';
+  if(G.phase==='play'&&G.starter===s&&G.trick<=1&&!G.plays.length) f+='<span class="flag first">Primo giocatore</span>';
+  else if(G.phase==='play'&&G.leader===s&&!G.plays.length&&!G.shown) f+='<span class="flag lead">Leader</span>';
+  return f;
+}
+function seatHtml(s,pos){
+  const name=`<div class="seat-name"><span class="nm" style="--sc:${SEATC[s]}">${esc(nameOf(s))}</span><div class="nmrow">${flagHtml(s)}</div></div>`;
+  const sub=subHtml(s,pos);
+  const act=G.turn===s&&!G.over, wn=G.res&&G.res.w===s&&G.shown;
+  const inner=pos==='top'?`${sub}${name}`:`${name}${sub}`;
+  return `<div class="seat ${pos} ${act?'active':''} ${wn&&!G.over?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  let top='';
+  if(G.over) top='<div><b>Partita conclusa</b></div>';
+  else if(G.res&&G.shown) top=`<div>Presa a <b>${esc(nameOf(G.res.w))}</b></div>`;
+  return `<div class="center">${top}<span class="rbox">Mano ${G.rd||1}/${G.R}</span>${tvHtml()}
+    <div>Canale: <b>${MODE[G.mode]}</b></div>
+    <div>${G.phase==='play'&&G.trick?`Presa <b>${Math.min(G.trick,HS)}/${HS}</b>`:''}</div></div>`;
+}
+function memoHtml(){
+  const mine=new Set(G.hands[HUM].map(c=>c.u)), seen=G.played;
+  const rows=SU.slice(0,G.n===3?3:4).map((s,k)=>{
+    const cs=G.deck.filter(c=>c.s===k);
+    return `<div class="ur"><span class="l">${s.n}</span>${cs.map(c=>chipN(c,`${seen.has(c.u)?'gone':''} ${mine.has(c.u)?'own':''}`)).join('')}</div>`;
+  }).join('');
+  return `<div class="scorebox"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
+function scoreTable(){
+  const nr=G.pl[0].hist.length;
+  const rows=G.pl.map(p=>`<tr class="${p.id===HUM?'me':''}"><td>${esc(p.name)}</td>${p.hist.map(x=>`<td>${x}</td>`).join('')}<td><b>${p.total}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Punti (meno è meglio)</th>${Array.from({length:nr},(_,i)=>`<th>M${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table></div>`;
+}
+function showHtml(){
+  const rows=G.show.rows.map(r=>`<tr class="${r.s===HUM?'me':''}"><td><span class="nm" style="--sc:${SEATC[r.s]}">${esc(nameOf(r.s))}</span></td><td>${r.won}</td><td>${G.tg}</td><td class="${r.pts===0?'ok':'neg'}"><b>${r.pts}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Prese</th><th>Obiettivo</th><th>Punti</th></tr>${rows}</table></div><div class="hint">Ogni presa di scarto, in più o in meno, vale 1 punto: i punti sono cattivi.</div>`;
+}
+function previewText(c){
+  const m=G.mode, pl=G.plays, e=elig(c,pl,m), r=rkOf(c,m);
+  let t=`<b>${esc(cname(c))}</b> · `;
+  if(!pl.length) t+=`apri la presa col seme ${SU[c.s].n}: valore ${r} (${m==='F'?'in alto a sinistra':'in alto a destra'}).`;
+  else if(e){
+    const cur=bestEl(pl,m), win=r>=cur;
+    t+=`conta con valore ${r}: ${win?`<b>batte</b> la carta che vince ora (${cur})`:`non basta, ora vince ${cur}`}.`;
+  }else t+=m==='F'?`non rispondi al seme: la carta non conta e, dopo la presa, il canale passa a Must not follow.`:`seme già uscito: la carta non può vincere e, dopo la presa, il canale torna a Must follow.`;
+  return t;
+}
+function turnHint(){
+  const pl=G.plays, h=G.hands[HUM], m=G.mode; let t;
+  if(!pl.length) t=`<b>Apri tu la presa.</b> Puoi giocare qualsiasi carta; conta il numero ${m==='F'?'in alto a sinistra (Must follow)':'in alto a destra (Must not follow)'}.`;
+  else if(m==='F'){
+    const l=pl[0].c.s, has=h.some(c=>c.s===l);
+    t=has?`<b>Devi rispondere con ${SU[l].n}.</b>`:`<b>Non hai ${SU[l].n}:</b> scarta una carta qualsiasi (non conta per la presa e il canale cambierà).`;
+  }else{
+    const used=new Set(pl.map(x=>x.c.s)), ok=h.some(c=>!used.has(c.s));
+    t=ok?`<b>Devi giocare un seme non ancora uscito</b> (usciti: ${[...used].map(s=>SU[s].n).join(', ')}).`:`<b>Hai solo semi già usciti:</b> scarta una carta qualsiasi (non può vincere e il canale tornerà Must follow).`;
+  }
+  const b=bestEl(pl,m);
+  if(pl.length&&b>=0) t+=` Ora vince ${esc(nameOf(resolve(pl,m).w))} (${b}).`;
+  return t;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Dead Channels contro l'AI. Vinci esattamente il numero di prese richiesto: ogni presa in più o in meno costa un punto. Il canale della TV cambia tra Must follow e Must not follow.</div>
+    <div class="dock-title">QUANTI GIOCATORI IN TUTTO?</div>
+    <div class="opts">
+      <button class="opt" data-m="3">3 giocatori (tu + 2 AI) · obiettivo 3 prese</button>
+      <button class="opt" data-m="4">4 giocatori (tu + 3 AI) · obiettivo 2 prese</button>
+    </div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> Meno punti di tutti dopo ${G.R} mani.</div>${scoreTable()}`;
+  }
+  let html=`<div class="mode ${G.mode.toLowerCase()}">${MODE[G.mode].toUpperCase()}</div><div class="dock-msg">${esc(G.msg).split('¶').join('<br>')}</div>`;
+  if(G.show) html+=`<div class="acq">${showHtml()}</div>`;
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='turn'){
+    const hand=G.hands[PR.seat];
+    const PHS=()=>hand.map(x=>`<div class="hint" style="visibility:hidden" aria-hidden="true">${previewText(x)}</div>`).join('');
+    html+=`<div class="hint">${turnHint()}</div>`;
+    const c=PR.sel!=null?hand.find(x=>x.u===PR.sel):null;
+    if(c) html+=`<div class="stack"><div class="hint">${previewText(c)}</div>${PHS()}</div><div class="opts"><button class="opt" data-go="play">${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    else if(OPT.undo) html+=`<div class="stack"><div class="hint">Tocca una carta per vedere l'anteprima.</div>${PHS()}</div><div class="opts"><button class="opt" disabled>Gioca</button><button class="opt" disabled>Annulla</button></div>`;
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n;
+  return `<details class="recap" ${RECAPOPEN?'open':''}><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Mazzo</span><span class="rv">${n===3?'33':'44'} carte Canale (1–11 in ${n===3?'3 colori, senza il Nero':'4 colori'}) · ogni carta ha due valori che sommano 12 · ${HS} a testa · ${G.R} mani</span></div>
+    <div class="recap-row"><span class="lbl">Obiettivo</span><span class="rv">vincere esattamente ${G.tg} prese (${HS} prese a mano): 1 punto per ogni presa in più o in meno · i punti sono cattivi</span></div>
+    <div class="recap-row"><span class="lbl">Must follow</span><span class="rv">conta il valore in alto a sinistra · si risponde al seme se si può, vince il più alto del seme di apertura · chi non può rispondere scarta una carta che non conta</span></div>
+    <div class="recap-row"><span class="lbl">Must not follow</span><span class="rv">conta il valore in alto a destra · un seme già giocato nella presa non si può ripetere · vince il valore più alto (a pari, chi gioca dopo) · chi non ha un seme nuovo scarta una carta che non può vincere</span></div>
+    <div class="recap-row"><span class="lbl">Canale</span><span class="rv">si parte in Must follow · se in una presa qualcuno non ha potuto rispondere, a fine presa il canale cambia (e le carte si ventagliano dall'altra parte)</span></div>
+    <div class="recap-row"><span class="lbl">Vince</span><span class="rv">chi ha meno punti dopo ${G.R} mani (parità: vittoria condivisa)</span></div></details>`;
+}
+const RULES_HTML = () => `
+<details class="rules" ${RULESOPEN?'open':''}><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Che gioco è</h4>
+<p><i>Dead Channels</i> (di Daniel Newman, New Mill Industries, 2026) è un gioco di prese per 3–4 giocatori che oscilla tra <b>Must-Follow</b> e <b>Must-Not-Follow</b>. Nello scantinato di tuo zio c'è una vecchia TV con la cornice di legno che non prende nessun segnale: giri la manopola e lo schermo diventa blu, dai una botta e compare la neve... Il canale non è mai fermo, e nemmeno il modo di giocare le carte.</p>
+<h4>Carte e preparazione</h4>
+<ul><li><b>44 carte Canale</b> da 1 a 11 in 4 colori (Rosso AV-1, Verde AV-2, Blu AV-3, Nero AV-4). Ogni carta ha <b>due valori che sommano 12</b>: la carta 5 ha anche un 7, la 11 ha un 1.</li>
+<li><b>4 giocatori:</b> tutte le carte, 11 a testa, obiettivo <b>2 prese</b>, 4 mani. <b>3 giocatori:</b> senza il Nero (33 carte), 11 a testa, obiettivo <b>3 prese</b>, 3 mani.</li>
+<li>Il <b>televisore</b> al centro ricorda la modalità: si parte sempre da <b>Must follow</b> a inizio mano.</li></ul>
+<h4>Must follow</h4>
+<p>Si usa il valore <b>in alto a sinistra</b> (le carte si tengono ventagliate in modo da vedere quell'angolo). Chi apre gioca una carta qualsiasi, gli altri in senso orario devono rispondere con il <b>seme</b> di apertura se lo hanno. Vince il valore più alto del seme di apertura e il vincitore apre la presa dopo. Chi non può rispondere gioca qualsiasi carta, ma <b>non conta nella valutazione della presa</b>. Appena la presa è raccolta, se qualcuno non ha potuto rispondere, il televisore passa a <b>Must not follow</b> e tutti ventagliano le carte dall'altra parte.</p>
+<h4>Must not follow</h4>
+<p>Si usa il valore <b>in alto a destra</b>. Un seme già giocato nella presa <b>non può essere giocato da nessun altro</b>: se apre il Rosso, il secondo gioca Blu, Verde o Nero; se sceglie il Verde, il terzo gioca Blu o Nero; e così via. Vince il valore più alto (a pari valore, vince chi ha giocato dopo). Chi non ha un seme ancora libero gioca qualsiasi carta, ma <b>non può vincere</b> la presa (anche se è più alta). In quel caso, a fine presa, il televisore torna su Must follow.</p>
+<h4>Punteggio</h4>
+<p>Le mani sono di 11 prese, ma l'obiettivo è vincerne solo 2 (3 a tre giocatori): ci saranno prese di scarto. Per ogni presa di troppo o di meno prendi <b>1 punto</b>: con 4 giocatori una sola presa vale 1 punto, cinque prese ne valgono 3. I punti sono cattivi. Dopo tutte le mani (tante quanti i giocatori) vince chi ne ha meno.</p>
+<h4>Come l'ho interpretato nell'app</h4>
+<ul><li><b>Cambio di canale:</b> il regolamento dice che il televisore si gira dopo una presa in cui qualcuno non ha potuto rispondere (in Must follow) o non ha potuto giocare un seme nuovo (in Must not follow). Se tutti rispondono regolarmente, il canale resta com'è.</li>
+<li><b>Seme di apertura in Must not follow:</b> conta come già giocato, quindi nessuno può ripetere quel seme in quella presa.</li>
+<li><b>Chi apre:</b> la prima mano apre un giocatore a caso, poi il primo giocatore passa a sinistra a ogni mano. La parità finale è una vittoria condivisa (il regolamento lascia libertà).</li>
+<li>Le AI ricordano le carte uscite e i semi che gli altri non hanno, ma non vedono la tua mano. Nel menu: «Abilita annulla» (conferma prima di giocare), «Modalità accessibile» (pattern sui colori) e «Mostra le carte uscite».</li></ul>
+</div></details>`;
+
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma prima di giocare una carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge un pattern ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
+    </div>`:''}</div>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{
+  if(!e.target.matches) return;
+  if(e.target.matches('details.log')) LOGOPEN=e.target.open;
+  else if(e.target.matches('details.rules')) RULESOPEN=e.target.open;
+  else if(e.target.matches('details.recap')) RECAPOPEN=e.target.open;
+},true);
+let LASTTALL=false;
+function render(){
+  document.body.classList.toggle('a11y',!!OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo"><span class="nm1">DEAD CHANNELS</span><span class="by">Daniel Newman · New Mill Industries</span></div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over&&G.rd?`<span class="badge">Mano ${G.rd}/${G.R}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    const ready=G.hands.length>0;
+    body=`${ready?`<div class="scorebox"><h3>COLORI E CANALI</h3>${legendHtml()}</div>`:''}
+      ${ready?`<div class="table n${G.n}">${G.hands.map((_,s)=>seatHtml(s,POS[G.n][s])).join('')}${centerHtml()}</div>`:''}
+      ${ready&&OPT.memo&&!G.over&&(G.phase==='play'||G.phase==='end')?memoHtml():''}
+      ${G.pl[0].hist.length&&!G.over?`<div class="scorebox"><h3>PUNTI</h3>${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML()}`;
+  }
+  const lb=app.querySelector('.logbody'), lbTop=lb?lb.scrollTop:0;
+  app.innerHTML=top+`<div class="dock${G&&(G.show||G.over)?' tall':''}">${dockHtml()}</div>`+body;
+  if(lbTop){ const nb=app.querySelector('.logbody'); if(nb) nb.scrollTop=lbTop; }
+  const tall=!!(G&&(G.show||G.over)); if(tall&&!LASTTALL) window.scrollTo(0,0); LASTTALL=tall;
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.m){ MENUOPEN=false; const m=Number(b.dataset.m); if(G) newMatch(m); else askName(m); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')){ MENUOPEN=false; toSetup(); } }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.t!==undefined) tapCard(Number(b.dataset.t));
+  else if(b.dataset.go!==undefined){ if(b.dataset.go==='play') submitTurn(); else clearSel(); }
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optUndo'){
+    OPT.undo=e.target.checked;
+    try{ localStorage.setItem('dc-undo',OPT.undo?'1':'0'); }catch(err){}
+    if(!OPT.undo&&PR&&PR.type==='turn') PR.sel=null;
+    render();
+  }else if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('dc-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render();
+  }else if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('dc-memo',OPT.memo?'1':'0'); }catch(err){}
+    render();
+  }
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
