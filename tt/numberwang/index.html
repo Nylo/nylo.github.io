@@ -799,12 +799,12 @@ function dockHtml(){
       <div class="hint">Scegli <b>2 carte</b> da passare, coperte, a <b>${esc(to)}</b>; ne riceverai 2 da ${esc(nameOf(sendOf(HUM,G.rd)))}. Ricorda la tua puntata sulla tua mano: <b>${G.bids[HUM][HUM]}</b> ${plural(G.bids[HUM][HUM],'presa','prese')}.</div>
       <div class="opts"><button class="opt" data-go="pass" ${k===2?'':'disabled'}>Passa ${k===2?PR.sel.map(u=>cname(G.hands[HUM].find(c=>c.u===u))).join(' e '):'2 carte'}</button><button class="opt" data-go="x" ${k?'':'disabled'}>Azzera</button></div>`;
   }else if(PR&&PR.type==='turn'){
-    const PH='13 Quadrato: al momento non vinci la presa; 3 giocatori devono ancora giocare. Giocare un\'onda spezza la briscola.';
+    const PHS=()=>G.hands[PR.seat].map(x=>{let t='';try{t=previewText(x)}catch(e){}return `<div class="hint" style="visibility:hidden" aria-hidden="true">${t}</div>`}).join('');
     html+=`<div class="hint">${turnHint()}</div>`;
     if(PR.sel!=null){
       const c=G.hands[PR.seat].find(x=>x.u===PR.sel);
-      html+=`<div class="stack"><div class="hint">${previewText(c)}</div><div class="hint" style="visibility:hidden" aria-hidden="true">${PH}</div></div><div class="opts"><button class="opt k${c.k}" data-go="play"><span class="dot"></span>${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
-    }else if(OPT.undo) html+=`<div class="stack"><div class="hint"></div><div class="hint" style="visibility:hidden" aria-hidden="true">${PH}</div></div><div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 13 Quadrato</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+      html+=`<div class="stack"><div class="hint">${previewText(c)}</div>${PHS()}</div><div class="opts"><button class="opt k${c.k}" data-go="play"><span class="dot"></span>${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    }else if(OPT.undo) html+=`<div class="stack"><div class="hint">Tocca una carta per vedere l'anteprima.</div>${PHS()}</div><div class="opts"><button class="opt" disabled>Gioca</button><button class="opt" disabled>Annulla</button></div>`;
   }
   return html;
 }

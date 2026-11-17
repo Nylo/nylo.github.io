@@ -175,7 +175,7 @@ button.pc:disabled{cursor:default}
 .pk .tag{display:inline-flex;align-items:center;gap:4px}
 .gem{display:inline-block;width:10px;height:10px;border-radius:50%;border:1.5px solid var(--ink);background:#fff}
 .gem.on{background:var(--accent)}
-.be{display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:5px;background:#fff;border:1px solid var(--border);font-size:11px;font-weight:700}
+.be{color:var(--text);display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:5px;background:#fff;border:1px solid var(--border);font-size:11px;font-weight:700}
 .be i{font-style:normal;color:var(--accent)}
 .be.hit{background:rgba(31,122,58,.2);border-color:var(--success)}
 .poolrow{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;margin-top:6px}
@@ -516,7 +516,7 @@ function aiAct(s){
   let bi=0,bv=-1e9; cand.forEach((a,i)=>{ const v=tot[i]/nW-cost[i]; if(v>bv){ bv=v; bi=i; } });
   return cand[bi];
 }
-// pesca: stima della mano con una politica «naturale» (senza abilità) per valutare carta puntata e seme dolore
+// pesca: stima della mano con una politica «naturale» (senza abilità) per valutare carta puntata e seme maledetto
 function handEval(s){
   if(G.ev[s]) return G.ev[s];
   const n=G.n, own=new Set(G.hands[s].map(c=>c.u)), un=G.deck.filter(c=>!own.has(c.u));
@@ -584,9 +584,9 @@ function dealHand(){
   G.vm=new Array(n).fill(0); G.seen=new Set(); G.known=Array.from({length:n},()=>new Set()); G.ev=[];
   G.trick=0; G.res=null; G.fresh=-1; G.shown=null; G.show=null; G.turn=-1; G.phase='draft';
 }
-const TYPE_LBL = {pain:'seme dolore',ab:'abilità',bid:'carta puntata'};
+const TYPE_LBL = {pain:'seme maledetto',ab:'abilità',bid:'carta puntata'};
 function pickName(t,i){
-  if(t==='pain') return `Dolore ${COLS[i].n}`;
+  if(t==='pain') return `Maledetto ${COLS[i].n}`;
   if(t==='ab') return `abilità «${AB[i].n}»`;
   return `puntata ${BIDS[i].map(e=>`${e[0]}→${e[1]}`).join(' · ')}`;
 }
@@ -617,7 +617,7 @@ async function doDraft(){
       if(s===HUM){
         const hello=G.rd===1&&r===0&&j===0?`Buona partita a Tezuma Trick, ${P(HUM).name}! `:'';
         if(nOpt===1){ status(`${turnTxt} Resta una sola scelta.`); await sleep(700); }
-        status(`${hello}Mano ${G.rd}/${G.R} · ${turnTxt} Scegli una carta tra seme dolore, abilità e carta puntata (un tipo per volta).`);
+        status(`${hello}Mano ${G.rd}/${G.R} · ${turnTxt} Scegli una carta tra seme maledetto, abilità e carta puntata (un tipo per volta).`);
         v=nOpt===1?(()=>{ const t=free[0]; return {t,i:t==='pain'?G.pool.pain[0]:(t==='ab'?G.pool.ab[0]:G.pool.bid[0])}; })():await humanDraft(r);
       }else{
         status(`${G.rd===1&&r===0&&j===0?`Buona partita a Tezuma Trick, ${P(HUM).name}! `:''}${turnTxt}`);
@@ -629,7 +629,7 @@ async function doDraft(){
   G.turn=-1;
   for(let p=0;p<n;p++){ const k=G.pk[p]; G.pain[p]=k.pain; G.ab[p]=k.ab; G.abL[p]=AB[k.ab].u; G.bid[p]=BIDS[k.bid]; }
   const me=G.pk[HUM];
-  logMsg(`Le tue scelte: Dolore ${COLS[me.pain].n}, «${AB[me.ab].n}», puntata ${BIDS[me.bid].map(e=>`${e[0]}→${e[1]}`).join(' · ')}.`);
+  logMsg(`Le tue scelte: Maledetto ${COLS[me.pain].n}, «${AB[me.ab].n}», puntata ${BIDS[me.bid].map(e=>`${e[0]}→${e[1]}`).join(' · ')}.`);
 }
 // ── giocata dell'umano ──
 function humanAct(s){
@@ -694,7 +694,7 @@ function turnHint(){
     const w=evalTrick(X.filter(x=>true)); if(X.some(x=>x.c||x.ab==='sand')) t+=` Al momento vince ${esc(nameOf(w.s))}.`;
   }
   const ent=G.bid[s].map(e=>`${e[0]}→${e[1]}`).join(' · ');
-  return `${t}<br>Puntata: <b>${ent}</b> · prese finora: <b>${G.take[s]}</b> · seme dolore: <b>${COLS[pn].n}</b>.`;
+  return `${t}<br>Puntata: <b>${ent}</b> · prese finora: <b>${G.take[s]}</b> · seme maledetto: <b>${COLS[pn].n}</b>.`;
 }
 function previewText(a){
   const s=PR.seat;
@@ -704,7 +704,7 @@ function previewText(a){
   let pn=0; for(const x of pl){ for(const c of [x.c,x.c2]) if(c&&c.k===G.pain[s]) pn++; }
   const nm=a.c2?`${cname(a.c)} + ${cname(a.c2)}`:cname(a.c);
   const st=w.s===s?'al momento vinci la presa':'al momento non vinci la presa';
-  return `${esc(nm)}: ${st}${rest>0?`; ${rest} ${plural(rest,'giocatore deve','giocatori devono')} ancora giocare`:''}.${pn?` Nella presa ci sono ${pn} ${plural(pn,'carta','carte')} del tuo seme dolore.`:''}`;
+  return `${esc(nm)}: ${st}${rest>0?`; ${rest} ${plural(rest,'giocatore deve','giocatori devono')} ancora giocare`:''}.${pn?` Nella presa ci sono ${pn} ${plural(pn,'carta','carte')} del tuo seme maledetto.`:''}`;
 }
 async function oneTrick(){
   const n=G.n; G.trick++; G.plays=[]; G.res=null; G.fresh=-1; G.shown=null; G.egged={}; G.q=orderFrom(n,G.leader);
@@ -742,7 +742,7 @@ async function handEnd(){
   const rows=scoreHand();
   rows.forEach(r=>{ const p=G.pl[r.s]; p.total+=r.tot; p.hist.push(r.tot); });
   logMsg(`Mano ${G.rd} conclusa.`);
-  rows.forEach(r=>logMsg(`${nameOf(r.s)}: ${r.take} ${plural(r.take,'presa','prese')}${r.hit?` (puntata azzeccata: +${r.pts})`:' (puntata mancata)'}, ${r.pain} ${plural(r.pain,'carta','carte')} del seme dolore ${COLS[G.pain[r.s]].n}: ${sgn(r.tot)} punti · totale ${G.pl[r.s].total}.`));
+  rows.forEach(r=>logMsg(`${nameOf(r.s)}: ${r.take} ${plural(r.take,'presa','prese')}${r.hit?` (puntata azzeccata: +${r.pts})`:' (puntata mancata)'}, ${r.pain} ${plural(r.pain,'carta','carte')} del seme maledetto ${COLS[G.pain[r.s]].n}: ${sgn(r.tot)} punti · totale ${G.pl[r.s].total}.`));
   const last=G.rd===G.R;
   G.show={rows,last}; G.phase='end'; G.plays=[]; G.res=null; G.shown=null; G.turn=-1;
   status(last?'Partita conclusa: ecco il risultato.':`Mano ${G.rd} conclusa.`);
@@ -796,7 +796,7 @@ function picksHtml(){
   const rows=G.pl.map(p=>{
     const s=p.id, k=G.pk[s]; if(!k) return '';
     const parts=[];
-    parts.push(k.pain>=0?`<span class="tag">Dolore ${ic2(k.pain)} <b>${COLS[k.pain].n}</b></span>`:`<span class="tag">Dolore —</span>`);
+    parts.push(k.pain>=0?`<span class="tag">Maledetto ${ic2(k.pain)} <b>${COLS[k.pain].n}</b></span>`:`<span class="tag">Maledetto —</span>`);
     parts.push(k.ab!=null?`<span class="tag" title="${esc(AB[k.ab].d)}">${esc(AB[k.ab].s)} ${G.abL.length?gems(k.ab,G.abL[s]):gems(k.ab,AB[k.ab].u)}</span>`:`<span class="tag">Abilità —</span>`);
     parts.push(k.bid>=0?`<span class="tag">${bidChips(BIDS[k.bid],G.phase==='play'?G.take[s]:-1)}</span>`:`<span class="tag">Puntata —</span>`);
     if(G.phase==='play') parts.push(`<span class="tag"><b>${G.take[s]}</b> ${plural(G.take[s],'presa','prese')}</span>`);
@@ -810,7 +810,7 @@ function poolHtml(){
   const p=G.pool;
   const abs=p.ab.map(id=>`<div class="abc"><b>${esc(AB[id].n)} ${gems(id,AB[id].u)}</b><span>${esc(AB[id].d)}</span></div>`).join('')||'<span class="hint">—</span>';
   return `<div class="scorebox"><h3>CARTE ANCORA DISPONIBILI</h3>
-    <div class="poolrow"><span class="l">Seme dolore</span>${p.pain.map(k=>`<span class="lg k${k}"><span class="ic">${symSvg(k)}</span>${COLS[k].n}</span>`).join('')||'<span class="hint">—</span>'}</div>
+    <div class="poolrow"><span class="l">Seme maledetto</span>${p.pain.map(k=>`<span class="lg k${k}"><span class="ic">${symSvg(k)}</span>${COLS[k].n}</span>`).join('')||'<span class="hint">—</span>'}</div>
     <div class="poolrow"><span class="l">Abilità</span>${abs}</div>
     <div class="poolrow"><span class="l">Carte puntata (prese → punti)</span>${p.bid.map(i=>`<span class="tag">${bidChips(BIDS[i],-1)}</span>`).join('')||'<span class="hint">—</span>'}</div></div>`;
 }
@@ -882,18 +882,18 @@ function showHtml(){
     const p=G.pl[r.s];
     return `<tr class="${r.s===HUM?'me':''}"><td><span class="nm" style="--sc:${SEATC[r.s]}">${esc(p.name)}</span></td><td>${r.take}</td><td>${bidChips(G.bid[r.s],r.take)}</td><td class="${r.hit?'hit':''}">${r.hit?'+'+r.pts:'0'}</td><td class="${r.pain?'neg':''}">${r.pain?'−'+r.pain:'0'} <small>${ic2(G.pain[r.s])}</small></td><td><b>${r.tot}</b></td></tr>`;
   }).join('');
-  return `<div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Prese</th><th>Puntata</th><th>Punti</th><th>Dolore</th><th>Mano</th></tr>${rows}</table></div><div class="hint">Verde = puntata azzeccata · «Dolore» = carte del tuo seme dolore vinte nelle prese (−1 ciascuna) · il punteggio di una mano non scende sotto 0.</div>`;
+  return `<div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Prese</th><th>Puntata</th><th>Punti</th><th>Maledetto</th><th>Mano</th></tr>${rows}</table></div><div class="hint">Verde = puntata azzeccata · «Maledetto» = carte del tuo seme maledetto vinte nelle prese (−1 ciascuna) · il punteggio di una mano non scende sotto 0.</div>`;
 }
 function draftDock(){
   const pk=G.pk[HUM], pool=G.pool; let h='';
   const abBtn=id=>`<button class="opt" data-d="ab:${id}"><span><b>${esc(AB[id].n)}</b> ${gems(id,AB[id].u)}</span><small>${esc(AB[id].d)}</small></button>`;
-  if(pk.pain<0&&pool.pain.length) h+=`<div class="dock-title">SEME DOLORE (−1 PER OGNI CARTA DI QUEL SEME CHE VINCI)</div><div class="dgrid">${pool.pain.map(k=>`<button class="opt k${k}" data-d="pain:${k}"><span><span class="dot"></span>${ic2(k)} ${COLS[k].n}</span></button>`).join('')}</div>`;
+  if(pk.pain<0&&pool.pain.length) h+=`<div class="dock-title">SEME MALEDETTO (−1 PER OGNI CARTA DI QUEL SEME CHE VINCI)</div><div class="dgrid">${pool.pain.map(k=>`<button class="opt k${k}" data-d="pain:${k}"><span><span class="dot"></span>${ic2(k)} ${COLS[k].n}</span></button>`).join('')}</div>`;
   if(pk.ab==null&&pool.ab.length) h+=`<div class="dock-title">ABILITÀ</div><div class="dgrid">${pool.ab.map(abBtn).join('')}</div>`;
   if(pk.bid<0&&pool.bid.length) h+=`<div class="dock-title">CARTA PUNTATA (PRESE → PUNTI)</div><div class="dgrid">${pool.bid.map(i=>`<button class="opt" data-d="bid:${i}"><span class="bd">${bidChips(BIDS[i],-1)}</span></button>`).join('')}</div>`;
   return h;
 }
 function dockHtml(){
-  if(!G) return `<div class="dock-msg">Tezuma Trick contro l'AI. Pesca seme dolore, abilità e carta puntata, poi gioca 12 prese a seme obbligato.</div>
+  if(!G) return `<div class="dock-msg">Tezuma Trick contro l'AI. Pesca seme maledetto, abilità e carta puntata, poi gioca 12 prese a seme obbligato.</div>
     <div class="dock-title">QUANTI GIOCATORI IN TUTTO?</div>
     <div class="opts">
       <button class="opt" data-m="3">3 giocatori (tu + 2 AI)</button>
@@ -912,27 +912,27 @@ function dockHtml(){
   }else if(PR&&PR.type==='turn'){
     const s=PR.seat, ab=G.ab[s], left=G.abL[s];
     const usable=PR.acts.some(a=>a.ab);
-    const PH=`Camminare sulla spada: vinci la presa anche se non sei il primo ad aver giocato una briscola efficace, o se c'è parità tra più carte di valore più alto (dovuta a un'altra abilità).`;
+    const PHS=()=>PR.acts.map(x=>{let t='';try{const ah=x.ab?`<b>${esc(AB[x.ab].n)}:</b> ${esc(AB[x.ab].d)} Scegli la carta da giocare.`:'';t=ah+(ah?'<br>':'')+previewText(x)}catch(e){}return `<div class="hint" style="visibility:hidden" aria-hidden="true">${t}</div>`}).join('');
     html+=`<div class="hint">${turnHint()}</div>`;
     html+=`<div class="opts"><button class="opt abb ${PR.ab===ab?'on':''}" data-ab="${ab}" ${usable?'':'disabled'}>Abilità: ${esc(AB[ab].n)} ${gems(ab,left)}</button><span class="hint">${left<=0?'esaurita':(usable?'':'non utilizzabile ora')}</span></div>`;
     const a=curAct();
     const abHint=PR.ab?`<b>${esc(AB[PR.ab].n)}:</b> ${esc(AB[PR.ab].d)}${PR.ab==='fire'?` Scegli le 2 carte (${PR.sel.length}/2).`:''}${PR.ab==='egg'||PR.ab==='sand'?'':' Scegli la carta da giocare.'}`:'';
     const prev=a?previewText(a):'';
-    html+=`<div class="stack"><div class="hint">${abHint}${abHint&&prev?'<br>':''}${prev}</div><div class="hint" style="visibility:hidden" aria-hidden="true">${PH}<br>${PH}</div></div>`;
+    html+=`<div class="stack"><div class="hint">${abHint||prev?abHint+(abHint&&prev?'<br>':'')+prev:'Tocca una carta per vedere l\'anteprima.'}</div>${PHS()}</div>`;
     if(a){
       const lbl=a.ab==='egg'||a.ab==='sand'?`Usa ${AB[a.ab].s}`:(a.c2?`Gioca ${cname(a.c)} + ${cname(a.c2)}`:`Gioca ${cname(a.c)}`);
       html+=`<div class="opts"><button class="opt ${a.c?'k'+a.c.k:''}" data-go="play">${a.c&&!a.c2?'<span class="dot"></span>':''}${esc(lbl)}</button><button class="opt" data-go="x">Annulla</button></div>`;
-    }else if(OPT.undo) html+=`<div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 13 Ventaglio</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+    }else if(OPT.undo) html+=`<div class="opts"><button class="opt" disabled>Gioca</button><button class="opt" disabled>Annulla</button></div>`;
   }
   return html;
 }
 function recapHtml(){
   return `<details class="recap" ${RECAPOPEN?'open':''}><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Mazzo</span><span class="rv">${G.n} giocatori · ${G.n===3?'36 carte (senza 1, 9 e una briscola per seme)':'48 carte'} · 12 a testa · ${G.R} mani</span></div>
-    <div class="recap-row"><span class="lbl">Pesca</span><span class="rv">ogni mano ognuno sceglie 1 seme dolore, 1 abilità e 1 carta puntata (andata, ritorno, andata)</span></div>
+    <div class="recap-row"><span class="lbl">Pesca</span><span class="rv">ogni mano ognuno sceglie 1 seme maledetto, 1 abilità e 1 carta puntata (andata, ritorno, andata)</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv">si risponde al seme se possibile · le briscole (senza numero) valgono 0 se seguono il seme, fuori seme vincono (la prima giocata) · altrimenti la carta più alta del seme di apertura</span></div>
     <div class="recap-row"><span class="lbl">Abilità</span><span class="rv">si usano giocando nella presa, 1, 2 o 4 volte a mano (i gemmi sul cartellino indicano gli usi già fatti)</span></div>
-    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">se le prese vinte coincidono con un numero della carta puntata si segnano i punti corrispondenti, meno 1 per ogni carta del seme dolore vinta (minimo 0)</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">se le prese vinte coincidono con un numero della carta puntata si segnano i punti corrispondenti, meno 1 per ogni carta del seme maledetto vinta (minimo 0)</span></div>
     <div class="recap-row"><span class="lbl">Vince</span><span class="rv">il totale più alto dopo ${G.R} mani (parità: vittoria condivisa)</span></div></details>`;
 }
 const RULES_HTML = () => `
@@ -944,9 +944,9 @@ const RULES_HTML = () => `
 <ul><li><b>Semi:</b> Farfalla (giallo), Ombrello (blu), Ventaglio (verde), Maschera (arancione). Ogni seme ha i numeri 1–9 e 3 <b>briscole</b> senza numero.</li>
 <li><b>4 giocatori:</b> tutte le 48 carte, 12 a testa; 5 carte puntata e 5 abilità sul tavolo.</li>
 <li><b>3 giocatori:</b> si tolgono 1, 9 e una briscola per seme (36 carte, 12 a testa); 4 carte puntata e 4 abilità sul tavolo.</li>
-<li>I 4 semi dolore sono sempre tutti disponibili. Le carte puntata e le abilità restano le stesse per tutte le mani (dal menu puoi farle cambiare a ogni mano).</li></ul>
+<li>I 4 semi maledetti sono sempre tutti disponibili. Le carte puntata e le abilità restano le stesse per tutte le mani (dal menu puoi farle cambiare a ogni mano).</li></ul>
 <h4>Preparazione della mano (pesca)</h4>
-<p>Si gioca un numero di mani pari ai giocatori. Prima di giocare ognuno sceglie <b>un seme dolore, un'abilità e una carta puntata</b>. Comincia chi sta a sinistra del mazziere (il primo giocatore, che ruota a ogni mano): ognuno prende una carta di un tipo a sua scelta. Poi l'ultimo a scegliere ne prende un'altra, di un tipo diverso, e si procede <b>in senso inverso</b>. Infine il primo prende il terzo tipo e si procede di nuovo in avanti. Le scelte sono pubbliche.</p>
+<p>Si gioca un numero di mani pari ai giocatori. Prima di giocare ognuno sceglie <b>un seme maledetto, un'abilità e una carta puntata</b>. Comincia chi sta a sinistra del mazziere (il primo giocatore, che ruota a ogni mano): ognuno prende una carta di un tipo a sua scelta. Poi l'ultimo a scegliere ne prende un'altra, di un tipo diverso, e si procede <b>in senso inverso</b>. Infine il primo prende il terzo tipo e si procede di nuovo in avanti. Le scelte sono pubbliche.</p>
 <h4>Le prese</h4>
 <p>Chi apre gioca una carta qualsiasi; gli altri, in senso orario, devono rispondere con una carta dello stesso seme se ce l'hanno (anche una briscola di quel seme), altrimenti possono giocare qualsiasi carta. Chi vince la presa apre la successiva e mette le carte coperte davanti a sé, in pila separata (non si possono controllare). Prima di tutto si guarda se è stata giocata una <b>briscola efficace</b>: in tal caso vince <b>il primo</b> che l'ha giocata. Altrimenti vince la carta più alta del seme di apertura.</p>
 <h4>Briscole</h4>
@@ -955,14 +955,14 @@ const RULES_HTML = () => `
 <li>Chi apre con una briscola gioca comunque «nel seme» di quella briscola: vince solo se nessun altro risponde con un numero di quel seme e nessuno gioca una briscola efficace.</li>
 <li>L'obbligo di rispondere vale anche per le briscole: se la tua unica carta del seme è una briscola, devi giocarla (inefficace).</li></ul>
 <h4>Punteggio della mano</h4>
-<p>A fine mano si confrontano le prese vinte con la carta puntata: se coincidono con uno dei numeri a sinistra si segnano i punti a destra. Poi si tolgono i punti negativi dovuti alle carte del <b>seme dolore</b> vinte nelle prese (nell'app: <b>−1 per ogni carta</b>, numeri e briscole). Il punteggio di una mano non può essere negativo. Dopo tutte le mani vince il totale più alto; in caso di parità la vittoria è condivisa.</p>
+<p>A fine mano si confrontano le prese vinte con la carta puntata: se coincidono con uno dei numeri a sinistra si segnano i punti a destra. Poi si tolgono i punti negativi dovuti alle carte del <b>seme maledetto</b> vinte nelle prese (nell'app: <b>−1 per ogni carta</b>, numeri e briscole). Il punteggio di una mano non può essere negativo. Dopo tutte le mani vince il totale più alto; in caso di parità la vittoria è condivisa.</p>
 <h4>Le abilità</h4>
 <p>Un'abilità si usa quando si gioca nella presa, si dice ad alta voce e si mette una gemma su un cerchio. Ogni abilità si può usare 1, 2 o 4 volte per mano; se ne può usare al massimo una per presa.</p>
 <ul>${AB_IDS.map(id=>`<li><b>${esc(AB[id].n)}</b> (${esc(AB[id].o)}, ${AB[id].u} ${plural(AB[id].u,'uso','usi')}): ${esc(AB[id].d)}</li>`).join('')}</ul>
 <p>Se Acqua e Danza della farfalla sono usate nella stessa presa, prevale la Danza della farfalla.</p>
 <h4>Come l'ho interpretato nell'app</h4>
 <ul><li><b>Carte puntata:</b> sono quelle ufficiali; ogni carta ha 1–3 righe (prese → punti).</li>
-<li><b>Seme dolore:</b> −1 punto per ogni carta di quel seme (numeri e briscole) contenuta nelle prese che vinci.</li>
+<li><b>Seme maledetto:</b> −1 punto per ogni carta di quel seme (numeri e briscole) contenuta nelle prese che vinci.</li>
 <li><b>Sabbia:</b> si usa al posto della carta (nel proprio turno); il seme di apertura è quello della prima carta effettivamente giocata. Chi la usa vince la presa e ne raccoglie le carte.</li>
 <li><b>Uovo di carta:</b> chi lo usa passa all'ultimo posto della presa; se più giocatori lo usano, giocano nell'ordine in cui l'hanno dichiarato.</li>
 <li><b>Anelli intrecciati e Acqua:</b> una briscola giocata con gli Anelli è come una briscola fuori seme (inefficace se c'è l'Acqua). Solo la Danza della farfalla prevale sull'Acqua.</li>
@@ -989,7 +989,7 @@ document.getElementById('app').addEventListener('toggle',e=>{
 let LASTTALL=false;
 function render(){
   const app=document.getElementById('app');
-  const top=`<div class="topbar"><div class="logo"><span class="t"><span class="nm1">Tezuma Trick</span><small>てづま師 · un gioco di prese per 3 o 4</small></span></div>
+  const top=`<div class="topbar"><div class="logo"><span class="t"><span class="nm1">Tezuma Trick</span></span></div>
     ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
     ${G&&!G.over&&G.rd?`<span class="badge">Mano ${G.rd}/${G.R}</span>`:''}
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}

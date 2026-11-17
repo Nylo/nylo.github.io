@@ -75,6 +75,7 @@ body{background-color:var(--bg);background-image:radial-gradient(rgba(20,80,110,
 .dock-msg{font-size:13px;line-height:1.5}
 .dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 .opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stack{display:grid}.stack>*{grid-area:1/1}
 .opt{background:#fff;border:2px solid var(--ink);color:var(--text);border-radius:8px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
 .opt:hover:not(:disabled){background:var(--pink);border-color:var(--ink);color:#fff}
 .opt.on{background:var(--accent);color:#fff}
@@ -734,10 +735,11 @@ function dockHtml(){
     html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
   }else if(PR&&PR.type==='turn'){
     html+=`<div class="hint">${turnHint()}</div>`;
+    const PHS=()=>G.hands[HUM].map(x=>{let t='';try{t=previewText(x)}catch(e){}return `<div class="hint" style="visibility:hidden" aria-hidden="true">${t}</div>`}).join('');
     if(PR.sel!=null){
       const c=G.hands[HUM].find(x=>x.id===PR.sel);
-      html+=`<div class="hint">${previewText(c)}</div><div class="opts"><button class="opt" data-go="play">${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
-    }else if(OPT.undo) html+=`<div class="hint" style="visibility:hidden" aria-hidden="true">13 Pattini: tra le carte già giocate saresti 2° a pari merito con 1 altra carta (decide l'ultimo a giocare); 2 giocatori devono ancora giocare e può cambiare il piazzamento. Obiettivo: 4°.</div><div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 13 Occhiali</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+      html+=`<div class="stack"><div class="hint">${previewText(c)}</div>${PHS()}</div><div class="opts"><button class="opt" data-go="play">${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    }else if(OPT.undo) html+=`<div class="stack"><div class="hint">Tocca una carta per vedere l\'anteprima.</div>${PHS()}</div><div class="opts"><button class="opt" disabled>Gioca</button><button class="opt" disabled>Annulla</button></div>`;
   }
   return html;
 }

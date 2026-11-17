@@ -773,22 +773,23 @@ function dockHtml(){
   }else if(PR&&PR.type==='bid'){
     html+=`<div class="hint">${bidHintHuman()}</div>
       <div class="bids pickrow">${[0,1,2,3,4,5].map(k=>bcHtml(k,`pick ${PR.sel===k?'sel':''}`,'button',`${PR.opts.has(k)?'':'disabled'} data-b="${k}"`)).join('')}</div>`;
-    const bidPh='Puntare 5 significa fare esattamente 5 prese in questo round (ne hai già 0). Vincerne di più ti rende Invidioso.';
-    if(PR.sel!=null) html+=`${stackHint(`Puntare ${PR.sel} significa fare <b>esattamente ${PR.sel}</b> ${plural(PR.sel,'presa','prese')} in questo round (ne hai già ${G.tr[HUM]}). Vincerne di più ti rende Invidioso.`,bidPh)}<div class="opts"><button class="opt" data-bgo="go">Punta ${PR.sel}</button><button class="opt" data-bgo="x">Annulla</button><button class="opt" data-bgo="pass">Non puntare ora</button></div>`;
-    else if(OPT.undo) html+=`${stackHint('',bidPh)}<div class="opts"><button class="opt" tabindex="-1" style="visibility:hidden" aria-hidden="true">Punta 5</button><button class="opt" tabindex="-1" style="visibility:hidden" aria-hidden="true">Annulla</button><button class="opt" data-bgo="pass">Non puntare ora</button></div>`;
+    const bidTxt=k=>`Puntare ${k} significa fare <b>esattamente ${k}</b> ${plural(k,'presa','prese')} in questo round (ne hai già ${G.tr[HUM]}). Vincerne di più ti rende Invidioso.`;
+    const bidPh=[...PR.opts].map(bidTxt);
+    if(PR.sel!=null) html+=`${stackHint(bidTxt(PR.sel),bidPh)}<div class="opts"><button class="opt" data-bgo="go">Punta ${PR.sel}</button><button class="opt" data-bgo="x">Annulla</button><button class="opt" data-bgo="pass">Non puntare ora</button></div>`;
+    else if(OPT.undo) html+=`${stackHint('Scegli quante prese vuoi fare.',bidPh)}<div class="opts"><button class="opt" disabled>Punta</button><button class="opt" disabled>Annulla</button><button class="opt" data-bgo="pass">Non puntare ora</button></div>`;
     else html+=`<div class="opts"><button class="opt" data-bgo="pass">Non puntare ora</button></div>`;
   }else if(PR&&PR.type==='turn'){
     html+=`<div class="hint">${turnHint()}</div>`;
+    const turnPh=G.hands[HUM].map(x=>{try{return previewText(x)}catch(e){return ''}});
     if(PR.sel!=null){
       const c=G.hands[HUM].find(x=>x.id===PR.sel);
-      html+=`${stackHint(previewText(c),TURN_PH)}<div class="opts"><button class="opt" data-go="play">${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
-    }else if(OPT.undo) html+=`${stackHint('',TURN_PH)}<div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 13 Viola</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+      html+=`${stackHint(previewText(c),turnPh)}<div class="opts"><button class="opt" data-go="play">${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    }else if(OPT.undo) html+=`${stackHint('Tocca una carta per vedere l\'anteprima.',turnPh)}<div class="opts"><button class="opt" disabled>Gioca</button><button class="opt" disabled>Annulla</button></div>`;
   }
   return html;
 }
-// il testo vero e il segnaposto invisibile (caso peggiore) stanno nella stessa cella: l'altezza non cambia quando si seleziona una carta
-const TURN_PH='13 Viola: al momento è la carta che prende la presa, ma 3 giocatori possono ancora batterla. Attenzione: sei già a quota (5): se vinci questa presa diventi Invidioso.';
-const stackHint=(real,ph)=>`<div class="stack"><div class="hint">${real}</div><div class="hint" style="visibility:hidden" aria-hidden="true">${ph}</div></div>`;
+// il testo vero e i testi possibili (invisibili) stanno nella stessa cella: l'altezza non cambia quando si seleziona una carta, ma resta quella reale
+const stackHint=(real,phs)=>`<div class="stack"><div class="hint">${real}</div>${phs.map(t=>`<div class="hint" style="visibility:hidden" aria-hidden="true">${t}</div>`).join('')}</div>`;
 function recapHtml(){
   const n=G.n;
   return `<details class="recap"><summary>RIEPILOGO</summary>

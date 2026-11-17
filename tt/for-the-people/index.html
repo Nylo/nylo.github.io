@@ -654,14 +654,12 @@ function dockHtml(){
   if(PR&&PR.type==='choose'){
     html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt ${o.k!==undefined?'k'+o.k:''}" ${o.disabled?'disabled':''} data-i="${i}">${o.k!==undefined?'<span class="dot"></span>':''}${esc(o.label)}</button>`).join('')}</div>`;
   }else if(PR&&PR.type==='turn'){
-    const PH_M='13 Verde (agricoltura): parti con 13 punti nella fila del manifesto. Nella mano ti restano 5 altre carte di questo colore.';
-    const PH_P='13 Giallo: al momento non vince la presa; 3 giocatori devono ancora giocare. Se prendessi le 4 carte sul tavolo, i tuoi punti cambierebbero di −13 (con le file nel modo migliore).';
-    const ph=PR.kind==='man'?PH_M:PH_P;
+    const PHS=()=>G.hands[PR.seat].map(x=>{let t='';try{t=previewText(x)}catch(e){}return `<div class="hint" style="visibility:hidden" aria-hidden="true">${t}</div>`}).join('');
     html+=`<div class="hint">${turnHint()}</div>`;
     if(PR.sel!=null){
       const c=G.hands[PR.seat].find(x=>x.id===PR.sel);
-      html+=`<div class="stack"><div class="hint">${previewText(c)}</div><div class="hint" style="visibility:hidden" aria-hidden="true">${ph}</div></div><div class="opts"><button class="opt k${c.k}" data-go="play"><span class="dot"></span>${esc((PR.kind==='man'?'Manifesto: ':'Gioca ')+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
-    }else if(OPT.undo) html+=`<div class="stack"><div class="hint"></div><div class="hint" style="visibility:hidden" aria-hidden="true">${ph}</div></div><div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Manifesto: 13 Verde</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+      html+=`<div class="stack"><div class="hint">${previewText(c)}</div>${PHS()}</div><div class="opts"><button class="opt k${c.k}" data-go="play"><span class="dot"></span>${esc((PR.kind==='man'?'Manifesto: ':'Gioca ')+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    }else if(OPT.undo) html+=`<div class="stack"><div class="hint">Tocca una carta per vedere l\'anteprima.</div>${PHS()}</div><div class="opts"><button class="opt" disabled>Gioca</button><button class="opt" disabled>Annulla</button></div>`;
   }
   return html;
 }

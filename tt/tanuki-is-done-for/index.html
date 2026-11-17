@@ -649,12 +649,12 @@ function dockHtml(){
   if(PR&&PR.type==='choose'){
     html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt ${o.k!==undefined?'k'+o.k:''}" ${o.disabled?'disabled':''} data-i="${i}">${o.k!==undefined?'<span class="dot"></span>':''}${esc(o.label)}</button>`).join('')}</div>`;
   }else if(PR&&PR.type==='turn'){
-    const PH='13 Giallo (tanuki): al momento non vince la presa; 4 giocatori devono ancora giocare. Se prendessi le 5 carte sul tavolo: 1 Giallo senza tanuki (−1); 1 Rosso coperta (−2); 1 Blu senza tanuki (−1); cattura il Verde (+5); 1 Viola senza tanuki (−1); perde il bonus +2 (−2) → +4 punti.';
+    const PHS=()=>G.hands[PR.seat].map(x=>{let t='';try{t=previewText(x)}catch(e){}return `<div class="hint" style="visibility:hidden" aria-hidden="true">${t}</div>`}).join('');
     html+=`<div class="hint">${turnHint()}</div>`;
     if(PR.sel!=null){
       const c=G.hands[PR.seat].find(x=>x.id===PR.sel);
-      html+=`<div class="stack"><div class="hint">${previewText(c)}</div><div class="hint" style="visibility:hidden" aria-hidden="true">${PH}</div></div><div class="opts"><button class="opt k${c.k}" data-go="play"><span class="dot"></span>${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
-    }else if(OPT.undo) html+=`<div class="stack"><div class="hint"></div><div class="hint" style="visibility:hidden" aria-hidden="true">${PH}</div></div><div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 13 Giallo</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+      html+=`<div class="stack"><div class="hint">${previewText(c)}</div>${PHS()}</div><div class="opts"><button class="opt k${c.k}" data-go="play"><span class="dot"></span>${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    }else if(OPT.undo) html+=`<div class="stack"><div class="hint">Tocca una carta per vedere l'anteprima.</div>${PHS()}</div><div class="opts"><button class="opt" disabled>Gioca</button><button class="opt" disabled>Annulla</button></div>`;
   }
   return html;
 }
