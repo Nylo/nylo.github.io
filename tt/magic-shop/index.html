@@ -99,9 +99,9 @@ table.score td.hit{background:rgba(31,122,58,.2);font-weight:800;color:#145a2a}
 .pc{width:var(--cw);height:var(--ch);border-radius:6px;background:linear-gradient(180deg,var(--kc) 0 24%,#f6eed8 24% 76%,var(--kc) 76% 100%);border:2px solid var(--ink);box-shadow:0 2px 5px rgba(0,0,0,.3);position:relative;display:inline-block;overflow:hidden;flex-shrink:0;padding:0;color:var(--ink)}
 .pc .pt{position:absolute;left:50%;top:50%;width:calc(var(--cw)*.5);height:calc(var(--cw)*.5);transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center}
 .pc .pt svg{width:100%;height:100%;display:block;fill:var(--kc);stroke:var(--kx);stroke-width:1.2;stroke-linejoin:round;stroke-linecap:round}
-.pc .cn{position:absolute;font-family:'Inter',sans-serif;font-weight:800;font-size:calc(var(--cw)*.3);line-height:1;font-style:normal;color:var(--kt);z-index:2}
-.pc .cn.a{left:calc(var(--cw)*.1);top:calc(var(--ch)*.045)}
-.pc .cn.d{right:calc(var(--cw)*.1);bottom:calc(var(--ch)*.045);transform:rotate(180deg)}
+.pc .cn{position:absolute;font-family:'Inter',sans-serif;font-weight:800;font-size:calc(var(--cw)*.3);line-height:1;font-style:normal;color:#fff;z-index:2}
+.pc .cn.a{left:calc(var(--cw)*.1);top:calc(var(--ch)*.01)}
+.pc .cn.d{right:calc(var(--cw)*.1);bottom:calc(var(--ch)*.02);transform:rotate(180deg)}
 .pc.mini{--cw:42px;--ch:61px}
 .pc.fresh{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--brass),0 2px 5px rgba(0,0,0,.45)}
 .pc.win{box-shadow:0 0 0 3px var(--success),0 2px 5px rgba(0,0,0,.45)}
@@ -502,7 +502,7 @@ function humanBid(){
 }
 async function doBids(){
   const n=G.n, rd=G.rd;
-  const hello=rd===1?`Buona partita a The Magic Shop, ${P(HUM).name}! `:'';
+  const hello=rd===1?`Buona partita a The Magic Shop, ${P(HUM).name}!¶`:'';
   status(`${hello}Mano ${rd}/${G.R} · scegli la carta puntata: ${G.hs} prese in tutto, ${G.hs+1} carte in mano.`);
   let mine;
   if(window.MS_AUTO) mine=aiBid(HUM); else mine=await humanBid();
@@ -726,7 +726,7 @@ function bidChip(b,mine){
 }
 function legendHtml(){
   return `<div class="legend">${SU.map((s,k)=>`<span class="lg k${k}"><span class="ic">${symSvg(k)}</span><span>${s.n}<small>${s.s}</small></span></span>`).join('')}</div>
-    <div class="hint" style="margin-top:8px;text-align:center">Chi vince la presa sceglie l'effetto di uno dei semi giocati: gratis se ha giocato lui quel seme, altrimenti prende 1 Sete. Ogni Sete in mano a un giocatore regala punti agli altri se centrano la puntata.</div>`;
+    <div class="hint" style="margin-top:8px">Chi vince la presa sceglie l'effetto di uno dei semi giocati: gratis se ha giocato lui quel seme, altrimenti prende 1 Sete. Ogni Sete in mano a un giocatore regala punti agli altri se centrano la puntata.</div>`;
 }
 function polar(cx,cy,r,a){ const t=(a-90)*Math.PI/180; return [cx+r*Math.cos(t),cy+r*Math.sin(t)]; }
 function sector(cx,cy,r0,r1,a0,a1){
@@ -830,7 +830,7 @@ function dockHtml(){
     const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
     return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> Evade dal negozio di magia.</div>${scoreTable()}`;
   }
-  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  let html=`<div class="dock-msg">${esc(G.msg).split('¶').join('<br>')}</div>`;
   if(G.show) html+=`<div class="acq">${showHtml()}</div>`;
   if(PR&&PR.type==='choose'){
     html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt ${o.k!==undefined?'k'+o.k:''}" ${o.disabled?'disabled':''} data-i="${i}">${o.k!==undefined?'<span class="dot"></span>':''}${esc(o.label)}</button>`).join('')}</div>`;
