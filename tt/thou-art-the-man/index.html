@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thou Art the Man</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Dela+Gothic+One&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f1013;
+  --surface:#1c1e24;
+  --surface-raised:#2a2d36;
+  --accent:#ffe94a;
+  --accent-soft:rgba(255,233,74,0.14);
+  --silver:#b9bfc9;
+  --silver-d:#6c727d;
+  --text:#ecedf1;
+  --text-soft:#b1b5c0;
+  --danger:#ff8a80;
+  --success:#7fe0a8;
+  --border:rgba(185,191,201,0.32);
+  --radius:10px;
+  --cw:48px; --ch:70px;
+}
+.k0{--kc:#e0524f;--kx:#a82a28;--kt:#fff}
+.k1{--kc:#5b9be0;--kx:#2a6199;--kt:#fff}
+.k2{--kc:#f0d93a;--kx:#9a8600;--kt:#2a2400}
+.k3{--kc:#a9afbb;--kx:#5d6370;--kt:#16171b}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background-color:var(--bg);background-image:radial-gradient(ellipse at 50% 0,rgba(255,255,255,.10),transparent 65%),url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .8  0 0 0 0 .85  0 0 0 .22 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");background-attachment:fixed,scroll}
+.app{max-width:940px;margin:0 auto;padding:0 14px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.logo .cat{flex:0 0 auto;width:34px;height:40px}
+.logo .lt{display:flex;flex-direction:column;min-width:0}
+.logo .jp{font-family:'Dela Gothic One','Inter',sans-serif;font-size:13px;color:#fff;letter-spacing:.04em;line-height:1.2}
+.logo .nm1{font-family:'Pinyon Script','Libre Baskerville',serif;font-size:36px;line-height:1.05;color:var(--accent);text-shadow:0 2px 0 rgba(0,0,0,.6);white-space:nowrap}
+.badge{background:var(--accent);color:#16171b;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--silver)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:34px;height:19px;flex:0 0 34px;margin:0;border:1px solid var(--border);border-radius:999px;background:var(--surface-raised);cursor:pointer;transition:background .15s,border-color .15s}
+.opt-toggle input[type=checkbox]::before{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-soft);transition:transform .15s,background .15s}
+.opt-toggle input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.opt-toggle input[type=checkbox]:checked::before{transform:translateX(15px);background:#16171b}
+.opt-toggle input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:var(--surface);color:var(--text);border:1px solid var(--silver);cursor:pointer}
+.hamb:hover{background:var(--surface-raised)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:250px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--silver);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,.6)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:normal;line-height:1.35;text-align:left;width:100%}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+/* nel menu le voci sono azioni a testo (home-btn.js): l'interruttore stilizzato deve restare nascosto e non occupare spazio */
+.menu-pop .opt-toggle.nylo-menu-action input[type=checkbox]{position:absolute;width:1px;height:1px;flex:none;margin:0;border:0;opacity:0;pointer-events:none}
+.menu-pop button.opt-toggle{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--text);text-align:left;background:transparent;border:0;box-shadow:none;cursor:pointer}
+.flag{display:inline-block;margin-left:5px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#fff;color:#16171b}
+.flag.lead{background:var(--accent);color:#16171b}
+.flag.det{background:#16171b;color:var(--accent);border:1px solid var(--accent)}
+.flag.win{background:var(--success);color:#10301d}
+.flag.lose{background:#e0524f;color:#fff}
+
+/* cornice argentata come in copertina */
+.panel{background:var(--surface);border:1px solid var(--silver);border-radius:var(--radius);box-shadow:inset 0 0 0 4px var(--surface),inset 0 0 0 5px var(--silver-d),0 6px 18px rgba(0,0,0,.5)}
+.log{background:var(--surface);border:1px solid var(--silver);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:14px;font-size:12px;color:var(--text-soft);line-height:1.6;box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 4px var(--silver-d)}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--silver);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.7)}
+.name-box h3{font-family:'Pinyon Script',serif;font-weight:400;font-size:30px;color:var(--accent)}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,0.08);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:1px solid var(--silver);border-radius:var(--radius);box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 4px var(--silver-d),0 8px 20px rgba(0,0,0,.65);padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.dock.tall{position:static}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:var(--surface-raised);border:1px solid var(--silver);color:var(--text);border-radius:8px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--accent);border-color:var(--accent);color:#16171b}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft);line-height:1.5}
+.hint b{color:var(--text)}
+.stack{display:grid}.stack>*{grid-area:1/1}
+.scroll-x{overflow-x:auto;max-width:100%}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score tr.me td{background:var(--accent-soft)}
+table.score td.hit{background:rgba(224,82,79,.28);font-weight:800}
+
+/* carte: fascia colorata con il numero, al centro il simbolo del seme, in basso a destra l'icona del verdetto (有 colpevole / 無 innocente) */
+.cd{width:var(--cw);height:var(--ch);border-radius:6px;background:#f3efe2;border:2px solid #0b0b0e;box-shadow:0 2px 6px rgba(0,0,0,.55);position:relative;display:inline-flex;flex-direction:column;overflow:hidden;flex-shrink:0;padding:0;color:#15151a;font-family:'Inter',sans-serif;text-align:left}
+.cd .ch{flex:0 0 31%;background-color:var(--kc);color:var(--kt);display:flex;align-items:center;justify-content:space-between;padding:0 calc(var(--cw)*.09);gap:2px}
+.cd .cn{font-weight:800;font-size:calc(var(--cw)*.3);line-height:1;font-style:normal;letter-spacing:-.02em}
+.cd.dec .cn{font-size:calc(var(--cw)*.22)}
+.cd .mk{font-weight:800;font-size:calc(var(--cw)*.24);line-height:1;font-style:normal;letter-spacing:-.05em}
+.cd .cb{flex:1;position:relative;display:flex;align-items:center;justify-content:center}
+.cd .cb svg{width:calc(var(--cw)*.52);height:calc(var(--cw)*.52);display:block;color:var(--kx);opacity:.92}
+.cd .vd{position:absolute;right:calc(var(--cw)*.05);bottom:calc(var(--ch)*.03);width:calc(var(--cw)*.3);height:calc(var(--cw)*.3);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'Dela Gothic One','Inter',sans-serif;font-weight:400;font-size:calc(var(--cw)*.21);line-height:1;font-style:normal}
+.cd .vd.g{background:#d6342f;color:#fff}
+.cd .vd.i{background:#fff;color:#16171b;border:1px solid #16171b}
+.cd.r8{box-shadow:0 0 0 2px #ffe94a,0 2px 6px rgba(0,0,0,.55)}
+.cd.pn .ch{background-image:repeating-linear-gradient(135deg,rgba(0,0,0,.12) 0 4px,transparent 4px 8px)}
+.cd.mini{--cw:42px;--ch:61px}
+.cd.fresh{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--accent),0 2px 6px rgba(0,0,0,.6)}
+.cd.win{box-shadow:0 0 0 3px var(--success),0 2px 6px rgba(0,0,0,.6)}
+.cd.legal{box-shadow:0 0 0 2px #0b0b0e,0 0 0 4px #fff}
+.cd.dim{opacity:.38;filter:saturate(.4)}
+.cd.sel{transform:translateY(-12px);box-shadow:0 0 0 2px #0b0b0e,0 0 0 5px var(--accent)}
+.cd.recv{box-shadow:0 0 0 2px #0b0b0e,0 0 0 4px var(--accent)}
+button.cd{cursor:pointer;transition:transform .12s}
+button.cd:hover:not(:disabled){transform:translateY(-6px)}
+button.cd.sel:hover:not(:disabled){transform:translateY(-12px)}
+button.cd:disabled{cursor:default}
+body.a11y .k0 .ch{background-image:radial-gradient(rgba(255,255,255,.55) 22%,transparent 24%);background-size:7px 7px}
+body.a11y .k1 .ch{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.4) 0 2px,transparent 2px 6px)}
+body.a11y .k2 .ch{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.28) 0 2px,transparent 2px 6px)}
+body.a11y .k3 .ch{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 2px,transparent 2px 6px)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:14px}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.seat.top .backs,.seat.left .backs,.seat.right .backs,.seat.tl .backs,.seat.tr .backs{display:grid;grid-template-columns:repeat(6,9px);max-width:none}
+.cbk{width:9px;height:14px;border-radius:2px;background:linear-gradient(135deg,#34373f,#15161a);border:1px solid var(--silver);box-shadow:0 0 0 1px rgba(0,0,0,.6)}
+.nc{display:inline-flex;align-items:center;justify-content:center;gap:2px;min-width:24px;height:26px;padding:0 4px;border-radius:5px;background:var(--kc);color:var(--kt);font-family:'Inter',sans-serif;font-weight:800;font-size:12px;line-height:1;border:1px solid rgba(0,0,0,.6)}
+.nc.s{min-width:22px;height:22px;font-size:10px}
+.nc.gone{opacity:.22;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #0b0b0e,0 0 0 3.5px #fff}
+.nc.ev{box-shadow:0 0 0 2px #ffe94a}
+.nm{display:inline-block;padding:2px 10px;border-radius:999px;color:#16171b;font-weight:700;border:1px solid rgba(0,0,0,0.4);background:var(--sc,#eee)}
+
+.legend{display:flex;gap:8px;align-items:stretch;justify-content:center;flex-wrap:wrap}
+.lg{display:flex;align-items:flex-start;gap:6px;padding:5px 10px 5px 5px;border-radius:10px;background:rgba(255,255,255,.05);font-size:12px;font-weight:700;flex:1 1 150px;min-width:140px}
+.lg .ic{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--kc);color:var(--kt);flex:0 0 26px}
+.lg .ic svg{width:16px;height:16px;display:block}
+.lg small{display:block;font-weight:500;color:var(--text-soft);font-size:11px;line-height:1.35}
+.ic2{display:inline-block;width:13px;height:13px;vertical-align:-2px;color:var(--kc)}
+.ic2 svg{width:100%;height:100%;display:block}
+
+.table{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr);gap:8px;background:radial-gradient(ellipse at center,#262932 0%,#16171c 90%);border:1px solid var(--silver);border-radius:14px;box-shadow:inset 0 0 0 4px #16171c,inset 0 0 0 5px var(--silver-d),0 8px 22px rgba(0,0,0,.55);padding:14px;margin:0 0 14px}
+.table.n3{grid-template-areas:"left center right" "bottom bottom bottom"}
+.table.n4{grid-template-areas:". top ." "left center right" "bottom bottom bottom"}
+.table.n5{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top} .seat.tl{grid-area:tl} .seat.tr{grid-area:tr} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center} .seat.bottom{grid-area:bottom}
+.seat.leader{border:1px dashed rgba(255,233,74,.8);background:rgba(255,233,74,.06)}
+.seat.active{border:2px solid var(--accent);background:rgba(255,233,74,.14);box-shadow:0 0 0 2px rgba(255,233,74,.5)}
+.seat.winner{border:2px solid var(--success);background:rgba(127,224,168,.12)}
+.seat.culp{border:2px solid #e0524f;background:rgba(224,82,79,.16)}
+.seat-name{font-weight:600;font-size:13px;overflow-wrap:anywhere;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nmrow{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap}.nmrow .flag{margin-left:0}
+.seat-meta{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(255,255,255,0.09);border-radius:4px;padding:2px 6px;color:var(--text);white-space:nowrap}
+.tag b{color:var(--accent)}
+.tag.st{background:#000;color:#fff;border:1px solid var(--silver)}
+.tag.dt{background:var(--accent);color:#16171b;font-weight:700}
+.tag.dt b{color:#16171b}
+.sub{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;min-width:0;padding:4px;border-radius:8px}
+.tableau{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:65px;min-width:46px;padding:3px;border-radius:8px;background:rgba(255,255,255,0.05)}
+.tableau .row{display:flex;align-items:center;justify-content:center}
+.slot{display:inline-block;width:42px;height:61px;border:1px dashed rgba(255,255,255,0.35);border-radius:6px}
+.evs{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;min-height:0}
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;font-size:12px;line-height:1.45;color:var(--text-soft);min-width:0}
+.center b{color:var(--accent)}
+.rbox{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--accent);color:#16171b;font-weight:700;font-size:12px}
+.rcs{display:flex;gap:4px;justify-content:center}
+.rc{display:inline-flex;align-items:center;justify-content:center;width:26px;height:34px;border-radius:5px;background:#3a3d48;border:1px solid var(--silver);font-weight:800;font-size:14px;color:#fff}
+.rc.used{background:#14151a;color:#555;border-style:dashed;text-decoration:line-through}
+.rc.now{background:var(--accent);color:#16171b;border-color:var(--accent)}
+.pan{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;background:#2a1c52;color:#ffe94a;font-weight:700;font-size:11px;border:1px solid #ffe94a}
+
+.scorebox{background:var(--surface);border:1px solid var(--silver);border-radius:var(--radius);box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 4px var(--silver-d);padding:14px 16px;margin-bottom:14px}
+.scorebox h3{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:0.05em;margin-bottom:8px}
+.acq{display:flex;flex-direction:column;gap:12px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:78px;font-size:11px;font-weight:700}
+.trial{display:flex;flex-direction:column;gap:12px}
+.def{display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:8px;border:1px solid var(--border)}
+.def.now{border-color:var(--accent);background:var(--accent-soft)}
+.def.cul{border-color:#e0524f;background:rgba(224,82,79,.16)}
+.def.ok{opacity:.72}
+.def-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px}
+.def-c{display:flex;gap:6px;flex-wrap:wrap;min-height:20px}
+.recap{background:var(--surface);border:1px solid var(--silver);border-radius:var(--radius);box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 4px var(--silver-d);padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--accent)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+details.rules{background:var(--surface);border:1px solid var(--silver);border-radius:var(--radius);box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 4px var(--silver-d);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Pinyon Script',serif;font-weight:400;font-size:24px;color:var(--accent);margin:14px 0 2px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul,.rtext ol{padding-left:20px}
+.rtext b{color:var(--text)}
+
+@media(max-width:600px){
+  .app{padding:0 12px 48px}
+  .logo .nm1{font-size:29px}
+  .logo .jp{font-size:11px}
+  .logo .cat{width:28px;height:33px}
+  :root{--cw:36px;--ch:53px}
+  .cd{border-radius:5px;border-width:1.5px}
+  .cd.mini{--cw:34px;--ch:50px}
+  .slot{width:34px;height:50px}
+  .table{padding:8px;gap:6px}
+  .cbk{width:6px;height:10px}
+  .seat.top .backs,.seat.left .backs,.seat.right .backs,.seat.tl .backs,.seat.tr .backs{grid-template-columns:repeat(6,6px);gap:1px}
+  .hand{gap:3px;row-gap:12px}
+  .seat{padding:6px 3px}
+  .nm{padding:2px 6px;font-size:12px}
+  table.score td,table.score th{padding:5px 4px}
+}
+@media(max-width:380px){.topbar{gap:6px}.logo .nm1{font-size:25px}.badge{padding:4px 9px}}
+@media(max-width:340px){.logo .nm1{font-size:22px}.badge{font-size:11px;padding:3px 7px}.nm{padding:2px 5px;font-size:11px}}
+</style>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0f1013">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="/pwa.js" defer></script>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script src="/tt/shared/core.js"></script>
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+// 4 semi: 0 Arma del delitto (凶器), 1 Luogo (場所), 2 Indizio (手がかり) con rango 1–10, 3 Opinione pubblica (世間) con rango 1.5–10.5.
+const SU = [
+  {n:'Arma',    full:'Arma del delitto', sym:'knife',  s:'rango 1–10'},
+  {n:'Luogo',   full:'Luogo',            sym:'pin',    s:'rango 1–10'},
+  {n:'Indizio', full:'Indizio',          sym:'lens',   s:'rango 1–10'},
+  {n:'Opinione',full:'Opinione pubblica',sym:'bubble', s:'segue in automatico · rango 1.5–10.5'}
+];
+const PN = ['Passaparola','Cronaca','Talk show','Rotocalco','SNS','Panic Time','Radio','Influencer','Telegiornale','Virale'];   // 1.5 … 10.5
+const NAMES = ['Tu','AI Poirot','AI Marple','AI Holmes','AI Conan'];
+const SEATC = ['#ffe94a','#ffb3b3','#b8d8ff','#c9f0c0','#e7c9ff'];
+const HUM = 0, RMAX = 4, RC0 = [2,1,0,3];
+const POS = {3:['bottom','left','right'],4:['bottom','left','top','right'],5:['bottom','left','tl','tr','right']};
+const AIP = {};
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+let LOGOPEN=false, RULESOPEN=false, RECAPOPEN=false, MENUOPEN=false;
+const OPT = {undo:true, a11y:false, memo:false};
+try{ let s=localStorage.getItem('tam-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tam-a11y')==='1'; OPT.memo=localStorage.getItem('tam-memo')==='1'; }catch(e){}
+const isAuto = s => s!==HUM||!!window.TA_AUTO;
+const isPub = c => c.k===3;
+const isPanic = c => c.k===3&&c.r===6.5;
+const isR8 = c => c.k<3&&c.r===8;
+const sp = c => c.k!==3?0:((c.r===6.5||c.r===8.5)?2:1);          // punti sospetto: Panic Time e Influencer valgono 2
+const cname = c => c.k<3?`${SU[c.k].n} ${c.r}`:`${PN[Math.round(c.r-1.5)]} ${c.r}`;
+const sortHand = h => h.sort((a,b)=>a.k-b.k||a.r-b.r);
+const plural = (n,a,b) => n===1?a:b;
+const nameOf = s => P(s).name;
+const orderFrom = (n,l) => Array.from({length:n},(_,i)=>(l+i)%n);
+const sum = a => a.reduce((x,y)=>x+y,0);
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+function buildDeck(n){
+  const d=[];
+  for(let k=0;k<4;k++) for(let i=0;i<10;i++){
+    if(n===3&&((k<3&&i<2)||(k===3&&i===0))) continue;      // 3 giocatori: via 1 e 2 di Arma/Luogo/Indizio e l'1.5
+    if(n===4&&i===0) continue;                              // 4 giocatori: via 1 di Arma/Luogo/Indizio e l'1.5
+    const r=k<3?i+1:i+1.5;
+    d.push({u:k*10+i,k,r,g:k<3?r>=6:i%2===1});             // g = icona verdetto: true = colpevole (有), false = innocente (無)
+  }
+  return d;
+}
+const handSize = n => n===3?11:(n===4?9:8);
+// carte giocabili: seme di apertura se ce l'hai, altrimenti Opinione pubblica (se il seme di apertura non lo è), altrimenti qualsiasi carta
+function legalCards(h,X){
+  if(!X.length) return h.slice();
+  const L=X[0].c.k, f=h.filter(c=>c.k===L);
+  if(f.length) return f;
+  if(L!==3){ const pb=h.filter(c=>c.k===3); if(pb.length) return pb; }
+  return h.slice();
+}
+// 'lead' apre · 'follow' risponde al seme · 'pub' Opinione pubblica (segue in automatico) · 'disc' scarto
+function kindOf(c,L,first){ return first?'lead':(c.k===L?'follow':(c.k===3&&L!==3?'pub':'disc')); }
+// vince la carta più forte tra quelle che hanno seguito (rango più alto, più basso con Panic Time attivo); gli scarti non vincono mai
+function winnerOf(X,panic){
+  const pn=panic||X.some(x=>isPanic(x.c));
+  let best=null, bs=-Infinity;
+  for(const x of X){ if(x.kind==='disc') continue; const s=pn?-x.c.r:x.c.r; if(s>bs){ bs=s; best=x; } }
+  return best.s;
+}
+
+// ═════════════════════════ STATO E MANI ═════════════════════════
+const S_ = ms => window.TA_FAST?Promise.resolve():sleep(ms);
+const okAsk = (t,l) => isAuto(HUM)?Promise.resolve():ask(HUM,t,[{label:l,value:1}]);
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  G={n,R:RMAX,rd:0,msg:'',log:[],over:null,show:null,trial:null,phase:'',turn:-1,deck:[],hands:[],won:[],det:0,starter:rnd(n),leader:0,plays:[],
+     rc:RC0.map(x=>({n:x,used:false})),rcNow:-1,panic:false,panicCard:null,trick:0,tl:0,res:null,fresh:-1,shown:null,recv:new Set(),played:new Set(),
+     marks:new Array(n).fill(0),pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hist:[]}))};
+  run();
+}
+function dealRound(){
+  const n=G.n, hn=handSize(n);
+  G.deck=buildDeck(n); const d=shuffle(G.deck.slice());
+  G.hands=[]; for(let p=0;p<n;p++) G.hands.push(sortHand(d.slice(p*hn,(p+1)*hn)));
+  G.won=Array.from({length:n},()=>[]); G.panic=false; G.panicCard=null; G.plays=[]; G.played=new Set(); G.recv=new Set();
+  G.trick=0; G.tl=hn; G.res=null; G.fresh=-1; G.shown=null; G.show=null; G.turn=-1; G.rcNow=-1;
+  if(G.rd===1) G.det=G.starter; else G.starter=G.det;      // chi ha la carta Detective a fine round apre il round dopo
+  G.leader=G.starter; G.phase='pass';
+}
+function removeFromHand(p,c){ const h=G.hands[p], i=h.indexOf(c); if(i>=0) h.splice(i,1); }
+
+// ═════════════════════════ IA ═════════════════════════
+// probabilità che nessuno dei giocatori ancora da giocare batta la forza sg (stima sulle carte non ancora uscite)
+function pNoBeat(un,L,sg,pn,rem){
+  const u=un.length; if(!u) return 1;
+  let a=0,b=0,cl=0;
+  for(const c of un){ if(c.k===L) cl++; const s=pn?-c.r:c.r; if(s>sg){ if(c.k===L) a++; else if(c.k===3&&L!==3) b++; } }
+  let pr=1;
+  for(const q of rem){
+    const hq=G.hands[q].length;
+    const pa=1-Math.pow(1-a/u,hq), pv=Math.pow(1-cl/u,hq), pb=pv*(1-Math.pow(1-b/u,hq));
+    pr*=(1-pa)*(1-pb);
+  }
+  return pr;
+}
+// "costo" di vincere la presa con la carta c: prove decisive, sospetto, rischio di arresto
+function trickCost(p,X,c,last){
+  let cost=0, r8=0;
+  for(const d of X.map(x=>x.c).concat([c])){
+    if(isR8(d)){ cost+=1; r8++; }
+    else if(d.k===3){ if(isPanic(d)&&!last) continue; cost+=0.3*sp(d); }
+  }
+  const mine=G.won[p].filter(isR8).length;
+  if(r8&&mine+r8>=3) cost+=3+(G.det===p?2:0);
+  return cost;
+}
+function aiPlay(p,legal){
+  if(legal.length===1) return legal[0];
+  const X=G.plays, h=G.hands[p], first=!X.length, last=h.length===1;
+  const rem=orderFrom(G.n,G.leader).filter(q=>q!==p&&!X.some(x=>x.s===q));
+  const un=G.deck.filter(c=>!G.played.has(c.u)&&!h.includes(c));
+  const nh=h.filter(c=>!isPanic(c)), avg=sum(nh.map(c=>c.r))/Math.max(1,nh.length);
+  let bc=null, bs=Infinity;
+  for(const c of legal){
+    const L=first?c.k:X[0].c.k, kind=kindOf(c,L,first);
+    const pn=G.panic||isPanic(c)||X.some(x=>isPanic(x.c));
+    let pw=0;
+    if(kind!=='disc'){
+      const sg=pn?-c.r:c.r;
+      let cur=-Infinity; for(const x of X){ if(x.kind!=='disc'){ const s=pn?-x.c.r:x.c.r; if(s>cur) cur=s; } }
+      pw=sg<cur?0:pNoBeat(un,L,sg,pn,rem);
+    }
+    let sc=pw>0?pw*trickCost(p,X,c,last):0;
+    sc-=0.04*((pn?11-c.r:c.r)/11)*(1-pw);            // a parità di rischio si scarica la carta più forte
+    if(isPanic(c)) sc+=avg>=6?-0.2:0.2;              // Panic Time conviene a chi ha una mano di carte alte
+    sc+=Math.random()*0.01;
+    if(sc<bs){ bs=sc; bc=c; }
+  }
+  return bc;
+}
+function aiPass(p,k){
+  const sc=c=>(isR8(c)?6:0)+(c.k<3?c.r*0.35:sp(c)*0.3+c.r*0.05)+Math.random()*0.2;
+  return G.hands[p].slice().sort((a,b)=>sc(b)-sc(a)).slice(0,k);
+}
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+function humanTurn(legal){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'turn',seat:HUM,legal:new Set(legal.map(c=>c.u)),sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function humanPass(k){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'pass',n:k,sel:new Set(),res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function tapCard(u){
+  if(!PR) return;
+  if(PR.type==='pass'){
+    if(PR.sel.has(u)) PR.sel.delete(u); else if(PR.sel.size<PR.n) PR.sel.add(u);
+    render(); return;
+  }
+  if(PR.type==='turn'){
+    if(!PR.legal.has(u)) return;
+    PR.sel=(PR.sel===u&&OPT.undo)?null:u;
+    if(!OPT.undo&&PR.sel!=null){ submitTurn(); return; }
+    render();
+  }
+}
+function submitTurn(){
+  if(!PR||PR.type!=='turn'||PR.sel==null) return;
+  const c=G.hands[PR.seat].find(x=>x.u===PR.sel), r=PR.res; PR=null; render(); r(c);
+}
+function submitPass(){
+  if(!PR||PR.type!=='pass'||PR.sel.size!==PR.n) return;
+  const cs=G.hands[HUM].filter(c=>PR.sel.has(c.u)), r=PR.res; PR=null; render(); r(cs);
+}
+function clearSel(){ if(!PR) return; if(PR.type==='pass'){ PR.sel.clear(); render(); } else if(PR.sel!=null){ PR.sel=null; render(); } }
+
+// ═════════════════════════ SVOLGIMENTO ═════════════════════════
+async function doPass(){
+  const n=G.n, st=G.starter;
+  const avail=G.rc.map((x,i)=>x.used?-1:i).filter(i=>i>=0);
+  const lab=i=>G.rc[i].n===0?'Nessun passaggio (0)':`Passa ${G.rc[i].n} ${plural(G.rc[i].n,'carta','carte')}`;
+  let idx;
+  if(isAuto(st)){ status(`${nameOf(st)} sceglie una carta Round…`); await S_(700); idx=avail[rnd(avail.length)]; }
+  else{ status(`Sei il primo giocatore: scegli una carta Round (quante carte passate a sinistra).`); idx=await ask(HUM,'Carta Round',avail.map(i=>({label:lab(i),value:i}))); }
+  G.rc[idx].used=true; G.rcNow=idx; const k=G.rc[idx].n;
+  logMsg(`Carta Round ${k}: ${nameOf(st)} ${k?`fa passare ${k} ${plural(k,'carta','carte')} a sinistra`:'non fa passare nulla'}.`);
+  if(!k){ status(`Carta Round 0: in questo round nessuno passa carte.`); await S_(1100); return; }
+  status(`Carta Round ${k}: ogni giocatore sceglie ${k} ${plural(k,'carta','carte')} da passare al giocatore alla sua sinistra (${nameOf((HUM+1)%n)}).`);
+  const out=new Array(n).fill(null);
+  for(let p=0;p<n;p++) if(!isAuto(p)) out[p]=await humanPass(k);
+  for(let p=0;p<n;p++) if(!out[p]) out[p]=aiPass(p,k);
+  const rec=new Array(n);
+  for(let p=0;p<n;p++) for(const c of out[p]) removeFromHand(p,c);
+  for(let p=0;p<n;p++){ rec[(p+1)%n]=out[p]; G.hands[(p+1)%n].push(...out[p]); }
+  for(const h of G.hands) sortHand(h);
+  G.recv=new Set(rec[HUM].map(c=>c.u));
+  const t=`Hai passato ${out[HUM].map(cname).join(', ')} e ricevuto ${rec[HUM].map(cname).join(', ')}.`;
+  logMsg(t); status(t); await S_(1500);
+}
+async function oneTrick(){
+  const n=G.n; G.trick++; G.plays=[]; G.res=null; G.shown=null; G.fresh=-1;
+  const order=orderFrom(n,G.leader);
+  for(let i=0;i<n;i++){
+    const p=order[i]; G.turn=p;
+    const legal=legalCards(G.hands[p],G.plays);
+    let c;
+    if(isAuto(p)){ status(`${nameOf(p)} sceglie la carta…`); await S_(i===0?650:450); c=aiPlay(p,legal); }
+    else c=await humanTurn(legal);
+    removeFromHand(p,c);
+    const kind=kindOf(c,G.plays.length?G.plays[0].c.k:c.k,!G.plays.length);
+    G.plays.push({s:p,c,kind}); G.played.add(c.u); G.fresh=p;
+    let extra='';
+    if(isPanic(c)){ G.panic=true; extra=' Panic Time! Da ora la forza delle carte è invertita: vince il rango più basso.'; }
+    if(kind==='disc'&&G.det!==p){ G.det=p; extra+=` ${nameOf(p)} non ha risposto: prende la carta Detective.`; }
+    else if(kind==='pub') extra+=' (Opinione pubblica: segue in automatico)';
+    const t=`${nameOf(p)} gioca ${cname(c)}.${extra}`;
+    logMsg(t); status(t);
+    await S_(kind==='disc'||isPanic(c)?900:350);
+  }
+  G.turn=-1;
+  const w=winnerOf(G.plays,G.panic), isLast=G.hands.every(h=>!h.length);
+  const take=[];
+  for(const x of G.plays){ if(isPanic(x.c)&&!isLast) G.panicCard=x.c; else take.push(x.c); }
+  if(isLast&&G.panicCard){ take.push(G.panicCard); G.panicCard=null; }
+  G.won[w].push(...take);
+  G.res={w}; G.shown=G.plays.slice(); G.leader=w;
+  const ev=take.filter(isR8), wc=G.plays.find(x=>x.s===w).c;
+  const t=`Presa ${G.trick}/${G.tl}: vince ${nameOf(w)} con ${cname(wc)}${ev.length?` e prende ${ev.map(cname).join(', ')} (prova decisiva ★)`:''}${isLast&&take.some(isPanic)?' e il Panic Time':''}.`;
+  logMsg(t); status(t);
+  await S_(1800);
+  G.shown=null; G.plays=[]; G.res=null; G.fresh=-1;
+}
+async function roundEnd(){
+  const n=G.n, rows=[];
+  const r8=G.won.map(w=>w.filter(isR8).length), spv=G.won.map(w=>sum(w.map(sp))), mx=Math.max(...spv);
+  const arr=[...Array(n).keys()].filter(p=>r8[p]===3&&G.det===p);
+  for(let p=0;p<n;p++){
+    const top=mx>0&&spv[p]===mx?1:0, dt=G.det===p?2:0;
+    rows.push({s:p,r8:r8[p],sp:spv[p],top,det:dt,tot:r8[p]+top+dt});
+  }
+  const last=G.rd===G.R;
+  logMsg(`Round ${G.rd} concluso.`);
+  if(arr.length){
+    const c=arr[0];
+    G.over={kind:'arrest',culprits:[c]};
+    logMsg(`ARRESTO! ${nameOf(c)} ha le 3 prove decisive e la carta Detective: è il colpevole e la partita finisce.`);
+    G.show={rows,arrest:c,last:true,round:G.rd};
+    G.phase='end'; status(`Arresto! ${nameOf(c)} ha tutte e 3 le prove decisive (Arma 8, Luogo 8, Indizio 8) e la carta Detective davanti a sé.`);
+    await okAsk('Arresto!','Mostra il risultato');
+    G.show=null; return true;
+  }
+  rows.forEach(r=>{ G.marks[r.s]+=r.tot; G.pl[r.s].hist.push(r.tot); });
+  rows.forEach(r=>logMsg(`${nameOf(r.s)}: ${r.r8} ${plural(r.r8,'prova','prove')} (${r.r8}★), sospetto ${r.sp}${r.top?' (il più alto: 1★)':''}${r.det?', carta Detective (2★)':''} → +${r.tot}★ · totale ${G.marks[r.s]}★.`));
+  G.show={rows,last,round:G.rd}; G.phase='end';
+  status(last?`Round ${G.rd} concluso: nessun arresto in ${G.R} round, ora il processo.`:`Round ${G.rd} concluso: ecco le stelle nere del round.`);
+  await okAsk(`Fine del round ${G.rd}`,last?'Vai al processo':'Prossimo round');
+  G.show=null; return false;
+}
+async function doTrial(){
+  const n=G.n, mk=G.marks;
+  const defs=shuffle([...Array(n).keys()].filter(p=>mk[p]>0)).sort((a,b)=>mk[a]-mk[b]);
+  const T={defs,rev:{},votes:{},cur:-1,best:0,early:false}; G.trial=T; G.phase='trial';
+  if(!defs.length){ G.over={kind:'acquit',culprits:[]}; logMsg('Nessuno ha stelle nere: nessun imputato.'); return; }
+  status(`Processo: gli imputati sono i giocatori con almeno una stella nera, dal più pulito. Per ognuno si scoprono tante carte quante sono le sue stelle: le icone 有 (colpevole) sono voti contro di lui.`);
+  logMsg(`Processo: ${defs.map(d=>`${nameOf(d)} (${mk[d]}★)`).join(', ')}.`);
+  await okAsk('Il processo','Inizia il processo');
+  const deck=shuffle(buildDeck(n)); let pos=0, best=0;
+  for(let i=0;i<defs.length;i++){
+    const d=defs[i]; T.cur=d; T.rev[d]=[]; T.votes[d]=0;
+    status(`Imputato: ${nameOf(d)} (${mk[d]}★).`); await S_(800);
+    for(let j=0;j<mk[d];j++){
+      if(T.votes[d]+(mk[d]-j)<best) break;               // anche con tutti i voti restanti non raggiungerebbe il massimo: è assolto
+      if(pos>=deck.length) deck.push(...shuffle(buildDeck(n)));
+      const c=deck[pos++]; T.rev[d].push(c); if(c.g) T.votes[d]++;
+      status(`${nameOf(d)}: esce ${cname(c)} → ${c.g?'voto COLPEVOLE (有)':'voto innocente (無)'} · ${T.votes[d]} ${plural(T.votes[d],'voto','voti')} contro.`);
+      await S_(850);
+    }
+    best=Math.max(best,T.votes[d]); T.best=best;
+    logMsg(`${nameOf(d)}: ${T.votes[d]} ${plural(T.votes[d],'voto colpevole','voti colpevole')} su ${T.rev[d].length} ${plural(T.rev[d].length,'carta','carte')}.`);
+    const rest=defs.slice(i+1).map(x=>mk[x]);
+    if(rest.length&&Math.max(...rest)<best){ T.early=true; logMsg('Gli altri imputati non possono più raggiungere questi voti: il processo si chiude qui.'); break; }
+  }
+  T.cur=-1;
+  const cul=best>0?defs.filter(d=>T.votes[d]===best):[];
+  G.over={kind:cul.length?'trial':'acquit',culprits:cul};
+  logMsg(cul.length?`Verdetto: ${cul.map(nameOf).join(' e ')} ${cul.length>1?'sono i colpevoli (complici)':'è il colpevole'}.`:'Verdetto: tutti assolti.');
+}
+async function run(){
+  const g=G;
+  try{
+    for(let rd=1;rd<=g.R;rd++){
+      g.rd=rd; dealRound();
+      logMsg(`— Round ${rd}/${g.R} —`);
+      const hello=rd===1?`Buona partita a Thou Art the Man, ${P(HUM).name}!¶`:'';
+      status(`${hello}Round ${rd}/${g.R}: primo giocatore ${nameOf(g.starter)}, ${rd===1?'che riceve':'che ha'} la carta Detective. ${handSize(g.n)} carte a testa.`);
+      await okAsk(`Round ${rd}/${g.R} · primo giocatore: ${nameOf(g.starter)} (carta Detective)`,'Ok, si parte');
+      await doPass();
+      g.phase='play';
+      const hn=g.hands[0].length;
+      for(let i=0;i<hn;i++) await oneTrick();
+      if(await roundEnd()) break;
+    }
+    if(!g.over) await doTrial();
+    g.turn=-1; g.show=null; g.phase='over'; render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const SYM = {
+  knife:'<path d="M12 1.500l3.300 12H8.700z" fill="currentColor"/><rect x="6.500" y="13.500" width="11" height="2.600" rx="1.200" fill="currentColor"/><rect x="10.700" y="16" width="2.600" height="6.500" rx="1.200" fill="currentColor"/>',
+  pin:'<path d="M12 22.500s-7-6.300-7-12.200a7 7 0 0 1 14 0c0 5.900-7 12.200-7 12.200z" fill="currentColor"/><circle cx="12" cy="10.200" r="2.800" fill="#f3efe2"/>',
+  lens:'<circle cx="10" cy="10" r="6.200" fill="none" stroke="currentColor" stroke-width="2.800"/><path d="M14.800 14.800L21 21" stroke="currentColor" stroke-width="3.200" stroke-linecap="round"/>',
+  bubble:'<path d="M4 3.500h16a1.500 1.500 0 0 1 1.500 1.500v10a1.500 1.500 0 0 1-1.500 1.500h-8l-5.500 4.500v-4.500H4A1.500 1.500 0 0 1 2.500 15V5A1.500 1.500 0 0 1 4 3.500z" fill="currentColor"/>',
+  bolt:'<path d="M13.500 1.500L4.500 13.500h6L9.500 22.500l10-13h-6.500z" fill="currentColor"/>'
+};
+const symSvg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${SYM[SU[k].sym]}</svg>`;
+const ic2 = k => `<span class="ic2 k${k}">${symSvg(k)}</span>`;
+function cardHtml(c,cls='',tag='span',attrs=''){
+  const mk=isR8(c)?'★':(c.k===3?'?'.repeat(sp(c)):'');
+  const ic=isPanic(c)?SYM.bolt:SYM[SU[c.k].sym];
+  return `<${tag} class="cd k${c.k} ${c.k===3?'dec':''} ${isR8(c)?'r8':''} ${isPanic(c)?'pn':''} ${cls}" ${attrs} title="${esc(cname(c))} · ${c.g?'colpevole':'innocente'}"><span class="ch"><i class="cn">${c.r}</i><i class="mk">${mk}</i></span><span class="cb"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg><b class="vd ${c.g?'g':'i'}">${c.g?'有':'無'}</b></span></${tag}>`;
+}
+const chipN = (c,cls='') => `<span class="nc k${c.k} ${cls}" title="${esc(cname(c))}">${c.r}</span>`;
+const CAT = '<svg class="cat" viewBox="0 0 48 58" aria-hidden="true"><path d="M13 12l3.500 8h15l3.500-8v12a11.500 11.500 0 0 1-3.200 8c5.200 3 8.200 9.500 8.200 16 0 7.500-5.500 11-12.500 11h-6.500C13.500 59 8 55.500 8 48c0-6.500 3-13 8.200-16A11.500 11.500 0 0 1 13 24z" fill="#fff"/><path d="M38 47c6.500 0 8.500 6.500 4 10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><ellipse cx="19" cy="25" rx="2" ry="2.800" fill="#0f1013"/><ellipse cx="29" cy="25" rx="2" ry="2.800" fill="#0f1013"/></svg>';
+function legendHtml(){
+  const items=SU.map((s,k)=>`<span class="lg k${k}"><span class="ic">${symSvg(k)}</span><span>${s.full}<small>${s.s}</small></span></span>`).join('');
+  return `<div class="legend">${items}</div>
+    <div class="hint" style="margin-top:8px">Più rango = più forte (con Panic Time è il contrario). Le carte <b>8</b> di Arma, Luogo e Indizio (★) sono prove decisive: ognuna vinta vale 1 stella nera. La carta Detective passa a chi non riesce a rispondere. Evita di vincere le prese!</div>`;
+}
+function playedHtml(s){
+  const src=G.shown||G.plays, x=src.find(y=>y.s===s), win=G.res&&G.res.w===s&&G.shown;
+  if(x) return `<div class="tableau"><div class="row">${cardHtml(x.c,`mini ${win?'win':''} ${G.fresh===s&&!G.res?'fresh':''}`)}</div></div>`;
+  return `<div class="tableau">${G.phase==='play'?'<span class="slot"></span>':''}</div>`;
+}
+function subHtml(s,pos){
+  const human=s===HUM, hl=G.hands[s].length;
+  let h='';
+  if(human){
+    const ty=PR&&(PR.type==='turn'||PR.type==='pass')?PR.type:null;
+    h=`<div class="hand">${G.hands[s].map(c=>{
+      const rc=G.recv.has(c.u)?'recv':'';
+      if(ty==='pass') return cardHtml(c,`${PR.sel.has(c.u)?'sel':''}`,'button',`data-t="${c.u}"`);
+      if(ty){ const lg=PR.legal.has(c.u); return cardHtml(c,`${lg?'legal':'dim'} ${PR.sel===c.u?'sel':''} ${rc}`,'button',`${lg?'':'disabled'} data-t="${c.u}"`); }
+      return cardHtml(c,rc);
+    }).join('')}</div>`;
+  }else h=`<div class="backs">${Array.from({length:hl},()=>'<span class="cbk"></span>').join('')}</div>`;
+  const w=G.won[s]||[], ev=w.filter(isR8), spv=sum(w.map(sp)), pl=G.phase==='play'||G.phase==='end';
+  const meta=`<div class="seat-meta"><span class="tag st" title="Stelle nere accumulate">★ <b>${G.marks[s]}</b></span>${pl?`<span class="tag" title="Punti sospetto in questo round">sospetto <b>${spv}</b></span>`:''}<span class="tag"><b>${hl}</b> ${plural(hl,'carta','carte')}</span></div>`;
+  const evh=pl&&ev.length?`<div class="evs" title="Prove decisive vinte in questo round">${ev.map(c=>chipN(c,'s ev')).join('')}</div>`:'';
+  const tb=playedHtml(s);
+  const inner=pos==='bottom'?`${tb}${evh}${meta}${h}`:(pos==='top'||pos==='tl'||pos==='tr'?`${h}${meta}${evh}${tb}`:`${meta}${evh}${tb}${h}`);
+  return `<div class="sub">${inner}</div>`;
+}
+function flagHtml(s){
+  if(G.over){ const c=G.over.culprits.includes(s); return c?'<span class="flag lose">Colpevole</span>':'<span class="flag win">Salvo</span>'; }
+  let f='';
+  if(G.phase==='pass'&&G.starter===s) f+='<span class="flag first">Primo giocatore</span>';
+  if(G.phase==='play'&&G.leader===s&&!G.plays.length&&!G.shown) f+='<span class="flag lead">Leader</span>';
+  if(G.det===s&&G.phase!=='trial') f+='<span class="flag det">Detective</span>';
+  return f;
+}
+function seatHtml(s,pos){
+  const name=`<div class="seat-name"><span class="nm" style="--sc:${SEATC[s]}">${esc(nameOf(s))}</span><div class="nmrow">${flagHtml(s)}</div></div>`;
+  const sub=subHtml(s,pos);
+  const act=G.turn===s&&!G.over;
+  const wn=(G.res&&G.res.w===s&&G.shown);
+  const cul=G.over&&G.over.culprits.includes(s);
+  const inner=pos==='top'||pos==='tl'||pos==='tr'?`${sub}${name}`:`${name}${sub}`;
+  return `<div class="seat ${pos} ${act?'active':''} ${wn&&!G.over?'winner':''} ${cul?'culp':''}">${inner}</div>`;
+}
+function centerHtml(){
+  let top='';
+  if(G.over) top='<div><b>Partita conclusa</b></div>';
+  else if(G.res&&G.shown) top=`<div>Presa a <b>${esc(nameOf(G.res.w))}</b></div>`;
+  const rcs=G.rc.map((x,i)=>`<span class="rc ${x.used?(i===G.rcNow?'now':'used'):''}" title="Carta Round: passa ${x.n}">${x.n}</span>`).join('');
+  return `<div class="center">${top}<span class="rbox">Round ${G.rd||1}/${G.R}</span>
+    <div class="rcs" title="Carte Round (numero di carte da passare)">${rcs}</div>
+    ${G.panic?`<div><span class="pan">⚡ Panic Time: vince il rango più basso</span></div>`:''}
+    ${G.panicCard?`<div>${cardHtml(G.panicCard,'mini')}</div>`:''}
+    <div>${G.phase==='play'&&G.trick?`Presa <b>${Math.min(G.trick,G.tl)}/${G.tl}</b>`:(G.phase==='pass'?'Passaggio carte':'')}</div>
+    <div>Detective: <b>${esc(nameOf(G.det))}</b></div></div>`;
+}
+function memoHtml(){
+  const mine=new Set(G.hands[HUM].map(c=>c.u)), seen=G.played;
+  const rows=SU.map((s,k)=>{
+    const cs=G.deck.filter(c=>c.k===k);
+    return `<div class="ur k${k}"><span class="l">${s.n}</span>${cs.map(c=>chipN(c,`s ${seen.has(c.u)?'gone':''} ${mine.has(c.u)?'own':''}`)).join('')}</div>`;
+  }).join('');
+  return `<div class="scorebox"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
+function scoreTable(){
+  const nr=G.pl[0].hist.length;
+  const rows=G.pl.map(p=>`<tr class="${p.id===HUM?'me':''}"><td>${esc(p.name)}</td>${p.hist.map(x=>`<td>${x}</td>`).join('')}<td><b>${G.marks[p.id]}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Stelle nere ★</th>${Array.from({length:nr},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table></div>`;
+}
+function showHtml(){
+  const rows=G.show.rows.map(r=>{
+    const arr=G.show.arrest===r.s;
+    return `<tr class="${r.s===HUM?'me':''}"><td><span class="nm" style="--sc:${SEATC[r.s]}">${esc(nameOf(r.s))}</span></td><td class="${arr?'hit':''}">${r.r8}/3</td><td>${r.sp}</td><td>${r.top?'+1':'—'}</td><td class="${arr?'hit':''}">${r.det?'+2':'—'}</td><td><b>${G.show.arrest!==undefined?'—':r.tot}</b></td></tr>`;
+  }).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Prove ★</th><th>Sospetto</th><th>Il più alto</th><th>Detective</th><th>Stelle</th></tr>${rows}</table></div>
+    <div class="hint">${G.show.arrest!==undefined?'<b>Arresto:</b> chi ha le 3 prove decisive e la carta Detective è il colpevole e perde subito.':'Ogni prova decisiva vale 1 stella · il sospetto più alto 1 stella (a pari merito per tutti) · la carta Detective 2 stelle.'}</div>`;
+}
+function trialHtml(){
+  const T=G.trial; if(!T) return '';
+  const cul=G.over?G.over.culprits:[];
+  const rows=T.defs.map(d=>{
+    const rev=T.rev[d], cls=T.cur===d?'now':(cul.includes(d)?'cul':(rev&&G.over?'ok':''));
+    const cards=rev?rev.map(c=>cardHtml(c,'mini')).join(''):'';
+    const state=rev?`<b>${T.votes[d]}</b> ${plural(T.votes[d],'voto colpevole','voti colpevole')}${rev.length<G.marks[d]?' · assolto in anticipo':''}`:'in attesa';
+    return `<div class="def ${cls}"><div class="def-h"><span class="nm" style="--sc:${SEATC[d]}">${esc(nameOf(d))}</span><span class="tag st">★ <b>${G.marks[d]}</b></span><span>${state}</span></div><div class="def-c">${cards}</div></div>`;
+  }).join('');
+  return `<div class="scorebox"><h3>IL PROCESSO</h3><div class="trial">${rows}</div></div>`;
+}
+function previewText(c){
+  const X=G.plays; let t=`<b>${esc(cname(c))}</b>`;
+  if(!X.length) t+=` · apri la presa: gli altri devono rispondere ${esc(SU[c.k].n)}${c.k===3?'':' (o Opinione pubblica)'}`;
+  else{
+    const k=kindOf(c,X[0].c.k,false);
+    t+=k==='follow'?' · risponde al seme':(k==='pub'?' · Opinione pubblica: segue in automatico, senza prendere la carta Detective':' · scarto: non può vincere e la carta Detective passa a te');
+  }
+  if(isR8(c)) t+=' · prova decisiva: ★ a chi la vince';
+  if(isPanic(c)) t+=' · Panic Time: inverte la forza delle carte, la carta resta al centro fino a fine round';
+  else if(c.k===3) t+=` · sospetto ${sp(c)}`;
+  return t;
+}
+function turnHint(){
+  const X=G.plays, h=G.hands[HUM]; let t;
+  if(!X.length) t='<b>Apri tu la presa.</b> Puoi giocare qualsiasi carta.';
+  else{
+    const L=X[0].c.k, has=h.some(c=>c.k===L), pb=h.some(c=>c.k===3);
+    t=has?`<b>Devi rispondere con ${esc(SU[L].n)}.</b>`:(L!==3&&pb?`<b>Non hai ${esc(SU[L].n)}: devi giocare Opinione pubblica.</b>`:`<b>Non puoi rispondere:</b> scarta una carta qualsiasi (prenderai la carta Detective).`);
+    const w=winnerOf(X,G.panic);
+    t+=` Al momento vince ${esc(nameOf(w))}.`;
+  }
+  t+=G.panic?'<br>Panic Time attivo: vince il rango più <b>basso</b>.':'<br>Vince il rango più <b>alto</b> tra chi ha risposto.';
+  return t;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Thou Art the Man contro l'AI. Sei sospettato di un crimine che non hai commesso: l'unico modo per salvarti è non vincere le prese, così il colpevole sarà qualcun altro.</div>
+    <div class="dock-title">QUANTI GIOCATORI IN TUTTO?</div>
+    <div class="opts">
+      <button class="opt" data-m="3">3 giocatori (tu + 2 AI)</button>
+      <button class="opt" data-m="4">4 giocatori (tu + 3 AI)</button>
+      <button class="opt" data-m="5">5 giocatori (tu + 4 AI)</button>
+    </div>`;
+  if(G.over){
+    const cul=G.over.culprits, me=cul.includes(HUM);
+    let msg;
+    if(G.over.kind==='arrest') msg=`<b>Arresto!</b> ${esc(nameOf(cul[0]))} aveva le 3 prove decisive e la carta Detective: è il colpevole.`;
+    else if(G.over.kind==='trial') msg=`<b>Verdetto: ${cul.map(i=>esc(nameOf(i))).join(' e ')}</b> ${cul.length>1?'sono i colpevoli (complici)':'è il colpevole'}.`;
+    else msg='<b>Tutti assolti:</b> nessun voto colpevole in tribunale.';
+    const fin=me?'Hai perso: il colpevole sei tu!':(cul.length?'Sei salvo: non c\'è nessun vincitore, ma il colpevole non sei tu.':'Siete tutti salvi.');
+    return `<div class="dock-msg">${msg}<br>${fin}</div>${scoreTable()}`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg).split('¶').join('<br>')}</div>`;
+  if(G.show) html+=`<div class="acq">${showHtml()}</div>`;
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='pass'){
+    const k=PR.sel.size;
+    html+=`<div class="hint"><b>Passaggio:</b> scegli ${PR.n} ${plural(PR.n,'carta','carte')} dalla mano (selezionate ${k}/${PR.n}) e passale a ${esc(nameOf((HUM+1)%G.n))}, alla tua sinistra. Riceverai ${PR.n} ${plural(PR.n,'carta','carte')} da ${esc(nameOf((HUM+G.n-1)%G.n))}.</div>
+      <div class="opts"><button class="opt" data-go="pass" ${k===PR.n?'':'disabled'}>Passa le carte (${k}/${PR.n})</button><button class="opt" data-go="x" ${k?'':'disabled'}>Azzera</button></div>`;
+  }else if(PR&&PR.type==='turn'){
+    const hand=G.hands[PR.seat];
+    const PHS=()=>hand.map(x=>`<div class="hint" style="visibility:hidden" aria-hidden="true">${previewText(x)}</div>`).join('');
+    html+=`<div class="hint">${turnHint()}</div>`;
+    const c=PR.sel!=null?hand.find(x=>x.u===PR.sel):null;
+    if(c) html+=`<div class="stack"><div class="hint">${previewText(c)}</div>${PHS()}</div><div class="opts"><button class="opt" data-go="play">${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    else if(OPT.undo) html+=`<div class="stack"><div class="hint">Tocca una carta per vedere l'anteprima.</div>${PHS()}</div><div class="opts"><button class="opt" disabled>Gioca</button><button class="opt" disabled>Annulla</button></div>`;
+  }
+  return html;
+}
+function recapHtml(){
+  const n=G.n;
+  return `<details class="recap" ${RECAPOPEN?'open':''}><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Mazzo</span><span class="rv">${n} giocatori · ${n===3?'33':(n===4?'36':'40')} carte (Arma, Luogo, Indizio ${n===3?'3–10':(n===4?'2–10':'1–10')} + Opinione pubblica ${n===5?'1.5':'2.5'}–10.5) · ${handSize(n)} a testa · ${G.R} round</span></div>
+    <div class="recap-row"><span class="lbl">Obiettivo</span><span class="rv">non vincere le prese: nessuno vince, bisogna evitare di essere il colpevole</span></div>
+    <div class="recap-row"><span class="lbl">Round</span><span class="rv">1 carta Round (passano 2·1·0·3 carte a sinistra) → 2 prese → 3 conteggio delle stelle nere</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">si risponde al seme; senza seme si gioca Opinione pubblica (segue in automatico); altrimenti scarto · vince il rango più alto tra chi ha risposto (più basso con Panic Time) · gli scarti non vincono mai</span></div>
+    <div class="recap-row"><span class="lbl">Detective</span><span class="rv">va all'ultimo che non ha risposto in una presa · a fine round vale 2 stelle e apre il round dopo</span></div>
+    <div class="recap-row"><span class="lbl">Stelle</span><span class="rv">1 per ogni 8 di Arma/Luogo/Indizio vinto · 1 a chi ha più sospetto (Opinione pubblica) · 2 per la carta Detective</span></div>
+    <div class="recap-row"><span class="lbl">Arresto</span><span class="rv">a fine round, i tre 8 + la carta Detective davanti a te: sei il colpevole e la partita finisce</span></div>
+    <div class="recap-row"><span class="lbl">Processo</span><span class="rv">dopo 4 round senza arresto: ogni imputato (≥1 stella) scopre dal mazzo tante carte quante sono le sue stelle · più icone 有 (colpevole) = colpevole</span></div></details>`;
+}
+const RULES_HTML = () => `
+<details class="rules" ${RULESOPEN?'open':''}><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Che gioco è</h4>
+<p><i>Thou Art the Man — The Trick-Taking Game</i> (お前が犯人だ, di Ryuusei Kick, Chip Kick Games) è un gioco di prese per 3–5 giocatori, 45 minuti. Sei il sospettato di un crimine che non hai commesso e nessuno ti crede. L'unico modo per salvarti è che il vero colpevole sia qualcun altro: <b>qui non vince nessuno</b>, l'obiettivo è solo non essere il colpevole. Per questo conviene <b>non vincere le prese</b>: chi le vince raccoglie prove e sospetti.</p>
+<h4>Le carte</h4>
+<ul><li><b>Arma del delitto (rosso), Luogo (blu), Indizio (giallo):</b> rango da 1 a 10. Gli <b>8</b> (★) sono le <b>prove decisive</b>: solo il vero colpevole le conosce.</li>
+<li><b>Opinione pubblica (grigio):</b> 10 carte con rango da 1.5 a 10.5, ognuna con 1 punto sospetto (?); <b>Influencer</b> e <b>Panic Time</b> ne valgono 2.</li>
+<li>In basso a destra di ogni carta c'è l'icona del <b>verdetto</b> (有 colpevole, rossa · 無 innocente, bianca), che serve solo al processo finale.</li>
+<li><b>3 giocatori:</b> 33 carte (senza 1 e 2 di Arma/Luogo/Indizio e senza l'1.5), 11 a testa. <b>4 giocatori:</b> 36 carte (senza gli 1 e l'1.5), 9 a testa. <b>5 giocatori:</b> tutte le 40 carte, 8 a testa.</li></ul>
+<h4>Preparazione</h4>
+<p>Le 4 carte Round (2, 1, 0, 3) restano al centro. Il giocatore che apre il primo round riceve la carta <b>Detective</b> veterano (nell'app è scelto a caso). Nei round successivi apre chi ha la carta Detective a fine round.</p>
+<h4>Un round</h4>
+<ul><li><b>1 · Passaggio:</b> il primo giocatore sceglie una carta Round non ancora usata e la gira: passano quel numero di carte (0 = nessun passaggio). Tutti scelgono insieme le carte dalla mano e le passano al giocatore alla loro sinistra. Ogni carta Round si usa una sola volta nella partita.</li>
+<li><b>2 · Prese:</b> apre il primo giocatore con una carta qualsiasi. Gli altri, in senso orario, <b>devono rispondere al seme</b> se possono. Senza il seme di apertura devono giocare <b>Opinione pubblica</b> (se ce l'hanno): conta come risposta automatica. Solo se non hanno né l'uno né l'altra scartano una carta qualsiasi.</li>
+<li>Vince la presa il rango <b>più alto</b> tra le carte che hanno risposto (Opinione pubblica compresa). <b>Gli scarti non vincono mai.</b> Chi vince raccoglie le carte e apre la presa dopo. Le prove decisive (8) vinte si mettono scoperte davanti a sé.</li>
+<li>Se Opinione pubblica è il seme di apertura si può rispondere solo con Opinione pubblica.</li>
+<li>Si va avanti finché le mani sono vuote.</li></ul>
+<h4>La carta Detective</h4>
+<p>All'inizio sta davanti al primo giocatore. Ogni volta che un giocatore <b>non riesce a rispondere</b> in una presa (scarta), la carta Detective passa a lui; se più giocatori scartano, va all'ultimo. Se tutti rispondono (anche con Opinione pubblica) non si muove.</p>
+<h4>Panic Time</h4>
+<p>Quando viene giocato (anche come risposta), da quel momento — compresa la presa in corso — la forza si inverte: <b>vince il rango più basso</b> (l'1 batte il 10). La carta non va a chi vince la presa ma resta al centro come promemoria fino a fine round: la prende, insieme alle sue carte, chi vince l'ultima presa.</p>
+<h4>Fine del round</h4>
+<ul><li><b>Arresto!</b> Se hai tutti e tre gli 8 (Arma, Luogo, Indizio) e davanti a te c'è la carta Detective, sei il colpevole: perdi e la partita finisce subito. Avere le quattro cose solo durante il round non conta.</li>
+<li>Altrimenti si contano le <b>stelle nere</b> ★: 1 per ogni 8 vinto · 1 a chi ha più punti sospetto nelle sue Opinioni pubbliche vinte (a pari merito, a tutti i pari) · 2 a chi ha la carta Detective. Si rimescolano tutte le carte e si ricomincia.</li></ul>
+<h4>Il processo</h4>
+<p>Se dopo 4 round nessuno è stato arrestato si apre il processo. Si rimescola tutto in un solo mazzo. Gli imputati sono i giocatori con almeno una stella nera, dal più pulito: per ognuno si scoprono dal mazzo tante carte quante sono le sue stelle e si contano le icone <b>有 colpevole</b> (i voti contro). Il giocatore con più voti colpevoli è <b>il colpevole</b>; a pari merito sono tutti complici e perdono. Se il colpevole è già deciso (gli altri imputati non possono più raggiungere i suoi voti) il processo finisce prima.</p>
+<h4>Come l'ho interpretato nell'app</h4>
+<ul><li><b>Le carte:</b> non conoscendo l'elenco ufficiale, le 10 Opinioni pubbliche hanno rango 1.5–10.5 con nomi miei (5.5 SNS, 6.5 Panic Time, 8.5 Influencer) e Influencer e Panic Time valgono 2 sospetti. L'icona verdetto è colpevole per i ranghi 6–10 di Arma/Luogo/Indizio e per le Opinioni di rango pari (2.5, 4.5, …): non è quella delle carte vere.</li>
+<li><b>Opinione pubblica in risposta:</b> concorre alla presa con il suo rango (così il Panic Time del PDF può far vincere il 3 di Arma).</li>
+<li><b>Primo round:</b> il primo giocatore è scelto a caso. Chi vince la presa apre la successiva. Le AI ricordano le carte uscite ma non vedono le tue.</li>
+<li>Nel menu: «Abilita annulla» (conferma prima di giocare), «Modalità accessibile» (pattern sui semi) e «Mostra le carte uscite».</li></ul>
+</div></details>`;
+
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma prima di giocare una carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge un pattern ai semi per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
+    </div>`:''}</div>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{
+  if(!e.target.matches) return;
+  if(e.target.matches('details.log')) LOGOPEN=e.target.open;
+  else if(e.target.matches('details.rules')) RULESOPEN=e.target.open;
+  else if(e.target.matches('details.recap')) RECAPOPEN=e.target.open;
+},true);
+let LASTTALL=false;
+function render(){
+  document.body.classList.toggle('a11y',!!OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">${CAT}<div class="lt"><span class="jp">「お前が犯人だ」</span><span class="nm1">Thou Art the Man</span></div></div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over&&G.rd?`<span class="badge">Round ${G.rd}/${G.R}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    const ready=G.hands.length>0;
+    body=`${ready?`<div class="scorebox"><h3>SEMI E CARTE</h3>${legendHtml()}</div>`:''}
+      ${ready?`<div class="table n${G.n}">${G.hands.map((_,s)=>seatHtml(s,POS[G.n][s])).join('')}${centerHtml()}</div>`:''}
+      ${G.trial?trialHtml():''}
+      ${ready&&OPT.memo&&!G.over&&(G.phase==='play'||G.phase==='end')?memoHtml():''}
+      ${G.pl[0].hist.length&&!G.over?`<div class="scorebox"><h3>STELLE NERE</h3>${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML()}`;
+  }
+  const lb=app.querySelector('.logbody'), lbTop=lb?lb.scrollTop:0;
+  app.innerHTML=top+`<div class="dock${G&&(G.show||G.over)?' tall':''}">${dockHtml()}</div>`+body;
+  if(lbTop){ const nb=app.querySelector('.logbody'); if(nb) nb.scrollTop=lbTop; }
+  const tall=!!(G&&(G.show||G.over)); if(tall&&!LASTTALL) window.scrollTo(0,0); LASTTALL=tall;
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.m){ MENUOPEN=false; const m=Number(b.dataset.m); if(G) newMatch(m); else askName(m); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')){ MENUOPEN=false; toSetup(); } }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.t!==undefined) tapCard(Number(b.dataset.t));
+  else if(b.dataset.go!==undefined){ if(b.dataset.go==='play') submitTurn(); else if(b.dataset.go==='pass') submitPass(); else clearSel(); }
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optUndo'){
+    OPT.undo=e.target.checked;
+    try{ localStorage.setItem('tam-undo',OPT.undo?'1':'0'); }catch(err){}
+    if(!OPT.undo&&PR&&PR.type==='turn') PR.sel=null;
+    render();
+  }else if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('tam-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render();
+  }else if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('tam-memo',OPT.memo?'1':'0'); }catch(err){}
+    render();
+  }
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
