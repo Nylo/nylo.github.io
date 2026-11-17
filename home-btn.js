@@ -4,6 +4,17 @@
 (function () {
   var inFrame = window.self !== window.top;
   if (inFrame) { window.nyloHomeBtn = function () { return ''; }; window.nyloBackBtn = function () { return ''; }; }
+  // Salvataggio di UNA partita contro l'AI (localStorage 'nylo-save'): { id, title, ts, data }.
+  // Le pagine di gioco si registrano con window.NYLO_SAVE = { id, snap() } (snap = stringa dello stato all'ultimo punto sicuro, o null).
+  var SAVE_KEY = 'nylo-save';
+  window.nyloSaveInfo = function () {
+    try { var s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); return s && s.id && s.data ? s : null; } catch (e) { return null; }
+  };
+  window.nyloSaveGame = function (id, title, data) {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ id: id, title: title, ts: Date.now(), data: data })); return true; } catch (e) { return false; }
+  };
+  window.nyloSaveData = function (id) { var s = window.nyloSaveInfo(); return s && s.id === id ? s.data : null; };
+  window.nyloSaveClear = function () { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} };
   // valore con # = stanze nella stessa pagina del gioco (si ricarica con #stanze); altrimenti pagina separata
   var ONLINE_GAMES = {};
   var SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>';
@@ -154,12 +165,18 @@
     ov.innerHTML = '<div role="dialog" aria-modal="true" style="width:min(340px,100%);padding:20px;border-radius:12px;background:#1e293b;color:#f1f5f9;border:1px solid #475569;box-shadow:0 14px 40px rgba(0,0,0,.5)">' +
       '<div data-title style="font-size:16px;font-weight:600;margin-bottom:6px">Tornare alla home?</div>' +
       '<div data-warn style="font-size:13px;color:#cbd5e1;margin-bottom:16px;line-height:1.5">La partita in corso andrà persa.</div>' +
-      '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">' +
       '<button type="button" data-no style="padding:8px 14px;border-radius:7px;border:1px solid #64748b;background:transparent;color:#e2e8f0;cursor:pointer;font-size:13px">Annulla</button>' +
+      '<button type="button" data-save style="display:none;padding:8px 14px;border-radius:7px;border:0;background:#2563eb;color:#fff;font-weight:600;cursor:pointer;font-size:13px">Salva e esci</button>' +
       '<button type="button" data-yes style="padding:8px 14px;border-radius:7px;border:0;background:#0d9488;color:#fff;font-weight:600;cursor:pointer;font-size:13px">Torna alla home</button></div></div>';
     document.body.appendChild(ov);
     ov.addEventListener('click', function (e) { if (e.target === ov || e.target.hasAttribute('data-no')) ov.style.display = 'none'; });
     ov.querySelector('[data-yes]').addEventListener('click', function () { location.href = ov._to || '/'; });
+    ov.querySelector('[data-save]').addEventListener('click', function () {
+      var sv = window.NYLO_SAVE, data = sv && sv.snap && sv.snap();
+      if (data && window.nyloSaveGame(sv.id, document.title, data)) window.__nyloSaved = true;
+      location.href = ov._to || '/';
+    });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') ov.style.display = 'none'; });
   }
   // partita conclusa (vincitore determinato): niente avviso di perdita. G / S sono lo stato globale delle pagine di gioco
@@ -185,6 +202,16 @@
     // niente avviso se la partita non è iniziata o è finita: al suo posto una riga vuota, per tenere staccati titolo e pulsanti
     var warn = ov.querySelector('[data-warn]'), noWarn = notStarted() || gameOver();
     warn.textContent = noWarn ? ' ' : 'La partita in corso andrà persa.';
+    // partita contro l'AI salvabile: si può tenerla (una sola) e riprenderla poi dall'elenco
+    var sv = window.NYLO_SAVE, canSave = false;
+    try { canSave = !noWarn && !!(sv && sv.snap && sv.snap()); } catch (er) {}
+    var saveBtn = ov.querySelector('[data-save]'), yesBtn = ov.querySelector('[data-yes]');
+    saveBtn.style.display = canSave ? '' : 'none';
+    if (canSave) {
+      var old = window.nyloSaveInfo(), repl = old ? (old.id === sv.id ? ' Sostituirà quella già salvata di questo gioco.' : ' Sostituirà quella già salvata («' + old.title + '»).') : '';
+      warn.textContent = 'Vuoi salvare la partita per riprenderla più tardi? Se ne può salvare una sola.' + repl;
+      yesBtn.textContent = 'Non salvare';
+    }
     ov.style.display = 'flex'; ov.querySelector('[data-no]').focus();
   });
   // statistiche personali per gioco: partite concluse / abbandonate / vinte / perse, salvate nel browser per nome giocatore
@@ -228,11 +255,11 @@
     }, true);
     function tick() {
       var g = getG();
-      if (g !== cur) { if (cur && !done && started) rec('a'); cur = g; done = false; started = !needsOk; }
+      if (g !== cur) { if (cur && !done && started && !window.__nyloSaved) rec('a'); cur = g; done = false; started = !needsOk; }
       if (cur && !done && ended(cur)) { done = true; rec(result(cur)); }
     }
     setInterval(tick, 400);
-    window.addEventListener('pagehide', function () { tick(); if (cur && !done && started) { done = true; rec('a'); } });
+    window.addEventListener('pagehide', function () { tick(); if (cur && !done && started && !window.__nyloSaved) { done = true; rec('a'); } });
   })();
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();

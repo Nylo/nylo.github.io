@@ -682,17 +682,20 @@ async function roundEnd(){
   await ask(HUM,'Punteggio della mano',[{label:last?'Mostra risultato finale':'Prossima mano',value:1}]);
   G.show=null; G.th=new Array(G.n).fill(0);
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let rd=1;rd<=g.R;rd++){
-      g.rd=rd; dealRound();
-      logMsg(`— Mano ${rd}/${g.R}: ${g.hs} prese. —`);
-      await doBids();
-      g.phase='play';
-      status(`Mano ${rd}/${g.R}: puntate scoperte. Apre ${nameOf(g.leader)}.`);
-      await ask(HUM,`Mano ${rd}/${g.R} · apre la prima presa ${nameOf(g.leader)}`,[{label:'Ok, si gioca',value:1}]);
-      for(let i=0;i<g.hs;i++) await oneTrick();
+    let res=!!rs;
+    for(let rd=res?g.rd:1;rd<=g.R;rd++){
+      if(res){ res=false; status(`Partita ripresa: mano ${rd}/${g.R}.`); }
+      else{ g.rd=rd; dealRound(); ckpt(); logMsg(`— Mano ${rd}/${g.R}: ${g.hs} prese. —`); }
+      if(g.phase==='bid'){
+        await doBids();
+        g.phase='play';
+        status(`Mano ${rd}/${g.R}: puntate scoperte. Apre ${nameOf(g.leader)}.`);
+        await ask(HUM,`Mano ${rd}/${g.R} · apre la prima presa ${nameOf(g.leader)}`,[{label:'Ok, si gioca',value:1}]);
+      }
+      for(let i=g.trick;i<g.hs;i++){ ckpt(); await oneTrick(); }
       await roundEnd();
     }
     const m=Math.max(...g.pl.map(p=>p.total));
@@ -964,6 +967,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('magic-shop',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

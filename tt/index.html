@@ -740,9 +740,18 @@
                         if (!SHOW_FAV_STATS) return '';
                         return '<button type="button" data-fav="' + esc(g.name) + '" aria-pressed="' + on + '" title="' + (on ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti') + '" aria-label="' + (on ? 'Rimuovi dai preferiti: ' : 'Aggiungi ai preferiti: ') + esc(g.name) + '" class="inline-flex h-8 w-8 items-center justify-center rounded-md text-lg transition-colors hover:bg-white/10 ' + (on ? 'text-amber-300' : 'text-slate-500 hover:text-slate-200') + '"><i class="' + (on ? 'ph-fill' : 'ph') + ' ph-bookmark-simple" aria-hidden="true"></i></button>';
                 }
+                // partita salvata contro l'AI (una sola, localStorage 'nylo-save', scritta da /home-btn.js): id = cartella del gioco
+                function savedGame() {
+                        try { var s = JSON.parse(localStorage.getItem('nylo-save') || 'null'); return s && s.id && s.data ? s : null; } catch (e) { return null; }
+                }
+                function resumeBtn(g) {
+                        var s = savedGame();
+                        if (!s || g.ai.replace(/\/+$/, '').split('/').pop() !== s.id) return '';
+                        return '<button type="button" data-resume="' + esc(g.ai) + '" title="Riprendi la partita salvata" class="ml-2 inline-flex items-center gap-1 rounded-md border border-teal-500/60 bg-teal-500/10 px-2 py-0.5 align-middle text-[11px] font-semibold uppercase tracking-wide text-teal-300 transition-colors hover:bg-teal-500/20"><i class="ph ph-play" aria-hidden="true"></i>Riprendi</button>';
+                }
                 function rowHtml(g, on) {
                         return '<tr data-href="' + esc(g.ai) + '" tabindex="0" aria-label="Apri ' + esc(g.name) + '" class="cursor-pointer transition-colors hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500">' +
-                                '<th scope="row" class="px-4 py-3 font-semibold text-slate-100"><a href="' + esc(g.ai) + '" class="hover:text-teal-300">' + esc(g.name) + '</a></th>' +
+                                '<th scope="row" class="px-4 py-3 font-semibold text-slate-100"><a href="' + esc(g.ai) + '" class="hover:text-teal-300">' + esc(g.name) + '</a>' + resumeBtn(g) + '</th>' +
                                 '<td class="w-px whitespace-nowrap px-3 py-3 text-slate-300">' + esc(g.players) + '</td>' +
                                 '<td class="w-px whitespace-nowrap pl-3 pr-1 py-3 text-right">' + stateBadge(g) + '</td>' +
                                 '<td class="w-px whitespace-nowrap pl-1 pr-2 py-3 text-right">' + betaBadge(g) + '</td>' +
@@ -791,6 +800,8 @@
                 q.addEventListener('input', show);
                 show();
                 games.addEventListener('click', function (e) {
+                        var rb = e.target.closest('button[data-resume]');
+                        if (rb) { location.href = rb.getAttribute('data-resume') + '#resume'; return; }
                         var sb = e.target.closest('button[data-stats]');
                         if (sb) { openStats(sb.getAttribute('data-stats')); return; }
                         var fb = e.target.closest('button[data-fav]');

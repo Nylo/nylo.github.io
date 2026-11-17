@@ -424,16 +424,20 @@ async function handEnd(){
   await okAsk(`Fine della mano ${G.rd}`,last?'Mostra il risultato finale':'Prossima mano');
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let rd=1;rd<=g.R;rd++){
-      g.rd=rd; if(rd>1) g.starter=(g.starter+1)%g.n; dealHand();
-      logMsg(`— Mano ${rd}/${g.R} —`);
-      const hello=rd===1?`Buona partita a Dead Channels, ${P(HUM).name}!¶`:'';
-      status(`${hello}Mano ${rd}/${g.R}: obiettivo ${g.tg} prese. Il canale parte su ${MODE.F}. Apre ${nameOf(g.starter)}.`);
-      await okAsk(`Mano ${rd}/${g.R} · apre ${nameOf(g.starter)}`,'Ok, si parte');
-      for(let i=0;i<HS;i++) await oneTrick();
+    let res=!!rs;
+    for(let rd=res?g.rd:1;rd<=g.R;rd++){
+      if(res){ res=false; status(`Partita ripresa: mano ${rd}/${g.R}, presa ${g.trick+1}/${HS}.`); }
+      else{
+        g.rd=rd; if(rd>1) g.starter=(g.starter+1)%g.n; dealHand(); ckpt();
+        logMsg(`— Mano ${rd}/${g.R} —`);
+        const hello=rd===1?`Buona partita a Dead Channels, ${P(HUM).name}!¶`:'';
+        status(`${hello}Mano ${rd}/${g.R}: obiettivo ${g.tg} prese. Il canale parte su ${MODE.F}. Apre ${nameOf(g.starter)}.`);
+        await okAsk(`Mano ${rd}/${g.R} · apre ${nameOf(g.starter)}`,'Ok, si parte');
+      }
+      for(let i=g.trick;i<HS;i++){ ckpt(); await oneTrick(); }
       await handEnd();
     }
     const m=Math.min(...g.pl.map(p=>p.total));
@@ -670,6 +674,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('dead-channels',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

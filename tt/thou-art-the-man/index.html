@@ -520,19 +520,22 @@ async function doTrial(){
   G.over={kind:cul.length?'trial':'acquit',culprits:cul};
   logMsg(cul.length?`Verdetto: ${cul.map(nameOf).join(' e ')} ${cul.length>1?'sono i colpevoli (complici)':'è il colpevole'}.`:'Verdetto: tutti assolti.');
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let rd=1;rd<=g.R;rd++){
-      g.rd=rd; dealRound();
-      logMsg(`— Round ${rd}/${g.R} —`);
-      const hello=rd===1?`Buona partita a Thou Art the Man, ${P(HUM).name}!¶`:'';
-      status(`${hello}Round ${rd}/${g.R}: primo giocatore ${nameOf(g.starter)}, ${rd===1?'che riceve':'che ha'} la carta Detective. ${handSize(g.n)} carte a testa.`);
-      await okAsk(`Round ${rd}/${g.R} · primo giocatore: ${nameOf(g.starter)} (carta Detective)`,'Ok, si parte');
-      await doPass();
+    let res=!!rs;
+    for(let rd=res?g.rd:1;rd<=g.R;rd++){
+      if(res){ res=false; status(`Partita ripresa: round ${rd}/${g.R}.`); }
+      else{
+        g.rd=rd; dealRound(); ckpt();
+        logMsg(`— Round ${rd}/${g.R} —`);
+        const hello=rd===1?`Buona partita a Thou Art the Man, ${P(HUM).name}!¶`:'';
+        status(`${hello}Round ${rd}/${g.R}: primo giocatore ${nameOf(g.starter)}, ${rd===1?'che riceve':'che ha'} la carta Detective. ${handSize(g.n)} carte a testa.`);
+        await okAsk(`Round ${rd}/${g.R} · primo giocatore: ${nameOf(g.starter)} (carta Detective)`,'Ok, si parte');
+      }
+      if(g.phase==='pass') await doPass();
       g.phase='play';
-      const hn=g.hands[0].length;
-      for(let i=0;i<hn;i++) await oneTrick();
+      for(let i=g.trick;i<g.tl;i++){ ckpt(); await oneTrick(); }
       if(await roundEnd()) break;
     }
     if(!g.over) await doTrial();
@@ -824,6 +827,7 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+nyloSaveInit('thou-art-the-man',snap=>{ G=snap; PR=null; render(); run(true); });
 
 </script>
 </body>

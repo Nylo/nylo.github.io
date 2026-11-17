@@ -32,7 +32,7 @@ function confirmCard(ok){
   if(!ok){ PR.sel=null; render(); return; }
   const i=PR.sel, r=PR.res; PR=null; render(); r(i);
 }
-function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; render(); }
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } G=null; NYLO_CK=null; render(); }
 function logHtml(){
   return `<details class="log" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
 }
@@ -65,4 +65,20 @@ function legalOf(hand,trick){
   if(!trick.length) return hand.slice();
   const f=hand.filter(c=>c.s===trick[0].c.s);
   return f.length?f:hand.slice();
+}
+
+// ═══ Salvataggio della partita contro l'AI (la modale di home-btn.js chiede se salvare uscendo; una sola partita, in localStorage) ═══
+// Una pagina di gioco chiama ckpt() ai punti sicuri (inizio mano / inizio presa), registra nyloSaveInit(id, resume) e fa ripartire
+// run() dal punto salvato. Lo stato G si serializza in JSON (Set e Map comprese): le carte vanno confrontate per id, non per identità.
+let NYLO_CK = null;
+function nyloSer(o){ return JSON.stringify(o,(k,v)=>v instanceof Set?{__set:[...v]}:(v instanceof Map?{__map:[...v]}:v)); }
+function nyloDes(s){ return JSON.parse(s,(k,v)=>v&&typeof v==='object'&&v.__set?new Set(v.__set):(v&&typeof v==='object'&&v.__map?new Map(v.__map):v)); }
+function ckpt(){ try{ NYLO_CK=G&&!G.over?nyloSer(G):null; }catch(e){ NYLO_CK=null; } }
+function nyloSaveInit(id,resume){
+  window.NYLO_SAVE={id,snap:()=>NYLO_CK};
+  if(location.hash!=='#resume') return;
+  const d=window.nyloSaveData&&nyloSaveData(id);
+  try{ history.replaceState(null,'',location.pathname); }catch(e){}
+  if(!d) return;
+  try{ resume(nyloDes(d)); if(window.nyloSaveClear) nyloSaveClear(); }catch(e){ console.error('Ripresa non riuscita',e); G=null; render(); }
 }
