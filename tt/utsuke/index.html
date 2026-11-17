@@ -99,6 +99,7 @@ table.score tr.me td{background:var(--accent-soft)}
 .seat.leader{border-color:rgba(80,50,120,0.5);background:rgba(255,255,255,0.4)}
 .seat.active{border-color:#d08a1e;background:rgba(208,138,30,0.2)}
 .seat-name{font-weight:600;font-size:13px}
+.nm{display:inline-block;padding:2px 10px;border-radius:999px;color:#1a1530;font-weight:700;border:1px solid rgba(0,0,0,0.25);background:var(--sc,#eee)}
 .seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
 .tag{background:rgba(80,50,120,0.14);border-radius:4px;padding:2px 6px}
 .tag b{color:#4a2680}
@@ -190,6 +191,37 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
   .tr{gap:5px}
   .tcell{max-width:74px}
 }
+/* ═════════ STANZE ONLINE (stesse classi del kit tt/9-lives) ═════════ */
+:root{--topc:var(--text)}
+[hidden]{display:none!important}
+.panel{background:var(--surface);border:2px solid #5d4aa6;border-radius:var(--radius);padding:18px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;color:var(--text)}
+.panel h2{font-size:16px;font-weight:700}
+.muted{color:var(--text-soft);font-size:12px;line-height:1.5}
+body .app>section>p.muted{color:var(--topc,var(--text-soft));margin-bottom:10px}
+.status{font-size:13px;min-height:20px;line-height:1.5;color:var(--topc,var(--text))}
+.panel input[type=text]{background:#fff;border:1px solid var(--border);color:#222;border-radius:6px;padding:9px 11px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none;letter-spacing:1px}
+.panel input[type=text]:focus{border-color:var(--accent)}
+.radios{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.radios label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.roster{list-style:none;display:flex;flex-direction:column;gap:8px}
+.roster li{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-raised);border:1px solid var(--border);border-radius:8px;font-size:13px}
+.roster .seat-n{width:20px;color:var(--text-soft)}
+.roster .grow{flex:1}
+.roster .soft{color:var(--text-soft)}
+.room-code{padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:Consolas,monospace;letter-spacing:1px;font-size:12px;color:var(--topc,var(--text));border-color:var(--topc,var(--border))}
+.conn{font-size:11px;color:var(--topc,var(--text-soft))}
+.err{position:fixed;left:12px;right:12px;bottom:12px;max-width:680px;margin:0 auto;padding:12px 14px;border:1px solid rgba(217,107,107,0.6);border-radius:8px;background:#3a1d22;color:#fff;font-size:13px;line-height:1.4;z-index:200}
+.opt.on{border-color:var(--accent);background:var(--accent);color:#fff}
+.opt.on:disabled{opacity:1}
+.hint+.hint{margin-top:4px}
+.topbar .logo{flex:1 0 auto}
+.lastbox{background:var(--surface);border:2px solid #5d4aa6;border-radius:var(--radius);padding:8px 12px;margin-bottom:12px;display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;min-height:84px}
+.lastbox .tr{min-height:0;gap:6px;flex-wrap:wrap;justify-content:flex-start}
+.lastbox .fc{--cw:28px;--ch:41px;font-size:13px;border-width:1px;border-radius:5px;gap:0}
+.lastbox .fc i{font-size:11px}
+.lastbox .fc::before{inset:2px;border-radius:3px}
+.lastbox .tcell{font-size:10px;max-width:58px}
+.lastbox .tcell .who{max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -201,7 +233,7 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 <div class="app" id="app"></div>
 
 <script src="/tt/shared/core.js"></script>
-<script>
+<script type="text/plain" id="src-ai">
 // ═════════════════════════ COSTANTI ═════════════════════════
 const COLORS = [
   {n:'Rosa',  icon:'flower'},
@@ -375,6 +407,7 @@ function aiPlay(p){
   return c[bi];
 }
 
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,round:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,
@@ -453,7 +486,7 @@ async function scoring(){
   logMsg(`Round ${G.round+1}: il Signore ha vinto ${plu(L,'presa','prese')}.`);
   rows.forEach(r=>logMsg(`${G.pl[r.p].name}: previsione ${r.guess}, ${plu(r.wins,'presa','prese')}${r.pts?` → +${r.pts} Onore`:''}${r.over?' → ha messo a disagio il Signore: riceve un Uchikubi':''}.`));
   status(`Round ${G.round+1} concluso.`);
-  await choose('Risultato del round',[{label:checkEnd()?'Mostra risultato finale':'Continua',value:1}]);
+  await choose('Risultato del round',[{label:checkEnd()?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
 function checkEnd(){
@@ -462,7 +495,8 @@ function checkEnd(){
   let win=g.pl.filter(p=>p.hom>=WIN_HOM&&!exe.includes(p.id)).map(p=>p.id);
   if(!exe.length&&!win.length) return null;
   if(!win.length){
-    const alive=g.pl.filter(p=>!exe.includes(p.id)), m=Math.max(...alive.map(p=>p.hom));
+    let alive=g.pl.filter(p=>!exe.includes(p.id)); if(!alive.length) alive=g.pl.slice();
+    const m=Math.max(...alive.map(p=>p.hom));
     win=alive.filter(p=>p.hom===m).map(p=>p.id);
   }
   return {winners:win,executed:exe};
@@ -524,7 +558,7 @@ function seatHtml(id,pos){
   const hand=id===HUM?`<div class="hand">${S.hands[HUM].map(handBtn).join('')||'<span class="hint">—</span>'}</div>`
     :`<div class="backs">${S.hands[id].map(()=>'<span class="back"></span>').join('')||'<span class="hint">—</span>'}</div>`;
   const meta=`<div class="seat-meta"><span class="tag">Onore <b>${pl.hom}</b></span><span class="tag ${pl.chip?'bad':''}">Uchikubi <b>${pl.chip}</b></span><span class="tag">prese vinte <b>${S.wins[id]}</b></span><span class="tag">previsione <b>${id===HUM&&S.guess[id]!=null?S.guess[id]:S.guessed[id]?'coperta':'—'}</b></span></div>`;
-  const name=`<div class="seat-name" style="border-bottom:3px solid ${SEATC[id]}">${esc(pl.name)}${flagHtml(id)}</div>`;
+  const name=`<div class="seat-name"><span class="nm" style="--sc:${SEATC[id]}">${esc(pl.name)}</span>${flagHtml(id)}</div>`;
   const inner=pos==='bottom'?`${name}${meta}${hand}`:`${hand}${name}${meta}`;
   return `<div class="seat ${pos} ${S.phase==='play'&&S.done<S.T&&S.lead===id?'leader':''} ${active?'active':''}">${inner}</div>`;
 }
@@ -541,7 +575,7 @@ function npcPanelHtml(){
     const h=S.hands[id], isL=id===G.n;
     const cards=h.map((c,i)=>kface(c,isL&&i===h.length-1&&S.phase!=='end'?'hasChip':'')).join('')||'<span class="hint">—</span>';
     return `<div class="npcrow ${S.phase==='play'&&S.done<S.T&&S.lead===id?'leader':''} ${G.turn===id?'active':''}">
-      <div class="npchead"><span class="seat-name" style="border-bottom:3px solid #b89be0">${isL?'Il Signore':'Il Principe'}${flagHtml(id)}</span><span class="tag">prese vinte <b>${S.wins[id]}</b></span><span class="npcnote">← sinistra · destra →${isL?' · <i class="ph-fill ph-crown-simple" style="color:#d19a00"></i> = segnalino briscola':''}</span></div>
+      <div class="npchead"><span class="seat-name"><span class="nm" style="--sc:#b89be0">${isL?'Il Signore':'Il Principe'}</span>${flagHtml(id)}</span><span class="tag">prese vinte <b>${S.wins[id]}</b></span>${isL?'<span class="npcnote"><i class="ph-fill ph-crown-simple" style="color:#d19a00"></i> = segnalino briscola</span>':''}</div>
       <div class="npchand">${cards}</div></div>`;
   }).join('')}</div>`;
 }
@@ -550,8 +584,7 @@ function scoreTable(){
   return `<table class="score"><tr><th></th><th>Onore (Homare)</th><th>Uchikubi</th></tr>${rows}</table>`;
 }
 function dockHtml(){
-  if(!G) return `<div class="dock-msg">Utsuke contro l'AI. Quanti giocatori in tutto? (il Signore è un personaggio non giocante)</div>
-    <div class="opts">${[2,3,4,5].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)${n===2?' · con il Principe':''}</button>`).join('')}</div>`;
+  if(!G) return '';
   if(G.over){
     const nm=G.over.winners.map(i=>esc(G.pl[i].name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
     const ex=G.over.executed.map(i=>esc(G.pl[i].name)).join(', ');
@@ -561,10 +594,11 @@ function dockHtml(){
   if(G.show) html+=`<div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Previsione</th><th>Prese</th><th>Onore</th><th class="l">Esito</th></tr>${G.show.rows.map(r=>`<tr class="${r.p===HUM?'me':''}"><td>${esc(G.pl[r.p].name)}</td><td>${r.guess}</td><td>${r.wins}</td><td>${r.pts?'+'+r.pts:'—'}</td><td class="l">${r.over?'<b>Uchikubi!</b> (più prese del Signore)':''}</td></tr>`).join('')}</table></div><div class="hint">Il Signore ha vinto ${plu(G.show.L,'presa','prese')}.</div>`;
   if(PR&&PR.type==='choose') html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div>${PR.info||''}<div class="opts">${PR.options.map((o,i)=>`<button class="opt ${o.num?'num':''}" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
   else if(PR&&PR.type==='play'){
-    if(PR.sel!=null){ const c=G.S.hands[HUM].find(x=>ck(x)===PR.sel); html+=`<div class="opts"><button class="opt" data-ok="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-no="1">Annulla</button></div>`; }
-    else{
-      const S=G.S, L=S.wins[G.n];
-      html+=`<div class="hint">${S.trick.length?`Devi rispondere a ${COLORS[S.trick[0].c.s].n} se puoi.`:'Apri la presa con una carta qualsiasi.'} Previsione: ${S.guess[HUM]} · il Signore ha vinto ${L} · tu ${S.wins[HUM]} (non vincerne più del Signore!). Briscola: ${S.hands[G.n].length?COLORS[S.tc>=0?S.tc:S.hands[G.n][S.hands[G.n].length-1].s].n:'—'}.</div>`;
+    const S=G.S, L=S.wins[G.n];
+    html+=`<div class="hint">${S.trick.length?`Devi rispondere a ${COLORS[S.trick[0].c.s].n} se puoi.`:'Apri la presa con una carta qualsiasi.'} Previsione: ${S.guess[HUM]} · il Signore ha vinto ${L} · tu ${S.wins[HUM]} (non vincerne più del Signore!). Briscola: ${S.hands[G.n].length?COLORS[S.tc>=0?S.tc:S.hands[G.n][S.hands[G.n].length-1].s].n:'—'}.</div>`;
+    if(OPT.undo){
+      if(PR.sel!=null){ const c=G.S.hands[HUM].find(x=>ck(x)===PR.sel); html+=`<div class="opts"><button class="opt" data-ok="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-no="1">Annulla</button></div>`; }
+      else html+=`<div class="opts"><button class="opt" disabled>Conferma</button><button class="opt" disabled>Annulla</button></div>`;
     }
   }
   return html;
@@ -634,14 +668,13 @@ function render(){
       ${recapHtml()}
       ${RULES_HTML}`;
   }
-  app.innerHTML=top+`<div class="dock">${dockHtml()}</div>`+body;
+  app.innerHTML=top+(G?`<div class="dock">${dockHtml()}</div>`+body:'');
 }
 
 document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
-  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.k!==undefined) pickCard(Number(b.dataset.k));
   else if(b.dataset.ok!==undefined){ if(PR&&PR.type==='play'&&PR.sel!=null) finishPlay(PR.sel); }
@@ -656,12 +689,715 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id!=='optUndo') return;
   OPT.undo=e.target.checked;
   try{ localStorage.setItem('ut-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(PR&&PR.type==='play') PR.sel=null;
   render();
 });
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+if(window.NYLO_START&&NYLO_START.mode==='ai'){NAMES[0]=NYLO_START.name||'Tu';newMatch(NYLO_START.n);}
+</script>
+<script type="text/plain" id="src-room">
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>«Utsuke» è un gioco di prese per 2–5 giocatori in cui bisogna prevedere quante prese vincerà il Signore (un personaggio non giocante) e fare in modo di compiacerlo: se vinci più prese di lui lo metti a disagio e ricevi un segnalino Uchikubi (esecuzione). Chi per primo guadagna 3 punti Onore (Homare) vince.</p>
+<h4>Componenti e preparazione</h4>
+<p>60 carte (numeri 1–12, in 5 colori), 25 carte previsione (0, 1, 2, 4, 8 per ogni giocatore), 6 segnalini Onore (1 punto da un lato, 2 dall'altro), 5 segnalini Uchikubi e un segnalino briscola. Si distribuiscono tutte le carte coperte tra i giocatori e il Signore (15 a testa in 2–3 giocatori, 12 in 4, 10 in 5). Le carte del Signore si scoprono in fila: sono la sua mano. Il segnalino briscola va sulla carta più a destra del Signore. Ogni giocatore riceve le carte previsione 0, 1, 2, 4, 8.</p>
+<h4>Azioni del Signore</h4>
+<ul><li>Quando apre la presa (la prima del round) gioca la carta più a sinistra.</li>
+<li>Quando risponde: se può seguire il colore gioca il numero più alto di quel colore, altrimenti la carta più a sinistra.</li>
+<li>Subito dopo aver vinto una presa, apre con la carta più a destra.</li></ul>
+<h4>Previsione</h4>
+<p>A inizio round si vedono la mano del Signore e la propria: ognuno prevede quante prese vincerà il Signore nel round, componendo il numero con le carte previsione (somma dei valori) e mettendole coperte. Le previsioni si rivelano a fine round.</p>
+<h4>Le prese</h4>
+<p>Il Signore apre il round; poi in senso orario ognuno gioca una carta dello stesso colore della prima se può (anche di valore più basso), altrimenti una qualsiasi. Vince il numero più alto del colore della briscola, se ne è stata giocata una, altrimenti il più alto del colore d'apertura. Il vincitore prende le carte e apre la presa successiva. Il segnalino briscola resta sulla carta finché la presa non finisce; poi passa alla carta più a destra tra quelle rimaste al Signore (la briscola può quindi cambiare colore).</p>
+<h4>Fine del round</h4>
+<ol><li>Chi ha indovinato il numero di prese del Signore prende 2 Onore.</li>
+<li>Se nessuno lo ha indovinato, chi si è avvicinato di più prende 1 Onore.</li>
+<li>Se più giocatori sono ugualmente vicini, solo chi ha la previsione più alta prende il punto (a parità tra loro, tutti).</li>
+<li>Chi ha vinto più prese del Signore riceve un segnalino Uchikubi.</li></ol>
+<h4>Fine della partita</h4>
+<p>Se un giocatore arriva a 3 Onore vince subito (vittoria condivisa se più giocatori). Se hai già un Uchikubi e ne ricevi un altro vieni giustiziato e perdi, senza possibilità di scelta. Se non finisce nessuno si rimescola e il Signore si sposta di un posto in senso orario.</p>
+<h4>Variante a 2 giocatori</h4>
+<p>Si aggiunge il Principe, un secondo personaggio non giocante che si comporta come il Signore (la sua mano è scoperta, ma non si prevedono le sue prese). Signore e Principe stanno ai due lati dei giocatori e a ogni round si scambiano di posto; il segnalino briscola sta sul Signore.</p>
+<p><i>Interpretazioni nell'app:</i> le carte previsione sono sostituite da una scelta numerica (0–numero di prese) e rimangono coperte fino a fine round. «Più prese del Signore» è confrontato con le prese del solo Signore (anche a 2 giocatori). Con un solo giocatore che raggiunge 3 Onore e l'esecuzione di un altro, chi è giustiziato perde sempre; se la partita finisce per esecuzione senza vincitori a 3 Onore, vince tra i non giustiziati chi ha più Onore. I segnalini Onore non sono limitati a 6. Le carte del Signore sono nell'ordine di distribuzione.</p>
+<p><i>Nelle stanze online</i> si gioca solo tra persone (2–5): i posti al tavolo sono assegnati a caso, le previsioni si fanno in contemporanea e restano coperte (le vedi solo tu) fino a fine round; Signore e Principe giocano da soli secondo le loro regole, con la mano sempre scoperta; chiunque può passare al round successivo.</p>
+</div></details>`;
+// ═════════════════════════ UTSUKE · ONLINE ═════════════════════════
+var GAME={id:'utsuke',logo:'うつけ<span class="lat">Utsuke · online</span>',counts:[2,3,4,5],
+  lobbyNote:'Servono da 2 a 5 giocatori (scegli quanti qui sotto): il Signore (e, in 2, anche il Principe) è un personaggio non giocante. Quando la stanza è piena, i posti al tavolo vengono assegnati a caso.',
+  countNote:{2:'con il Principe'}};
+var COLORS=[
+  {n:'Rosa',icon:'flower'},
+  {n:'Viola',icon:'moon'},
+  {n:'Verde',icon:'leaf'},
+  {n:'Oro',icon:'sun'},
+  {n:'Blu',icon:'drop'}
+];
+var SEATC=['#ffd166','#ff8fb8','#6ee7b7','#8ecbff','#c4a7ff'];
+var PER={2:15,3:15,4:12,5:10};      // carte (e prese) per mano
+var WIN_HOM=3,EXEC=2;
+var ico=function(n){return '<i class="ph-fill ph-'+n+'"></i>'};
+var OPT={undo:true,a11y:false};
+try{var _s=localStorage.getItem('ut-undo');if(_s!==null)OPT.undo=_s==='1';OPT.a11y=localStorage.getItem('ut-a11y')==='1'}catch(e){}
+var ui={sel:null};
+var key=function(c){return c.s*20+c.r};
+var cname=function(c){return COLORS[c.s].n+' '+c.r};
+var plu=function(n,s,p){return n+' '+(n===1?s:p)};
+var sortHand=function(h){return h.sort(function(a,b){return a.s-b.s||a.r-b.r})};
+var isNpc=function(S,id){return id>=S.n};
+var mname=function(S,id){return id<S.n?S.names[id]:id===S.n?'Il Signore':'Il Principe'};
 
+// ─────────────── REGOLE (funzioni pure, usate dentro le transazioni) ───────────────
+// una carta è un id 0..59: colore = id/12, numero = id%12+1
+function newDeck(){var a=[];for(var i=0;i<60;i++)a.push(i);return shuffle(a)}
+function validDeck(d){
+  if(!Array.isArray(d)||d.length!==60)return false;
+  var seen={};
+  for(var i=0;i<60;i++){var x=d[i];if(typeof x!=='number'||x%1||x<0||x>59||seen[x])return false;seen[x]=1}
+  return true;
+}
+function mkCard(id){return {s:Math.floor(id/12),r:id%12+1}}
+// carta giocata dal Signore/Principe: apre con la carta più a sinistra (prima presa) o più a destra (dopo aver vinto);
+// risponde con la carta più alta del colore, altrimenti con quella più a sinistra
+function npcPick(hand,trick,first){
+  if(!trick.length)return first?hand[0]:hand[hand.length-1];
+  var f=hand.filter(function(c){return c.s===trick[0].c.s});
+  return f.length?f.reduce(function(a,b){return b.r>a.r?b:a}):hand[0];
+}
+// vince la carta più alta del colore della briscola (quello della carta sotto il segnalino), altrimenti del colore d'apertura
+function trickWinner(trick,tc){
+  var lead=trick[0].c.s,tr=trick.some(function(e){return e.c.s===tc}),suit=tr?tc:lead,b=-1;
+  trick.forEach(function(e,i){if(e.c.s===suit&&(b<0||e.c.r>trick[b].c.r))b=i});
+  return b;
+}
+// punti Onore: 2 a chi indovina esattamente (tutti); altrimenti 1 a chi è più vicino (a pari distanza, solo la previsione più alta)
+function judge(gs,L){
+  var pts=gs.map(function(){return 0}),ex=[],i;
+  gs.forEach(function(g,i){if(g===L)ex.push(i)});
+  if(ex.length){ex.forEach(function(i){pts[i]=2});return pts}
+  var d=Math.min.apply(null,gs.map(function(g){return Math.abs(g-L)})),near=[];
+  gs.forEach(function(g,i){if(Math.abs(g-L)===d)near.push(i)});
+  var hi=Math.max.apply(null,near.map(function(i){return gs[i]}));
+  near.forEach(function(i){if(gs[i]===hi)pts[i]=1});
+  return pts;
+}
+function checkEnd(S){
+  var exe=[],win=[],i;
+  for(i=0;i<S.n;i++)if(S.chip[i]>=EXEC)exe.push(i);
+  for(i=0;i<S.n;i++)if(S.hom[i]>=WIN_HOM&&exe.indexOf(i)<0)win.push(i);
+  if(!exe.length&&!win.length)return null;
+  if(!win.length){
+    var alive=[];for(i=0;i<S.n;i++)if(exe.indexOf(i)<0)alive.push(i);
+    if(!alive.length)for(i=0;i<S.n;i++)alive.push(i);       // caso limite: tutti giustiziati nello stesso round
+    var m=Math.max.apply(null,alive.map(function(q){return S.hom[q]}));
+    win=alive.filter(function(q){return S.hom[q]===m});
+  }
+  return {winners:win,executed:exe};
+}
+function dealInto(S,deck,pre){
+  var n=S.n,per=PER[n],r=S.round,order=[],i;
+  if(n===2)order=r%2===0?[0,n,1,n+1]:[0,n+1,1,n];
+  else{for(i=0;i<n;i++)order.push(i);order.splice(r%n,0,n)}
+  var cs=deck.map(mkCard),hands=[],wins=[];
+  for(i=0;i<order.length;i++){hands.push([]);wins.push(0)}
+  order.forEach(function(id,j){hands[id]=cs.slice(j*per,(j+1)*per)});
+  for(i=0;i<n;i++)sortHand(hands[i]);        // le mani dei giocatori sono ordinate; quelle di Signore e Principe restano nell'ordine di distribuzione (sinistra → destra)
+  S.order=order;S.npcIds=n===2?[n,n+1]:[n];S.hands=hands;S.wins=wins;S.T=per;
+  S.trick=[];S.last=null;S.lead=n;S.turn=-1;S.tc=-1;S.firstFlag=true;S.done=0;
+  S.guess=[];S.guessed=[];for(i=0;i<n;i++){S.guess.push(null);S.guessed.push(false)}
+  S.show=null;S.end=null;S.phase='guess';
+  var li=order.indexOf(n),m=order.length,lord=hands[n];
+  var seat=n===2?'tra i due giocatori (e il Principe dall\'altra parte)':'tra '+mname(S,order[(li+m-1)%m])+' e '+mname(S,order[(li+1)%m]);
+  S.msg=(pre?pre+' ':'')+'Round '+(r+1)+': il Signore siede '+seat+'. Le sue carte sono scoperte; il segnalino briscola è sulla carta più a destra ('+cname(lord[lord.length-1])+').';
+}
+function gameInitial(players){
+  var n=players.length;
+  var S={v:0,game:GAME.id,n:n,names:players.map(function(p){return p.name}),uids:players.map(function(p){return p.uid}),
+    round:0,hom:[],chip:[],over:null};
+  for(var i=0;i<n;i++){S.hom.push(0);S.chip.push(0)}
+  dealInto(S,newDeck());
+  return S;
+}
+// chiude la presa: vince la carta più alta; il vincitore apre la successiva (dopo l'ultima il round è finito)
+function endTrick(S,ms){
+  var wi=trickWinner(S.trick,S.tc),w=S.trick[wi].id,viaTrump=S.trick.some(function(e){return e.c.s===S.tc});
+  S.wins[w]++;
+  S.last={cards:S.trick.slice(),winner:w,wi:wi,num:S.done+1};
+  ms.push(mname(S,w)+' vince la presa n° '+(S.done+1)+' con '+cname(S.trick[wi].c)+(viaTrump?' (briscola '+COLORS[S.tc].n+')':'')+'.');
+  S.done++;S.lead=w;S.firstFlag=false;S.trick=[];S.turn=-1;
+  if(S.done>=S.T)scoreRound(S,ms);
+}
+function scoreRound(S,ms){
+  var n=S.n,L=S.wins[n],pts=judge(S.guess,L),rows=[],p;
+  for(p=0;p<n;p++){
+    var over=S.wins[p]>L;
+    S.hom[p]+=pts[p];if(over)S.chip[p]++;
+    rows.push({p:p,guess:S.guess[p],wins:S.wins[p],pts:pts[p],over:over});
+  }
+  S.show={rows:rows,L:L};S.end=checkEnd(S);S.phase='roundEnd';S.turn=-1;
+  ms.push('Round '+(S.round+1)+' concluso: il Signore ha vinto '+plu(L,'presa','prese')+'.');
+}
+// Signore e Principe giocano da soli finché tocca a una persona (o il round finisce)
+function advance(S,ms){
+  var n=S.n,m=S.order.length;
+  while(S.phase==='play'){
+    if(!S.trick.length){var lh=S.hands[n];S.tc=lh.length?lh[lh.length-1].s:-1}
+    var id=S.order[(S.order.indexOf(S.lead)+S.trick.length)%m];
+    if(!isNpc(S,id)){S.turn=id;return}
+    var c=npcPick(S.hands[id],S.trick,S.firstFlag);
+    S.hands[id]=S.hands[id].filter(function(x){return x!==c});
+    S.trick.push({id:id,c:c});ms.push(mname(S,id)+' gioca '+cname(c)+'.');
+    if(S.trick.length===m)endTrick(S,ms);
+  }
+}
+function gameReduce(S,seat,a){
+  if(!S||seat<0||seat>=S.n||!a)return null;
+  var n=S.n,i,ms;
+  switch(a.type){
+  case 'guess':{
+    if(S.phase!=='guess'||S.guessed[seat])return null;
+    if(typeof a.g!=='number'||a.g%1!==0||a.g<0||a.g>S.T)return null;
+    S.guess[seat]=a.g;S.guessed[seat]=true;
+    for(i=0;i<n;i++)if(!S.guessed[i])break;
+    if(i<n){S.msg=S.names[seat]+' ha fatto la sua previsione (coperta).';break}
+    S.phase='play';S.turn=-1;
+    ms=['Tutte le previsioni sono fatte (restano coperte fino a fine round). Apre il Signore con la carta più a sinistra.'];
+    advance(S,ms);S.msg=ms.join(' ');
+    break;}
+  case 'play':{
+    if(S.phase!=='play'||S.turn!==seat)return null;
+    var hand=S.hands[seat],card=null;
+    for(i=0;i<hand.length;i++)if(key(hand[i])===a.k){card=hand[i];break}
+    if(!card)return null;
+    if(!legalOf(hand,S.trick).some(function(x){return x===card}))return null;
+    S.hands[seat]=hand.filter(function(x){return x!==card});
+    S.trick.push({id:seat,c:card});
+    ms=[S.names[seat]+' gioca '+cname(card)+'.'];
+    if(S.trick.length===S.order.length)endTrick(S,ms);
+    advance(S,ms);S.msg=ms.join(' ');
+    break;}
+  case 'next':{
+    if(S.phase!=='roundEnd')return null;
+    if(S.end){S.over=S.end;S.phase='gameEnd';S.show=null;S.turn=-1;S.msg='Partita conclusa.';break}
+    if(!validDeck(a.deck))return null;
+    S.round++;
+    dealInto(S,a.deck);
+    break;}
+  case 'rematch':{
+    if(S.phase!=='gameEnd'||!validDeck(a.deck))return null;
+    S.round=0;S.over=null;
+    for(i=0;i<n;i++){S.hom[i]=0;S.chip[i]=0}
+    dealInto(S,a.deck);
+    break;}
+  default:return null;
+  }
+  return S;
+}
+
+// ─────────────── RENDER ───────────────
+function gameBadge(){return S.phase==='gameEnd'?'Partita conclusa':'Round '+(S.round+1)}
+function myPlay(){return S.phase==='play'&&S.turn===me}
+var legalKeys={};
+var kface=function(c,cls){return '<span class="fc k'+c.s+' '+(cls||'')+'" title="'+cname(c)+'"><span>'+c.r+'</span>'+ico(COLORS[c.s].icon)+'</span>'};
+function handBtn(c){
+  var k=key(c);
+  if(myPlay()){
+    var ok=!!legalKeys[k],sel=ui.sel===k;
+    return '<button class="fc k'+c.s+' '+(ok?'':'dim')+' '+(sel?'sel':'')+'" '+(ok?'':'disabled')+' data-k="'+k+'" title="'+cname(c)+'"><span>'+c.r+'</span>'+ico(COLORS[c.s].icon)+'</button>';
+  }
+  return kface(c);
+}
+function flagHtml(id){
+  if(S.phase==='play'&&S.done<S.T&&S.lead===id)return '<span class="flag lead">Di mano</span>';
+  return '';
+}
+function nmHtml(id){
+  return '<span class="nm" style="--sc:'+SEATC[id]+'">'+esc(S.names[id])+(id===me?' (tu)':'')+'</span>';
+}
+// informazioni nascoste: delle carte degli altri giocatori si vede solo il numero; le previsioni altrui restano coperte fino a fine round
+function seatHtml(id,pos){
+  var active=S.phase==='play'&&S.turn===id,mine=id===me;
+  var hand=mine?'<div class="hand">'+(S.hands[me].map(handBtn).join('')||'<span class="hint">—</span>')+'</div>'
+    :'<div class="backs">'+(S.hands[id].map(function(){return '<span class="back"></span>'}).join('')||'<span class="hint">—</span>')+'</div>';
+  var reveal=mine||S.phase==='roundEnd'||S.phase==='gameEnd';
+  var gtxt=reveal&&S.guess[id]!=null?S.guess[id]:S.guessed[id]?'coperta':'—';
+  var meta='<div class="seat-meta"><span class="tag">Onore <b>'+S.hom[id]+'</b></span><span class="tag '+(S.chip[id]?'bad':'')+'">Uchikubi <b>'+S.chip[id]+'</b></span><span class="tag">prese vinte <b>'+S.wins[id]+'</b></span><span class="tag">previsione <b>'+gtxt+'</b></span></div>';
+  var name='<div class="seat-name">'+nmHtml(id)+flagHtml(id)+'</div>';
+  var inner=pos==='bottom'?name+meta+hand:hand+name+meta;
+  return '<div class="seat '+pos+' '+(S.phase==='play'&&S.done<S.T&&S.lead===id?'leader':'')+' '+(active?'active':'')+'">'+inner+'</div>';
+}
+function whoName(id){return mname(S,id).replace(/^Il /,'')}
+function trickCells(cards,win){
+  return cards.map(function(e,i){
+    return '<div class="tcell '+(win===i?'win':'')+'">'+kface(e.c)+'<span class="who" style="background:'+(e.id<S.n?SEATC[e.id]:'#b89be0')+'">'+esc(whoName(e.id))+'</span>'+(win===i?'vince':'')+'</div>';
+  }).join('');
+}
+function centerHtml(){
+  var lh=S.hands[S.n],inPlay=S.phase==='play',cur=S.trick.length>0;
+  var tc=inPlay&&cur?S.tc:(lh.length&&(S.phase==='guess'||inPlay)?lh[lh.length-1].s:-1);
+  var tcInd=tc>=0?'<span class="tc-ind">Briscola: <span class="rchip k'+tc+'">'+ico(COLORS[tc].icon)+' '+COLORS[tc].n+'</span></span>':'';
+  var label=inPlay?'PRESA '+Math.min(S.done+1,S.T)+'/'+S.T+(cur?' · COLORE '+COLORS[S.trick[0].c.s].n.toUpperCase():''):(S.phase==='guess'?'PREVISIONI':S.phase==='roundEnd'?'ROUND CONCLUSO':'PARTITA CONCLUSA');
+  return '<div class="center"><span class="lbl2">'+label+'</span><div class="tr">'+(cur?trickCells(S.trick,-1):'<span class="hint">—</span>')+'</div>'+tcInd+'</div>';
+}
+// l'ultima presa resta visibile (le carte di Signore e Principe sono giocate subito dopo la tua)
+function lastBoxHtml(){
+  return '<div class="lastbox"><span class="lbl2">'+(S.last?'PRESA PRECEDENTE (N° '+S.last.num+')':'PRESA PRECEDENTE')+'</span>'+
+    (S.last?'<div class="tr">'+trickCells(S.last.cards,S.last.wi)+'</div>':'<span class="hint">Nessuna presa giocata finora.</span>')+'</div>';
+}
+function npcPanelHtml(){
+  return '<div class="npcpanel">'+S.npcIds.map(function(id){
+    var h=S.hands[id],isL=id===S.n;
+    var cards=h.map(function(c,i){return kface(c,isL&&i===h.length-1&&(S.phase==='guess'||S.phase==='play')?'hasChip':'')}).join('')||'<span class="hint">—</span>';
+    return '<div class="npcrow '+(S.phase==='play'&&S.done<S.T&&S.lead===id?'leader':'')+'">'+
+      '<div class="npchead"><span class="seat-name"><span class="nm" style="--sc:#b89be0">'+(isL?'Il Signore':'Il Principe')+'</span>'+flagHtml(id)+'</span><span class="tag">prese vinte <b>'+S.wins[id]+'</b></span>'+(isL?'<span class="npcnote"><i class="ph-fill ph-crown-simple" style="color:#d19a00"></i> = segnalino briscola</span>':'')+'</div>'+
+      '<div class="npchand">'+cards+'</div></div>';
+  }).join('')+'</div>';
+}
+function scoreTable(){
+  var rows=S.names.map(function(nm,p){
+    return '<tr class="'+(p===me?'me':'')+'"><td>'+esc(nm)+(p===me?' (tu)':'')+'</td><td><span class="hex hom '+(S.hom[p]?'':'z')+'">'+S.hom[p]+'</span></td><td><span class="hex uchi '+(S.chip[p]?'':'z')+'">'+S.chip[p]+'</span></td></tr>';
+  }).join('');
+  return '<table class="score"><tr><th></th><th>Onore (Homare)</th><th>Uchikubi</th></tr>'+rows+'</table>';
+}
+function resultHtml(){
+  return '<div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Previsione</th><th>Prese</th><th>Onore</th><th class="l">Esito</th></tr>'+
+    S.show.rows.map(function(r){
+      return '<tr class="'+(r.p===me?'me':'')+'"><td>'+esc(S.names[r.p])+(r.p===me?' (tu)':'')+'</td><td>'+r.guess+'</td><td>'+r.wins+'</td><td>'+(r.pts?'+'+r.pts:'—')+'</td><td class="l">'+(r.over?'<b>Uchikubi!</b> (più prese del Signore)':'')+'</td></tr>';
+    }).join('')+'</table></div><div class="hint">Il Signore ha vinto '+plu(S.show.L,'presa','prese')+'.</div>';
+}
+// riga Conferma/Annulla sempre presente quando "annulla" è attivo (disabilitata finché non scegli una carta): la mano non si sposta
+function confirmRow(){
+  if(!OPT.undo)return '';
+  var c=null;
+  if(ui.sel!==null)S.hands[me].forEach(function(x){if(key(x)===ui.sel)c=x});
+  if(c)return '<div class="opts"><button class="opt" data-cf="1">Conferma: gioca '+cname(c)+'</button><button class="opt" data-cf="0">Annulla</button></div>';
+  return '<div class="opts"><button class="opt" disabled>Conferma</button><button class="opt" disabled>Annulla</button></div>';
+}
+function pendingNames(){
+  return S.names.filter(function(nm,p){return !S.guessed[p]}).map(esc).join(', ');
+}
+function dockHtml(){
+  var msg='<div class="dock-msg">'+esc(S.msg)+'</div>',i;
+  if(S.phase==='gameEnd'){
+    var nm=S.over.winners.map(function(q){return esc(S.names[q])+(q===me?' (tu)':'')}),w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
+    var ex=S.over.executed.map(function(q){return esc(S.names[q])}).join(', ');
+    return '<div class="dock-msg"><b>'+(S.over.winners.length>1?'Vittoria condivisa: ':'Vince ')+w+'!</b>'+(ex?' ('+ex+(S.over.executed.length>1?' sono stati giustiziati':' è stato giustiziato')+')':'')+'</div>'+scoreTable()+
+      '<div class="opts"><button class="opt" data-rematch="1">Rivincita</button></div>';
+  }
+  if(S.phase==='roundEnd'){
+    return msg+resultHtml()+'<div class="dock-title">RISULTATO DEL ROUND</div><div class="opts"><button class="opt" data-next="1">'+(S.end?'Mostra risultato finale':'Prossimo round')+'</button></div>';
+  }
+  if(S.phase==='guess'){
+    var head=S.round===0?'<div class="dock-msg">Buona partita a Utsuke, '+esc(S.names[me])+'!</div><div class="hint">'+esc(S.msg)+'</div>':msg,done=S.guessed[me],b='';
+    for(i=0;i<=S.T;i++)b+='<button class="opt num '+(done&&S.guess[me]===i?'on':'')+'" '+(done?'disabled':'')+' data-g="'+i+'">'+i+'</button>';
+    return head+'<div class="dock-title">'+(done?'LA TUA PREVISIONE: '+S.guess[me]:'QUANTE PRESE VINCERÀ IL SIGNORE?')+'</div>'+
+      '<div class="hint">'+(done?'Resta coperta fino a fine round.'+(pendingNames()?' Attendi '+pendingNames()+'…':''):'Le previsioni restano coperte fino alla fine del round, anche agli altri giocatori.')+'</div>'+
+      '<div class="opts">'+b+'</div>';
+  }
+  var hint;
+  if(S.turn!==me)hint='Tocca a '+esc(S.names[S.turn])+'.';
+  else hint='Tocca a te: '+(S.trick.length?'devi rispondere a '+COLORS[S.trick[0].c.s].n+' se puoi.':'apri la presa con una carta qualsiasi.')+' Previsione: '+S.guess[me]+' · il Signore ha vinto '+S.wins[S.n]+' · tu '+S.wins[me]+' (non vincerne più del Signore!). Briscola: '+COLORS[S.tc].n+'.';
+  return msg+'<div class="hint">'+hint+'</div>'+confirmRow();
+}
+function recapHtml(){
+  var n=S.n,per=PER[n];
+  return '<details class="recap"><summary>RIEPILOGO</summary>'+
+    '<div class="recap-row"><span class="lbl">Carte</span>'+COLORS.map(function(x,i){return '<span class="rchip k'+i+'">'+ico(x.icon)+' '+x.n+'</span>'}).join('')+'<span class="rv">60 carte (1–12 in 5 colori) · '+per+' a testa, anche al Signore'+(n===2?' e al Principe':'')+': '+per+' prese</span></div>'+
+    '<div class="recap-row"><span class="lbl">Signore</span><span class="rv">mano scoperta · apre con la carta più a sinistra, poi (se ha vinto) con quella più a destra · risponde con la carta più alta del colore, altrimenti la più a sinistra'+(n===2?' · il Principe fa lo stesso, ma non si prevedono le sue prese':'')+'</span></div>'+
+    '<div class="recap-row"><span class="lbl">Briscola</span><span class="rv">il colore della carta più a destra del Signore (il segnalino resta fino a fine presa)</span></div>'+
+    '<div class="recap-row"><span class="lbl">Previsione</span><span class="rv">quante prese vincerà il Signore (carte 0·1·2·4·8) · esatta: 2 Onore; se nessuno la indovina, 1 Onore al più vicino (a pari distanza, a quella più alta)</span></div>'+
+    '<div class="recap-row"><span class="lbl">Uchikubi</span><span class="rv">chi vince più prese del Signore riceve un segnalino; il secondo ti fa perdere · vince chi arriva a 3 Onore</span></div></details>';
+}
+function posFor(m){return m===2?['bottom','top']:m===3?['bottom','left','right']:m===4?['bottom','left','top','right']:['bottom','left','tl','tr','right']}
+function gameRender(){
+  if(!myPlay())ui.sel=null;
+  legalKeys={};
+  if(myPlay())legalOf(S.hands[me],S.trick).forEach(function(c){legalKeys[key(c)]=1});
+  var m=S.order.length,h=S.order.indexOf(me),rot=[],i;
+  for(i=0;i<m;i++){var id=S.order[(h+i)%m];if(!isNpc(S,id))rot.push(id)}
+  var pos=posFor(rot.length);
+  return '<div class="dock">'+dockHtml()+'</div>'+npcPanelHtml()+lastBoxHtml()+
+    '<div class="table n'+rot.length+'">'+centerHtml()+rot.map(function(id,j){return seatHtml(id,pos[j])}).join('')+'</div>'+
+    '<div class="dock" style="position:static">'+scoreTable()+'</div>'+recapHtml()+RULES_HTML;
+}
+function gameMenu(){
+  return '<label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" '+(OPT.undo?'checked':'')+'> Abilita annulla</label>'+
+    '<label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" '+(OPT.a11y?'checked':'')+'> Modalità accessibile</label>';
+}
+function gameChange(e){
+  if(e.target.id==='optA11y'){OPT.a11y=e.target.checked;try{localStorage.setItem('ut-a11y',OPT.a11y?'1':'0')}catch(x){}render()}
+  else if(e.target.id==='optUndo'){OPT.undo=e.target.checked;try{localStorage.setItem('ut-undo',OPT.undo?'1':'0')}catch(x){}ui.sel=null;render()}
+}
+function gameClick(b){
+  var d=b.dataset;
+  if(d.g!==undefined){if(S.phase==='guess'&&!S.guessed[me])act({type:'guess',g:Number(d.g)})}
+  else if(d.k!==undefined){
+    var k=Number(d.k);
+    if(myPlay()&&legalKeys[k]){
+      if(OPT.undo){ui.sel=ui.sel===k?null:k;render()}
+      else act({type:'play',k:k});
+    }
+  }
+  else if(d.cf!==undefined){
+    if(d.cf==='1'){if(ui.sel!==null&&myPlay()){var k2=ui.sel;ui.sel=null;act({type:'play',k:k2})}}
+    else{ui.sel=null;render()}
+  }
+  else if(d.next)act({type:'next',deck:newDeck()});
+  else if(d.rematch)act({type:'rematch',deck:newDeck()});
+}
+
+// ═════════════════════════ KIT STANZE (Firebase RTDB) ═════════════════════════
+// Stesso schema di tt/spy-team/online: rooms/$room con hostUid, members, lobby, state (le regole già pubblicate bastano).
+// Lo stato di gioco è un unico oggetto JSON salvato come stringa in state.s (+ contatore state.v); ogni azione è una
+// transazione che applica gameReduce() all'ultima versione. Le mani stanno nello stato (nascoste solo dall'interfaccia).
+var FIREBASE_CONFIG={
+  apiKey:"AIzaSyAoOMLytOqFY9GRXpi2kUGEyzLK-r00nvQ",
+  authDomain:"gachapon-trick.firebaseapp.com",
+  databaseURL:"https://gachapon-trick-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"gachapon-trick",
+  storageBucket:"gachapon-trick.firebasestorage.app",
+  messagingSenderId:"869677835302",
+  appId:"1:869677835302:web:85768d5a6ac0d94f8372e7"
+};
+var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+var SAVE_KEY=GAME.id+'-online-last';
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var rnd=function(n){return Math.floor(Math.random()*n)};
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+function getPlayerName(){
+  var name='';
+  try{
+    name=localStorage.getItem('nylo-player-name')||'';
+    if(!name){var last=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');name=last&&last.name||''}
+  }catch(e){}
+  return String(name||'Giocatore').trim().slice(0,18)||'Giocatore';
+}
+var playerName=getPlayerName();
+var db=null,user=null,roomRef=null,roomCode='',lobbyData=null,S=null,me=-1,listeners=[],startingGame=false;
+var statusText='',connText='',joinVal='',chosenCount=GAME.counts[0],MENUOPEN=false;
+try{var lastRoom=JSON.parse(localStorage.getItem(SAVE_KEY));if(lastRoom)joinVal=lastRoom.code||''}catch(e){}
+
+function setStatus(t){statusText=t;render()}
+function setConn(t){connText=t;var c=document.getElementById('conn');if(c)c.textContent=t}
+function showErr(t){
+  var e=document.getElementById('err');
+  if(!e){e=document.createElement('div');e.id='err';e.className='err';e.setAttribute('role','alert');document.body.appendChild(e)}
+  e.textContent=t;e.hidden=false;setConn('Errore');clearTimeout(showErr.t);showErr.t=setTimeout(function(){e.hidden=true},8000);
+}
+function genCode(){var b=new Uint8Array(12);crypto.getRandomValues(b);return Array.from(b,function(x){return ALPHABET[x%ALPHABET.length]}).join('')}
+function withTimeout(p,ms,msg){
+  return new Promise(function(res,rej){var t=setTimeout(function(){rej(new Error(msg))},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})});
+}
+function authMsg(e){
+  if(e.code==='auth/operation-not-allowed')return 'Attiva il provider Anonimo in Firebase Authentication.';
+  if(e.code==='auth/unauthorized-domain')return 'Dominio non autorizzato: aggiungilo in Authentication > Impostazioni > Domini autorizzati.';
+  if(e.code==='auth/network-request-failed')return 'Firebase non raggiungibile: controlla la connessione e che il sito sia in HTTPS.';
+  return e.message||'Errore di autenticazione Firebase.';
+}
+async function connect(){
+  if(!window.firebase)throw new Error('Firebase non caricato. Controlla la connessione.');
+  if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+  db=firebase.database();
+  if(user)return;
+  try{user=(await withTimeout(firebase.auth().signInAnonymously(),15000,'Autenticazione scaduta dopo 15 secondi.')).user}
+  catch(e){throw new Error(authMsg(e))}
+}
+function saveLast(name){try{localStorage.setItem(SAVE_KEY,JSON.stringify({code:roomCode,name:name}))}catch(e){}}
+
+// ─────────────── LOBBY ───────────────
+async function createRoom(){
+  try{
+    setStatus('Connessione a Firebase...');await connect();
+    var created=false,lastErr=null;
+    for(var i=0;i<5&&!created;i++){
+      roomCode=genCode();roomRef=db.ref('rooms/'+roomCode);
+      try{
+        await roomRef.child('hostUid').set(user.uid);
+        await roomRef.child('members/'+user.uid).set(true);
+        await roomRef.child('lobby').set({game:GAME.id,hostUid:user.uid,playerCount:chosenCount,started:false,closed:false,players:{}});
+        created=true;
+      }catch(e){lastErr=e;roomRef=null}
+    }
+    if(!created)throw lastErr||new Error('Impossibile creare la stanza. Verifica le regole del database.');
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;setStatus(e.message||'Errore durante la creazione della stanza.')}
+}
+async function joinRoom(){
+  try{
+    roomCode=joinVal.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(roomCode.length!==12)throw new Error('Il codice stanza è di 12 caratteri.');
+    setStatus('Connessione...');await connect();
+    roomRef=db.ref('rooms/'+roomCode);
+    await roomRef.child('members/'+user.uid).set(true);
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;setStatus(e.code==='PERMISSION_DENIED'?'Stanza non trovata o non accessibile.':(e.message||'Errore durante l\'accesso alla stanza.'))}
+}
+function reserveSeat(name){
+  var lobbyRef=roomRef.child('lobby');
+  return lobbyRef.once('value').then(function(snap){
+    if(!snap.exists())throw new Error('Lobby non trovata: controlla il codice.');
+    var initial=snap.val();
+    if(initial.game!==GAME.id)throw new Error('Questo codice appartiene a un altro gioco.');
+    return new Promise(function(resolve,reject){
+      lobbyRef.transaction(function(cur){
+        if(cur===null)cur=initial;
+        if(!cur||!cur.playerCount||cur.closed)return;
+        cur.players=cur.players||{};
+        if(cur.players[user.uid])return cur;            // rientro: il posto è già tuo
+        if(cur.started)return;
+        var occ={};Object.keys(cur.players).forEach(function(u){occ[cur.players[u].seat]=true});
+        var seat=1;while(seat<=cur.playerCount&&occ[seat])seat++;
+        if(seat>cur.playerCount)return;
+        cur.players[user.uid]={uid:user.uid,name:name,seat:seat};
+        return cur;
+      },function(err,committed,snap2){
+        if(err){reject(err);return}
+        var cur=snap2&&snap2.val();
+        if(!cur||!cur.players||!cur.players[user.uid]){
+          reject(new Error(cur&&cur.started?'La partita è già iniziata.':'La stanza è piena o non disponibile.'));return;
+        }
+        lobbyData=cur;saveLast(name);enterRoom();resolve();
+      },false);
+    });
+  });
+}
+function orderedPlayers(d){
+  return Object.keys(d.players||{}).map(function(u){return d.players[u]}).sort(function(a,b){return a.seat-b.seat});
+}
+function maybeStart(){
+  if(!lobbyData||S||startingGame||lobbyData.started||lobbyData.hostUid!==user.uid)return;
+  if(orderedPlayers(lobbyData).length===lobbyData.playerCount)startGame();
+}
+function startGame(){
+  startingGame=true;
+  var seated=orderedPlayers(lobbyData);   // i posti si assegnano a caso all'avvio
+  shuffle(seated);
+  var init=gameInitial(seated.map(function(p){return {uid:p.uid,name:p.name}}));
+  init.v=0;
+  roomRef.child('state').transaction(function(cur){if(cur!==null)return;return {v:0,s:JSON.stringify(init)}},function(err){
+    if(err){startingGame=false;showErr('Errore durante l\'avvio: '+err.message);return}
+    roomRef.child('lobby/started').set(true).catch(function(e){startingGame=false;showErr(e.message)});
+  },false);
+}
+
+// ─────────────── STANZA ───────────────
+function enterRoom(){
+  setConn('Lobby');
+  var lobbyRef=roomRef.child('lobby');
+  var lh=function(snap){if(!snap.exists())return;lobbyData=snap.val();if(!S){render();maybeStart()}};
+  lobbyRef.on('value',lh,function(e){showErr(e.message)});listeners.push({ref:lobbyRef,h:lh});
+  var stateRef=roomRef.child('state');
+  var sh=function(snap){
+    if(!snap.exists())return;
+    var raw=snap.val();
+    try{S=JSON.parse(raw.s)}catch(e){showErr('Stato della stanza non leggibile.');return}
+    me=S.uids.indexOf(user.uid);
+    if(me<0){showErr('Non risulti tra i giocatori di questa partita.');return}
+    setConn('Connesso');
+    render();
+  };
+  stateRef.on('value',sh,function(e){showErr('Connessione persa: '+e.message)});listeners.push({ref:stateRef,h:sh});
+  render();
+}
+function leave(){
+  listeners.forEach(function(l){l.ref.off('value',l.h)});
+  if(!roomRef||S||!user){window.location.reload();return}
+  // prima dell'inizio libera il posto; a partita avviata si può rientrare con lo stesso codice
+  roomRef.child('lobby').transaction(function(cur){
+    if(!cur||cur.started)return;
+    cur.players=cur.players||{};delete cur.players[user.uid];
+    var rest=orderedPlayers(cur);
+    if(cur.hostUid===user.uid&&rest.length)cur.hostUid=rest[0].uid;
+    return cur;
+  },function(){
+    roomRef.child('members/'+user.uid).remove().catch(function(){}).then(function(){window.location.reload()});
+  },false);
+}
+
+// azioni: ogni azione è una transazione sullo stato, validata da gameReduce() sull'ultima versione
+function act(a){
+  if(!roomRef||me<0)return;
+  var seat=me;
+  roomRef.child('state').transaction(function(cur){
+    if(!cur||!cur.s)return;
+    var st;try{st=JSON.parse(cur.s)}catch(e){return}
+    var r=gameReduce(st,seat,a);
+    if(!r)return;
+    r.v=(st.v||0)+1;
+    return {v:r.v,s:JSON.stringify(r)};
+  },function(err,committed){
+    if(err)showErr('Errore di sincronizzazione: '+err.message);
+    else if(!committed)setConn('Azione non più valida');
+  },false);
+}
+
+// ─────────────── RENDER ───────────────
+function lobbyHtml(){
+  var radios=GAME.counts.length<2?'':GAME.counts.map(function(n){
+    return '<label><input type="radio" name="pc" value="'+n+'" '+(chosenCount===n?'checked':'')+'> '+n+' giocatori'+(GAME.countNote&&GAME.countNote[n]?' · '+GAME.countNote[n]:'')+'</label>';
+  }).join('');
+  return '<section><p class="muted">Sei connesso come <b>'+esc(playerName)+'</b>.</p>'+
+    '<div class="panel"><h2>Crea una stanza</h2><p class="muted">'+GAME.lobbyNote+'</p>'+
+    (radios?'<div class="radios" role="radiogroup" aria-label="Numero di giocatori">'+radios+'</div>':'')+
+    '<button class="opt" id="createRoom" type="button" data-create="1">Crea stanza</button></div>'+
+    '<div class="panel"><h2>Unisciti a una stanza</h2>'+
+    '<input type="text" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(joinVal)+'">'+
+    '<button class="opt" type="button" data-join="1">Unisciti</button></div>'+
+    '<p class="status" role="status" aria-live="polite">'+esc(statusText)+'</p>'+
+    '<button class="btn btn-sm" type="button" data-ai="1">← Torna alla scelta</button></section>';
+}
+function waitingHtml(){
+  var d=lobbyData||{players:{},playerCount:GAME.counts[0]};
+  var players=orderedPlayers(d),full=players.length===d.playerCount,html='';
+  for(var seat=1;seat<=d.playerCount;seat++){
+    var p=players[seat-1];
+    html+='<li><span class="seat-n">'+seat+'.</span>'+
+      (p?'<span class="grow">'+esc(p.name)+(p.uid===user.uid?' (tu)':'')+'</span>':'<span class="grow soft">In attesa di un giocatore</span>')+
+      (p&&p.uid===d.hostUid?'<span class="flag first">HOST</span>':'')+'</li>';
+  }
+  return '<section><div class="panel"><h2>Stanza '+roomCode+'</h2><p class="muted">'+
+    (d.started?'La partita si sta caricando...':players.length+' / '+d.playerCount+' giocatori'+(full?' · avvio in corso':' · condividi il codice con gli altri'))+
+    '</p><ul class="roster">'+html+'</ul></div></section>';
+}
+function kitMenuHtml(){
+  var extra=typeof gameMenu==='function'?gameMenu():'';
+  return '<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="'+MENUOPEN+'"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>'+
+    (MENUOPEN?'<div class="menu-pop">'+extra+'</div>':'')+'</div>';
+}
+function render(){
+  document.body.classList.toggle('a11y',!!(typeof OPT!=='undefined'&&OPT.a11y));
+  var focus=document.activeElement&&document.activeElement.id==='joinCode';
+  var badge=S&&typeof gameBadge==='function'?gameBadge():'';
+  var top='<div class="topbar"><div class="logo">'+GAME.logo+'</div>'+
+    (window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+
+    (badge?'<span class="badge">'+badge+'</span>':'')+
+    (roomRef?'<span class="room-code">'+roomCode+'</span><button class="btn btn-sm" type="button" data-copy="1">Copia codice</button><button class="btn btn-sm" type="button" data-leave="1">Esci</button>':'')+
+    '<span class="conn" id="conn">'+esc(connText)+'</span>'+kitMenuHtml()+'</div>';
+  var body=!roomRef?lobbyHtml():(!S?waitingHtml():gameRender());
+  document.getElementById('app').innerHTML=top+body;
+  if(focus){var j=document.getElementById('joinCode');if(j){j.focus();j.setSelectionRange(j.value.length,j.value.length)}}
+}
+var APP=document.getElementById('app');
+APP.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b||b.disabled)return;
+  var d=b.dataset;
+  if(d.menu){MENUOPEN=!MENUOPEN;render();return}
+  if(d.ai!==undefined){location.href=location.pathname;return}
+  if(d.create!==undefined){createRoom();return}
+  if(d.join!==undefined){joinRoom();return}
+  if(d.leave!==undefined){if(!S||confirm('Uscire dalla stanza? Potrai rientrare con lo stesso codice.'))leave();return}
+  if(d.copy!==undefined){
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(roomCode).then(function(){setConn('Codice copiato')});
+    else window.prompt('Copia il codice stanza:',roomCode);
+    return;
+  }
+  if(S&&typeof gameClick==='function')gameClick(b);
+});
+APP.addEventListener('input',function(e){if(e.target.id==='joinCode'){joinVal=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=joinVal}});
+APP.addEventListener('keydown',function(e){if(e.target.id==='joinCode'&&e.key==='Enter')joinRoom()});
+APP.addEventListener('change',function(e){
+  if(e.target.name==='pc'){chosenCount=Number(e.target.value);return}
+  if(typeof gameChange==='function')gameChange(e);
+});
+document.addEventListener('click',function(e){if(MENUOPEN&&!e.target.closest('.menu-wrap')){MENUOPEN=false;render()}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&MENUOPEN){MENUOPEN=false;render()}});
+render();
+if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosenCount;if(NYLO_START.name)playerName=NYLO_START.name.slice(0,18);if(NYLO_START.action==='join'){joinVal=NYLO_START.code||'';joinRoom()}else createRoom();}
+
+</script>
+<style id="sx-css">
+.sx-card{background:var(--surface);border:2px solid #5d4aa6;border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:12px;color:var(--text)}
+.sx-label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text-soft);margin-top:2px}
+.sx-row{display:flex;gap:8px;flex-wrap:wrap}
+.sx-opt{padding:10px 16px;border-radius:7px;border:1px solid var(--border);background:var(--surface-raised);color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;transition:border-color .12s,background .12s}
+.sx-opt:hover:not(:disabled){border-color:var(--accent)}
+.sx-opt.on{border-color:var(--accent);background:var(--accent);color:#fff;font-weight:600}
+.sx-opt:disabled{opacity:.4;cursor:not-allowed}
+.sx-row .sx-opt{flex:1 1 0;min-width:0}
+.sx-go{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;margin-top:1rem}
+.sx-go:hover:not(:disabled){filter:brightness(1.1);border-color:var(--accent)}
+.sx-in{background:#fff;border:1px solid var(--border);color:#222;border-radius:6px;padding:10px 12px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none}
+.sx-in:focus{border-color:var(--accent)}
+.sx-in.code{letter-spacing:2px;text-transform:uppercase;font-family:Consolas,monospace}
+.sx-nav{display:flex;gap:8px;align-items:center;margin-left:auto}
+.sx-nav .nylo-home{background:var(--surface-raised);color:var(--text);border-color:var(--border)}
+.sx-nav .nylo-home:hover{border-color:var(--accent)}
+.sx-sub{display:flex;flex-direction:column;gap:10px;padding-top:2px}
+</style>
+<script>
+(function(){
+  var P=window.NYLO_SETUP={id:'utsuke',logo:'うつけ<span class="lat">Utsuke</span>',counts:[2,3,4,5]};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  function run(id){var s=document.createElement('script');s.textContent=document.getElementById(id).textContent;document.body.appendChild(s)}
+  window.addEventListener('hashchange',function(){location.reload()});
+  window.NYLO_IN_SETUP=true;   // finché si sceglie, Home/Indietro escono senza avviso
+  var app=document.getElementById('app');
+  var st={n:P.counts[0],mode:location.hash==='#stanze'?'room':(location.hash==='#ai'?'ai':''),sub:'',code:'',name:''};
+  var needName=false;
+  try{
+    st.name=localStorage.getItem('nylo-player-name')||'';
+    var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
+  }catch(e){}
+  needName=!st.name;   // il nome arriva dalla sessione; il campo compare solo se manca
+  function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
+  function draw(){
+    var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
+    h+='<div class="sx-card">';
+    if(needName)h+='<label class="sx-label" for="sxName">IL TUO NOME</label><input class="sx-in" id="sxName" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(st.name)+'">';
+    if(P.counts.length>1){
+      h+='<div class="sx-label">GIOCATORI</div><div class="sx-row">'+P.counts.map(function(n){return btn('data-n="'+n+'"','',n+' giocatori',st.n===n)}).join('')+'</div>';
+    }
+    h+='<div class="sx-label">MODALITÀ</div><div class="sx-row">'+btn('data-mode="ai"','','Contro l’AI',st.mode==='ai')+btn('data-mode="room"','','A stanze',st.mode==='room')+'</div>';
+    if(st.mode==='ai'){
+      h+='<div class="sx-sub"><div class="sx-row">'+btn('data-go="ai"','sx-go','Inizia',false)+'</div></div>';
+    }else if(st.mode==='room'){
+      h+='<div class="sx-label">OPZIONI STANZA</div><div class="sx-sub"><div class="sx-row">'+btn('data-sub="create"','','Crea nuova',st.sub==='create')+btn('data-sub="join"','','Unisciti',st.sub==='join')+'</div>';
+      if(st.sub==='create')h+='<div class="sx-row">'+btn('data-go="create"','sx-go','Inizia',false)+'</div>';
+      if(st.sub==='join')h+='<input class="sx-in code" id="sxCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(st.code)+'"><div class="sx-row"><button type="button" class="sx-opt sx-go" id="sxJoin" data-go="join" '+(st.code.length===12?'':'disabled')+'>Inizia</button></div>';
+      h+='</div>';
+    }
+    h+='</div>';
+    app.innerHTML=h;
+  }
+  function loadRoom(){
+    var libs=['app','auth','database'].map(function(n){return 'https://www.gstatic.com/firebasejs/10.12.2/firebase-'+n+'-compat.js'});
+    (function next(i){
+      if(i===libs.length){run('src-room');return}
+      var s=document.createElement('script');s.src=libs[i];s.onload=function(){next(i+1)};
+      s.onerror=function(){app.innerHTML='<p style="padding:20px;color:#c00">Firebase non raggiungibile: controlla la connessione.</p>'};
+      document.head.appendChild(s);
+    })(0);
+  }
+  function go(kind){
+    var nm=document.getElementById('sxName'),name=((nm&&nm.value)||st.name||'').trim().slice(0,16);
+    window.NYLO_IN_SETUP=false;
+    if(name){try{localStorage.setItem('nylo-player-name',name)}catch(e){}}
+    var cfg={name:name,n:st.n};
+    if(kind==='ai'){cfg.mode='ai';window.NYLO_START=cfg;run('src-ai');return}
+    cfg.mode='room';cfg.action=kind;if(kind==='join')cfg.code=st.code;
+    window.NYLO_START=cfg;app.innerHTML='';loadRoom();
+  }
+  app.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b||b.disabled)return;
+    var d=b.dataset;
+    if(d.n){st.n=Number(d.n);draw()}
+    else if(d.mode){st.mode=d.mode;st.sub='';draw()}
+    else if(d.sub){st.sub=d.sub;draw();var c=document.getElementById('sxCode');if(c)c.focus()}
+    else if(d.go)go(d.go);
+  });
+  app.addEventListener('input',function(e){
+    if(e.target.id==='sxName')st.name=e.target.value;
+    else if(e.target.id==='sxCode'){
+      st.code=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=st.code;
+      var j=document.getElementById('sxJoin');if(j)j.disabled=st.code.length!==12;
+    }
+  });
+  app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  draw();
+})();
 </script>
 </body>
 </html>
