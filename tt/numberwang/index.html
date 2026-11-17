@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Numberwang±</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Gaegu:wght@300;400;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#fffdf8;
+  --ink:#1f1d21;
+  --surface:#fffdf7;
+  --surface-raised:#f1ece0;
+  --accent:#7a3a94;
+  --accent-soft:rgba(122,58,148,0.12);
+  --brass:#d49b00;
+  --text:#1f1d21;
+  --text-soft:#5f5a66;
+  --danger:#b3261e;
+  --success:#1f7a3a;
+  --border:rgba(31,29,33,0.25);
+  --radius:10px;
+  --shadow:3px 3px 0 rgba(31,29,33,0.85);
+  --cw:48px; --ch:70px;
+}
+.k0{--kc:#f6c93a;--kx:#8a6700;--kl:#fdf1c4;--kt:#1f1d21}
+.k1{--kc:#62b9a2;--kx:#25705d;--kl:#d3efe6;--kt:#1f1d21}
+.k2{--kc:#e5607e;--kx:#b02c4d;--kl:#f9d4dd;--kt:#1f1d21}
+.k3{--kc:#9b59b6;--kx:#7a3a94;--kl:#e6d3ee;--kt:#fff}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background-color:var(--bg);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cpath d='M40 30l24 40H16z' fill='%2362b9a2' fill-opacity='.5'/%3E%3Ccircle cx='150' cy='46' r='17' fill='%23f6c93a' fill-opacity='.55'/%3E%3Crect x='214' y='24' width='30' height='30' rx='3' fill='%23e5607e' fill-opacity='.5' transform='rotate(14 229 39)'/%3E%3Cpath d='M92 112c8-12 14-12 20-2s12 10 20-2' fill='none' stroke='%239b59b6' stroke-opacity='.5' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M190 120l22 38h-44z' fill='%2362b9a2' fill-opacity='.5'/%3E%3Ccircle cx='38' cy='150' r='16' fill='%23f6c93a' fill-opacity='.55'/%3E%3Crect x='96' y='176' width='30' height='30' rx='3' fill='%23e5607e' fill-opacity='.5' transform='rotate(-12 111 191)'/%3E%3Cpath d='M20 232c8-12 14-12 20-2s12 10 20-2' fill='none' stroke='%239b59b6' stroke-opacity='.5' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='206' cy='222' r='17' fill='%23f6c93a' fill-opacity='.55'/%3E%3Cpath d='M150 236l20 34h-40z' fill='%2362b9a2' fill-opacity='.5'/%3E%3C/svg%3E");background-size:260px 260px;background-attachment:fixed}
+.app{max-width:960px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.logo .t{display:flex;flex-direction:column;line-height:1;color:var(--ink)}
+.logo .nm1{font-family:'Gochi Hand','Inter',sans-serif;font-weight:400;font-size:34px;letter-spacing:.01em;background:rgba(255,253,247,.85);border-radius:8px;padding:0 6px;align-self:flex-start}
+.logo small{font-family:'Gaegu','Inter',sans-serif;font-weight:700;font-size:15px;margin-top:2px;color:var(--ink);background:rgba(255,253,247,.85);border-radius:6px;padding:0 6px;align-self:flex-start}
+.badge{background:var(--surface);color:var(--ink);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap;border:2px solid var(--ink)}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:var(--text);border:2px solid var(--ink)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:34px;height:19px;flex:0 0 34px;margin:0;border:1px solid var(--border);border-radius:999px;background:var(--surface-raised);cursor:pointer;transition:background .15s,border-color .15s}
+.opt-toggle input[type=checkbox]::before{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-soft);transition:transform .15s,background .15s}
+.opt-toggle input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.opt-toggle input[type=checkbox]:checked::before{transform:translateX(15px);background:#fff}
+.opt-toggle input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:#fff;color:var(--text);border:2px solid var(--ink);cursor:pointer}
+.hamb:hover{background:var(--surface-raised)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:250px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:normal;line-height:1.35;text-align:left;width:100%}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+/* nel menu le voci sono azioni a testo (home-btn.js): l'interruttore stilizzato deve restare nascosto e non occupare spazio */
+.menu-pop .opt-toggle.nylo-menu-action input[type=checkbox]{position:absolute;width:1px;height:1px;flex:none;margin:0;border:0;opacity:0;pointer-events:none}
+.menu-pop button.opt-toggle{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--text);text-align:left;background:transparent;border:0;box-shadow:none;cursor:pointer}
+.flag{display:inline-block;margin-left:5px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.lead{background:var(--accent);color:#fff}
+.flag.bot{background:var(--ink);color:#fff}
+.flag.win{background:var(--success);color:#fff}
+.log{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px 14px;margin-top:12px;margin-bottom:14px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(31,29,33,0.65);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:2px solid var(--ink);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.name-box h3{font-family:'Gochi Hand','Inter',sans-serif;font-weight:400;font-size:22px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.dock.tall{position:static}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fff;border:2px solid var(--ink);color:var(--text);border-radius:8px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt.num{min-width:40px;text-align:center;font-size:14px;padding:8px 10px}
+.opt:hover:not(:disabled){background:var(--accent);border-color:var(--ink);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.opt .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--kc);margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.4)}
+.hint{font-size:12px;color:var(--text-soft);line-height:1.5}
+.hint b{color:var(--text)}
+.stack{display:grid}.stack>*{grid-area:1/1}
+.scroll-x{overflow-x:auto;max-width:100%}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score .neg{color:var(--danger)}
+table.score tr.me td{background:var(--accent-soft)}
+table.mx td,table.mx th{text-align:center;padding:5px 6px}
+table.mx td:first-child,table.mx th:first-child{text-align:left}
+table.mx td.hit{background:rgba(31,122,58,.2);font-weight:800;color:#145a2a}
+table.mx td.own{box-shadow:inset 0 0 0 2px var(--ink)}
+table.mx tr.tw td{background:var(--surface-raised)}
+
+/* carte: fondo a quadretti, numero e simbolo negli angoli, al centro il simbolo del seme (cerchio, triangolo, quadrato, onda = briscola) */
+.pc{width:var(--cw);height:var(--ch);border-radius:6px;background-color:#fffef9;background-image:linear-gradient(rgba(60,60,70,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(60,60,70,.09) 1px,transparent 1px);background-size:8px 8px;border:2px solid var(--ink);box-shadow:0 2px 5px rgba(0,0,0,.3);position:relative;display:inline-block;overflow:hidden;flex-shrink:0;padding:0;color:var(--ink)}
+.pc.k3{border-color:var(--kx)}
+.pc .pt{position:absolute;left:50%;top:50%;width:calc(var(--cw)*.62);height:calc(var(--cw)*.62);transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center}
+.pc .pt svg{width:100%;height:100%;display:block;fill:var(--kc);stroke:var(--ink);stroke-width:1.2;stroke-linejoin:round}
+.pc .pt svg.w{fill:none;stroke:var(--kc);stroke-width:3.4;stroke-linecap:round}
+.pc .cn{position:absolute;display:flex;flex-direction:column;align-items:center;gap:1px;font-family:'Inter',sans-serif;font-weight:800;font-size:calc(var(--cw)*.3);line-height:1;font-style:normal;color:var(--ink);z-index:2;min-width:calc(var(--cw)*.2)}
+.pc .cn svg{width:calc(var(--cw)*.2);height:calc(var(--cw)*.2);display:block;fill:var(--kc);stroke:var(--ink);stroke-width:1.5}
+.pc .cn svg.w{fill:none;stroke:var(--kx);stroke-width:3.2}
+.pc .cn.a{left:calc(var(--cw)*.06);top:calc(var(--cw)*.04)}
+.pc .cn.d{right:calc(var(--cw)*.06);bottom:calc(var(--cw)*.04);transform:rotate(180deg)}
+.pc.mini{--cw:42px;--ch:61px}
+.pc.fresh{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--brass),0 2px 5px rgba(0,0,0,.45)}
+.pc.win{box-shadow:0 0 0 3px var(--success),0 2px 5px rgba(0,0,0,.45)}
+.pc.legal{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--ink)}
+.pc.dim{opacity:.4;filter:saturate(.5)}
+.pc.sel{transform:translateY(-12px);box-shadow:0 0 0 2px #fff,0 0 0 5px var(--brass)}
+.pc.recv{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--brass)}
+.pc.canc{opacity:.55;filter:grayscale(.7)}
+button.pc{cursor:pointer;transition:transform .12s}
+button.pc:hover:not(:disabled){transform:translateY(-6px)}
+button.pc.sel:hover:not(:disabled){transform:translateY(-12px)}
+button.pc:disabled{cursor:default}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:14px}
+.hand.show{padding-top:4px}
+.back{width:9px;height:14px;border-radius:2px;background:linear-gradient(135deg,#9b59b6,#62b9a2);border:1px solid #fff;box-shadow:0 0 0 1px rgba(31,29,33,.6)}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.seat.top .backs,.seat.left .backs,.seat.right .backs,.seat.tl .backs,.seat.tr .backs{display:grid;grid-template-columns:repeat(7,9px);max-width:none}
+.nc{display:inline-flex;align-items:center;justify-content:center;gap:2px;min-width:24px;height:28px;padding:0 4px;border-radius:5px;background:var(--kc);color:var(--kt);font-family:'Inter',sans-serif;font-weight:800;font-size:13px;line-height:1;border:1px solid rgba(31,29,33,.65);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.nc.s{min-width:20px;height:22px;font-size:11px}
+.nc.gone{opacity:.25;text-decoration:line-through}
+
+.legend{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+.lg{display:flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;border-radius:999px;background:rgba(31,29,33,.07);font-size:12px;font-weight:700;color:var(--kx)}
+.lg .ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#fffef9;border:1.5px solid var(--ink)}
+.lg .ic svg{width:13px;height:13px;display:block;fill:var(--kc);stroke:var(--ink);stroke-width:1.5}
+.lg .ic svg.w{fill:none;stroke:var(--kc);stroke-width:3.4;stroke-linecap:round}
+.lg small{font-weight:500;color:var(--text-soft);font-size:10px}
+.brk{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;border:2px solid var(--ink);text-align:left;line-height:1.3}
+.brk.no{background:#efe3f5;color:#4d2461}
+.brk.yes{background:#9b59b6;color:#fff}
+.lgrow{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.vh{display:flex;flex-direction:column;gap:8px}
+.vh .vt{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px}
+.nm{display:inline-block;padding:2px 10px;border-radius:999px;color:#1f1d21;font-weight:700;border:1px solid rgba(31,29,33,0.4);background:var(--sc,#eee)}
+
+.table{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr);gap:8px;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin:0 0 14px}
+.table.n4{grid-template-areas:". top ." "left center right" "bottom bottom bottom"}
+.table.n5{grid-template-areas:"tl . tr" "left center right" "bottom bottom bottom"}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center} .seat.bottom{grid-area:bottom} .seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
+.seat.leader{border:1px dashed rgba(122,58,148,0.9);background:rgba(122,58,148,0.07)}
+.seat.active{border:2px solid var(--brass);background:rgba(246,201,58,0.3);box-shadow:0 0 0 2px #f6c93a}
+.seat.winner{border:2px solid var(--success);background:rgba(31,122,58,0.12)}
+.seat-name{font-weight:600;font-size:13px;overflow-wrap:anywhere;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nmrow{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap}.nmrow .flag{margin-left:0}
+.seat-meta{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(31,29,33,0.09);border-radius:4px;padding:2px 6px;color:var(--text);white-space:nowrap}
+.tag b{color:var(--accent)}
+.tag.ok{background:rgba(31,122,58,0.16);color:#17532b;font-weight:700}
+.tag.ko{background:rgba(179,38,30,0.13);color:#86201a;font-weight:700}
+.sub{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;min-width:0;padding:4px;border-radius:8px}
+.tableau{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:65px;min-width:46px;padding:3px;border-radius:8px;background:rgba(31,29,33,0.05)}
+.slot{display:inline-block;width:42px;height:61px;border:1px dashed rgba(31,29,33,0.4);border-radius:6px}
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.45;color:var(--text-soft);min-width:0}
+.center b{color:var(--accent)}
+.rbox{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;font-size:12px;border:2px solid var(--ink)}
+
+.scorebox{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:14px}
+.scorebox h3{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em;margin-bottom:8px}
+.acq{display:flex;flex-direction:column;gap:12px}
+.ab{border-top:1px dashed var(--border);padding-top:10px}
+.ab:first-child{border-top:0;padding-top:0}
+.ab-h{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;font-size:12px}
+.ab-h .tot{margin-left:auto;font-weight:700}
+.cs{display:flex;flex-wrap:wrap;gap:3px;min-width:0;align-items:center}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:64px;font-size:11px;font-weight:700}
+.recap{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+details.rules{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Gochi Hand','Inter',sans-serif;font-weight:400;font-size:18px;color:var(--accent);margin:14px 0 4px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul,.rtext ol{padding-left:20px}
+.rtext b{color:var(--text)}
+
+@media(max-width:600px){
+  .logo .nm1{font-size:28px}
+  :root{--cw:36px;--ch:53px}
+  .pc{border-radius:5px;border-width:1.5px}
+  .pc.mini{--cw:36px;--ch:53px}
+  .slot{width:36px;height:53px}
+  .table{padding:8px;gap:6px}
+  .back{width:6px;height:10px}
+  .seat.top .backs,.seat.left .backs,.seat.right .backs,.seat.tl .backs,.seat.tr .backs{grid-template-columns:repeat(7,6px);gap:1px}
+  .hand{gap:3px;row-gap:12px}
+  .seat{padding:6px 3px}
+  .nm{padding:2px 6px;font-size:12px}
+  table.score td,table.score th{padding:5px 4px}
+  table.mx td,table.mx th{padding:5px 3px}
+  .nc{min-width:21px;height:25px;font-size:12px}
+}
+@media(max-width:380px){.topbar{gap:6px}.logo .nm1{font-size:24px}.badge{padding:4px 9px}}
+@media(max-width:340px){.logo .nm1{font-size:21px}.badge{font-size:11px;padding:3px 7px}.nm{padding:2px 5px;font-size:11px}}
+</style>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#fffdf8">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="/pwa.js" defer></script>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script src="/tt/shared/core.js"></script>
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+// 4 semi: 0 Cerchio (giallo), 1 Triangolo (verde acqua), 2 Quadrato (rosa), 3 Onda (viola) = briscola.
+const COLS = [
+  {n:'Cerchio',   sym:'circ'},
+  {n:'Triangolo', sym:'tri'},
+  {n:'Quadrato',  sym:'sq'},
+  {n:'Onda',      sym:'wave', sub:'briscola'}
+];
+const TR = 3;
+// modalità: 3 giocatori (Numberwang−, con bot), 4 (Numberwang), 5 (Numberwang+), varianti avanzate ± e ∓
+const MODES = {
+  m3: {n:3, bot:true,  plus:false, cut:false, name:'Numberwang−'},
+  m4: {n:4, bot:false, plus:false, cut:false, name:'Numberwang'},
+  m5: {n:5, bot:false, plus:true,  cut:false, name:'Numberwang+'},
+  mpm:{n:4, bot:false, plus:true,  cut:true,  name:'Numberwang±'},
+  mmp:{n:4, bot:true,  plus:true,  cut:false, name:'Numberwang∓'}
+};
+const NAMES = ['Tu','AI Giallo','AI Verde','AI Rosa','AI Viola'];
+const SEATC = ['#d9d6e0','#fde9a0','#bfe6da','#f8c4d2','#dcc3ea'];
+const BOTC = '#ffffff';
+const HUM = 0, ROUNDS = 4, HS = 13;
+const POS = {4:['bottom','left','top','right'],5:['bottom','left','tl','tr','right']};
+const AIP = {bidSims:70, ms:110, minW:3, maxW:90, passW:10};
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+let LOGOPEN=false, RULESOPEN=false, RECAPOPEN=false, MENUOPEN=false;
+const OPT = {undo:true, memo:false};
+try{ let s=localStorage.getItem('nw-undo'); if(s!==null) OPT.undo=s==='1'; OPT.memo=localStorage.getItem('nw-memo')==='1'; }catch(e){}
+const cname = c => `${c.r} ${COLS[c.k].n}`;
+const sortHand = h => h.sort((a,b)=>a.k-b.k||a.r-b.r||a.u-b.u);
+const plural = (n,a,b) => n===1?a:b;
+const sgn = v => v>0?'+'+v:(v<0?'−'+(-v):'0');
+const isBot = s => G.bot&&s===G.botId;
+const nameOf = s => isBot(s)?`Bot ${G.botKind}`:P(s).name;
+const seatC = s => isBot(s)?BOTC:SEATC[s];
+const strength = c => c.r+(c.k===TR?20:0);
+const minBy = (a,f) => { let b=a[0],bv=f(b); for(let i=1;i<a.length;i++){ const v=f(a[i]); if(v<bv){ bv=v; b=a[i]; } } return b; };
+const maxBy = (a,f) => { let b=a[0],bv=f(b); for(let i=1;i<a.length;i++){ const v=f(a[i]); if(v>bv){ bv=v; b=a[i]; } } return b; };
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+function buildDeck(M){
+  const d=[]; let u=0;
+  const add=(k,r)=>d.push({u:u++,id:k*16+r,k,r});
+  for(let k=0;k<4;k++){
+    for(let r=1;r<=10;r++) add(k,r);
+    if(M.plus){ for(let r=11;r<=13;r++){ add(k,r); add(k,r); } }
+    else for(let r=11;r<=13;r++) add(k,r);
+  }
+  if(M.plus) add(TR,14);
+  return M.cut?d.filter(c=>!(c.k<TR?c.r<=3:c.r<=4)):d;
+}
+// il seme di apertura vale per tutti: si risponde se si può; la briscola (onda) non si apre finché non è «spezzata» (salvo mano tutta di onde)
+function legalCards(hand,plays,broken){
+  if(!plays.length){ if(broken) return hand.slice(); const nt=hand.filter(c=>c.k!==TR); return nt.length?nt:hand.slice(); }
+  const lk=plays[0].c.k, f=hand.filter(c=>c.k===lk);
+  return f.length?f:hand.slice();
+}
+// due carte identiche (stesso seme e valore) nella stessa presa si annullano; vince la briscola più alta, altrimenti la carta più alta del seme di apertura; può non esserci un vincitore
+function trickWin(plays){
+  const lk=plays[0].c.k; let bt=null, bl=null;
+  for(const x of plays){
+    let dup=false; for(const y of plays) if(y!==x&&y.c.id===x.c.id){ dup=true; break; }
+    if(dup) continue;
+    if(x.c.k===TR){ if(!bt||x.c.r>bt.c.r) bt=x; }
+    else if(x.c.k===lk){ if(!bl||x.c.r>bl.c.r) bl=x; }
+  }
+  return bt||bl;
+}
+function cancelled(plays){ return plays.filter(x=>plays.some(y=>y!==x&&y.c.id===x.c.id)); }
+function playCard(S,seat,c){
+  const h=S.hands[seat]; h.splice(h.indexOf(c),1);
+  if(S.vm&&S.plays.length){ const lk=S.plays[0].c.k; if(c.k!==lk) S.vm[seat]|=1<<lk; }
+  if(c.k===TR) S.broken=true;
+  S.plays.push({s:seat,c});
+}
+const recvOf = (p,rd) => rd%2===1?(p+1)%G.n:(p+G.n-1)%G.n;      // round dispari: si passa a sinistra (giocatore successivo), pari: a destra
+const sendOf = (p,rd) => rd%2===1?(p+G.n-1)%G.n:(p+1)%G.n;
+// ordine in cui si punta sulle mani: prima il bot, poi gli altri (a partire da chi sta a sinistra nei round dispari, a destra nei pari), infine la propria
+function bidSeq(b,rd){
+  const n=G.n, seq=[]; if(G.bot) seq.push(G.botId);
+  const ks=[]; for(let k=1;k<n;k++) ks.push(k); if(rd%2===0) ks.reverse();
+  for(const k of ks) seq.push((b+k)%n);
+  seq.push(b); return seq;
+}
+
+// ═════════════════════════ AI ═════════════════════════
+// Informazione: tutte le mani sono state viste in fase di puntata (prima del passaggio). Restano ignote solo le 2 carte che ciascuno ha passato.
+// Politica rapida «punta esatta» (vince o perde la presa in base alla propria puntata) e Monte Carlo sulle carte passate per scegliere la carta.
+function botCard(S,seat,lg){
+  const hand=S.hands[seat], im=S.botKind==='IM', lead=!S.plays.length;
+  const cnt=[0,0,0,0]; for(const c of hand) cnt[c.k]++;
+  const lowest=a=>minBy(a,c=>c.r), highest=a=>maxBy(a,c=>c.r);
+  if(lead){
+    const ks=[0,1,2,3].filter(k=>lg.some(c=>c.k===k)); let k=ks[0];
+    for(const q of ks) if(im?cnt[q]>cnt[k]:cnt[q]<cnt[k]) k=q;
+    const cs=lg.filter(c=>c.k===k); return im?highest(cs):lowest(cs);
+  }
+  const lk=S.plays[0].c.k, f=hand.filter(c=>c.k===lk);
+  if(f.length) return im?lowest(f):highest(f);
+  const tr=hand.filter(c=>c.k===TR);
+  if(tr.length) return im?highest(tr):lowest(tr);
+  const ks=[0,1,2,3].filter(k=>cnt[k]>0); let k=ks[0];
+  for(const q of ks) if(cnt[q]<cnt[k]) k=q;
+  return lowest(hand.filter(c=>c.k===k));
+}
+const winsNow = (S,seat,c) => { const w=trickWin(S.plays.concat([{s:seat,c}])); return !!w&&w.s===seat; };
+// naturale (stima delle mani): apre alto, vince col minimo indispensabile
+function natCard(S,seat,lg){
+  if(!S.plays.length) return maxBy(lg,strength);
+  const win=lg.filter(c=>winsNow(S,seat,c));
+  return win.length?minBy(win,strength):minBy(lg,strength);
+}
+// «punta esatta»: finché mancano prese alla propria puntata prova a vincere, altrimenti prova a perdere
+function tgtCard(S,seat,lg){
+  const need=S.tgt[seat]-S.tw[seat], left=S.hands[seat].length;
+  const wantWin=need>0&&(need>=left||Math.random()<need/left);
+  if(!S.plays.length) return wantWin?maxBy(lg,strength):minBy(lg,strength);
+  const win=[],lose=[]; for(const c of lg) (winsNow(S,seat,c)?win:lose).push(c);
+  if(wantWin) return win.length?minBy(win,strength):minBy(lg,strength);
+  return lose.length?maxBy(lose,strength):minBy(win,strength);
+}
+function pick(S,seat,lg){
+  if(lg.length===1) return lg[0];
+  if(S.botId===seat) return botCard(S,seat,lg);
+  return S.tgt?tgtCard(S,seat,lg):natCard(S,seat,lg);
+}
+function finishTrick(S){
+  const ring=S.ring, len=ring.length, i0=ring.indexOf(S.leader);
+  while(S.plays.length<len){
+    const seat=ring[(i0+S.plays.length)%len], lg=legalCards(S.hands[seat],S.plays,S.broken);
+    playCard(S,seat,pick(S,seat,lg));
+  }
+  const w=trickWin(S.plays); if(w){ S.tw[w.s]++; S.leader=w.s; } S.plays=[];
+}
+function playOut(S){ while(S.plays.length||S.hands[S.ring[0]].length) finishTrick(S); return S.tw; }
+const mkS = (hands,tw,tgt) => ({ring:G.ring,leader:G.leader,hands,plays:[],broken:false,tw,tgt,botId:G.bot?G.botId:-1,botKind:G.botKind});
+// stima delle prese di una mano vista da chi punta: mani già viste note, le altre pescate a caso tra le carte non viste
+function estimateMean(seen,h){
+  const sset=new Set(seen), unseen=[]; for(let x=0;x<G.nh;x++) if(!sset.has(x)) unseen.push(x);
+  const known=new Set(); for(const x of seen) for(const c of G.pre[x]) known.add(c.u);
+  const pool=G.deck.filter(c=>!known.has(c.u)); let tot=0;
+  for(let i=0;i<AIP.bidSims;i++){
+    shuffle(pool); const hands=[]; for(const x of seen) hands[x]=G.pre[x].slice();
+    unseen.forEach((x,j)=>{ hands[x]=pool.slice(j*HS,(j+1)*HS); });
+    tot+=playOut(mkS(hands,new Array(G.nh).fill(0),null))[h];
+  }
+  return tot/AIP.bidSims;
+}
+// puntate di un'AI: arrotondamento cumulativo; l'ultima (la propria mano) è obbligata a far tornare la somma a 13
+function aiBid(b){
+  const seq=bidSeq(b,G.rd), bids={}; let cum=0, cumBid=0, rem=HS; const seen=[];
+  for(let j=0;j<seq.length;j++){
+    const h=seq[j]; seen.push(h);
+    if(j===seq.length-1){ bids[h]=rem; break; }
+    cum+=estimateMean(seen,h);
+    const v=Math.max(0,Math.min(rem,Math.round(cum)-cumBid)); bids[h]=v; cumBid+=v; rem-=v;
+  }
+  return bids;
+}
+// pesi per la valutazione dell'AI: punti di ogni puntata azzeccata (bonus compreso)
+function buildBW(){
+  G.bw=G.bids.map((bd,b)=>{
+    let i=0; return bidSeq(b,G.rd).map(h=>{
+      const bid=bd[h]; let w;
+      if(h===b||isBot(h)) w=(G.n-1)*0.5; else { w=(G.n-1)-i; i++; }
+      return {h,bid,w:w+((bid===0||bid>=6)?3:0)};
+    });
+  });
+}
+function valueFor(b,T){
+  let v=0; for(const e of G.bw[b]){ const d=Math.abs(T[e.h]-e.bid); if(d===0) v+=e.w; else v-=0.08*d; }
+  return v;
+}
+function tgtOf(b){ const t=new Array(G.nh).fill(0); for(const e of G.bw[b]) t[e.h]=e.bid; return t; }
+// mondo possibile dal punto di vista di s durante il gioco: le carte passate dagli altri sono ignote (ma coerenti con ciò che è uscito)
+function sampleWorld(s){
+  const n=G.n, rd=G.rd;
+  for(let tries=0;tries<30;tries++){
+    const out=[]; let bad=false;
+    for(let p=0;p<n;p++){
+      if(p===s){ out[p]=G.out[s]; continue; }
+      if(recvOf(p,rd)===s){ out[p]=G.inn[s]; continue; }
+      const forced=[], cand=[], pb=G.playedBy[p];
+      for(const c of G.pre[p]){
+        if(pb.includes(c)) continue;
+        if(G.playedUid.has(c.u)||(G.vm[p]>>c.k&1)) forced.push(c); else cand.push(c);
+      }
+      if(forced.length>2){ bad=true; out[p]=forced.slice(0,2); continue; }
+      const r=recvOf(p,rd), cs=cand.filter(c=>!(G.vm[r]>>c.k&1));
+      out[p]=forced.concat(shuffle((cs.length>=2-forced.length?cs:cand).slice()).slice(0,2-forced.length));
+    }
+    if(bad&&tries<29) continue;
+    const hands=[]; let ok=true;
+    for(let p=0;p<G.nh;p++){
+      if(p===s) hands[p]=G.hands[s].slice();
+      else if(isBot(p)) hands[p]=G.hands[p].slice();
+      else{
+        const pb=G.playedBy[p], o=out[p], inn=out[sendOf(p,rd)];
+        hands[p]=G.pre[p].filter(c=>!o.includes(c)).concat(inn).filter(c=>!pb.includes(c));
+        if(hands[p].length!==G.hands[p].length) ok=false;
+      }
+    }
+    if(ok||tries===29) return hands;
+  }
+  return null;
+}
+function aiCard(s){
+  const L=legalCards(G.hands[s],G.plays,G.broken); if(L.length===1) return L[0];
+  const seenId=new Set(), C=[]; for(const c of L) if(!seenId.has(c.id)){ seenId.add(c.id); C.push(c); }
+  if(C.length===1) return C[0];
+  const tgt=tgtOf(s), tot=C.map(()=>0), t0=performance.now(), ms=window.NW_AIMS||AIP.ms; let nW=0;
+  while(nW<AIP.minW||(performance.now()-t0<ms&&nW<AIP.maxW)){
+    const W=sampleWorld(s); if(!W) break;
+    C.forEach((c,i)=>{
+      const hands=W.map(h=>h.slice()), S=mkS(hands,G.tw.slice(),tgt);
+      S.leader=G.leader; S.broken=G.broken; S.plays=G.plays.map(x=>({s:x.s,c:x.c}));
+      playCard(S,s,hands[s].find(x=>x.id===c.id));
+      finishTrick(S); tot[i]+=valueFor(s,playOut(S));
+    });
+    nW++;
+  }
+  if(!nW) return L[0];
+  let bi=0; tot.forEach((v,i)=>{ if(v>tot[bi]) bi=i; });
+  return C[bi];
+}
+// passaggio: simula il round con ogni coppia possibile contro passaggi casuali degli altri
+function aiPass(b){
+  const n=G.n, rd=G.rd, pre=G.pre[b], tgt=tgtOf(b), pairs=[];
+  for(let i=0;i<pre.length;i++) for(let j=i+1;j<pre.length;j++) pairs.push([pre[i],pre[j]]);
+  const tot=pairs.map(()=>0), r=recvOf(b,rd), sd=sendOf(b,rd);
+  for(let w=0;w<AIP.passW;w++){
+    const out=[]; for(let p=0;p<n;p++) if(p!==b) out[p]=shuffle(G.pre[p].slice()).slice(0,2);
+    pairs.forEach((pr,i)=>{
+      const hands=[];
+      for(let p=0;p<G.nh;p++){
+        if(isBot(p)) hands[p]=G.pre[p].slice();
+        else if(p===b) hands[p]=pre.filter(c=>c!==pr[0]&&c!==pr[1]).concat(out[sd]);
+        else{ const inn=p===r?pr:out[sendOf(p,rd)]; hands[p]=G.pre[p].filter(c=>!out[p]||!out[p].includes(c)).concat(inn); }
+      }
+      tot[i]+=valueFor(b,playOut(mkS(hands,new Array(G.nh).fill(0),tgt)));
+    });
+  }
+  let bi=0; tot.forEach((v,i)=>{ if(v>tot[bi]) bi=i; });
+  return pairs[bi];
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(mode){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  const M=MODES[mode];
+  G={mode,M,n:M.n,bot:M.bot,botId:M.n,nh:M.n+(M.bot?1:0),plus:M.plus,R:ROUNDS,rd:0,msg:'',log:[],over:null,show:null,phase:'',turn:-1,
+     botKind:M.bot?(rnd(2)?'IM':'ULI'):null,f0:rnd(M.n),hands:[],pre:[],deck:[],ring:[],leader:0,fp:0,tw:[],plays:[],broken:false,vm:[],playedBy:[],playedUid:new Set(),
+     bids:[],bw:[],out:[],inn:[],view:null,trick:0,res:null,fresh:-1,
+     pl:Array.from({length:M.n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[],ok:0}))};
+  run();
+}
+function dealRound(){
+  const n=G.n, nh=G.nh, rd=G.rd;
+  G.deck=buildDeck(G.M); const deck=shuffle(G.deck.slice());
+  G.hands=[]; for(let h=0;h<nh;h++) G.hands.push(sortHand(deck.slice(h*HS,(h+1)*HS)));
+  G.pre=G.hands.map(h=>h.slice());
+  G.fp=(G.f0+rd-1)%n;
+  const t=((G.fp-(rd-1))%n+n)%n, ring=[]; for(let i=0;i<n;i++) ring.push(i);
+  if(G.bot) ring.splice(ring.indexOf(t),0,G.botId);   // il bot sta a destra del primo giocatore e a ogni round si sposta in senso antiorario
+  G.ring=ring; G.leader=(G.bot&&rd===4)?G.botId:G.fp;
+  G.tw=new Array(nh).fill(0); G.plays=[]; G.broken=false; G.vm=new Array(nh).fill(0);
+  G.playedBy=Array.from({length:nh},()=>[]); G.playedUid=new Set();
+  G.bids=Array.from({length:n},()=>({})); G.bw=[]; G.out=[]; G.inn=[]; G.view=null;
+  G.trick=0; G.phase='bid'; G.res=null; G.fresh=-1; G.turn=-1; G.show=null;
+}
+function bidInfo(h,b){
+  if(h===b) return 'La puntata sulla tua mano vale 1 punto per ogni altro giocatore che sbaglia la propria (+3 se è 0 o 6+ e la azzecchi).';
+  if(isBot(h)) return 'La puntata sul bot vale 1 punto per ogni altro giocatore che la sbaglia (+3 se è 0 o 6+ e la azzecchi).';
+  const seq=bidSeq(b,G.rd).filter(x=>x!==b&&!isBot(x)), w=(G.n-1)-seq.indexOf(h);
+  return `Se azzecchi questa puntata fai ${w} ${plural(w,'punto','punti')} (+3 se è 0 o 6+).`;
+}
+async function doBids(){
+  const n=G.n;
+  status(G.rd===1?`Buona partita a Numberwang±, ${P(HUM).name}! Le AI stanno guardando le mani…`:`Round ${G.rd}/${G.R}: le AI stanno guardando le mani…`);
+  await sleep(60);
+  for(let b=1;b<n;b++){ G.bids[b]=aiBid(b); await sleep(0); }
+  const seq=bidSeq(HUM,G.rd); let rem=HS;
+  const dirTxt=G.rd%2===1?'a partire da chi sta alla tua sinistra':'a partire da chi sta alla tua destra';
+  for(let j=0;j<seq.length;j++){
+    const h=seq[j], last=j===seq.length-1;
+    G.view={h,j,N:seq.length};
+    status(`Round ${G.rd}/${G.R} · di mano ${nameOf(G.fp)} · ${G.rd===1&&j===0?`Buona partita a Numberwang±, ${P(HUM).name}! `:''}${j===0?`Si punta su tutte le mani ${G.bot?'(prima il bot) ':''}${dirTxt}.`:`Puntata ${j+1}/${seq.length}.`}`);
+    const opts=last?[{label:`Conferma: la tua mano farà ${rem} ${plural(rem,'presa','prese')}`,value:rem}]:Array.from({length:rem+1},(_,v)=>({label:String(v),value:v,num:true}));
+    const title=last?`Puntata ${j+1}/${seq.length} · la tua mano · obbligata: la somma deve fare 13`:`Puntata ${j+1}/${seq.length} · mano di ${nameOf(h)} · quante prese farà? (ne restano ${rem} da assegnare)`;
+    const v=await ask(HUM,title,opts);
+    G.bids[HUM][h]=v; rem-=v;
+    logMsg(`Hai puntato ${v} su ${h===HUM?'te stesso':nameOf(h)}.`);
+  }
+  G.view=null;
+  buildBW();
+}
+function humanPass(){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'pass',sel:[],res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function togglePass(u){
+  if(!PR||PR.type!=='pass') return;
+  const i=PR.sel.indexOf(u);
+  if(i>=0) PR.sel.splice(i,1); else if(PR.sel.length<2) PR.sel.push(u); else { PR.sel.shift(); PR.sel.push(u); }
+  render();
+}
+function goPass(kind){
+  if(!PR||PR.type!=='pass') return;
+  if(kind==='x'){ PR.sel=[]; render(); return; }
+  if(PR.sel.length!==2) return;
+  const cs=PR.sel.map(u=>G.hands[HUM].find(x=>x.u===u)), r=PR.res; PR=null; render(); r(cs);
+}
+async function doPass(){
+  const n=G.n, rd=G.rd; G.phase='pass';
+  status(`Round ${G.rd}/${G.R}: puntate fatte. Ora passa 2 carte (coperte) ${rd%2===1?'a sinistra':'a destra'}.`);
+  await sleep(40);
+  const outs=[]; for(let p=1;p<n;p++) outs[p]=aiPass(p);
+  outs[HUM]=await humanPass();
+  for(let p=0;p<n;p++){ G.out[p]=outs[p]; G.inn[recvOf(p,rd)]=outs[p]; }
+  for(let p=0;p<n;p++){ G.hands[p]=sortHand(G.pre[p].filter(c=>!G.out[p].includes(c)).concat(G.inn[p])); }
+  const to=recvOf(HUM,rd), from=sendOf(HUM,rd);
+  logMsg(`Passi ${G.out[HUM].map(cname).join(' e ')} a ${nameOf(to)}; ricevi ${G.inn[HUM].map(cname).join(' e ')} da ${nameOf(from)}.`);
+  G.phase='play';
+  status(`Hai ricevuto ${G.inn[HUM].map(cname).join(' e ')} da ${nameOf(from)}.`);
+  await ask(HUM,`Di mano ${nameOf(G.leader)}${G.bot?` · il bot ${G.botKind} gioca ${G.ring.indexOf(G.botId)===0?'per primo':'dopo '+nameOf(G.ring[G.ring.indexOf(G.botId)-1])}`:''}`,[{label:'Ok, si gioca',value:1}]);
+}
+function humanTurn(s,legal){
+  const g=G;
+  if(legal.length===1){ status(`${nameOf(s)}: puoi giocare solo ${cname(legal[0])}.`); return sleep(900).then(()=>legal[0]); }
+  return new Promise((res,rej)=>{ PR={type:'turn',seat:s,legal:new Set(legal.map(c=>c.u)),sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function tapCard(u){
+  if(!PR||PR.type!=='turn'||!PR.legal.has(u)) return;
+  const c=G.hands[PR.seat].find(x=>x.u===u);
+  if(!OPT.undo){ const r=PR.res; PR=null; render(); r(c); return; }
+  PR.sel=PR.sel===u?null:u; render();
+}
+function goTurn(kind){
+  if(!PR||PR.type!=='turn'||PR.sel==null) return;
+  if(kind==='x'){ PR.sel=null; render(); return; }
+  const c=G.hands[PR.seat].find(x=>x.u===PR.sel), r=PR.res; PR=null; render(); r(c);
+}
+function turnHint(){
+  const s=PR.seat, X=G.plays, bid=G.bids[HUM][HUM];
+  const my=`<br>Puntata sulla tua mano: <b>${bid}</b> · prese finora: <b>${G.tw[s]}</b>.`;
+  if(!X.length){
+    const onlyT=G.hands[s].every(c=>c.k===TR);
+    if(G.broken) return `<b>Apri tu la presa.</b> L'onda è spezzata: puoi aprire anche con la briscola.${my}`;
+    return `<b>Apri tu la presa.</b> ${onlyT?'Hai solo onde, quindi puoi aprire con la briscola.':'Non puoi aprire con l\'onda (briscola) finché non è stata spezzata.'}${my}`;
+  }
+  const lk=X[0].c.k, has=G.hands[s].some(c=>c.k===lk), w=trickWin(X);
+  const cur=w?`Al momento vince ${esc(nameOf(w.s))} con ${esc(cname(w.c))}.`:'Al momento nessuno vince la presa.';
+  return `${has?`<b>Devi rispondere con il ${COLS[lk].n}.</b>`:`<b>Non hai il ${COLS[lk].n}:</b> puoi giocare qualsiasi carta${lk!==TR?` (l'onda è briscola e vince)`:''}.`} ${cur}${my}`;
+}
+function previewText(c){
+  const s=PR.seat, X=G.plays, rest=G.nh-X.length-1;
+  const plays=X.concat([{s,c}]), w=trickWin(plays), canc=cancelled(plays).some(x=>x.s===s);
+  const st=canc?'la tua carta si annulla con una identica: non puoi vincere':(w&&w.s===s?'al momento vinci la presa':'al momento non vinci la presa');
+  return `${esc(cname(c))}: ${X.length?st:'apri tu'}${rest>0?`; ${rest} ${plural(rest,'giocatore deve','giocatori devono')} ancora giocare`:''}.${c.k===TR&&!G.broken?' Giocare un\'onda spezza la briscola.':''}`;
+}
+async function oneTrick(){
+  const nh=G.nh; G.trick++; G.plays=[]; G.res=null; G.fresh=-1;
+  const t=G.trick, ring=G.ring, i0=ring.indexOf(G.leader);
+  logMsg(`Round ${G.rd}/${G.R} · presa ${t}/${HS}: di mano ${nameOf(G.leader)}.`);
+  status(`Round ${G.rd}/${G.R} · presa ${t}/${HS}: di mano ${nameOf(G.leader)}.`);
+  await sleep(600);
+  for(let k=0;k<nh;k++){
+    const s=ring[(i0+k)%nh], legal=legalCards(G.hands[s],G.plays,G.broken);
+    G.turn=s; status(`Presa ${t}/${HS} · tocca a ${nameOf(s)}.`);
+    let c;
+    if(s===HUM) c=await humanTurn(s,legal);
+    else if(isBot(s)){ await sleep(650); c=legal.length===1?legal[0]:botCard(G,s,legal); }
+    else { await sleep(550); c=aiCard(s); }
+    const b0=G.broken; playCard(G,s,c); G.playedBy[s].push(c); G.playedUid.add(c.u); G.fresh=s;
+    logMsg(`${nameOf(s)} gioca ${cname(c)}.`);
+    if(G.broken&&!b0) logMsg('L\'onda è spezzata: ora si può aprire con la briscola.');
+  }
+  G.turn=-1;
+  const w=trickWin(G.plays), cc=cancelled(G.plays);
+  let msg;
+  if(w){ G.tw[w.s]++; G.leader=w.s; G.res={w:w.s}; msg=`${nameOf(w.s)} vince la presa con ${cname(w.c)}${cc.length?` (${cc.map(x=>cname(x.c)).join(' e ')}: carte identiche annullate)`:''}.`; }
+  else { G.res={w:-1}; msg=`Nessun vincitore: ${cc.map(x=>cname(x.c)).join(' e ')} si annullano. La presa è scartata e ${nameOf(G.leader)} apre di nuovo.`; }
+  status(msg); logMsg(msg);
+  await sleep(2400);
+}
+function scoreRound(){
+  const n=G.n, T=G.tw, miss=[], bmiss=[];
+  for(let q=0;q<n;q++){ miss[q]=G.bids[q][q]!==T[q]; if(G.bot) bmiss[q]=G.bids[q][G.botId]!==T[G.botId]; }
+  const items=[], pts=[];
+  for(let b=0;b<n;b++){
+    let p=0, i=0; const it=[];
+    for(const h of bidSeq(b,G.rd)){
+      const bid=G.bids[b][h]; let base;
+      if(h===b){ base=0; for(let q=0;q<n;q++) if(q!==b&&miss[q]) base++; }
+      else if(isBot(h)){ base=0; for(let q=0;q<n;q++) if(q!==b&&bmiss[q]) base++; }
+      else { base=(n-1)-i; i++; }
+      const hit=bid===T[h], bonus=(bid===0||bid>=6)?3:0;
+      it.push({h,bid,hit,base,bonus,pts:hit?base+bonus:0}); if(hit) p+=base+bonus;
+    }
+    items.push(it); pts.push(p);
+  }
+  return {T:T.slice(),items,pts};
+}
+async function roundEnd(){
+  const sc=scoreRound();
+  G.pl.forEach(p=>{ p.total+=sc.pts[p.id]; p.hist.push(sc.pts[p.id]); p.ok+=sc.items[p.id].filter(x=>x.hit).length; });
+  logMsg(`Round ${G.rd} concluso (prese: ${Array.from({length:G.nh},(_,h)=>`${nameOf(h)} ${sc.T[h]}`).join(', ')}).`);
+  G.pl.forEach(p=>{
+    const hits=sc.items[p.id].filter(x=>x.hit);
+    logMsg(`${p.name}: ${sgn(sc.pts[p.id])} punti${hits.length?` (${hits.map(x=>`${x.h===p.id?'sé':nameOf(x.h)} ${x.bid} → +${x.pts}`).join(', ')})`:' (nessuna puntata azzeccata)'} · totale ${p.total}.`);
+  });
+  const last=G.rd===G.R;
+  G.show={sc,last}; G.phase='end'; G.plays=[]; G.res=null; G.turn=-1;
+  status(last?'Partita conclusa: ecco il risultato.':`Round ${G.rd} concluso.`);
+  await ask(HUM,'Punteggio del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
+  G.show=null;
+}
+async function run(){
+  const g=G;
+  try{
+    for(let rd=1;rd<=g.R;rd++){
+      g.rd=rd; dealRound();
+      logMsg(`— Round ${rd}/${g.R}: di mano ${nameOf(g.fp)}${g.bot?`, il bot ${g.botKind} è seduto prima di ${nameOf(g.ring[(g.ring.indexOf(g.botId)+1)%g.nh])}`:''}${rd===4&&g.bot?' e apre la prima presa':''}. —`);
+      await doBids();
+      await doPass();
+      for(let i=0;i<HS;i++) await oneTrick();
+      await roundEnd();
+    }
+    const m=Math.max(...g.pl.map(p=>p.total)), top=g.pl.filter(p=>p.total===m), mo=Math.max(...top.map(p=>p.ok));
+    g.over={winners:top.filter(p=>p.ok===mo).map(p=>p.id)};
+    g.turn=-1; g.show=null; render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+const SYM = {
+  circ:'<circle cx="12" cy="12" r="9"/>',
+  tri:'<path d="M12 3L22 20H2z"/>',
+  sq:'<rect x="3.500" y="3.500" width="17" height="17" rx="1.500"/>',
+  wave:'<path d="M2 15c3-9 5-9 8-3s5 6 8-2 3-3 4-4"/>'
+};
+const symSvg = k => `<svg viewBox="0 0 24 24" aria-hidden="true" ${COLS[k].sym==='wave'?'class="w"':''}>${SYM[COLS[k].sym]}</svg>`;
+function cardHtml(c,cls='',tag='span',attrs=''){
+  const corner=`${c.r}${symSvg(c.k)}`;
+  return `<${tag} class="pc k${c.k} ${cls}" ${attrs} title="${cname(c)}"><span class="pt">${symSvg(c.k)}</span><i class="cn a">${corner}</i><i class="cn d">${corner}</i></${tag}>`;
+}
+const chipN = (c,cls='') => `<span class="nc k${c.k} ${cls}" title="${cname(c)}">${c.r}</span>`;
+const brkHtml = () => G.broken?'<span class="brk yes">Onda spezzata: si può aprire con la briscola</span>':'<span class="brk no">Onda non ancora spezzata</span>';
+function legendHtml(){
+  return `<div class="legend">${[0,1,2,3].map(k=>`<span class="lg k${k}"><span class="ic">${symSvg(k)}</span>${COLS[k].n}${COLS[k].sub?` <small>${COLS[k].sub}</small>`:''}</span>`).join('')}</div>
+    <div class="lgrow">${brkHtml()}</div>`;
+}
+function handCards(h,cls=''){ return h.map(c=>cardHtml(c,cls)).join(''); }
+function viewHtml(){
+  const v=G.view, h=v.h, own=h===HUM;
+  const mine=Object.entries(G.bids[HUM]).filter(([k])=>+k!==h).map(([k,b])=>`<span class="tag">${+k===HUM?'te':esc(nameOf(+k))}: <b>${b}</b></span>`).join(' ');
+  return `<div class="scorebox vh"><h3>PUNTATA ${v.j+1}/${v.N} · ${own?'LA TUA MANO (QUELLA CHE GIOCHERAI)':isBot(h)?`MANO DEL BOT ${G.botKind} (SCOPERTA)`:`MANO DI ${esc(nameOf(h)).toUpperCase()}`}</h3>
+    <div class="vt"><span class="nm" style="--sc:${seatC(h)}">${esc(nameOf(h))}</span><span class="hint">${bidInfo(h,HUM)}</span></div>
+    <div class="hand show">${handCards(G.pre[h])}</div>
+    ${mine?`<div class="seat-meta" style="justify-content:flex-start"><span class="hint">Le tue puntate:</span> ${mine}</div>`:''}</div>`;
+}
+function playedHtml(s){
+  const x=G.plays.find(y=>y.s===s);
+  if(x){
+    const cc=cancelled(G.plays).some(y=>y.s===s);
+    return `<div class="tableau">${cardHtml(x.c,`mini ${G.res&&G.res.w===s&&G.plays.length===G.nh?'win':''} ${G.fresh===s&&!G.res?'fresh':''} ${cc&&G.res?'canc':''}`)}</div>`;
+  }
+  return `<div class="tableau">${G.phase==='play'?'<span class="slot"></span>':''}</div>`;
+}
+function subHtml(s,pos){
+  const human=s===HUM, hl=G.hands[s].length;
+  let h='';
+  if(human&&G.phase!=='bid'){
+    const rec=G.phase==='play'&&G.trick<=1?new Set((G.inn[HUM]||[]).map(c=>c.u)):new Set();
+    h=`<div class="hand">${G.hands[s].map(c=>{
+      if(PR&&PR.type==='turn'&&PR.seat===s){ const lg=PR.legal.has(c.u); return cardHtml(c,`${lg?'legal':'dim'} ${PR.sel===c.u?'sel':''}`,'button',`${lg?'':'disabled'} data-t="${c.u}"`); }
+      if(PR&&PR.type==='pass') return cardHtml(c,PR.sel.includes(c.u)?'sel':'legal','button',`data-p="${c.u}"`);
+      return cardHtml(c,rec.has(c.u)?'recv':'');
+    }).join('')}</div>`;
+  }else h=`<div class="backs">${Array.from({length:hl},()=>'<span class="back"></span>').join('')}</div>`;
+  const meta=`<div class="seat-meta"><span class="tag"><b>${hl}</b> ${plural(hl,'carta','carte')}</span><span class="tag"><b>${G.tw[s]||0}</b> ${plural(G.tw[s]||0,'presa','prese')}</span>${human&&G.phase!=='bid'&&G.bids[HUM][HUM]!==undefined?`<span class="tag">puntata <b>${G.bids[HUM][HUM]}</b></span>`:''}</div>`;
+  const tb=playedHtml(s);
+  const inner=pos==='bottom'?`${tb}${meta}${h}`:(pos==='top'?`${h}${meta}${tb}`:`${meta}${tb}${h}`);
+  return `<div class="sub">${inner}</div>`;
+}
+function flagHtml(s){
+  if(G.over) return G.over.winners.includes(s)?'<span class="flag win">Vince</span>':'';
+  let f=isBot(s)?'<span class="flag bot">Bot</span>':'';
+  if(G.phase==='play'&&G.leader===s) f+='<span class="flag lead">Di mano</span>';
+  return f;
+}
+function seatHtml(s,pos){
+  const tot=isBot(s)?'':`<span class="tag">totale <b>${P(s).total}</b></span>`;
+  const name=`<div class="seat-name"><span class="nm" style="--sc:${seatC(s)}">${esc(nameOf(s))}</span><div class="nmrow">${flagHtml(s)}${tot}</div></div>`;
+  const sub=subHtml(s,pos);
+  const act=G.turn===s, ld=G.phase==='play'&&!G.over&&G.leader===s&&G.turn<0&&!G.plays.length;
+  const wn=(G.res&&G.res.w===s&&G.plays.length===G.nh)||(G.over&&G.over.winners.includes(s));
+  const inner=pos==='top'?`${sub}${name}`:`${name}${sub}`;
+  return `<div class="seat ${pos} ${ld?'leader':''} ${act?'active':''} ${wn&&!G.over?'winner':''}">${inner}</div>`;
+}
+function centerHtml(){
+  let top='';
+  if(G.over) top='<div><b>Partita conclusa</b></div>';
+  else if(G.res&&G.plays.length===G.nh) top=G.res.w>=0?`<div>Presa a <b>${esc(nameOf(G.res.w))}</b></div>`:'<div><b>Nessun vincitore</b></div>';
+  return `<div class="center">${top}<span class="rbox">Round ${G.rd||1}/${G.R}</span>
+    <div>${G.phase==='play'&&G.trick?`Presa <b>${Math.min(G.trick,HS)}/${HS}</b>`:(G.phase==='bid'?'Puntate':(G.phase==='pass'?'Passaggio carte':''))}</div>${G.phase==='play'?brkHtml():''}</div>`;
+}
+function botBoxHtml(){
+  const h=G.hands[G.botId], rows=[0,1,2,3].map(k=>{
+    const cs=h.filter(c=>c.k===k); return `<div class="ur k${k}"><span class="l">${COLS[k].n}</span>${cs.map(c=>chipN(c,'s')).join('')||'<span class="hint">—</span>'}</div>`;
+  }).join('');
+  const prog=G.botKind==='IM'?'apre con la carta più alta del seme più lungo · risponde con la più bassa · fuori seme gioca l\'onda più alta, se non ne ha la più bassa del seme più corto':'apre con la più bassa del seme più corto · risponde con la più alta · fuori seme gioca l\'onda più bassa, se non ne ha la più bassa del seme più corto';
+  return `<div class="scorebox"><h3>BOT ${G.botKind} · MANO SCOPERTA</h3><div class="unseen">${rows}</div><div class="hint" style="margin-top:8px">${prog}. A parità di lunghezza: cerchio, triangolo, quadrato, onda.</div></div>`;
+}
+function memoHtml(){
+  const rows=[...Array(G.n).keys()].filter(s=>s!==HUM).map(s=>{
+    const cs=G.pre[s];
+    return `<div class="ur"><span class="l"><span class="nm" style="--sc:${seatC(s)}">${esc(nameOf(s))}</span></span>${cs.map(c=>chipN(c,'s k'+c.k+(G.playedUid.has(c.u)?' gone':''))).join('')}</div>`;
+  }).join('');
+  return `<div class="scorebox"><h3>MANI VISTE IN FASE DI PUNTATA (PRIMA DEL PASSAGGIO · SBARRATE = GIÀ USCITE · 2 CARTE PER MANO SONO STATE PASSATE)</h3><div class="unseen">${rows}</div></div>`;
+}
+function scoreTable(){
+  const nr=G.pl[0].hist.length;
+  const rows=G.pl.map(p=>`<tr class="${p.id===HUM?'me':''}"><td>${esc(p.name)}</td>${p.hist.map(x=>`<td>${x}</td>`).join('')}<td><b>${p.total}</b></td><td>${p.ok}</td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Punteggi</th>${Array.from({length:nr},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th><th title="Puntate azzeccate">Giuste</th></tr>${rows}</table></div>`;
+}
+function showHtml(){
+  const sc=G.show.sc, hs=[...Array(G.n).keys()].concat(G.bot?[G.botId]:[]);
+  const head=`<tr><th>Puntate su →</th>${hs.map(h=>`<th><span class="nm" style="--sc:${seatC(h)}">${esc(nameOf(h))}</span></th>`).join('')}<th>Punti</th></tr>`;
+  const tw=`<tr class="tw"><td>Prese fatte</td>${hs.map(h=>`<td><b>${sc.T[h]}</b></td>`).join('')}<td></td></tr>`;
+  const rows=G.pl.map(p=>`<tr><td><span class="nm" style="--sc:${seatC(p.id)}">${esc(p.name)}</span></td>${hs.map(h=>{
+    const it=sc.items[p.id].find(x=>x.h===h);
+    return `<td class="${it.hit?'hit':''} ${h===p.id?'own':''}" title="${it.hit?`azzeccata: +${it.pts}`:'sbagliata'}">${it.bid}</td>`;
+  }).join('')}<td><b>${sgn(sc.pts[p.id])}</b></td></tr>`).join('');
+  const det=G.pl.map(p=>{
+    const hits=sc.items[p.id].filter(x=>x.hit);
+    return `<div class="seat-meta" style="justify-content:flex-start"><span class="nm" style="--sc:${seatC(p.id)}">${esc(p.name)}</span>${hits.length?hits.map(x=>`<span class="tag ok">${x.h===p.id?'sé':esc(nameOf(x.h))} ${x.bid}: +${x.base}${x.bonus?' +3':''}</span>`).join(' '):'<span class="tag ko">nessuna puntata azzeccata</span>'}</div>`;
+  }).join('');
+  return `<div class="scroll-x"><table class="score mx">${head}${tw}${rows}</table></div><div class="hint">Riquadro nero = puntata sulla propria mano · verde = azzeccata.</div>${det}`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Numberwang± contro l'AI. Si punta su tutte le mani, non solo sulla propria.</div>
+    <div class="dock-title">QUANTI GIOCATORI IN TUTTO?</div>
+    <div class="opts">
+      <button class="opt" data-m="m3">3 giocatori − (tu + 2 AI + bot)</button>
+      <button class="opt" data-m="m4">4 giocatori (tu + 3 AI)</button>
+      <button class="opt" data-m="m5">5 giocatori + (tu + 4 AI)</button>
+    </div>
+    <div class="dock-title">VARIANTI AVANZATE (4 GIOCATORI)</div>
+    <div class="opts">
+      <button class="opt" data-m="mpm">± carte identiche che si annullano, mazzo da 52</button>
+      <button class="opt" data-m="mmp">∓ tu + 3 AI + bot, mazzo da 65</button>
+    </div>`;
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> That's Numberwang!</div>${scoreTable()}`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(G.show) html+=`<div class="acq">${showHtml()}</div>`;
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt ${o.num?'num':''}" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+    if(G.view) html+=`<div class="hint">${esc(bidInfo(G.view.h,HUM))}</div>`;
+  }else if(PR&&PR.type==='pass'){
+    const to=nameOf(recvOf(HUM,G.rd)), k=PR.sel.length;
+    html+=`<div class="dock-title">ROUND ${G.rd}/${G.R} · PASSA 2 CARTE A ${esc(to).toUpperCase()} (${G.rd%2===1?'SINISTRA':'DESTRA'})</div>
+      <div class="hint">Scegli <b>2 carte</b> da passare, coperte, a <b>${esc(to)}</b>; ne riceverai 2 da ${esc(nameOf(sendOf(HUM,G.rd)))}. Ricorda la tua puntata sulla tua mano: <b>${G.bids[HUM][HUM]}</b> ${plural(G.bids[HUM][HUM],'presa','prese')}.</div>
+      <div class="opts"><button class="opt" data-go="pass" ${k===2?'':'disabled'}>Passa ${k===2?PR.sel.map(u=>cname(G.hands[HUM].find(c=>c.u===u))).join(' e '):'2 carte'}</button><button class="opt" data-go="x" ${k?'':'disabled'}>Azzera</button></div>`;
+  }else if(PR&&PR.type==='turn'){
+    const PH='13 Quadrato: al momento non vinci la presa; 3 giocatori devono ancora giocare. Giocare un\'onda spezza la briscola.';
+    html+=`<div class="hint">${turnHint()}</div>`;
+    if(PR.sel!=null){
+      const c=G.hands[PR.seat].find(x=>x.u===PR.sel);
+      html+=`<div class="stack"><div class="hint">${previewText(c)}</div><div class="hint" style="visibility:hidden" aria-hidden="true">${PH}</div></div><div class="opts"><button class="opt k${c.k}" data-go="play"><span class="dot"></span>${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    }else if(OPT.undo) html+=`<div class="stack"><div class="hint"></div><div class="hint" style="visibility:hidden" aria-hidden="true">${PH}</div></div><div class="opts" style="visibility:hidden" aria-hidden="true"><button class="opt" tabindex="-1">Gioca 13 Quadrato</button><button class="opt" tabindex="-1">Annulla</button></div>`;
+  }
+  return html;
+}
+function recapHtml(){
+  const M=G.M;
+  return `<details class="recap" ${RECAPOPEN?'open':''}><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Modalità</span><span class="rv">${M.name} · ${G.n} giocatori${G.bot?` + bot ${G.botKind}`:''} · ${G.deck.length||'—'} carte, 13 a testa · 4 round</span></div>
+    <div class="recap-row"><span class="lbl">Puntate</span><span class="rv">si punta su ogni mano (anche la propria) quante prese farà · la somma delle tue puntate deve fare 13 · le puntate sono definitive e segrete fino a fine round</span></div>
+    <div class="recap-row"><span class="lbl">Passaggio</span><span class="rv">dopo le puntate si passano 2 carte (a sinistra nei round 1 e 3, a destra nei round 2 e 4)</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">si risponde al seme · vince la briscola (onda) più alta, altrimenti la carta più alta del seme di apertura · l'onda non si apre finché non è spezzata${G.plus?' · carte identiche nella stessa presa si annullano':''}</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">solo per le puntate esatte: sulle mani degli altri ${[...Array(G.n-1).keys()].map(i=>G.n-1-i).join('·')} punti (le prime valgono di più) · sulla tua mano e sul bot 1 punto per ogni giocatore che sbaglia · +3 se la puntata esatta è 0 oppure 6 o più</span></div>
+    <div class="recap-row"><span class="lbl">Vince</span><span class="rv">il totale più alto dopo 4 round · parità: più puntate giuste</span></div></details>`;
+}
+const RULES_HTML = () => `
+<details class="rules" ${RULESOPEN?'open':''}><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Che gioco è</h4>
+<p><i>Numberwang±</i> (di Cardner e Alex Babakitis, Odd Candy) è un gioco di prese a seme obbligato con l'<b>onda viola come briscola</b>. La particolarità: prima di giocare <b>si guardano e si valutano tutte le mani</b> e si punta su quante prese farà ciascuna. Si segnano punti per ogni puntata azzeccata.</p>
+<h4>Modalità</h4>
+<ul><li><b>3 giocatori (Numberwang−):</b> 52 carte (1–13 in 4 semi); si gioca contro un <b>bot</b> con una mano scoperta, IM oppure ULI.</li>
+<li><b>4 giocatori (Numberwang):</b> 52 carte (1–13 in 4 semi).</li>
+<li><b>5 giocatori (Numberwang+):</b> 65 carte (1–10 in ogni seme; 11, 12 e 13 doppi in ogni seme; un 14 di onde). Vale la regola delle carte identiche.</li>
+<li><b>4 giocatori ± (avanzata):</b> regole del + con un mazzo da 52: si tolgono i valori 1–3 dei tre semi normali e 1–4 delle onde.</li>
+<li><b>4 giocatori ∓ (avanzata):</b> regole del − e del + insieme: 65 carte, il bot è il quinto giocatore.</li></ul>
+<h4>Ogni round</h4>
+<ol><li><b>Distribuzione:</b> 13 carte per mano (anche per il bot, se c'è, la cui mano è scoperta). Le mani sono quelle dei giocatori, ognuna associata a un colore; chi ha il segnalino «di mano» apre la prima presa.</li>
+<li><b>Puntate:</b> si punta su tutte le mani, una alla volta (prima il bot, se c'è; poi gli altri a partire da chi sta a sinistra nei round 1 e 3 o a destra nei round 2 e 4; per ultima la propria mano, quella che giocherai). Per ogni mano si dice quante prese farà. <b>La somma delle tue puntate deve fare esattamente 13</b>: di conseguenza l'ultima puntata, quella sulla tua mano, è obbligata. Le puntate non si cambiano.</li>
+<li><b>Passaggio:</b> dopo aver puntato, ognuno passa 2 carte coperte nel verso opposto a quello delle puntate: a sinistra nei round 1 e 3, a destra nei round 2 e 4. Il bot non passa carte.</li>
+<li><b>Gioco:</b> 13 prese. Chi apre gioca una carta, in senso orario tutti rispondono al seme se possono, altrimenti giocano qualsiasi carta. Vince la <b>briscola (onda) più alta</b> se ce n'è, altrimenti la carta più alta del seme di apertura. Chi vince apre la presa seguente.</li>
+<li><b>Onda spezzata:</b> non si può aprire con l'onda finché un'onda non è stata giocata in una presa (cioè «spezzata»); se chi apre ha solo onde può aprire con l'onda.</li></ol>
+<h4>Carte identiche (Numberwang+, ±, ∓)</h4>
+<p>Due carte identiche (stesso valore e stesso seme) giocate nella stessa presa si annullano e vengono ignorate per decidere il vincitore. Se così la presa non ha vincitore, le carte si scartano e apre di nuovo chi aveva aperto.</p>
+<h4>Il bot (3 giocatori e ∓)</h4>
+<p>Il bot si siede a destra del primo giocatore del round 1 e a ogni round si sposta di un posto in senso antiorario; nel quarto round il bot apre la prima presa. Gioca secondo il suo programma; se ci sono pari di lunghezza si usa l'ordine cerchio, triangolo, quadrato, onda; non apre con l'onda se non è spezzata (o se ha solo onde).</p>
+<ul><li><b>IM:</b> apre con la carta più alta del seme più lungo · risponde con la più bassa · fuori seme gioca l'onda più alta, e se non ne ha la carta più bassa del seme più corto.</li>
+<li><b>ULI:</b> apre con la carta più bassa del seme più corto · risponde con la più alta · fuori seme gioca l'onda più bassa, e se non ne ha la più bassa del seme più corto.</li></ul>
+<h4>Punteggio</h4>
+<p>A fine round si guardano le prese fatte da ogni mano: <b>si segna solo per le puntate esatte</b>. Le puntate sulle mani degli altri giocatori valgono di più quanto prima le hai fatte (con 4 giocatori 3, 2 e 1 punto; con 3 giocatori 2 e 1; con 5 giocatori 4, 3, 2 e 1). La puntata sulla tua mano vale <b>1 punto per ogni altro giocatore che ha sbagliato la propria</b>; lo stesso per la puntata sul bot. Le puntate di <b>0</b> e di <b>6 o più</b> esatte danno <b>+3</b> punti in più.</p>
+<h4>Fine della partita</h4>
+<p>Dopo 4 round vince chi ha più punti; in caso di parità chi ha azzeccato più puntate nella partita; se c'è ancora parità la vittoria è condivisa. Dopo ogni round il segnalino «di mano» passa al giocatore successivo in senso orario.</p>
+<p><i>Nell'app:</i> le puntate delle AI restano nascoste fino a fine round, come sui fogli di punteggio. Le AI vedono le mani nello stesso ordine in cui le vedi tu e non conoscono le carte passate dagli altri; quelle che passano o ricevono loro sì. Il primo giocatore del round 1 è sorteggiato. Nei round in cui il bot ha un vicino «a sinistra» o «a destra» il passaggio salta il bot (passa solo tra giocatori). Un'onda giocata, anche se aperta perché si hanno solo onde, spezza la briscola. Nel menu puoi attivare «Abilita annulla» (chiede conferma prima di giocare una carta) e «Mostra le mani viste in fase di puntata» (ti ricorda le mani degli altri prima del passaggio, con le carte già uscite sbarrate).</p>
+</div></details>`;
+
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma prima di giocare una carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Mostra le mani degli altri come le hai viste in fase di puntata, con le carte già uscite sbarrate"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le mani viste in fase di puntata</label>
+    </div>`:''}</div>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{
+  if(!e.target.matches) return;
+  if(e.target.matches('details.log')) LOGOPEN=e.target.open;
+  else if(e.target.matches('details.rules')) RULESOPEN=e.target.open;
+  else if(e.target.matches('details.recap')) RECAPOPEN=e.target.open;
+},true);
+let LASTTALL=false;
+function render(){
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo"><span class="t"><span class="nm1">numberwang±</span><small>un gioco di prese per 3, 4 o 5</small></span></div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over&&G.rd?`<span class="badge">Round ${G.rd}/${G.R}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    const ready=G.hands.length>0, play=ready&&G.phase!=='bid';
+    body=`${ready?`<div class="scorebox"><h3>SEMI E BRISCOLA</h3>${legendHtml()}</div>`:''}
+      ${ready&&G.view?viewHtml():''}
+      ${ready?`<div class="table n${G.nh}">${G.ring.map((s,i)=>{ const r=G.ring.indexOf(HUM); return seatHtml(s,POS[G.nh][(i-r+G.nh)%G.nh]); }).join('')}${centerHtml()}</div>`:''}
+      ${play&&G.bot&&!G.over?botBoxHtml():''}
+      ${play&&OPT.memo&&!G.over&&G.phase!=='end'?memoHtml():''}
+      ${G.pl[0].hist.length&&!G.over?`<div class="scorebox"><h3>PUNTEGGI</h3>${scoreTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML()}`;
+  }
+  const lb=app.querySelector('.logbody'), lbTop=lb?lb.scrollTop:0;
+  app.innerHTML=top+`<div class="dock${G&&(G.show||G.over)?' tall':''}">${dockHtml()}</div>`+body;
+  if(lbTop){ const nb=app.querySelector('.logbody'); if(nb) nb.scrollTop=lbTop; }
+  const tall=!!(G&&(G.show||G.over)); if(tall&&!LASTTALL) window.scrollTo(0,0); LASTTALL=tall;
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.m){ MENUOPEN=false; const m=b.dataset.m; if(G) newMatch(m); else askName(m); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')){ MENUOPEN=false; toSetup(); } }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.t!==undefined) tapCard(Number(b.dataset.t));
+  else if(b.dataset.p!==undefined) togglePass(Number(b.dataset.p));
+  else if(b.dataset.go!==undefined){ if(PR&&PR.type==='pass') goPass(b.dataset.go); else goTurn(b.dataset.go); }
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optUndo'){
+    OPT.undo=e.target.checked;
+    try{ localStorage.setItem('nw-undo',OPT.undo?'1':'0'); }catch(err){}
+    if(!OPT.undo&&PR&&PR.type==='turn'&&PR.sel!=null) PR.sel=null;
+    render();
+  }else if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('nw-memo',OPT.memo?'1':'0'); }catch(err){}
+    render();
+  }
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+
+</script>
+</body>
+</html>
