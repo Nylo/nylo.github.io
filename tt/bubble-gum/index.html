@@ -202,6 +202,9 @@ body .app>section>p.muted{color:var(--topc,var(--text-soft));margin-bottom:10px}
 .roster .soft{color:var(--text-soft)}
 .room-code{padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:Consolas,monospace;letter-spacing:1px;font-size:12px;color:var(--topc,var(--text));border-color:var(--topc,var(--border))}
 .conn{font-size:11px;color:var(--topc,var(--text-soft))}
+.room-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.room-bar .room-code,.room-bar .btn{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 10px;line-height:1;box-sizing:border-box;white-space:nowrap}
+.room-bar .conn{margin-left:auto}
 .err{position:fixed;left:12px;right:12px;bottom:12px;max-width:680px;margin:0 auto;padding:12px 14px;border:1px solid rgba(217,107,107,0.6);border-radius:8px;background:#3a1d22;color:#fff;font-size:13px;line-height:1.4;z-index:200}
 .opt.on{border-color:var(--accent);background:var(--accent);color:#1a0a12}
 .opt.on:disabled{opacity:1}
@@ -1013,7 +1016,7 @@ function getPlayerName(){
 }
 var playerName=getPlayerName();
 var db=null,user=null,roomRef=null,roomCode='',lobbyData=null,S=null,me=-1,listeners=[],startingGame=false;
-var statusText='',connText='',joinVal='',chosenCount=GAME.counts[0],MENUOPEN=false;
+var statusText='',connText='',joinVal='',chosenCount=GAME.counts[0],MENUOPEN=false,connecting=false;
 try{var lastRoom=JSON.parse(localStorage.getItem(SAVE_KEY));if(lastRoom)joinVal=lastRoom.code||''}catch(e){}
 
 function setStatus(t){statusText=t;render()}
@@ -1059,7 +1062,7 @@ async function createRoom(){
     }
     if(!created)throw lastErr||new Error('Impossibile creare la stanza. Verifica le regole del database.');
     await reserveSeat(playerName);
-  }catch(e){roomRef=null;setStatus(e.message||'Errore durante la creazione della stanza.')}
+  }catch(e){roomRef=null;connecting=false;setStatus(e.message||'Errore durante la creazione della stanza.')}
 }
 async function joinRoom(){
   try{
@@ -1069,7 +1072,7 @@ async function joinRoom(){
     roomRef=db.ref('rooms/'+roomCode);
     await roomRef.child('members/'+user.uid).set(true);
     await reserveSeat(playerName);
-  }catch(e){roomRef=null;setStatus(e.code==='PERMISSION_DENIED'?'Stanza non trovata o non accessibile.':(e.message||'Errore durante l\'accesso alla stanza.'))}
+  }catch(e){roomRef=null;connecting=false;setStatus(e.code==='PERMISSION_DENIED'?'Stanza non trovata o non accessibile.':(e.message||'Errore durante l\'accesso alla stanza.'))}
 }
 function reserveSeat(name){
   var lobbyRef=roomRef.child('lobby');
@@ -1138,9 +1141,10 @@ function enterRoom(){
   stateRef.on('value',sh,function(e){showErr('Connessione persa: '+e.message)});listeners.push({ref:stateRef,h:sh});
   render();
 }
-function leave(){
+function leave(dest){
+  var go=function(){if(dest)window.location.href=dest;else window.location.reload()};
   listeners.forEach(function(l){l.ref.off('value',l.h)});
-  if(!roomRef||S||!user){window.location.reload();return}
+  if(!roomRef||S||!user){go();return}
   // prima dell'inizio libera il posto; a partita avviata si può rientrare con lo stesso codice
   roomRef.child('lobby').transaction(function(cur){
     if(!cur||cur.started)return;
@@ -1149,7 +1153,7 @@ function leave(){
     if(cur.hostUid===user.uid&&rest.length)cur.hostUid=rest[0].uid;
     return cur;
   },function(){
-    roomRef.child('members/'+user.uid).remove().catch(function(){}).then(function(){window.location.reload()});
+    roomRef.child('members/'+user.uid).remove().catch(function(){}).then(go);
   },false);
 }
 
@@ -1185,6 +1189,9 @@ function lobbyHtml(){
     '<p class="status" role="status" aria-live="polite">'+esc(statusText)+'</p>'+
     '<button class="btn btn-sm" type="button" data-ai="1">← Torna alla scelta</button></section>';
 }
+function connectingHtml(){
+  return '<section><div class="panel"><p class="muted" role="status" aria-live="polite">'+esc(statusText||'Connessione alla stanza...')+'</p></div></section>';
+}
 function waitingHtml(){
   var d=lobbyData||{players:{},playerCount:GAME.counts[0]};
   var players=orderedPlayers(d),full=players.length===d.playerCount,html='';
@@ -1208,11 +1215,10 @@ function render(){
   var focus=document.activeElement&&document.activeElement.id==='joinCode';
   var badge=S&&typeof gameBadge==='function'?gameBadge():'';
   var top='<div class="topbar"><div class="logo">'+GAME.logo+'</div>'+
-    (window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+
-    (badge?'<span class="badge">'+badge+'</span>':'')+
-    (roomRef?'<span class="room-code">'+roomCode+'</span><button class="btn btn-sm" type="button" data-copy="1">Copia codice</button><button class="btn btn-sm" type="button" data-leave="1">Esci</button>':'')+
-    '<span class="conn" id="conn">'+esc(connText)+'</span>'+kitMenuHtml()+'</div>';
-  var body=!roomRef?lobbyHtml():(!S?waitingHtml():gameRender());
+    (window.nyloBackBtn?nyloBackBtn(location.pathname,'alle opzioni del gioco'):'')+(window.nyloHomeBtn?nyloHomeBtn():'')+
+    (badge?'<span class="badge">'+badge+'</span>':'')+kitMenuHtml()+'</div>'+
+    (roomRef?'<div class="room-bar"><span class="room-code">'+roomCode+'</span><button class="btn btn-sm" type="button" data-copy="1">Copia codice</button><button class="btn btn-sm" type="button" data-leave="1">Esci</button><span class="conn" id="conn">'+esc(connText)+'</span></div>':'');
+  var body=!roomRef?(connecting?connectingHtml():lobbyHtml()):(!S?waitingHtml():gameRender());
   document.getElementById('app').innerHTML=top+body;
   if(focus){var j=document.getElementById('joinCode');if(j){j.focus();j.setSelectionRange(j.value.length,j.value.length)}}
 }
@@ -1220,6 +1226,7 @@ var APP=document.getElementById('app');
 APP.addEventListener('click',function(e){
   var b=e.target.closest('button');if(!b||b.disabled)return;
   var d=b.dataset;
+  if(d.back!==undefined){e.stopPropagation();if(!S||confirm('Tornare alle opzioni del gioco? Potrai rientrare nella stanza con lo stesso codice.'))leave(location.pathname);return}
   if(d.menu){MENUOPEN=!MENUOPEN;render();return}
   if(d.ai!==undefined){location.href=location.pathname;return}
   if(d.create!==undefined){createRoom();return}
@@ -1240,6 +1247,7 @@ APP.addEventListener('change',function(e){
 });
 document.addEventListener('click',function(e){if(MENUOPEN&&!e.target.closest('.menu-wrap')){MENUOPEN=false;render()}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&MENUOPEN){MENUOPEN=false;render()}});
+connecting=!!(window.NYLO_START&&NYLO_START.mode==='room');
 render();
 if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosenCount;if(NYLO_START.name)playerName=NYLO_START.name.slice(0,18);if(NYLO_START.action==='join'){joinVal=NYLO_START.code||'';joinRoom()}else createRoom();}
 </script>
