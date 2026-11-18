@@ -194,6 +194,9 @@
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-home],[data-back]');
     if (!b || !ov) return;
+    askLeave(b);
+  });
+  function askLeave(b) {
     var back = b.getAttribute('data-back');
     if (window.NYLO_IN_SETUP) { location.href = back || '/'; return; }   // scelta iniziale: niente da perdere, si esce subito
     ov._to = back || '/';
@@ -213,7 +216,31 @@
       yesBtn.textContent = 'Non salvare';
     }
     ov.style.display = 'flex'; ov.querySelector('[data-no]').focus();
-  });
+  }
+  // tasto Indietro del browser / del sistema operativo (gesto o tasto Android, PWA compresa): come il pulsante "Indietro" dell'app.
+  // Sulle pagine con un pulsante Indietro si aggiunge una voce "sentinella" alla cronologia (alla prima interazione dell'utente,
+  // altrimenti i browser mobile la ignorano); quando viene consumata si rimette e si apre lo stesso avviso (salva / non salvare / annulla).
+  (function backGuard() {
+    if (inFrame) return;
+    var armed = false;
+    function backEl() { return document.querySelector('[data-back]'); }
+    function arm() {
+      if (armed || !backEl()) return;
+      armed = true;
+      try { history.pushState({ nyloGuard: 1 }, '', location.href); } catch (e) { armed = false; }
+    }
+    ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, arm, { capture: true, passive: true }); });
+    window.addEventListener('popstate', function () {
+      if (!armed) return;
+      if (history.state && history.state.nyloGuard) return;          // si è tornati su una voce nostra: niente da fare
+      armed = false;
+      var b = backEl();
+      if (!b || !ov) { history.back(); return; }
+      if (ov.style.display === 'flex') { arm(); ov.style.display = 'none'; return; }   // avviso già aperto: Indietro = Annulla
+      arm();
+      askLeave(b);
+    });
+  })();
   // statistiche personali per gioco: partite concluse / abbandonate / vinte / perse, salvate nel browser per nome giocatore
   // (chiave nylo-stats:<nome>; per gioco e modalità ai|friends). Si legge lo stato globale G delle pagine di gioco (indice 0 = giocatore umano)
   (function stats() {
