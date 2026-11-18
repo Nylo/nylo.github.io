@@ -144,6 +144,11 @@ details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
 details.recap[open]>:not(summary)+*{margin-top:10px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700;color:var(--text-soft)}
+.fc.gone{opacity:.25;text-decoration:line-through;box-shadow:none}
+.fc.own{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent)}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -191,8 +196,8 @@ const DECK = []; for(let s=0;s<5;s++) for(let v=1;v<=6;v++) DECK.push({s,v});
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false,exp:false};
-try{ const s=localStorage.getItem('uc-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('uc-a11y')==='1'; OPT.exp=localStorage.getItem('uc-exp')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,exp:false,memo:false};
+try{ const s=localStorage.getItem('uc-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('uc-a11y')==='1'; OPT.exp=localStorage.getItem('uc-exp')==='1'; OPT.memo=localStorage.getItem('uc-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
 const cname = c => `${SUITS[c.s].n} ${c.v}`;
 const plu = (n,s,p) => `${n} ${n===1?s:p}`;
@@ -542,6 +547,13 @@ function seatHtml(p,pos){
   const inner=pos==='bottom'?`${name}${meta}${hand}`:`${hand}${name}${meta}`;
   return `<div class="seat ${pos} ${S.started&&S.done<TRICKS&&S.lead===p?'leader':''} ${active?'active':''}">${inner}</div>`;
 }
+function memoHtml(){
+  const S=G.S, id=c=>c.s*10+c.v, mine=new Set(S.hands[HUM].map(id)), seen=new Set();
+  S.tricks.forEach(t=>t.forEach(e=>seen.add(id(e.c))));
+  S.removed.forEach(r=>r.forEach(c=>seen.add(id(c))));
+  const rows=SUITS.map((s,k)=>`<div class="ur"><span class="l">${s.n}</span>${DECK.filter(c=>c.s===k).map(c=>kface(c,`mini ${seen.has(id(c))?'gone':''} ${mine.has(id(c))?'own':''}`)).join('')}</div>`).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const R=G.n;
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:R},(_,i)=>i<p.hist.length?`<td>${p.hist[i]||0}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
@@ -625,7 +637,7 @@ const RULES_HTML = `
 <h4>Fine della partita</h4>
 <p>Dopo 9 prese (ognuno ha ancora 1 carta in mano) il round finisce e ogni giocatore prende tanti punti negativi quante le carte ritirate. Si rimescola e rida: apre il giocatore a sinistra di chi aveva aperto per primo. Si giocano tanti round quanti sono i giocatori; vince chi ha il totale più vicino a zero (a parità si condivide la vittoria).</p>
 <p><i>Consiglio:</i> giocare una carta come briscola di seme è il modo più semplice di vincere una presa; le carte giocate dopo fanno spesso da briscola. Nel gioco standard puoi far pagare l'avversario giocando carte di valore/seme già molto presenti nello storico.</p>
-<p><i>Interpretazioni nell'app:</i> a inizio round le regole sono «maggiore» e nessuna briscola; ritirando la prima carta di una presa, la nuova prima carta rimasta ne determina il seme. L'app propone sempre la rimozione più economica (con un pulsante per le alternative a pari costo) e nel caso raro tiene la prima carta di ogni presa. Le AI non vedono la tua mano.</p>
+<p><i>Interpretazioni nell'app:</i> a inizio round le regole sono «maggiore» e nessuna briscola; ritirando la prima carta di una presa, la nuova prima carta rimasta ne determina il seme. L'app propone sempre la rimozione più economica (con un pulsante per le alternative a pari costo) e nel caso raro tiene la prima carta di ogni presa. Le AI non vedono la tua mano. Nel menu: «Abilita annulla», «Modalità accessibile» e «Mostra le carte uscite» (carte già nello storico o ritirate sbarrate, le tue col contorno).</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -636,6 +648,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -651,6 +664,7 @@ function render(){
     const pos=POS[G.n];
     body=`${boardHtml()}
       <div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}</div>
+      ${OPT.memo&&!G.over?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -675,6 +689,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('uc-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('uc-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id==='optExp'){

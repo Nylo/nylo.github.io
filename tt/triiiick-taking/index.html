@@ -132,6 +132,11 @@ details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
 details.recap[open]>:not(summary)+*{margin-top:10px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700;color:var(--text-soft)}
+.fc.gone{opacity:.2;text-decoration:line-through;box-shadow:none}
+.fc.own{box-shadow:0 0 0 2px #000,0 0 0 4px #ffd54a}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -184,8 +189,8 @@ function tokensFor(n,rider){
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('tk-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tk-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('tk-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tk-a11y')==='1'; OPT.memo=localStorage.getItem('tk-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
 const cname = c => `${SUITS[c.s].n} ${c.v}`;
 const plu = (n,s,p) => `${n} ${n===1?s:p}`;
@@ -555,6 +560,14 @@ function goalHtml(){
   return `<div class="goal"><span class="tokn ${t==='R'?'rider':''}">${t==='R'?'RIDER':t}</span>
     <div class="goal-t">${t==='R'?'<b>Sei il Rider</b>Non hai un obiettivo: ottieni −1 per ogni avversario che completa la sua Direttiva.':`<b>Obiettivo: ${plu(t,'presa','prese')}</b>Vinte finora: ${S.won[HUM]}`}<span>${rem} · ${neg}</span></div></div>`;
 }
+function memoHtml(){
+  const S=G.S, mine=new Set(handAll(HUM).map(key)), seen=new Set(S.played.map(key));
+  const rows=SUITS.map((s,k)=>{
+    const cs=deckFor(G.n).filter(c=>c.s===k); if(!cs.length) return '';
+    return `<div class="ur"><span class="l">${s.n}</span>${cs.map(c=>kface(c,`mini ${seen.has(key(c))?'gone':''} ${mine.has(key(c))?'own':''}`)).join('')}</div>`;
+  }).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const R=G.n;
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:R},(_,i)=>i<p.hist.length?`<td>${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
@@ -612,7 +625,7 @@ const RULES_HTML = `
 <p>Si rivelano i segnalini e si confrontano con le prese vinte: <b>−1 punto per ogni presa di differenza</b>, in più o in meno. Si continua finché ognuno è stato primo giocatore una volta. Vince chi ha il punteggio più vicino a 0; in caso di pareggio la vittoria è condivisa.</p>
 <h4>Mini-espansione: «I giocatori di prese vogliono essere dei Rider» (4 giocatori)</h4>
 <p>Un segnalino «2» è sostituito dal Rider. Chi lo riceve non può negoziare e non ha un obiettivo di prese: ottiene −1 punto per ogni avversario che completa con successo la sua Direttiva. Le sue prese non contano.</p>
-<p><i>Interpretazioni nell'app:</i> il segnalino Rider viene sempre assegnato a un giocatore (mai messo da parte). Le AI non vedono le tue carte private né la tua Direttiva; deducono i segnalini possibili da quelli rimossi con la Negoziazione e dai vuoti di seme.</p>
+<p><i>Interpretazioni nell'app:</i> il segnalino Rider viene sempre assegnato a un giocatore (mai messo da parte). Le AI non vedono le tue carte private né la tua Direttiva; deducono i segnalini possibili da quelli rimossi con la Negoziazione e dai vuoti di seme. Nel menu: «Abilita annulla», «Modalità accessibile» e «Mostra le carte uscite» (le carte già giocate sbarrate, le tue col contorno).</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -623,6 +636,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -638,6 +652,7 @@ function render(){
     const pos=POS[G.n];
     body=`${goalHtml()}
       <div class="table">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}</div>
+      ${OPT.memo&&!G.over?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -678,6 +693,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('tk-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('tk-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

@@ -148,6 +148,13 @@ details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
 details.recap[open]>:not(summary)+*{margin-top:10px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700;color:var(--deep)}
+.fc.tiny{width:28px;height:40px;font-size:15px;gap:0;border-width:1px;border-radius:5px}
+.fc.tiny i{font-size:11px}
+.fc.gone{opacity:.25;text-decoration:line-through;box-shadow:none}
+.fc.own{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--ink)}
 .rtext h4{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:14px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul,.rtext ol{padding-left:18px}
@@ -157,6 +164,8 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
   .fc{font-size:14px;border-width:1px;border-radius:5px;gap:0}
   .fc i{font-size:11px}
   .fc.mini{width:32px;height:48px;font-size:15px}
+  .fc.tiny{width:22px;height:32px;font-size:12px}
+  .fc.tiny i{font-size:9px}
   .tableau .empty{width:32px;height:48px}
   .table{padding:8px;gap:6px}
   .back{width:8px;height:13px}
@@ -202,8 +211,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('yf-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('yf-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('yf-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('yf-a11y')==='1'; OPT.memo=localStorage.getItem('yf-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
 const cname = c => c.c===0?`Batteria ${c.v}`:`${CL[c.c].n} ${c.v}`;
 const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
@@ -552,6 +561,14 @@ function centerHtml(){
     <div class="hint">Forza: Batteria scarica &gt; colore di mano &gt; altri colori</div>
     <div>Round <b>${G.round+1}/${ROUNDS}</b> · Presa <b>${G.trickNo}</b>${G.n===3&&G.removed?` · fuori gioco: ${sw(G.removed)}`:''}</div></div>`;
 }
+function memoHtml(){
+  const mine=new Set(P(HUM).hand.map(c=>c.id)), seen=new Set(G.seen.concat(P(HUM).fdOwn).map(c=>c.id));
+  const rows=CL.map((s,k)=>{
+    const cs=G.deck.filter(c=>c.c===k); if(!cs.length) return '';
+    return `<div class="ur"><span class="l">${k===0?'Batterie':s.n}</span>${cs.map(c=>kface(c,`tiny ${seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}`)).join('')}</div>`;
+  }).join('');
+  return `<div class="recap paper"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.hist.join(' + ')||'–'}</td><td><b>${p.tot}</b></td></tr>`).join('');
   return `<table class="score"><tr><th>Punti partita</th><th class="l">Punti per round</th><th>Totale</th></tr>${rows}</table>`;
@@ -632,7 +649,7 @@ const RULES_HTML = `
 <li>Chi ha centrato la puntata essendo in «Mente Chiara» guadagna altri 3 punti.</li>
 </ol>
 <p>Si giocano 3 round in totale; vince chi ha il punteggio totale più alto.</p>
-<p><i>Nell'app:</i> in 3 giocatori il colore Charged escluso è casuale. Il primo giocatore del primo round è casuale e nei round successivi passa a sinistra. A ogni round le mani si rimescolano, le carte puntata si svuotano e ognuno riparte con 3 cubi. La carta coperta resta coperta fino a fine presa. La riserva generale non ha limite di cubi. L'AI stima le mani avversarie con simulazioni.</p>
+<p><i>Nell'app:</i> in 3 giocatori il colore Charged escluso è casuale. Il primo giocatore del primo round è casuale e nei round successivi passa a sinistra. A ogni round le mani si rimescolano, le carte puntata si svuotano e ognuno riparte con 3 cubi. La carta coperta resta coperta fino a fine presa. La riserva generale non ha limite di cubi. L'AI stima le mani avversarie con simulazioni. Nel menu: «Abilita annulla», «Modalità accessibile» e «Mostra le carte uscite» (le carte scoperte già giocate nel round sbarrate, insieme alle tue giocate coperte; le tue in mano col contorno).</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -641,6 +658,14 @@ function logHtml(){
 }
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
+    </div>`:''}</div>`;
+}
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
@@ -652,6 +677,7 @@ function render(){
   let body='';
   if(G){
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over&&G.deck.length?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -673,6 +699,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('yf-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('yf-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

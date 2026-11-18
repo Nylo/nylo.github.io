@@ -130,6 +130,11 @@ details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
 details.recap[open]>:not(summary)+*{margin-top:10px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700;color:var(--text-soft)}
+.fc.gone{opacity:.25;text-decoration:line-through;box-shadow:none}
+.fc.own{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent)}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -176,8 +181,8 @@ function deckFor(n){ const d=[]; for(let s=0;s<4;s++) for(let r=1;r<=maxRank(n);
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false,adv:false};
-try{ const s=localStorage.getItem('zl-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('zl-a11y')==='1'; OPT.adv=localStorage.getItem('zl-adv')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,adv:false,memo:false};
+try{ const s=localStorage.getItem('zl-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('zl-a11y')==='1'; OPT.adv=localStorage.getItem('zl-adv')==='1'; OPT.memo=localStorage.getItem('zl-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
 const cname = c => `${SUITS[c.s].n} ${c.r}`;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.r-b.r);
@@ -482,6 +487,11 @@ function centerHtml(){
   const cells=S.trick.map((e,i)=>`<div class="tcell ${S.res===i?'win':''}">${kface(e.c)}<span class="who" style="background:${SEATC[e.p]}">${esc(P(e.p).name.replace(/^AI /,''))}</span>${S.res===i?'vince':''}</div>`);
   return `<div class="center"><span class="lbl2">${S.phase==='play'?`PRESA ${Math.min(S.done+1,S.tot)}/${S.tot}`:'PASSAGGIO'}${S.trick.length?` · SEME ${SUITS[S.trick[0].c.s].n.toUpperCase()}`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div>${G.n===3&&S.aside.length?`<span class="lbl2">DA PARTE: ${S.aside.map(cname).join(', ')}</span>`:''}</div>`;
 }
+function memoHtml(){
+  const S=G.S, mine=new Set(S.hands[HUM].map(key)), seen=new Set(S.played.concat(S.aside).map(key));
+  const rows=SUITS.map((s,k)=>`<div class="ur"><span class="l">${s.n}</span>${deckFor(G.n).filter(c=>c.s===k).map(c=>kface(c,`mini ${seen.has(key(c))?'gone':''} ${mine.has(key(c))?'own':''}`)).join('')}</div>`).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function pdaysHtml(){
   return `<div class="pdays">${SUITS.map((s,i)=>`<span class="pday k${i}">${ico(s.icon)} ${s.n}: giorno promesso <b>${s.pd[0]}</b> o <b>${s.pd[1]}</b></span>`).join('')}</div>`;
 }
@@ -542,7 +552,7 @@ const RULES_HTML = `
 <p>Dopo 3 round vince chi ha perso meno punti. In caso di parità si giocano round aggiuntivi finché la parità non si rompe.</p>
 <h4>Regole avanzate</h4>
 <p>Anche se potresti scoprire una carta, non puoi farlo se hai già una carta scoperta dello stesso seme: nessun giocatore può avere più di una carta scoperta per seme. Si attivano dalla schermata iniziale.</p>
-<p><i>Interpretazioni nell'app:</i> i giorni promessi sono entrambi validi (es. Blu: 2 oppure 4). Se la carta che determina il primo giocatore è tra le due scoperte da parte in 3 giocatori, si passa alla successiva come da regola. Le AI non vedono le tue carte; ricordano le carte passate e deducono i vuoti di seme.</p>
+<p><i>Interpretazioni nell'app:</i> i giorni promessi sono entrambi validi (es. Blu: 2 oppure 4). Se la carta che determina il primo giocatore è tra le due scoperte da parte in 3 giocatori, si passa alla successiva come da regola. Le AI non vedono le tue carte; ricordano le carte passate e deducono i vuoti di seme. Nel menu: «Abilita annulla», «Modalità accessibile» e «Mostra le carte uscite» (le carte già giocate nel round o messe da parte sbarrate, le tue col contorno).</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -553,6 +563,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -568,6 +579,7 @@ function render(){
     const pos=POS[G.n];
     body=`${pdaysHtml()}
       <div class="table">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}</div>
+      ${OPT.memo&&!G.over?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -591,6 +603,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('zl-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('zl-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id==='optAdv'){

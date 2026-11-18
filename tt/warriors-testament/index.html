@@ -130,6 +130,11 @@ details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
 details.recap[open]>:not(summary)+*{margin-top:10px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700;color:var(--text-soft)}
+.fc.gone{opacity:.25;text-decoration:line-through;box-shadow:none}
+.fc.own{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent)}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -187,8 +192,8 @@ const cost = c => c.r+(c.s===0?5:0);
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('wt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('wt-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('wt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('wt-a11y')==='1'; OPT.memo=localStorage.getItem('wt-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
 const cname = c => `${SUITS[c.s].n} ${c.r}`;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.r-b.r);
@@ -598,6 +603,14 @@ function centerHtml(){
   const lab=S.phase==='play'?`PRESA ${S.done+1}`:S.phase==='pass'?'PASSAGGIO':S.phase==='grave'?'PREPARAZIONE LAPIDI':'FINE ROUND';
   return `<div class="center"><span class="lbl2">${lab}${S.trick.length?` · SEME ${SUITS[S.trick[0].c.s].n.toUpperCase()}`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div><span class="lbl2" title="Carte scartate dalle prese e dalle lapidi mandate via">CAMPO DI BATTAGLIA: ${S.battle.length} ${S.battle.length===1?'carta':'carte'}</span></div>`;
 }
+function memoHtml(){
+  const S=G.S, mine=new Set(S.hands[HUM].concat(S.grave[HUM]).map(key)), seen=new Set(S.played.map(key));
+  const rows=SUITS.map((s,k)=>{
+    const cs=deckFor(G.n).filter(c=>c.s===k); if(!cs.length) return '';
+    return `<div class="ur"><span class="l">${s.n}</span>${cs.map(c=>kface(c,`mini ${seen.has(key(c))?'gone':''} ${mine.has(key(c))?'own':''}`)).join('')}</div>`;
+  }).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function fxHtml(){
   const t4=G.v4==='A'?'scegli 2 carte dalla mano e mettile come lapidi (se ne hai meno, pesca dal campo)':'scegli 2 lapidi e mandale al campo di battaglia (se ne hai 2 o meno, tutte)';
   const t6=G.v6==='A'?'scegli 1 lapide e riportala in mano':'scegli 1 lapide e mandala al campo di battaglia';
@@ -661,7 +674,7 @@ const RULES_HTML = `
 <ul><li><b>Lapidi:</b> 0 → 0 · 1 → 15 · 2 → 8 · 3 → 20 · 4 o più → 0.</li><li><b>Carte rimaste:</b> con 1 o più lapidi, somma dei ranghi + 5 per ogni carta Blu. Con 0 lapidi, 0 e −5 per ogni carta Blu. Con 0 lapidi e 0 carte: «Orgoglio del guerriero», −10.</li></ul>
 <h4>Fine della partita</h4>
 <p>Dopo 3 round vince chi ha meno punti umiliazione; in caso di parità vincono tutti i pareggianti. Nel round successivo apre chi è rimasto fino alla fine; se più giocatori sono usciti insieme, apre l'ultimo ad aver giocato una carta. Il primo giocatore del primo round è casuale.</p>
-<p><i>Interpretazioni nell'app:</i> i punti per 0–4+ lapidi sono letti dalla tabella del regolamento originale; le carte pescate dal campo di battaglia sono casuali e le vedi solo se vanno a te; le AI non vedono le tue carte né le tue lapidi: ragionano su mondi plausibili (con i vuoti di seme dedotti) e simulano il resto del round.</p>
+<p><i>Interpretazioni nell'app:</i> i punti per 0–4+ lapidi sono letti dalla tabella del regolamento originale; le carte pescate dal campo di battaglia sono casuali e le vedi solo se vanno a te; le AI non vedono le tue carte né le tue lapidi: ragionano su mondi plausibili (con i vuoti di seme dedotti) e simulano il resto del round. Nel menu: «Abilita annulla», «Modalità accessibile» e «Mostra le carte uscite» (le carte già giocate nel round sbarrate; le tue, comprese le tue lapidi, col contorno).</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -672,6 +685,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano o tra le lapidi"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -687,6 +701,7 @@ function render(){
     const pos=POS[G.n];
     body=`${fxHtml()}
       <div class="table ${G.n===5?'n5':''}">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}</div>
+      ${OPT.memo&&!G.over?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -711,6 +726,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('wt-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('wt-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;
