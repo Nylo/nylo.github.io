@@ -118,6 +118,13 @@ body.a11y .pc.s3,body.a11y .pile.s3{background-image:repeating-linear-gradient(9
 
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.unseen .pc{width:24px;height:34px;font-size:12px;border-width:1px;gap:0;border-radius:5px;box-shadow:none}
+.unseen .pc i{font-size:10px}
+.unseen .pc.gone{opacity:.2;text-decoration:line-through}
+.unseen .pc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
 details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
@@ -251,8 +258,8 @@ const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right'], 5:[
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('abs-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('abs-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('abs-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('abs-a11y')==='1'; OPT.memo=localStorage.getItem('abs-memo')==='1'; }catch(e){}
 const cname = c => `${SUITS[c.s].n} ${c.v}`;
 
 // ═════════════════════════ INTERAZIONE ═════════════════════════
@@ -606,6 +613,18 @@ function dockHtml(){
 }
 
 
+// carte uscite: solo informazione pubblica. Sbarrate = carte già vinte (o in tavola nella presa corrente); contorno = la tua mano.
+// Le carte hanno doppioni (due 0 per colore), quindi si conta per (colore, valore).
+function memoHtml(){
+  const cnt=a=>{ const m={}; a.forEach(c=>{ const k=c.s*20+c.v; m[k]=(m[k]||0)+1; }); return m; };
+  const gone=cnt(G.gone.concat(G.trick.map(x=>x.c))), mine=cnt(P(HUM).hand);
+  const take=(m,c)=>{ const k=c.s*20+c.v; if(m[k]>0){ m[k]--; return true; } return false; };
+  const rows=[0,1,2,3].filter(k=>G.n!==3||k!==RED).map(k=>{
+    const cs=fullDeck(G.n).filter(c=>c.s===k).sort(sortCards);
+    return `<div class="ur"><span class="l">${SUITS[k].n}</span>${cs.map(c=>cardFace(c,`${take(gone,c)?'gone':''} ${take(mine,c)?'own':''}`)).join('')}</div>`;
+  }).join('');
+  return `<div class="recap memo"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function recapHtml(){
   const ks=[0,1,2,3].filter(k=>G.n!==3||k!==RED), per=Math.floor(fullDeck(G.n).length/G.n);
   return `<details class="recap"><summary>RIEPILOGO</summary>
@@ -645,6 +664,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori (puntini, righe, diagonali) per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -659,6 +679,7 @@ function render(){
   if(G){
     const pos=POS[G.n];
     body=`<div class="table ${G.n===5?'n5':''}">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -688,6 +709,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('abs-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('abs-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

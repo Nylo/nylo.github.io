@@ -134,6 +134,12 @@ body.a11y .fc.k3,body.a11y .rchip.k3,body.a11y .pday.k3{background-image:repeati
 .rchip.k0{background-color:var(--k0);color:#10304a;text-shadow:none} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3);color:#2f3300;text-shadow:none}
 details.rules{background:var(--surface);border:2px solid #2e1a14;border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.unseen .fc.mini{box-shadow:none;border-width:1px}
+.unseen .fc.gone{opacity:.2;text-decoration:line-through}
+.unseen .fc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink,#2e1a14)}
 details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
@@ -227,8 +233,8 @@ function deckFor(n){ const d=[]; for(let s=(n===3?1:0);s<4;s++) for(let r=1;r<=9
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('nl-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('nl-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('nl-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('nl-a11y')==='1'; OPT.memo=localStorage.getItem('nl-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
 const cname = c => `${SUITS[c.s].n} ${c.r}`;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.r-b.r);
@@ -627,6 +633,16 @@ function dockHtml(){
   }
   return html;
 }
+// carte uscite: solo informazione pubblica. Sbarrate = carte scartate dalle prese (fuori dal round, visibili a tutti); contorno = la tua mano
+function memoHtml(){
+  const S=G.S, mine=new Set(S.hands[HUM].map(key)), gone=new Set(S.dead.map(key));
+  const rows=SUITS.map((s,k)=>{
+    const cs=deckFor(G.n).filter(c=>c.s===k);
+    if(!cs.length) return '';
+    return `<div class="ur"><span class="l">${s.n}</span>${cs.map(c=>kface(c,`mini ${gone.has(key(c))?'gone':''} ${mine.has(key(c))?'own':''}`)).join('')}</div>`;
+  }).join('');
+  return `<div class="recap memo"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function recapHtml(){
   const n=G.n;
   return `<details class="recap"><summary>RIEPILOGO</summary>
@@ -665,6 +681,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -680,6 +697,7 @@ function render(){
     const pos=POS[G.n];
     body=`${rugHtml()}
       <div class="table">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}</div>
+      ${OPT.memo&&!G.over&&(G.S.phase==='play'||G.S.phase==='end')?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -720,6 +738,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('nl-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('nl-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

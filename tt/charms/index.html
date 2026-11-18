@@ -110,6 +110,14 @@ body.a11y .pc.s3{background-image:repeating-linear-gradient(90deg,rgba(255,255,2
 
 details.rules{background:var(--surface);border:2px solid var(--steel);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:84px;font-size:11px;font-weight:700}
+.unseen .ug{display:inline-flex;gap:3px;margin-right:8px}
+.unseen .pc{width:22px;height:30px;font-size:12px;border-width:1px;border-radius:5px;box-shadow:none}
+.unseen .pc i{font-size:13px}
+.unseen .pc.gone{opacity:.2;text-decoration:line-through}
+.unseen .pc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #000}
 details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
@@ -215,8 +223,8 @@ const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('charms-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('charms-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('charms-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('charms-a11y')==='1'; OPT.memo=localStorage.getItem('charms-memo')==='1'; }catch(e){}
 const cardName = c => c.k==='s'?SUITS[c.s].n:`${c.n}`;
 
 // ═════════════════════════ INTERAZIONE ═════════════════════════
@@ -387,6 +395,7 @@ function deal(){
     for(const c of rest){ revealed.push(c); if(isS(c)){ trump=c.s; break; } }
     if(trump<0) continue;
     G.pl.forEach((p,i)=>{ p.hand=sortHand(hands[i]); p.sh={s:-1,n:0}; p.bid=null; p.won=0; });
+    G.played=[];   // carte giocate (scoperte) nel round, anche quelle poi coperte: serve al pannello «carte uscite»
     G.trump=trump; G.revealed=revealed; G.black=BLACK; G.fresh={}; G.winner=-1; G.led=null; G.done=[]; G.t=0; G.show=null;
     return;
   }
@@ -425,6 +434,7 @@ async function bidding(){
 }
 
 function placeCard(pl,c,p){
+  (G.played||(G.played=[])).push(c);
   if(isS(c)){ pl.sh.s=c.s; G.fresh['s'+p]=1; } else { pl.sh.n=c.n; G.fresh['n'+p]=1; }
 }
 async function humanFirst(p,isLeader){
@@ -585,6 +595,16 @@ function dockHtml(){
 }
 
 
+// carte uscite: solo informazione pubblica. Sbarrate = carte giocate nel round (anche se poi coperte) e carte scoperte per la briscola; contorno = la tua mano.
+// Le copie di una stessa carta sono intercambiabili: si contano (prima le uscite, poi le tue, poi le restanti).
+function memoHtml(){
+  const cnt=a=>{ const m={}; a.forEach(c=>{ const k=isS(c)?'s'+c.s:'n'+c.n; m[k]=(m[k]||0)+1; }); return m; };
+  const gone=cnt((G.played||[]).concat(G.revealed||[])), mine=cnt(P(HUM).hand);
+  const chips=(k,copies,face)=>Array.from({length:copies},(_,i)=>{ const g=gone[k]||0, o=mine[k]||0; return face(i<g?'gone':(i<g+o?'own':'')); }).join('');
+  const rows=SUITS.map((s,i)=>`<div class="ur"><span class="l">${s.n}</span>${chips('s'+i,8,cls=>suitFace(i,cls))}</div>`).join('');
+  const nums=Array.from({length:8},(_,i)=>`<span class="ug">${chips('n'+(i+1),4,cls=>numFace(i+1,cls))}</span>`).join('');
+  return `<div class="recap memo"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}<div class="ur"><span class="l">Numeri</span>${nums}</div></div></div>`;
+}
 function recapHtml(){
   const tr=G.trump>=0?`<span class="rchip s${G.trump}">${ico(SUITS[G.trump].icon)} ${SUITS[G.trump].n}</span>`:'<span class="rv">si scopre a inizio round</span>';
   return `<details class="recap"><summary>RIEPILOGO</summary>
@@ -622,6 +642,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare puntate e carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai semi (puntini, righe, diagonali) per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -637,6 +658,7 @@ function render(){
   if(G){
     const pos=POS[G.n];
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over&&G.stage?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -671,6 +693,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('charms-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('charms-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

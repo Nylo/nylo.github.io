@@ -137,6 +137,13 @@ body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(
 .nchip{display:inline-flex;min-width:24px;justify-content:center;padding:2px 6px;border-radius:5px;background:rgba(127,127,127,0.25);font-weight:700;font-size:12px}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.unseen .fc.mini{width:30px;height:42px;font-size:14px;border-width:1px;gap:0;border-radius:5px;box-shadow:none}
+.unseen .fc.mini i{font-size:12px}
+.unseen .fc.gone{opacity:.2;text-decoration:line-through}
+.unseen .fc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #000}
 details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
@@ -246,8 +253,8 @@ const ico = n => n.startsWith('gi:')?`<img class="gi" src="${GAME_ICONS[n.slice(
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false,originalSuits:false};
-try{ const s=localStorage.getItem('bg-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('bg-a11y')==='1'; OPT.originalSuits=localStorage.getItem('bg-original-suits')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,originalSuits:false,memo:false};
+try{ const s=localStorage.getItem('bg-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('bg-a11y')==='1'; OPT.originalSuits=localStorage.getItem('bg-original-suits')==='1'; OPT.memo=localStorage.getItem('bg-memo')==='1'; }catch(e){}
 const cname = c => `${SUITS[c.s].n} ${c.v}`;
 const sumOf = cs => cs.reduce((a,c)=>a+c.v,0);
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
@@ -570,6 +577,16 @@ function dockHtml(){
   }
   return html;
 }
+// carte uscite: solo informazione pubblica. Sbarrate = carte davanti ai giocatori (scoperte), carte del pallone scoppiato, carte in tavola, briscola scoperta e le tue carte messe da parte
+// (quelle scartate dall'avversario restano coperte e non compaiono); contorno = la tua mano.
+function memoHtml(){
+  const gone=new Set(), add=c=>gone.add(c.s*10+c.v);
+  G.pl.forEach(q=>q.front.forEach(add)); G.popped.forEach(add); G.table.forEach(x=>add(x.c)); P(HUM).aside.forEach(add);
+  if(G.trumpCard) add(G.trumpCard);
+  const mine=new Set(P(HUM).hand.map(c=>c.s*10+c.v));
+  const rows=SUITS.map((s,k)=>`<div class="ur"><span class="l">${s.n}</span>${fullDeck().filter(c=>c.s===k).map(c=>kface(c,`mini ${gone.has(c.s*10+c.v)?'gone':''} ${mine.has(c.s*10+c.v)?'own':''}`)).join('')}</div>`).join('');
+  return `<div class="recap memo"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function recapHtml(){
   return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${SUITS.map((s,i)=>`<span class="rchip k${i}">${suitIcon(i)} ${s.n}</span>`).join('')}<span class="rv">24 carte: Pesca, Banana, Anguria e Soda, da 1 a 6 · 10 carte a testa, 4 da parte (la prima scoperta fa la briscola)</span></div>
@@ -614,6 +631,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
       <button class="opt-toggle nylo-menu-action" type="button" id="toggleSuitIcons">${OPT.originalSuits?'Usa semi stilizzati':'Usa semi originali'}</button>
     </div>`:''}</div>`;
 }
@@ -628,6 +646,7 @@ function render(){
   let body='';
   if(G){
     body=`<div class="table n2">${seatHtml(1,'top')}${centerHtml()}${seatHtml(0,'bottom')}</div>
+      ${OPT.memo&&!G.over?memoHtml():''}
       ${histHtml()}
       ${logHtml()}
       ${recapHtml()}
@@ -653,6 +672,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('bg-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('bg-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;
