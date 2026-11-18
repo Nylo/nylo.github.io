@@ -175,6 +175,18 @@ body.a11y .rchip.c1{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,t
 body.a11y .rchip.c2{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 body.a11y .rchip.c3{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 .rchip.c0{background-color:var(--c0)} .rchip.c1{background-color:var(--c1)} .rchip.c2{background-color:var(--c2)} .rchip.c3{background-color:var(--c3)}
+/* carte uscite (opzione del menu, solo contro l'AI) */
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;min-width:26px;justify-content:center;padding:3px 5px;border-radius:5px;background:#59606b;color:#fff;font-weight:700;font-size:12px;text-shadow:0 1px 1px rgba(0,0,0,0.3)}
+.nc.c0{background-color:var(--c0)} .nc.c1{background-color:var(--c1)} .nc.c2{background-color:var(--c2)} .nc.c3{background-color:var(--c3)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--text)}
+body.a11y .nc.c0{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .nc.c1{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .nc.c2{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .nc.c3{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 
 /* ── STANZE ── */
 [hidden]{display:none!important}
@@ -359,8 +371,8 @@ const RULES_HTML = `
 const HUM = 0;
 const NAMES = ['Tu','AI Ember','AI Cinder','AI Kasha'];
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('quashars-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('quashars-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('quashars-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('quashars-a11y')==='1'; OPT.memo=localStorage.getItem('quashars-memo')==='1'; }catch(e){}
 
 // ═════════════════════════ INTERAZIONE ═════════════════════════
 async function ask(p,title,options,o={}){
@@ -399,7 +411,7 @@ function deal(){
     p.hand=deck.slice(i*12,i*12+12).sort((a,b)=>a.c-b.c||a.n-b.n);
     p.pred=null; p.white=0; p.flex=false; p.blue=0; p.won=0;
   });
-  G.trick=[]; G.winner=-1; G.show=null; G.prev=-1; G.t=0;
+  G.trick=[]; G.winner=-1; G.show=null; G.prev=-1; G.t=0; G.played=[];
   G.conds=PILES.map((pile,i)=>({pile:i,...pile.cards[G.order[i][G.game]]}));
 }
 
@@ -456,7 +468,7 @@ async function tricks(){
       const lead=G.trick.length?G.trick[0].card.c:null;
       const idx=await askCard(p,legalIdx(p,lead));
       const [card]=P(p).hand.splice(idx,1);
-      G.trick.push({p,card});
+      G.trick.push({p,card}); G.played.push(card.c*100+card.n);
       logMsg(`${P(p).name} gioca ${card.n} ${COLORS[card.c].n.toLowerCase()}.`);
     }
     G.turn=-1;
@@ -632,6 +644,14 @@ function aiCardQ(p){
   return qPick(pl.hand,G.trick,p,G.n,MAXN(),pl.white,G.conds,G.t,G.prev);
 }
 
+function memoHtml(){
+  const max=G.n===3?9:12, mine=new Set(P(HUM).hand.map(c=>c.c*100+c.n)), seen=new Set(G.played||[]);
+  const rows=COLORS.map((col,k)=>`<div class="ur"><span class="l">${col.n}</span>${Array.from({length:max},(_,i)=>{
+    const key=k*100+i+1;
+    return `<span class="nc c${k} ${seen.has(key)?'gone':''} ${mine.has(key)?'own':''}">${i+1}</span>`;
+  }).join('')}</div>`).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 let LOGOPEN=false;
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 let MENUOPEN=false;
@@ -640,6 +660,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare previsioni e carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana alle carte (righe, puntini, diagonali) per distinguere i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -655,6 +676,7 @@ function render(){
     const pos=POS[G.n];
     body=`${G.conds.length?condsHtmlOf(G.conds):''}
       <div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over&&G.played&&P(HUM).hand.length?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtmlFor(G.n)}
@@ -689,6 +711,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('quashars-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('quashars-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

@@ -141,6 +141,12 @@ button.hc.sel:hover:not(:disabled){transform:translateY(-12px)}
 .pchips{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
 .pchip{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 4px;border-radius:5px;font-family:'Orbitron',sans-serif;font-weight:800;font-size:11px;border:1px solid rgba(10,30,92,.35)}
 .pchip.s0{background:var(--s0);color:var(--on0)} .pchip.s1{background:var(--s1);color:var(--on1)} .pchip.s2{background:var(--s2);color:var(--on2)} .pchip.s3{background:var(--s3);color:var(--on3)}
+/* carte uscite (opzione del menu, solo contro l'AI) */
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.pchip.gone{opacity:.2;text-decoration:line-through}
+.pchip.own{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--ink)}
 
 .center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;font-size:12px;line-height:1.45;color:var(--text-soft);min-width:0}
 .center b{color:var(--accent)}
@@ -423,8 +429,8 @@ const HUM = 0;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true, seeHands:false};
-try{ const s=localStorage.getItem('hh-undo'); if(s!==null) OPT.undo=s==='1'; OPT.seeHands=localStorage.getItem('hh-seehands')==='1'; }catch(e){}
+const OPT = {undo:true, seeHands:false, memo:false};
+try{ const s=localStorage.getItem('hh-undo'); if(s!==null) OPT.undo=s==='1'; OPT.seeHands=localStorage.getItem('hh-seehands')==='1'; OPT.memo=localStorage.getItem('hh-memo')==='1'; }catch(e){}
 const roleOf = p => (p-G.dealer+4)%4;                       // 0 mazziere, 1 A, 2 B, 3 C
 const seatOfRole = r => (G.dealer+(r==='A'?1:r==='B'?2:3))%4;
 const ROLEKEY = ['','A','B','C'];
@@ -1022,7 +1028,16 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Di regola il mazziere vede le mani solo per piazzare le tessere; con questa opzione le vede anche durante le prese"><input type="checkbox" id="optSee" ${OPT.seeHands?'checked':''}> Quando sei il mazziere, vedi le mani anche durante le prese</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
+}
+function memoHtml(){
+  const mine=new Set(G.hands[HUM].map(c=>c.id)), seen=new Set(G.played||[]);
+  const rows=SUITS.map((S,s)=>`<div class="ur"><span class="l">${S.n}</span>${Array.from({length:S.max},(_,i)=>{
+    const id=s*16+i+1;
+    return `<span class="pchip s${s} ${seen.has(id)?'gone':''} ${mine.has(id)?'own':''}" title="${i+1} ${S.n}">${i+1}</span>`;
+  }).join('')}</div>`).join('');
+  return `<div class="scorebox"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
 }
 let LOGOPEN=false;
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
@@ -1038,6 +1053,7 @@ function render(){
   if(G){
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,['bottom','left','top','right'][i])).join('')}${centerHtml()}</div>
       ${boardHtml()}
+      ${OPT.memo&&!G.over&&(G.phase==='place'||G.phase==='play')&&G.hands&&G.played?memoHtml():''}
       ${pileHtml()}
       ${G.pl[0].hist.length&&!G.over?`<div class="scorebox"><h3>PUNTEGGI</h3>${scoreTable()}</div>`:''}
       ${logHtml()}
@@ -1067,6 +1083,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optSee'){
     OPT.seeHands=e.target.checked;
     try{ localStorage.setItem('hh-seehands',OPT.seeHands?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('hh-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

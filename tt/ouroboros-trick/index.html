@@ -156,6 +156,12 @@ body.a11y .pchip.s3{background-image:repeating-linear-gradient(90deg,rgba(47,122
 .pchip{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 4px;border-radius:5px;background:#fff;border:2px solid var(--s0);font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:12px}
 .pchip.s0{border-color:var(--s0);color:var(--t0)} .pchip.s1{border-color:var(--s1);color:var(--t1)} .pchip.s2{border-color:var(--s2);color:var(--t2)} .pchip.s3{border-color:var(--s3);color:var(--t3)}
 .pchips{display:flex;gap:3px;flex-wrap:wrap}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.pchip.nc{min-width:22px;padding:0 3px;font-size:11px}
+.pchip.nc.gone{opacity:.2;text-decoration:line-through}
+.pchip.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
 
 .center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;font-size:12px;line-height:1.45;color:var(--text-soft);min-width:0}
 .center b{color:var(--accent)}
@@ -235,8 +241,8 @@ const maxV = n => n===3?9:(n===4?12:15);
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('ot-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ot-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('ot-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ot-a11y')==='1'; OPT.memo=localStorage.getItem('ouroboros-memo')==='1'; }catch(e){}
 const cname = c => `${c.v} ${SUITS[c.s].n}`;
 const mk = (s,v) => ({s,v,id:s*16+v});
 const cardOf = id => mk(id>>4,id&15);
@@ -709,6 +715,23 @@ function poolPanel(){
     <div class="prow"><span class="lbl">Tuo pool (${mine.length})</span>${mine.length?`<div class="pchips">${mine.map(c=>`<span class="pchip s${c.s}" title="${cname(c)}">${c.v}</span>`).join('')}</div>`:'<span class="cap">vuoto</span>'}</div>
     <div class="hint">Il pool è fatto delle carte delle prese che hai vinto: quando la tua mano si svuota diventa la tua nuova mano. Chi resta senza mano e senza pool perde (anche chi, vincendo una presa, non ha carte a sufficienza tra mano e pool per scartare).</div></div>`;
 }
+// carte scartate (G.disc: rivelate a tutti e fuori dal gioco, sbarrate) e carte della propria mano o del proprio pool (contorno); le altre sono nelle mani/pool altrui
+function memoHtml(){
+  const mine=new Set(G.hands[HUM].concat(G.pool[HUM]).map(c=>c.id)), gone=new Set(G.disc.map(c=>c.id));
+  const rows=SUITS.map((su,s)=>{
+    const cs=makeDeck(G.n).filter(c=>c.s===s);
+    return `<div class="ur"><span class="l">${su.n}</span>${cs.map(c=>`<span class="pchip nc s${s} ${gone.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" title="${cname(c)}">${c.v}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="scorebox"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div><div class="hint" style="margin-top:8px">Sbarrate: carte scartate, uscite dal gioco. Contorno: carte nella tua mano o nel tuo pool.</div></div>`;
+}
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte scartate e quelle che hai in mano o nel pool"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
+    </div>`:''}</div>`;
+}
 function resTable(){
   const rows=G.pl.map(p=>{
     const hl=G.hands[p.id].length, pl=G.pool[p.id].length, out=G.over&&G.over.losers.includes(p.id);
@@ -799,6 +822,7 @@ function render(){
   if(G){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
       ${poolPanel()}
+      ${OPT.memo&&!G.over&&G.hands.length?memoHtml():''}
       ${resTable()}
       ${logHtml()}
       ${recapHtml()}
@@ -825,6 +849,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('ot-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('ouroboros-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

@@ -141,6 +141,19 @@ body.a11y .fc.k4,body.a11y .rchip.k4{background-image:repeating-linear-gradient(
 .recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
 .recap-row .rchip{vertical-align:middle}
 .rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:700;color:var(--ki,#333);background:var(--kb,#ddd);border:1px solid rgba(0,0,0,0.18)}
+/* carte uscite (opzione del menu, solo contro l'AI) */
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;min-width:26px;justify-content:center;padding:3px 5px;border-radius:5px;font-size:12px;font-weight:700;color:var(--ki,#333);background:var(--kb,#ddd);border:1px solid rgba(0,0,0,0.18)}
+.nc.k0{--kb:var(--k0);--ki:var(--i0)} .nc.k1{--kb:var(--k1);--ki:var(--i1)} .nc.k2{--kb:var(--k2);--ki:var(--i2)} .nc.k3{--kb:var(--k3);--ki:var(--i3)} .nc.k4{--kb:var(--k4);--ki:var(--i4)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--text)}
+body.a11y .nc.k1{background-image:radial-gradient(rgba(0,0,0,0.2) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .nc.k2{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.16) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k3{background-image:repeating-linear-gradient(135deg,rgba(0,0,0,0.16) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k0{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.16) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k4{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.16) 0 3px,transparent 3px 8px)}
 details.rules{background:var(--surface);border:2px solid #5d4aa6;border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap{display:block;padding:14px 16px}
@@ -259,8 +272,8 @@ const DECK = []; for(let s=0;s<5;s++) for(let r=1;r<=12;r++) DECK.push({s,r});
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('ut-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ut-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('ut-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ut-a11y')==='1'; OPT.memo=localStorage.getItem('ut-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
 const plu = (n,s,p) => `${n} ${n===1?s:p}`;
 const cname = c => `${COLORS[c.s].n} ${c.r}`;
@@ -655,7 +668,16 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
+}
+function memoHtml(){
+  const S=G.S, mine=new Set(S.hands[HUM].map(ck)), seen=new Set((S.played||[]).map(ck));
+  const rows=COLORS.map((col,s)=>`<div class="ur"><span class="l">${col.n}</span>${Array.from({length:12},(_,i)=>{
+    const k=s*20+i+1;
+    return `<span class="nc k${s} ${seen.has(k)?'gone':''} ${mine.has(k)?'own':''}">${i+1}</span>`;
+  }).join('')}</div>`).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
 }
 function posFor(m){ return m===2?['bottom','top']:m===3?['bottom','left','right']:m===4?['bottom','left','top','right']:['bottom','left','tl','tr','right']; }
 function render(){
@@ -671,6 +693,7 @@ function render(){
     const S=G.S, m=S.order.length, h=S.order.indexOf(HUM);
     const rot=S.order.map((_,i)=>S.order[(h+i)%m]).filter(id=>!isNpc(id)), pos=posFor(rot.length);
     body=`${npcPanelHtml()}<div class="table n${rot.length}">${centerHtml()}${rot.map((id,i)=>seatHtml(id,pos[i])).join('')}</div>
+      ${OPT.memo&&!G.over&&(S.phase==='guess'||S.phase==='play')?memoHtml():''}
       <div class="dock" style="position:static">${scoreTable()}</div>
       ${logHtml()}
       ${recapHtml()}
@@ -692,6 +715,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('ut-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('ut-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

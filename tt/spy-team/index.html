@@ -46,6 +46,20 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'In
 .hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:transparent;color:var(--text-soft);border:1px solid var(--border);cursor:pointer}
 .hamb:hover{background:var(--surface-raised);color:var(--text)}
 .menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:200px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.3)}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-pop .opt-toggle{border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+/* carte uscite (opzione del menu, solo contro l'AI) */
+.recap-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.recap-box h3{font-size:12px;font-weight:600;letter-spacing:0.04em;color:var(--text-soft)}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;min-width:26px;justify-content:center;padding:3px 5px;border-radius:5px;background:#59606b;color:#fff;font-weight:700;font-size:12px}
+.nc.c0{background-color:var(--c0)} .nc.c1{background-color:var(--c1)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--text)}
 .btn{border:none;border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:7px;justify-content:center;transition:background 0.15s,transform 0.07s}
 .btn:active{transform:scale(0.96)}
 .btn:disabled{opacity:0.35;cursor:not-allowed;transform:none}
@@ -228,6 +242,8 @@ const mates  = t => [t, t+2];
 const pname  = i => NAMES[i];
 
 let G = null;          // stato partita
+const OPT = {memo:false};
+try{ OPT.memo=localStorage.getItem('spy-team-memo')==='1'; }catch(e){}
 let ui = {};           // stato del modulo scelta tile (solo per l'umano)
 let gen = 0;           // invalida i timer di una partita precedente
 
@@ -251,7 +267,7 @@ function dealRound(){
     hands:[0,1,2,3].map(i=>deck.slice(i*11,i*11+11)),   // 4 carte restano inutilizzate
     phase:'tiles', tstep:0, prop:[null,null], tile:[null,null], low:[null,null],
     passed:[null,null,null,null], received:null,
-    trick:[], leader:G.start, turn:G.start, won:[0,0,0,0], resolving:false, winnerSeat:null,
+    trick:[], played:[], leader:G.start, turn:G.start, won:[0,0,0,0], resolving:false, winnerSeat:null,
     result:null, msg:`Round ${G.round}: inizia ${pname(G.start)}. Si scelgono le Mission Tile.`
   });
   ui={tile:null, low:null, initFor:-1};
@@ -378,7 +394,7 @@ function humanPlay(idx){
 
 function playCard(p, idx){
   const [card]=G.hands[p].splice(idx,1);
-  G.trick.push({p,card});
+  G.trick.push({p,card}); G.played.push(card.c*100+card.n);
   logMsg(`${pname(p)} gioca ${card.n} ${colName(card.c)}.`);
   if(G.trick.length===4){
     const w=trickWinner();
@@ -616,7 +632,17 @@ function logHtml(){
 }
 let MENUOPEN=false;
 function menuHtml(){
-  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Menu" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>${MENUOPEN?'<div class="menu-pop"></div>':''}</div>`;
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Menu" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
+    </div>`:''}</div>`;
+}
+function memoHtml(){
+  const mine=new Set(G.hands[0].concat(G.received?[G.received]:[]).map(c=>c.c*100+c.n)), seen=new Set(G.played||[]);
+  const rows=['Rosa','Azzurro'].map((nm,k)=>`<div class="ur"><span class="l">${nm}</span>${Array.from({length:24},(_,i)=>{
+    const key=k*100+i+1;
+    return `<span class="nc c${k} ${seen.has(key)?'gone':''} ${mine.has(key)?'own':''}">${i+1}</span>`;
+  }).join('')}</div>`).join('');
+  return `<div class="recap-box"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
 }
 function renderMode(){
   const app=document.getElementById('app');
@@ -649,12 +675,19 @@ function render(){
       ${seatHtml(3,'right')}
       ${seatHtml(0,'bottom')}
     </div>
+    ${OPT.memo&&G.played&&G.phase!=='roundEnd'&&G.phase!=='gameEnd'?memoHtml():''}
     ${logHtml()}
     ${RECAP_HTML}
     ${RULES_HTML}`;
 }
 
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id!=='optMemo') return;
+  OPT.memo=e.target.checked;
+  try{ localStorage.setItem('spy-team-memo',OPT.memo?'1':'0'); }catch(err){}
+  render();
+});
 document.getElementById('app').addEventListener('click',e=>{
   if(e.target.closest('[data-start-ai]')) newGame();
   else if(e.target.closest('[data-menu]')){ MENUOPEN=!MENUOPEN; render(); }

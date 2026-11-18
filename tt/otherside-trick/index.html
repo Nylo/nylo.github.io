@@ -142,6 +142,17 @@ body.a11y .k3.fc,body.a11y .k3.sw,body.a11y .k3.ch{background-image:repeating-li
 .ch small{font-weight:600;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;opacity:0.85}
 .ch.empty{background:transparent;border-style:dashed;border-color:rgba(255,255,255,0.4);color:#d9d3c4;font-weight:600}
 
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;background-color:#555;color:#fff;font-weight:800;font-size:10px;line-height:1;border:1px solid rgba(0,0,0,.5)}
+.nc.k0{background-color:var(--k0)} .nc.k1{background-color:var(--k1)} .nc.k2{background-color:var(--k2);color:#1c1830} .nc.k3{background-color:var(--k3);color:#1c1830}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
+body.a11y .k0.nc{background-image:radial-gradient(rgba(255,255,255,0.32) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .k1.nc{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.3) 0 3px,transparent 3px 8px)}
+body.a11y .k2.nc{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.25) 0 3px,transparent 3px 8px)}
+body.a11y .k3.nc{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.25) 0 3px,transparent 3px 8px)}
 .recap{border:2px solid #cfc9b8;border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
 .recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
 .recap-row{display:block;font-size:12px;line-height:1.7}
@@ -202,8 +213,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('os-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('os-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('os-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('os-a11y')==='1'; OPT.memo=localStorage.getItem('os-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
 const cname = c => `${SUITS[c.s].n} ${c.v}`;
 const sg = v => (v>0?'+':'')+v;
@@ -508,6 +519,15 @@ function dockHtml(){
   }
   return html;
 }
+// carte già uscite (G.played, sbarrate; le carte tolte dal gioco restano ignote) e carte della propria mano (contorno)
+function memoHtml(){
+  const mine=new Set(P(HUM).hand.map(c=>c.id)), seen=new Set(G.played.map(c=>c.id));
+  const rows=SUITS.map((su,s)=>{
+    const cs=fullDeck().filter(c=>c.s===s);
+    return `<div class="ur"><span class="l">${su.n}</span>${cs.map(c=>`<span class="nc k${s} ${seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" title="${cname(c)}">${c.v}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="recap paper hud"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function recapHtml(){
   const n=G.n;
   return `<details class="recap paper hud"><summary>RIEPILOGO</summary>
@@ -567,6 +587,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -580,6 +601,7 @@ function render(){
   let body='';
   if(G&&!G.welcome){
     body=`<div class="table hud n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over&&!G.show&&G.played.length+P(HUM).hand.length>0?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock paper hud" style="position:relative">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -619,6 +641,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('os-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('os-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

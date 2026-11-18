@@ -127,6 +127,19 @@ body.a11y .fc.k3,body.a11y .umb.k3,body.a11y .rchip.k3{background-image:repeatin
 .recap-row .lbl{font-weight:600;color:var(--text-soft)}
 .recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
 .recap-row .rchip,.recap-row .sw{vertical-align:middle}
+.memo{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+.memo h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft);margin-bottom:8px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;color:#fff;font-weight:800;font-size:10px;line-height:1;border:1px solid rgba(0,0,0,.5)}
+.nc.k0{background-color:var(--k0)} .nc.k1{background-color:var(--k1)} .nc.k2{background-color:var(--k2)} .nc.k3{background-color:var(--k3)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--accent)}
+body.a11y .nc.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .nc.k1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 .rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,0.35);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
 .rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
@@ -182,8 +195,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('mosd-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('mosd-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('mosd-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('mosd-a11y')==='1'; OPT.memo=localStorage.getItem('mosd-memo')==='1'; }catch(e){}
 const cname = c => `${COL[c.k].n} ${c.n}`;
 const dotsOf = k => '●'.repeat(COL[k].dots);
 
@@ -522,6 +535,23 @@ function dockHtml(){
   }
   return html;
 }
+// carte pioggia già uscite (G.seen: giocate scoperte in questa distribuzione, sbarrate) e carte della propria mano (contorno)
+function memoHtml(){
+  const mine=new Set(P(HUM).hand.map(c=>c.k*100+c.n)), seen=new Set(G.seen.map(c=>c.k*100+c.n));
+  const rows=COL.map((s,k)=>{
+    const cs=fullDeck().filter(c=>c.k===k);
+    return `<div class="ur"><span class="l">${s.n}</span>${cs.map(c=>{ const u=c.k*100+c.n; return `<span class="nc k${k} ${seen.has(u)?'gone':''} ${mine.has(u)?'own':''}" title="${cname(c)}">${c.n}</span>`; }).join('')}</div>`;
+  }).join('');
+  return `<div class="memo"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
+    </div>`:''}</div>`;
+}
 function recapHtml(){
   return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${COL.map((c,i)=>`<span class="rchip k${i}">${ico(c.icon)} ${c.n} 1–${c.max}</span>`).join('')}<span class="rv">52 carte pioggia · 13 a testa${G.n===3?' (13 scartate)':''}</span></div>
@@ -574,6 +604,7 @@ function render(){
   if(G){
     const pos=POS[G.n];
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over&&(G.st==='deal'||G.st==='tricks')?memoHtml():''}
       ${G.pl.some(p=>p.sc.out!=null)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -596,6 +627,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('mosd-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('mosd-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;
