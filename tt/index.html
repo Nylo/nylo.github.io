@@ -32,7 +32,7 @@
                 <div class="mt-4 overflow-x-auto rounded-xl border border-slate-700/60">
                         <table class="w-full min-w-[360px] border-collapse text-left text-sm">
                                 <thead class="bg-white/[0.05] text-xs uppercase tracking-wide text-slate-400">
-                                        <tr><th scope="col" class="px-4 py-3">Titolo</th><th scope="col" class="w-px whitespace-nowrap px-3 py-3" title="N. giocatori" aria-label="N. giocatori"><i class="ph-fill ph-users text-slate-500" aria-hidden="true"></i></th><th scope="col" colspan="3" class="w-px whitespace-nowrap px-3 py-3 text-right"></th></tr>
+                                        <tr><th scope="col" class="px-4 py-3">Titolo</th><th scope="col" class="w-px whitespace-nowrap px-3 py-3 text-right"></th><th scope="col" class="w-px whitespace-nowrap py-3 pl-1 pr-4 text-right" title="N. giocatori" aria-label="N. giocatori"><i class="ph-fill ph-users text-slate-500" aria-hidden="true"></i></th></tr>
                                 </thead>
                                 <tbody id="games" class="divide-y divide-slate-800"></tbody>
                         </table>
@@ -734,15 +734,14 @@
                 function resumeBtn(g) {
                         var s = savedGame();
                         if (!s || g.ai.replace(/\/+$/, '').split('/').pop() !== s.id) return '';
-                        return '<button type="button" data-resume="' + esc(g.ai) + '" title="Riprendi la partita salvata" class="ml-2 inline-flex items-center gap-1 rounded-md border border-teal-500/60 bg-teal-500/10 px-2 py-0.5 align-middle text-[11px] font-semibold uppercase tracking-wide text-teal-300 transition-colors hover:bg-teal-500/20"><i class="ph ph-play" aria-hidden="true"></i>Riprendi</button>';
+                        return '<button type="button" data-resume="' + esc(g.ai) + '" title="Riprendi la partita salvata" class="mr-2 inline-flex items-center gap-1 rounded-md border border-teal-500/60 bg-teal-500/10 px-2 py-0.5 align-middle text-[11px] font-semibold uppercase tracking-wide text-teal-300 transition-colors hover:bg-teal-500/20"><i class="ph ph-play" aria-hidden="true"></i>Riprendi</button>';
                 }
                 function rowHtml(g, on) {
                         return '<tr data-href="' + esc(g.ai) + '" tabindex="0" aria-label="Apri ' + esc(g.name) + '" class="cursor-pointer transition-colors hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500">' +
-                                '<th scope="row" class="px-4 py-3 font-semibold text-slate-100"><a href="' + esc(g.ai) + '" class="hover:text-teal-300">' + esc(g.name) + '</a>' + resumeBtn(g) + '</th>' +
-                                '<td class="w-px whitespace-nowrap px-3 py-3 text-slate-300">' + esc(g.players) + '</td>' +
-                                '<td class="w-px whitespace-nowrap pl-3 pr-1 py-3 text-right">' + stateBadge(g) + '</td>' +
-                                '<td class="w-px whitespace-nowrap pl-1 pr-2 py-3 text-right">' + betaBadge(g) + '</td>' +
-                                '<td class="w-px whitespace-nowrap pl-1 pr-3 py-2 text-right">' + statsBtn(g) + favBtn(g, on) + '</td></tr>';
+                                '<th scope="row" class="px-4 py-3 font-semibold text-slate-100"><div class="flex items-center gap-2"><a href="' + esc(g.ai) + '" class="hover:text-teal-300">' + esc(g.name) + '</a>' +
+                                '<span class="ml-auto flex shrink-0 items-center gap-1.5">' + resumeBtn(g) + stateBadge(g) + betaBadge(g) + '</span></div></th>' +
+                                '<td class="w-px whitespace-nowrap pl-1 pr-3 py-2 text-right">' + statsBtn(g) + favBtn(g, on) + '</td>' +
+                                '<td class="w-px whitespace-nowrap pl-1 pr-4 py-3 text-right text-slate-300">' + esc(g.players) + '</td></tr>';
                 }
                 // ricerca live sul titolo (senza accenti, maiuscole indifferenti)
                 function norm(t) { return String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
@@ -762,6 +761,10 @@
                 }
                 var IS_ADMIN = false;   // stesso accesso admin della collection (password master → localStorage nylo-admin)
                 try { IS_ADMIN = localStorage.getItem('nylo-admin') === '85770706df4d616a498c17a05c1f8fe200d36b219ea00c688d4ac39ee46103c4' || (localStorage.getItem('nylo-player-name') || '').trim().toLowerCase() === 'nylo'; } catch (e) {}
+                // i giochi in alpha si vedono solo con accesso admin / giocatore nylo oppure con il Lab sbloccato
+                var LAB_OPEN = false;
+                try { LAB_OPEN = localStorage.getItem('nylo-tambu-unlocked') === 'c57025ae9174f33c56f41db133f1b855c82502a687de8eddcb9e1d6fa491bdfb'; } catch (e) {}
+                var CAN_ALPHA = IS_ADMIN || LAB_OPEN;
                 function drawStateFilter() {
                         if (!IS_ADMIN) return;
                         document.getElementById('stateFilter').classList.replace('hidden', 'flex');
@@ -780,11 +783,11 @@
                 var q = document.getElementById('q');
                 function show() {
                         var t = norm(q.value).trim();
-                        var list = GAMES.filter(function (g) { return (!t || norm(g.name).indexOf(t) !== -1) && stateMatch(g); });
+                        var list = GAMES.filter(function (g) { return (CAN_ALPHA || !g.alpha) && (!t || norm(g.name).indexOf(t) !== -1) && stateMatch(g); });
                         var favs = loadFavs();
                         list = list.filter(function (g) { return favs.indexOf(g.name) >= 0; }).concat(list.filter(function (g) { return favs.indexOf(g.name) < 0; }));
                         var cnt = document.getElementById('count'); if (IS_ADMIN) { cnt.classList.remove('hidden'); cnt.textContent = list.length + '/' + GAMES.length; }
-                        games.innerHTML = list.length ? list.map(function (g) { return rowHtml(g, favs.indexOf(g.name) >= 0); }).join('') : '<tr><td colspan="5" class="px-4 py-6 text-center text-slate-400">Nessun titolo trovato.</td></tr>';
+                        games.innerHTML = list.length ? list.map(function (g) { return rowHtml(g, favs.indexOf(g.name) >= 0); }).join('') : '<tr><td colspan="3" class="px-4 py-6 text-center text-slate-400">Nessun titolo trovato.</td></tr>';
                 }
                 q.addEventListener('input', show);
                 show();
