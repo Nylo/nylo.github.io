@@ -149,6 +149,18 @@ details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
 details.recap[open]>:not(summary)+*{margin-top:10px}
+.memo{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+.memo h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft);margin-bottom:8px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:64px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 3px;border-radius:5px;font-weight:800;font-size:12px;line-height:1;border:1px solid rgba(0,0,0,.5);color:#fff}
+.nc.c1{color:#3a2205}
+body.a11y .c0.nc{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.3) 0 2px,transparent 2px 6px)}
+body.a11y .c1.nc{background-image:radial-gradient(rgba(0,0,0,0.25) 22%,transparent 24%);background-size:8px 8px}
+body.a11y .c2.nc{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.28) 0 2px,transparent 2px 7px)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--text)}
 .rtext h4{font-family:'Montserrat',sans-serif;font-size:13px;color:#a35a1f;margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -209,8 +221,8 @@ const mk = s => s===0 ? ico('diamond') : `<i class="rm">${s===1?'I':'II'}</i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('clumsy-room-maids-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('clumsy-room-maids-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('clumsy-room-maids-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('clumsy-room-maids-a11y')==='1'; OPT.memo=localStorage.getItem('clumsy-room-maids-memo')==='1'; }catch(e){}
 const nextOf = p => (p+1)%N;               // il giocatore a sinistra è il successivo in senso orario
 const cname = c => `${SUITS[c.c].n} ${c.n}`;
 const bidSum = p => p.bids.reduce((a,b)=>a+b.c.c,0);
@@ -310,7 +322,7 @@ function newMatch(n){
 }
 function deal(){
   G.phase='idle'; G.dt=null; G.dp=-1;
-  G.draw=shuffle(makeDeck()); G.drawn=null; G.trick=[]; G.trickNo=0; G.win=-1; G.turn=-1; G.leader=-1; G.show=null; G.fresh=null;
+  G.draw=shuffle(makeDeck()); G.drawn=null; G.played=[]; G.trick=[]; G.trickNo=0; G.win=-1; G.turn=-1; G.leader=-1; G.show=null; G.fresh=null;
   G.trump=TRUMPS[G.round]; G.firstBid=false;
   G.pl.forEach(p=>{ p.hand=[]; p.bids=[]; p.q={...QUOTA}; p.won=0; p.vert=0; p.horiz=0; });
 }
@@ -380,6 +392,7 @@ async function playRound(res){
       else{ await sleep(650); idx=aiPlay(p); }
       const card=pl.hand.splice(idx,1)[0];
       G.trick.push({p,card});
+      (G.played||(G.played=[])).push(card);
       logMsg(`${pl.name} gioca ${cname(card)}.`);
     }
     G.turn=-1;
@@ -526,6 +539,19 @@ function centerHtml(){
     <div>${tr}</div>
     <div class="hint" style="color:inherit">Lo 0 batte il 9 dello stesso colore · il ${ico('coffee')} 6 è il pigrone</div></div>`;
 }
+// carte uscite: solo informazione pubblica (carte giocate nel round, appelli scoperti, puntate rivelate a fine round) + ciò che l'umano conosce (mano e proprie puntate coperte)
+function memoHtml(){
+  const key = c => c.c*10+c.n, reveal=G.phase==='score'||G.phase==='over';
+  const seen=new Set((G.played||[]).map(key));
+  G.pl.forEach(p=>p.bids.forEach(b=>{ if(b.up||reveal) seen.add(key(b.c)); }));
+  const mine=new Set(P(HUM).hand.map(key));
+  P(HUM).bids.forEach(b=>mine.add(key(b.c)));
+  const rows=SUITS.map((s,k)=>{
+    const cs=makeDeck().filter(c=>c.c===k);
+    return `<div class="ur"><span class="l">${s.n}</span>${cs.map(c=>`<span class="nc c${c.c} ${seen.has(key(c))?'gone':''} ${mine.has(key(c))?'own':''}" title="${cname(c)}">${c.n}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="memo"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const cols=Array.from({length:ROUNDS},(_,i)=>i);
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${cols.map(i=>{ const d=p.hist[i]; return `<td class="${d===undefined?'':'pos'}">${d===undefined?'–':'+'+d}</td>`; }).join('')}<td><b>${p.score}</b></td></tr>`).join('');
@@ -596,6 +622,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le scelte e le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite in questo round e quelle che conosci"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -609,6 +636,7 @@ function render(){
   let body='';
   if(G){
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,POS[i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over&&G.phase!=='idle'?memoHtml():''}
       <div class="dock" style="position:static">${scoreTable()}</div>
       ${logHtml()}
       ${recapHtml()}
@@ -631,6 +659,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('clumsy-room-maids-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('clumsy-room-maids-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

@@ -124,6 +124,14 @@ button.pc:disabled{cursor:default}
 .pc.legal{box-shadow:0 0 0 3px var(--gold)}
 .pc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--gold)}
 .hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:6px}
+.scorebox{border:3px solid #111;box-shadow:3px 5px 0 rgba(0,0,0,.35);background:var(--paper);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
+.scorebox h3{font-size:11px;font-weight:700;color:var(--ink);letter-spacing:0.05em;margin-bottom:8px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:84px;font-size:11px;font-weight:700;white-space:nowrap}
+.mk{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:26px;padding:0 3px;border-radius:5px;border:1px solid #111;font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;line-height:1;color:#fff;text-shadow:-1px -1px 0 #111,1px -1px 0 #111,-1px 1px 0 #111,1px 1px 0 #111}
+.mk.gone{opacity:.2;text-decoration:line-through}
+.mk.own{box-shadow:0 0 0 2px #fffaf0,0 0 0 3.5px #111}
 .sw{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:5px;font-weight:700;font-size:11px;border:1px solid rgba(0,0,0,0.4);color:#fff;text-shadow:-1px -1px 0 #111,1px -1px 0 #111,-1px 1px 0 #111,1px 1px 0 #111}
 
 .center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:12px;line-height:1.5;min-width:0}
@@ -267,8 +275,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true};
-try{ const s=localStorage.getItem('bt-undo'); if(s!==null) OPT.undo=s==='1'; }catch(e){}
+const OPT = {undo:true, memo:false};
+try{ const s=localStorage.getItem('bt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.memo=localStorage.getItem('bt-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
 const argmax = a => { let b=0; for(let i=1;i<a.length;i++) if(a[i]>a[b]) b=i; return b; };
 
@@ -804,6 +812,12 @@ function dockHtml(){
   }
   return html;
 }
+// carte uscite: scoperte in questo round (carte iniziali, giocate, rivelate dal mazzo; G.seen); in contorno le tue
+function memoHtml(){
+  const mine=new Set(G.S.hands[HUM]);
+  const rows=SUITS.map((s,k)=>`<div class="ur"><span class="l">${s}</span>${G.deckAll.filter(c=>cs(c)===k).map(c=>`<span class="mk s${k} ${G.seen.has(c)?'gone':''} ${mine.has(c)?'own':''}" title="${cardName(c)}">${cv(c)}</span>`).join('')}</div>`).join('');
+  return `<div class="scorebox"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function recapHtml(){
   const n=G.n, cfg=G.cfg;
   return `<details class="recap paper"><summary>RIEPILOGO</summary>
@@ -846,7 +860,7 @@ const RULES_HTML = `
 <p><b>2 giocatori:</b> mazzo da 28 carte (valori 1–7), 2 prese aperte, 8 carte di pesca, 7 bottoni, fino a 3 giocate per presa, 4 round.</p>
 <p><b>3 giocatori:</b> mazzo da 36 carte (valori 1–9), 3 prese aperte, 6 carte di pesca, 9 bottoni, fino a 2 giocate per presa, 3 round.</p>
 <p><b>A squadre (4 giocatori):</b> chi siede di fronte è compagno. Prima delle scommesse i compagni si scambiano una carta a faccia in giù. La scommessa della squadra è la somma dei bottoni dei due giocatori e la squadra deve vincere esattamente quel numero di prese; i punti si sommano per squadra. Una scommessa di 0 prese riuscita fa vincere subito la partita. 4 round.</p>
-<p><i>Nell'app:</i> il primo mazziere e le carte sono casuali; i bottoni si prendono uno «scatto» alla volta (puoi prenderne più di uno nello stesso turno e, al giro dopo, altri); l'AI conosce solo le carte scoperte e stima il resto con simulazioni. Se un giocatore non ha nessuna presa dove giocare (ha già giocato il massimo in tutte), salta il turno. Il regolamento cita 40 carte da rimescolare, ma ne servono 44: l'app rimescola tutte le carte tranne quelle tenute.</p>
+<p><i>Nell'app:</i> il primo mazziere e le carte sono casuali; i bottoni si prendono uno «scatto» alla volta (puoi prenderne più di uno nello stesso turno e, al giro dopo, altri); l'AI conosce solo le carte scoperte e stima il resto con simulazioni. Se un giocatore non ha nessuna presa dove giocare (ha già giocato il massimo in tutte), salta il turno. Il regolamento cita 40 carte da rimescolare, ma ne servono 44: l'app rimescola tutte le carte tranne quelle tenute. Nel menu, «Mostra le carte uscite» elenca le carte del mazzo: sbarrate quelle già scoperte nel round (carte iniziali, giocate, rivelate), in contorno le tue.</p>
 </div></details>`;
 
 let LOGOPEN=false, RULESOPEN=false;
@@ -862,6 +876,7 @@ function menuHtml(){
   return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -874,6 +889,7 @@ function render(){
   let body='';
   if(G&&!G.welcome){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&G.S&&!G.over&&!G.show?memoHtml():''}
       <div class="dock paper" style="position:static">${scoreTable()}</div>
       ${logHtml()}
       ${recapHtml()}
@@ -912,6 +928,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.cf!==undefined) confirmMove(b.dataset.cf==='1');
 });
 document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('bt-memo',OPT.memo?'1':'0'); }catch(err){}
+    render(); return;
+  }
   if(e.target.id!=='optUndo') return;
   OPT.undo=e.target.checked;
   try{ localStorage.setItem('bt-undo',OPT.undo?'1':'0'); }catch(err){}

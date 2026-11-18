@@ -128,6 +128,17 @@ button.fc:disabled{cursor:default}
 .tc .rel{position:absolute;left:-2px;top:-8px;font:700 8px Inter,sans-serif;padding:1px 4px;border-radius:6px;background:#fff;color:#1d4f8a;letter-spacing:0.04em}
 .chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center}
 
+.scorebox{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
+.scorebox h3{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em;margin-bottom:8px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:78px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.unseen .pr{display:inline-flex;gap:1px}
+.mk{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:22px;padding:0 2px;border-radius:4px;background:#888;color:#fff;font-weight:800;font-size:11px;line-height:1;border:1px solid rgba(0,0,0,.4);text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.mk.k0{background-color:var(--k0)} .mk.k1{background-color:var(--k1)} .mk.k2{background-color:var(--k2)} .mk.k3{background-color:var(--k3)} .mk.k4{background-color:var(--k4)} .mk.k5{background-color:var(--k5)}
+.mk.io{background:linear-gradient(135deg,#ffe45a,#ff9d1a);color:#d41f1f;text-shadow:none}
+.mk.gone{opacity:.2;text-decoration:line-through}
+.mk.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #2c2a1e}
 .recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
 .recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
 .recap-row{display:block;font-size:12px;line-height:1.7}
@@ -235,8 +246,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('bh-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('bh-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('bh-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('bh-a11y')==='1'; OPT.memo=localStorage.getItem('bh-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
 const cname = c => c.io?'Offerta Irresistibile':`${COL[c.c].n} ${c.n}`;
 const keyOf = c => c.io?'io':c.c*10+c.n;
@@ -674,6 +685,20 @@ function dockHtml(){
   }
   return html;
 }
+// carte uscite: tutte quelle giocate nelle prese (ora negli Affari, nelle Cianfrusaglie o nel cestino) o sul tavolo; in contorno le tue
+function memoHtml(){
+  const seen=new Set(), mine=new Set(P(HUM).hand.map(c=>c.id));
+  G.pl.forEach(q=>{ q.bargain.forEach(c=>seen.add(c.id)); q.junk.forEach(c=>seen.add(c.id)); });
+  G.trash.forEach(c=>seen.add(c.id));
+  if(G.R) G.R.ts.plays.forEach(x=>seen.add(x.c.id));
+  const chip=c=>`<span class="mk ${c.io?'io':'k'+c.c} ${seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" title="${cname(c)}">${c.io?ico('sparkle'):c.n}</span>`;
+  const rows=COL.map((col,k)=>{
+    const g=[]; for(let n=1;n<=9;n++) g.push(`<span class="pr">${DECK.filter(c=>c.c===k&&c.n===n).map(chip).join('')}</span>`);
+    return `<div class="ur"><span class="l">${ico(col.icon)}${col.n}</span>${g.join('')}</div>`;
+  }).join('');
+  const io=`<div class="ur"><span class="l">${ico('sparkle')}Offerta</span><span class="pr">${DECK.filter(c=>c.io).map(chip).join('')}</span></div>`;
+  return `<div class="scorebox"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}${io}</div></div>`;
+}
 function recapHtml(){
   const m=MINTRASH[G.n];
   return `<details class="recap"><summary>RIEPILOGO</summary>
@@ -711,7 +736,7 @@ const RULES_HTML = `
 <p>Il nuovo mazziere rimescola il cestino e lo mette sotto le carte rimaste, poi distribuisce. Se non bastano 8 carte a testa si distribuiscono meno carte, uguali per tutti. Solo la carta in cima alla pila Affare determina l'oggetto da raccogliere; le carte già nell'Affare mantengono il loro valore.</p>
 <h4>Fine della partita</h4>
 <p>Nell'ultimo round si possono fare <b>due</b> pulizie a testa. Si conta +1 per ogni carta nell'Affare e −1 per ogni carta nelle Cianfrusaglie (Offerte comprese). Vince chi ha più punti; a parità chi ha meno Cianfrusaglie; altrimenti la vittoria è condivisa.</p>
-<p><i>Interpretazioni nell'app:</i> se si apre con un'Offerta Irresistibile, il colore di mano è quello della prima carta non-Offerta giocata dopo (chi la gioca non può dichiararla briscola). Le pulizie sono private: gli altri vedono solo cosa entra nell'Affare e quante carte hai nelle Cianfrusaglie. Se l'oggetto ripulito ha esattamente tanti esemplari quanti il minimo da buttare, l'Affare non cambia. L'AI deduce i colori che un avversario non ha dalle sue risposte.</p>
+<p><i>Interpretazioni nell'app:</i> se si apre con un'Offerta Irresistibile, il colore di mano è quello della prima carta non-Offerta giocata dopo (chi la gioca non può dichiararla briscola). Le pulizie sono private: gli altri vedono solo cosa entra nell'Affare e quante carte hai nelle Cianfrusaglie. Se l'oggetto ripulito ha esattamente tanti esemplari quanti il minimo da buttare, l'Affare non cambia. L'AI deduce i colori che un avversario non ha dalle sue risposte. Nel menu, «Mostra le carte uscite» elenca tutte le carte del mazzo: sbarrate quelle già giocate nelle prese del giro (anche se ora sono nelle Cianfrusaglie o nel cestino), in contorno le tue.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -722,6 +747,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Sulle carte mostra il numero (l'oggetto) e il simbolo del colore al posto dell'icona dell'oggetto"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -736,6 +762,7 @@ function render(){
   if(G&&G.R){
     const pos=POS[G.n];
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over?memoHtml():''}
       ${G.show?'':`<div class="dock" style="position:static">${scoreTable()}</div>`}
       ${logHtml()}
       ${recapHtml()}
@@ -759,6 +786,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('bh-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('bh-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

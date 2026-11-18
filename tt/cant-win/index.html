@@ -155,6 +155,19 @@ body.a11y .s3.pc,body.a11y .s3.sw{background-image:repeating-linear-gradient(90d
 .tboard .tile.taken{opacity:0.45}
 .order{font-size:11px;opacity:0.9}
 
+.scorebox{border:3px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
+.scorebox h3{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em;margin-bottom:8px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:84px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.mk{display:inline-flex;align-items:center;justify-content:center;min-width:23px;height:23px;padding:0 3px;border-radius:5px;font-weight:800;font-size:11px;line-height:1;color:#2a2540;border:1px solid rgba(0,0,0,.5)}
+.mk.s2{color:#fff}
+.mk.gone{opacity:.2;text-decoration:line-through}
+.mk.own{box-shadow:0 0 0 2px var(--text),0 0 0 3.5px var(--ink)}
+body.a11y .s0.mk{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.35) 0 3px,transparent 3px 8px)}
+body.a11y .s1.mk{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.35) 0 3px,transparent 3px 8px)}
+body.a11y .s2.mk{background-image:radial-gradient(rgba(0,0,0,0.22) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .s3.mk{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.18) 0 2px,transparent 2px 7px)}
 .recap{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
 .recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
 .recap-row{display:block;font-size:12px;line-height:1.7}
@@ -258,8 +271,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false,beg:false};
-try{ const s=localStorage.getItem('cw-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('cw-a11y')==='1'; OPT.beg=localStorage.getItem('cw-beg')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,beg:false,memo:false};
+try{ const s=localStorage.getItem('cw-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('cw-a11y')==='1'; OPT.beg=localStorage.getItem('cw-beg')==='1'; OPT.memo=localStorage.getItem('cw-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
 const argmax = a => { let b=0; for(let i=1;i<a.length;i++) if(a[i]>a[b]) b=i; return b; };
 const cardName = c => `${c.v} ${SUITS[c.s]}`;
@@ -776,6 +789,12 @@ function dockHtml(){
   }
   return html;
 }
+// carte uscite: giocate nel round (G.seen, anche quelle di traverso); in contorno le tue
+function memoHtml(){
+  const mine=new Set(P(HUM).hand.map(c=>c.id));
+  const rows=SUITS.map((s,k)=>`<div class="ur"><span class="l">${ico(SICO[k])}${s}</span>${G.deck.filter(c=>c.s===k).map(c=>`<span class="mk s${k} ${G.seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" title="${cardName(c)}">${c.v}</span>`).join('')}</div>`).join('');
+  return `<div class="scorebox paper"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function recapHtml(){
   const n=G.n;
   return `<details class="recap paper"><summary>RIEPILOGO</summary>
@@ -819,7 +838,7 @@ const RULES_HTML = `
 <p>Dopo tanti round quanti sono i giocatori, si sommano separatamente le prese e i punti: il <b>punteggio finale</b> è Σ prese × Σ punti. Vince il punteggio più alto; a parità vince chi ha più punti; se ancora pari, la vittoria è condivisa.</p>
 <h4>Regole per principianti (opzionali)</h4>
 <p>Si attivano dalla schermata iniziale. Chi sbaglia la puntata prende 0 punti ma riceve un <b>gettone Aiuto</b> (ce ne sono 12) e lo tiene finché non centra una puntata. Al momento del punteggio ogni gettone permette di aggiungere o togliere 1 alla puntata: se così la puntata corrisponde alle prese, è centrata. Quando una puntata è centrata (esattamente o grazie ai gettoni) si restituiscono tutti i gettoni Aiuto. I punti per una puntata centrata non cambiano.</p>
-<p><i>Nell'app:</i> il primo mazziere è scelto a caso; i 18 gettoni puntata sono un limite reale (non si può puntare più dei gettoni rimasti); con le regole per principianti i 2 punti spettano solo a chi ha puntato davvero Zero e non ha vinto prese, una puntata centrata con i gettoni Aiuto vale sempre 1 punto. Il log elenca le carte giocate (come se tutti avessero buona memoria); l'AI stima le mani avversarie con simulazioni.</p>
+<p><i>Nell'app:</i> il primo mazziere è scelto a caso; i 18 gettoni puntata sono un limite reale (non si può puntare più dei gettoni rimasti); con le regole per principianti i 2 punti spettano solo a chi ha puntato davvero Zero e non ha vinto prese, una puntata centrata con i gettoni Aiuto vale sempre 1 punto. Il log elenca le carte giocate (come se tutti avessero buona memoria); l'AI stima le mani avversarie con simulazioni. Nel menu, «Mostra le carte uscite» elenca le carte del mazzo: sbarrate quelle già giocate nel round, in contorno le tue.</p>
 </div></details>`;
 
 let LOGOPEN=false, RULESOPEN=false;
@@ -833,6 +852,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare carte, vincoli e puntate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -846,6 +866,7 @@ function render(){
   let body='';
   if(G){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over&&(G.phase==='choose'||G.phase==='play')?memoHtml():''}
       <div class="dock paper" style="position:static">${scoreTable()}</div>
       ${logHtml()}
       ${recapHtml()}
@@ -868,6 +889,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('cw-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('cw-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id==='optBeg'){

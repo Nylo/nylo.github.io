@@ -107,6 +107,11 @@ button.mc.sel:hover:not(:disabled){transform:translateY(-10px)}
 .hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:12px}
 .ch{--sc:#888;--sd:#888;display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:21px;padding:0 3px;border-radius:4px;font-family:'Bangers',sans-serif;font-size:14px;line-height:1;color:#111;border:1px solid rgba(255,255,255,.7);background:var(--sc)}
 .ch.dual{background:linear-gradient(100deg,var(--sc) 0 50%,var(--sd) 50% 100%)}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:78px;font-size:11px;font-weight:700;white-space:nowrap}
+.ch.gone{opacity:.2;text-decoration:line-through}
+.ch.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #000}
 .sbd{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid #fff;color:#fff;vertical-align:-3px;margin-right:3px;padding:2px}
 .sbd.big{width:30px;height:30px;padding:6px;margin:0;opacity:.55}
 
@@ -214,8 +219,8 @@ const POS = {3:['bottom','left','right'],4:['bottom','left','top','right'],5:['b
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true};
-try{ const s=localStorage.getItem('fb-undo'); if(s!==null) OPT.undo=s==='1'; }catch(e){}
+const OPT = {undo:true, memo:false};
+try{ const s=localStorage.getItem('fb-undo'); if(s!==null) OPT.undo=s==='1'; OPT.memo=localStorage.getItem('fb-memo')==='1'; }catch(e){}
 const cname = c => `${c.v} ${c.s.map(s=>SN[s]).join('+')}`;
 const sortHand = h => h.sort((a,b)=>a.v-b.v||a.id-b.id);
 const plural = (n,a,b) => n===1?a:b;
@@ -628,6 +633,17 @@ function goneHtml(){
   if(!G.gone.length) return '';
   return `<details class="log"><summary>CARTE SCARTATE (${G.gone.length})</summary><div class="chips" style="justify-content:flex-start;margin-top:8px">${G.gone.slice().sort((a,b)=>a.v-b.v).map(chHtml).join('')}</div></details>`;
 }
+// carte uscite: scartate, sul palco o già nelle aree punti (tutte pubbliche); in contorno le tue
+function memoHtml(){
+  const mine=new Set(G.hands[HUM].map(c=>c.id)), seen=new Set();
+  G.gone.forEach(c=>seen.add(c.id)); G.area.forEach(a=>a.forEach(c=>seen.add(c.id))); membersOf(G.occ).forEach(c=>seen.add(c.id));
+  const deck=deckFor(G.n);
+  const rows=SEATS.map(sk=>{
+    const cs=deck.filter(c=>c.s[c.s.length-1]===sk);
+    return `<div class="ur"><span class="l">${sbdHtml(sk)}${SN[sk]}</span>${cs.map(c=>`<span class="ch ${c.s.length>1?'dual':''} ${seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" style="--sc:${SC[c.s[0]]};--sd:${SC[c.s[c.s.length-1]]}" title="${cname(c)}">${c.v}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="scorebox"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function recapHtml(){
   const n=G.n;
   return `<details class="recap"><summary>RIEPILOGO</summary>
@@ -672,13 +688,14 @@ const RULES_HTML = `
 <p>Vince chi ha il punteggio più alto; in caso di parità la vittoria è condivisa.</p>
 <p><i>Esempio:</i> area con 6 Drum, 4 Vocal+Guitar, 8 Keyboard, 6 Bass e 3 Drum: valori 6+4+8+6+3 = 27; i membri coprono Vocal, Guitar, Drum, Bass e Keyboard, quindi una grande band +10: totale 37.</p>
 <p><i>Carte a doppio colore:</i> sono 9 e valgono sempre anche come Vocal: Vocal+Guitar (1, 4, 7, 9), Vocal+Bass (2, 5, 8) e Vocal+Keyboard (3, 6). Ognuna prende il posto della carta singola dello stesso valore e dell'altro strumento.</p>
-<p><i>Nell'app:</i> il segnalino «Di mano» è il flag «Di mano». Le carte scartate sono visibili a tutti nel pannello «Carte scartate». Nel conteggio finale l'app cerca da sola la combinazione di bande migliore con le carte che hai (una carta doppia copre due posti). Se le carte finiscono prima che la band sia completa, i membri sul palco vengono tolti e la partita termina. L'AI conosce le carte in mano sue, quelle sul palco, scartate o già prese, ma mai le mani degli altri.</p>
+<p><i>Nell'app:</i> il segnalino «Di mano» è il flag «Di mano». Le carte scartate sono visibili a tutti nel pannello «Carte scartate». Nel menu, «Mostra le carte uscite» elenca tutte le carte del mazzo con quelle già scartate, sul palco o prese sbarrate e le tue in contorno.Nel conteggio finale l'app cerca da sola la combinazione di bande migliore con le carte che hai (una carta doppia copre due posti). Se le carte finiscono prima che la band sia completa, i membri sul palco vengono tolti e la partita termina. L'AI conosce le carte in mano sue, quelle sul palco, scartate o già prese, ma mai le mani degli altri.</p>
 </div></details>`;
 
 function menuHtml(){
   return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare una carta o prendere un membro"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 let LOGOPEN=false;
@@ -695,6 +712,7 @@ function render(){
   if(G){
     body=`${G.hands.length&&!G.over?stageHtml():''}
       <div class="table n${G.n}">${G.hands.length?G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join(''):''}</div>
+      ${G.hands.length&&OPT.memo&&!G.over?memoHtml():''}
       ${G.hands.length?goneHtml():''}
       ${logHtml()}
       ${recapHtml()}
@@ -716,6 +734,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.go!==undefined){ if(PR&&PR.type==='pick') goPick(b.dataset.go==='x'?'x':'pick'); else goTurn(b.dataset.go); }
 });
 document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('fb-memo',OPT.memo?'1':'0'); }catch(err){}
+    render(); return;
+  }
   if(e.target.id!=='optUndo') return;
   OPT.undo=e.target.checked;
   try{ localStorage.setItem('fb-undo',OPT.undo?'1':'0'); }catch(err){}

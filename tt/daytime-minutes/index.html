@@ -154,6 +154,18 @@ details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
 details.recap[open]>:not(summary)+*{margin-top:10px}
+.memo{border:2px solid #2a1d5c;border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+.memo h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:#2a1d5c;margin-bottom:8px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:68px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 3px;border-radius:5px;color:#1c1830;font-weight:800;font-size:11px;line-height:1;border:1px solid #3b2a8a}
+.nc.k0{background-color:var(--k0)} .nc.k1{background-color:var(--k1)} .nc.k2{background-color:var(--k2)}
+body.a11y .nc.k0{background-image:radial-gradient(rgba(0,0,0,0.28) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .nc.k1{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k2{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
+.nc.gone{opacity:.25;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #2a1d5c}
 .rtext h4{font-family:'Orbitron',sans-serif;font-size:13px;text-transform:lowercase;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -213,8 +225,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('dm-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('dm-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('dm-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('dm-a11y')==='1'; OPT.memo=localStorage.getItem('dm-memo')==='1'; }catch(e){}
 const nm = i => i===UC?'Chiamante ignoto':P(i).name;
 const cname = c => `${SUITS[c.s].n} ${c.t} (${c.m}′)`;
 const sg = v => (v>0?'+':'')+v;
@@ -568,6 +580,23 @@ function centerHtml(){
     ${uc}
     <div>Presa <b>${Math.min(G.trickNo,HAND)}/${HAND}</b> · Round <b>${G.hand+1}</b></div></div>`;
 }
+// carte uscite: solo informazione pubblica (carte giocate nel round, sempre scoperte, comprese quelle del chiamante ignoto) + la mano dell'umano
+function memoHtml(){
+  const seen=new Set(G.played.map(c=>c.id)), mine=new Set(P(HUM).hand.map(c=>c.id));
+  const rows=SUITS.map((su,k)=>{
+    const cs=fullDeck().filter(c=>c.s===k);
+    return `<div class="ur"><span class="l">${su.n}</span>${cs.map(c=>`<span class="nc k${c.s} ${seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" title="${cname(c)}">${c.t}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="memo paper"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite in questo round e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
+    </div>`:''}</div>`;
+}
 function scoreTable(){
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.hist.map(sg).join(' ')||'–'}</td><td><b>${p.sim}</b></td></tr>`).join('');
   return `<table class="score"><tr><th>Gettoni SIM</th><th class="l">Variazioni per round</th><th>Ora</th></tr>${rows}</table>`;
@@ -666,6 +695,7 @@ function render(){
   if(G){
     const pos=POS[G.n];
     body=`<div class="table ${G.n===5?'n5':''}">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over&&P(HUM).hand.length+G.played.length>0?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -687,6 +717,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('dm-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('dm-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

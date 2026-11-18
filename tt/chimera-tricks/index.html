@@ -152,6 +152,19 @@ details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
 details.recap[open]>:not(summary)+*{margin-top:10px}
+.memo{background:var(--surface);border:2px solid #151515;border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+.memo h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:#151515;margin-bottom:8px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:64px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 3px;border-radius:5px;color:#fff;font-weight:800;font-size:10px;line-height:1;border:1px solid rgba(0,0,0,.5)}
+.nc.k0{background-color:var(--k0)} .nc.k1{background-color:var(--k1)} .nc.k2{background-color:var(--k2)} .nc.k3{background-color:var(--k3)}
+body.a11y .nc.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .nc.k1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #151515}
 .rtext h4{font-family:'Silkscreen',monospace;font-size:13px;text-transform:uppercase;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -201,8 +214,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('ch-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ch-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('ch-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ch-a11y')==='1'; OPT.memo=localStorage.getItem('ch-memo')==='1'; }catch(e){}
 const cname = c => `${SUITS[c.s].n} ${c.z?'0/10':c.r}`;
 const sg = v => (v>0?'+':'')+v;
 
@@ -519,6 +532,23 @@ function centerHtml(){
     <div>Presa <b>${Math.min(G.trickNo,G.T)}/${G.T}</b> · Round <b>${Math.min(G.round+1,G.n)}/${G.n}</b></div>
     <div class="hint">Cristalli disponibili: <b>${G.pool}</b></div></div>`;
 }
+// carte uscite: solo informazione pubblica (carte giocate nel round, sempre scoperte quando giocate) + la mano dell'umano
+function memoHtml(){
+  const mine=new Set(P(HUM).hand.map(c=>c.id)), seen=new Set(G.played.map(c=>c.id));
+  const rows=SUITS.map((s,k)=>{
+    const cs=fullDeck().filter(c=>c.s===k);
+    return `<div class="ur"><span class="l">${s.n}</span>${cs.map(c=>`<span class="nc k${c.s} ${seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" title="${esc(cname(c))}">${c.z?'0/10':c.r}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="memo"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite in questo round e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
+    </div>`:''}</div>`;
+}
 function scoreTable(){
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:G.n},(_,i)=>i<p.rs.length?`<td>${p.rs[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
   return `<table class="score"><tr><th>Punteggio</th>${Array.from({length:G.n},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table>`;
@@ -617,6 +647,7 @@ function render(){
   if(G){
     const pos=POS[G.n];
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over&&G.round>=0&&P(HUM).hand.length+G.played.length>0?memoHtml():''}
       ${G.pl.some(p=>p.rs.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -638,6 +669,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('ch-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('ch-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

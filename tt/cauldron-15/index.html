@@ -115,6 +115,21 @@ body.a11y .fc.k1,body.a11y .rchip.k1,body.a11y .pday.k1{background-image:repeati
 body.a11y .fc.k2,body.a11y .rchip.k2,body.a11y .pday.k2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 body.a11y .fc.k3,body.a11y .rchip.k3,body.a11y .pday.k3{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 
+.scorebox{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
+.scorebox h3{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em;margin-bottom:8px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:80px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.mk{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:23px;padding:0 3px;border-radius:5px;background:#888;color:#fff;font-weight:800;font-size:11px;line-height:1;border:1px solid rgba(0,0,0,.4);text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.mk.k0{background-color:var(--k0)} .mk.k1{background-color:var(--k1)} .mk.k2{background-color:var(--k2)} .mk.k3{background-color:var(--k3);color:#3a2800;text-shadow:none} .mk.k4{background-color:var(--k4)} .mk.k5{background-color:var(--k5)}
+body.a11y .mk.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .mk.k1{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.25) 0 3px,transparent 3px 8px)}
+body.a11y .mk.k2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .mk.k3{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .mk.k4{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.35) 0 2px,transparent 2px 7px)}
+body.a11y .mk.k5{background-image:radial-gradient(rgba(0,0,0,0.3) 30%,transparent 32%);background-size:6px 6px}
+.mk.gone{opacity:.2;text-decoration:line-through}
+.mk.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--text)}
 .recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
 .recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
 .recap-row{display:block;font-size:12px;line-height:1.7}
@@ -208,8 +223,8 @@ function deckFor(n){ const d=[]; for(let c=0;c<ncOf(n);c++) for(let v=-1;v<=8;v+
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('c15-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('c15-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('c15-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('c15-a11y')==='1'; OPT.memo=localStorage.getItem('c15-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
 const vtxt = v => v<0?'−'+(-v):String(v);
 const cname = c => `${COLS[c.c].n} ${vtxt(c.v)}`;
@@ -642,6 +657,13 @@ function dockHtml(){
   }
   return html;
 }
+// carte uscite: ricompense di tutti (scoperte), giocate nel round (S.discR) e nel calderone; in contorno le tue
+function memoHtml(){
+  const S=G.S, mine=new Set(S.hands[HUM].map(key)), seen=new Set();
+  S.rewards.forEach(r=>r.forEach(c=>seen.add(key(c)))); S.discR.forEach(c=>seen.add(key(c))); S.trick.forEach(e=>seen.add(key(e.c)));
+  const rows=COLS.slice(0,ncOf(G.n)).map((col,k)=>`<div class="ur"><span class="l">${ico(col.icon)}${col.n}</span>${deckFor(G.n).filter(c=>c.c===k).map(c=>`<span class="mk k${k} ${seen.has(key(c))?'gone':''} ${mine.has(key(c))?'own':''}" title="${cname(c)}">${vtxt(c.v)}</span>`).join('')}</div>`).join('');
+  return `<div class="scorebox"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function recapHtml(){
   const n=G.n, S=G.S;
   return `<details class="recap"><summary>RIEPILOGO</summary>
@@ -666,7 +688,7 @@ const RULES_HTML = `
 <p>Si rimescolano gli scarti con il mazzo e si danno 8 carte a testa; si rivela un nuovo colore preferito. Comincia chi ha vinto l'ultima presa del primo round. Le ricompense si tengono. Dopo il secondo round la partita finisce.</p>
 <h4>Punteggio finale</h4>
 <p>Prima del conteggio puoi <b>distruggere 1 ingrediente</b> tra le tue ricompense per ogni set che hai raccolto: 4 ingredienti dello stesso colore, oppure 4 ingredienti di colori diversi. Una stessa carta non può servire per più set. Poi si sommano i valori: chi supera il valore del calderone è <b>eliminato</b>; vince chi ha il totale più alto più vicino (o uguale) al valore del calderone. In caso di parità vince, tra i pari, chi ha raccolto più ingredienti.</p>
-<p><i>Interpretazioni nell'app:</i> il calderone è 12 con 2–3 giocatori e 15 con 4–5 (il 15 è visibile nel regolamento solo per 4 giocatori). La carta distrutta può essere una qualsiasi delle tue ricompense; il numero di distruzioni è il massimo di set disgiunti che puoi formare. Il pari merito si risolve con il numero di ingredienti raccolti (prima di distruggerne). Se tutti sono eliminati vince chi ha il totale più basso. Le AI non vedono la tua mano: ragionano su mani plausibili e simulano il resto della partita.</p>
+<p><i>Interpretazioni nell'app:</i> il calderone è 12 con 2–3 giocatori e 15 con 4–5 (il 15 è visibile nel regolamento solo per 4 giocatori). La carta distrutta può essere una qualsiasi delle tue ricompense; il numero di distruzioni è il massimo di set disgiunti che puoi formare. Il pari merito si risolve con il numero di ingredienti raccolti (prima di distruggerne). Se tutti sono eliminati vince chi ha il totale più basso. Le AI non vedono la tua mano: ragionano su mani plausibili e simulano il resto della partita. Nel menu, «Mostra le carte uscite» elenca gli ingredienti: sbarrati quelli già giocati nel round o presi come ricompensa, in contorno i tuoi.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -680,6 +702,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -694,6 +717,7 @@ function render(){
   if(G&&G.S&&!G.welcome){
     const pos=POS[G.n];
     body=`<div class="table ${G.n===5?'n5':''}">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}</div>
+      ${OPT.memo&&!G.over&&!G.show&&G.S.phase==='play'?memoHtml():''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -735,6 +759,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('c15-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('c15-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

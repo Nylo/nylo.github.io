@@ -135,6 +135,19 @@ details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
 details.recap[open]>:not(summary)+*{margin-top:10px}
+.memo{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+.memo h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft);margin-bottom:8px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:64px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 3px;border-radius:5px;color:#fff;font-weight:700;font-size:11px;line-height:1;border:1px solid rgba(0,0,0,.5)}
+.nc.k0{background-color:var(--k0)} .nc.k1{background-color:var(--k1)} .nc.k2{background-color:var(--k2)} .nc.k3{background-color:var(--k3)}
+body.a11y .nc.k1{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .nc.k2{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.3) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k3{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k0{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.28) 0 3px,transparent 3px 8px)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--text)}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -188,8 +201,8 @@ const ROLE_TXT = [
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('gm-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('gm-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('gm-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('gm-a11y')==='1'; OPT.memo=localStorage.getItem('gm-memo')==='1'; }catch(e){}
 // spoken = ciò che si dice ad alta voce (visibile anche a Nakagawa che non guarda il tavolo); null = non detto
 function logMsg(full,spoken){ G.log.unshift({f:full,s:spoken===undefined?full:spoken,r:G.round}); if(G.log.length>900) G.log.pop(); render(); }
 const cname = c => `${SUITS[c.s].n} ${c.r}`;
@@ -663,6 +676,12 @@ function roleBox(){
   return `<div class="rolebox"><table class="score"><tr><th>Ruolo</th><th class="l">Giocatore</th><th>Dichiarazione</th><th>Prese vinte</th></tr>${rows}</table>
     <p><b>Il tuo ruolo: ${ROLES[r]}.</b> ${ROLE_TXT[r]}</p></div>`;
 }
+// carte uscite: solo informazione pubblica (carte giocate nel round) + la mano dell'umano; non si mostra a Nakagawa mentre gioca (non guarda il tavolo)
+function memoHtml(){
+  const S=G.S, seen=new Set(S.played.map(key)), mine=new Set(S.hands[HUM].map(key));
+  const rows=SUITS.map((su,s)=>`<div class="ur"><span class="l">${ico(su.icon)} ${su.n}</span>${DECK.filter(c=>c.s===s).map(c=>`<span class="nc k${c.s} ${seen.has(key(c))?'gone':''} ${mine.has(key(c))?'own':''}" title="${cname(c)}">${c.r}</span>`).join('')}</div>`).join('');
+  return `<div class="memo"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const R=ROUNDS;
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:R},(_,i)=>i<p.hist.length?`<td>${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
@@ -736,6 +755,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite in questo round e quelle che hai in mano (non disponibile quando sei Nakagawa)"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -750,6 +770,7 @@ function render(){
   if(G&&G.S){
     body=`${G.over?'':roleBox()}
       <div class="table">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,POS[i])).join('')}</div>
+      ${OPT.memo&&!G.over&&!blindNow()&&G.S.hands.length?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -772,6 +793,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('gm-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('gm-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;
