@@ -149,6 +149,11 @@ button.pc.side.sel:hover:not(:disabled){transform:rotate(90deg) translateY(-8px)
 .legend{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
 .lg{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:5px;font-weight:600;font-size:11px;border:1px solid var(--border);background:#fff;color:var(--text)}
 .lg.c0 .gl{color:var(--c0)} .lg.c1 .gl{color:#b88400} .lg.c2 .gl{color:var(--c2)} .lg.c3 .gl{color:var(--c3)}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.pchip.gone{opacity:.2;text-decoration:line-through}
+.pchip.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
 .mnote{font-weight:700;color:var(--success);font-size:12px}
 
 .scorebox{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
@@ -216,8 +221,8 @@ const POS = {3:['bottom','left','right'],4:['bottom','left','top','right']};
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true};
-try{ const s=localStorage.getItem('pat-undo'); if(s!==null) OPT.undo=s==='1'; }catch(e){}
+const OPT = {undo:true,memo:false};
+try{ const s=localStorage.getItem('pat-undo'); if(s!==null) OPT.undo=s==='1'; OPT.memo=localStorage.getItem('pat-memo')==='1'; }catch(e){}
 const colOf = id => id>>3;
 const valOf = id => VAL[id&7];
 const cname = id => `${valOf(id)} ${COLS[colOf(id)].n}`;
@@ -644,6 +649,15 @@ function statusTable(){
   }).join('');
   return `<div class="scorebox"><h3>SITUAZIONE DEL ROUND (SE FINISSE ORA)</h3><div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Mano</th><th>Scoperta</th><th>Raccolte</th><th>Punti</th></tr>${rows}</table></div></div>`;
 }
+// carte giocate/annullate = G.seen (pubbliche) escluse le «scoperte» ancora in gioco; contorno = tua mano + tua scoperta
+function memoHtml(){
+  const mine=new Set(G.hands[HUM]); if(G.rev[HUM]>=0) mine.add(G.rev[HUM]);
+  const rows=COLS.map((c,k)=>{
+    const cs=deckFor(G.n).filter(id=>colOf(id)===k);
+    return `<div class="ur"><span class="l">${c.n}</span>${cs.map(id=>`<span class="pchip c${k} ${G.seen[id]&&!G.rev.includes(id)?'gone':''} ${mine.has(id)?'own':''}" title="${cname(id)}">${valOf(id)}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="scorebox"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const nr=G.pl[0].hist.length;
   const rows=G.pl.map(p=>`<tr class="${p.id===HUM?'me':''}"><td>${esc(p.name)}</td>${p.hist.map(x=>`<td class="${x>0?'pos':(x<0?'neg':'')}">${x>0?'+':''}${x}</td>`).join('')}<td><b>${p.total}</b></td></tr>`).join('');
@@ -719,7 +733,7 @@ const RULES_HTML = `
 <p><i>Esempio 1:</i> 10 carte raccolte, carta scoperta 5 → −10 +5 = <b>−5</b>. <i>Esempio 2:</i> 5 carte raccolte, scoperta 5 → 0 +0 = <b>0</b>. <i>Esempio 3:</i> 5 carte raccolte, scoperta 3 → 0 +3 = <b>3</b>.</p>
 <h4>Fine della partita</h4>
 <p>Si giocano tanti round quanti sono i giocatori. Vince chi ha il totale di punti più alto; in caso di parità la vittoria è condivisa.</p>
-<p><i>Nell'app:</i> si parte da 0 punti (il totale può diventare negativo). «Destra» è il giocatore che gioca subito prima di te; «sinistra» quello che gioca dopo. Il round finisce <b>al termine della presa</b> in cui la mano di un giocatore si svuota (anche passando o giocando l'ultima carta), così il vincitore raccoglie comunque le carte; le carte rimaste in sospeso a fine round non vanno a nessuno. L'annullamento è automatico: il 5 si gira da solo quando le condizioni ci sono e il pulsante te lo segnala. Una carta annullata è un 5 del suo colore, noto a tutti. L'AI vede le carte giocate, scoperte e annullate, il numero di carte in mano e quali colori un giocatore non ha (non ha risposto al colore di mano), ricorda le 2 carte che ha passato, ma non vede mai le mani altrui.</p>
+<p><i>Nell'app:</i> si parte da 0 punti (il totale può diventare negativo). «Destra» è il giocatore che gioca subito prima di te; «sinistra» quello che gioca dopo. Il round finisce <b>al termine della presa</b> in cui la mano di un giocatore si svuota (anche passando o giocando l'ultima carta), così il vincitore raccoglie comunque le carte; le carte rimaste in sospeso a fine round non vanno a nessuno. L'annullamento è automatico: il 5 si gira da solo quando le condizioni ci sono e il pulsante te lo segnala. Una carta annullata è un 5 del suo colore, noto a tutti. L'AI vede le carte giocate, scoperte e annullate, il numero di carte in mano e quali colori un giocatore non ha (non ha risposto al colore di mano), ricorda le 2 carte che ha passato, ma non vede mai le mani altrui. Dal menu (☰) puoi attivare «Mostra le carte uscite»: carte già giocate o annullate sbarrate, le tue (mano e scoperta) col contorno.</p>
 <p><i>Crediti:</i> gioco e grafica di Naoki Hashimoto; produzione Hotaru System.</p>
 </div></details>`;
 
@@ -728,6 +742,7 @@ function menuHtml(){
   return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 let LOGOPEN=false;
@@ -744,6 +759,7 @@ function render(){
   if(G){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
       ${G.hands.length&&!G.over&&!G.show?statusTable():''}
+      ${OPT.memo&&G.hands.length&&!G.over&&!G.show?memoHtml():''}
       ${G.pl[0].hist.length&&!G.over?`<div class="scorebox"><h3>PUNTEGGI</h3>${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -767,6 +783,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.mr!==undefined) resetM();
 });
 document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('pat-memo',OPT.memo?'1':'0'); }catch(err){}
+    render(); return;
+  }
   if(e.target.id!=='optUndo') return;
   OPT.undo=e.target.checked;
   try{ localStorage.setItem('pat-undo',OPT.undo?'1':'0'); }catch(err){}

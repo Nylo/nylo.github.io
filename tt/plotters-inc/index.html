@@ -142,6 +142,12 @@ body.a11y .k3.fc,body.a11y .k3.sw,body.a11y .k3.trump{background-image:repeating
 .recap-row .lbl{font-weight:600;color:var(--text-soft)}
 .recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
 .recap-row .rchip,.recap-row .sw{vertical-align:middle}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;color:#1c1830;font-weight:800;font-size:10px;line-height:1;border:1px solid rgba(0,0,0,.5)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
 details.rules{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
 details.recap{display:block;padding:14px 16px}
@@ -194,8 +200,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('pi-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('pi-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('pi-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('pi-a11y')==='1'; OPT.memo=localStorage.getItem('pi-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
 const cname = c => `${COLS[c.s].n} ${c.v}`;
 const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
@@ -524,6 +530,12 @@ function centerHtml(){
     <div>Round <b>${G.round+1}/${G.n}</b> · Presa <b>${Math.min(G.trickNo,HAND)}/${HAND}</b></div>
     <div class="hint">Alto = prende ${Math.ceil(G.n/2)} · basso non-di-mano = riceve ${G.n-Math.ceil(G.n/2)}</div></div>`;
 }
+function memoHtml(){
+  const mine=new Set(P(HUM).hand.map(c=>c.id)), seen=new Set(G.played.map(c=>c.id));
+  const rows=fullDeck(G.n).reduce((a,c)=>{ (a[c.s]=a[c.s]||[]).push(c); return a; },[]).map((cs,k)=>
+    `<div class="ur"><span class="l">${COLS[k].n}</span>${cs.map(c=>`<span class="nc k${c.s} ${seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" title="${cname(c)}">${c.v}</span>`).join('')}</div>`).join('');
+  return `<div class="recap paper"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.hist.join(' + ')||'–'}</td><td><b>${p.tot}</b></td></tr>`).join('');
   return `<table class="score"><tr><th>Punti partita</th><th class="l">Punti per round</th><th>Totale</th></tr>${rows}</table>`;
@@ -599,7 +611,7 @@ const RULES_HTML = `
 <p>Esempi: 5 verdi, 6 rossi e 3 gialli: 5×6=30 ÷ 3 = 10 punti. 5 rossi, 4 blu e 3 gialli: 5×4=20 ÷ 3 = 6,6 → 6 punti. 7 blu e 8 verdi con 4 scarti: 7×8=56 ÷ 4 = 14 punti. 7 gialli, 1 rosso e 1 blu: 7×1=7 ÷ 1 = 7 punti. 3 verdi e 5 blu: 3×5 = 15 punti.</p>
 <h4>Nuovi round e fine della partita</h4>
 <p>Quando tutti hanno segnato il punteggio inizia un nuovo round; il nuovo mazziere è il giocatore a sinistra del precedente. La partita finisce dopo un numero di round pari al numero di giocatori. Vince chi ha il totale di punti più alto.</p>
-<p><i>Nell'app:</i> il primo giocatore del primo round è casuale (al posto del voto) e nei round successivi passa a sinistra. I mazzetti ignorati e le carte raccolte negli altri colori contano come «carte restanti» per la divisione. Il punteggio indicato accanto a ogni giocatore è quello che avrebbe se il round finisse subito. L'AI stima le mani avversarie con simulazioni.</p>
+<p><i>Nell'app:</i> il primo giocatore del primo round è casuale (al posto del voto) e nei round successivi passa a sinistra. I mazzetti ignorati e le carte raccolte negli altri colori contano come «carte restanti» per la divisione. Il punteggio indicato accanto a ogni giocatore è quello che avrebbe se il round finisse subito. L'AI stima le mani avversarie con simulazioni. Dal menu (☰) puoi attivare «Mostra le carte uscite»: un promemoria delle carte del round, con quelle già giocate sbarrate e le tue in mano col contorno.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -613,6 +625,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -627,6 +640,7 @@ function render(){
   if(G&&!G.welcome){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
       ${G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static">${scoreTable()}</div>`:''}
+      ${OPT.memo&&!G.over&&G.round<G.n&&G.played?memoHtml():''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -667,6 +681,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('pi-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('pi-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

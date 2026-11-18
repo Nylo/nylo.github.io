@@ -126,6 +126,13 @@ body.a11y .fc.k0,body.a11y .rchip.k0{background-image:repeating-linear-gradient(
 .recap-row .rchip{vertical-align:middle}
 .rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(0,0,0,0.3);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
 .rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;color:#fff;font-weight:800;font-size:11px;line-height:1;border:1px solid rgba(0,0,0,.5)}
+.nc.k0{background-color:var(--k0)} .nc.k1{background-color:var(--k1)} .nc.k2{background-color:var(--k2)} .nc.k3{background-color:var(--k3)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #111}
 details.rules{background:var(--surface);border:2px solid #111;border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap{display:block;padding:14px 16px}
@@ -245,8 +252,8 @@ const MIS = [
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('qt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('qt-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('qt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('qt-a11y')==='1'; OPT.memo=localStorage.getItem('qt-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
 const key = c => c.s*20+c.r;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.r-b.r);
@@ -703,6 +710,15 @@ function centerHtml(){
   return `<div class="center"><span class="lbl2">${lbl}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div>
     <span class="tc-ind">${ico(COLS[RED].icon)} Rosso: se c'è un rosso, vince il rosso più alto</span></div>`;
 }
+// carte del round (S.deck) giocate = S.seen (pubblico); contorno = la tua mano
+function memoHtml(){
+  const S=G.S, mine=new Set(S.hands[HUM].map(key)), seen=new Set(S.seen);
+  const rows=COLS.map((col,k)=>{
+    const cs=S.deck.filter(c=>c.s===k).sort((a,b)=>a.r-b.r);
+    return `<div class="ur"><span class="l">${col.n}</span>${cs.map(c=>`<span class="nc k${k} ${seen.has(key(c))?'gone':''} ${mine.has(key(c))?'own':''}" title="${cname(c)}">${c.r}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const rounds=Math.max(...G.pl.map(p=>p.hist.length));
   if(!rounds) return '';
@@ -764,7 +780,7 @@ const RULES_HTML = `
 <p>Scegli da 1 a 5 missioni (una sola faccia per ogni carta). Se le completi tutte incassi la somma dei punti, altrimenti nulla. Missioni: <b>al massimo 3 colori</b> (5) o <b>tutti e 4 i colori</b> (6) tra i colori delle carte vincenti; <b>due 7</b> (4) o <b>tre 7</b> (7) presi nelle tue prese; <b>due prese di fila</b> (2) o <b>mai due prese di fila</b> (3); <b>vincere con 4, 5 o 6</b> (3) o <b>con 1, 2 o 3</b> (4); <b>una delle ultime due prese</b> (3) o <b>l'ultima presa</b> (5).</p>
 <h4>Fine della partita</h4>
 <p>Dopo tutti i round vince chi ha più punti; in caso di parità la vittoria è condivisa.</p>
-<p><i>Interpretazioni nell'app:</i> la «somma» è la somma dei numeri delle carte con cui hai vinto le prese. I colori/numeri di Set B, Set C e delle missioni si riferiscono alla carta vincente. «Due 7» e «Tre 7» richiedono <b>almeno</b> quel numero di 7 nelle prese vinte (anche 7 giocati da altri nella stessa presa). Nel Set C l'app assegna da sola i gettoni alle prese nel modo più favorevole. Le missioni «Mai due prese di fila» e «Al massimo 3 colori» sono completate anche senza vincere nessuna presa. Non esistono le regole opzionali del regolamento originale (scelta dei set, scelta del primo giocatore).</p>
+<p><i>Interpretazioni nell'app:</i> la «somma» è la somma dei numeri delle carte con cui hai vinto le prese. I colori/numeri di Set B, Set C e delle missioni si riferiscono alla carta vincente. «Due 7» e «Tre 7» richiedono <b>almeno</b> quel numero di 7 nelle prese vinte (anche 7 giocati da altri nella stessa presa). Nel Set C l'app assegna da sola i gettoni alle prese nel modo più favorevole. Le missioni «Mai due prese di fila» e «Al massimo 3 colori» sono completate anche senza vincere nessuna presa. Non esistono le regole opzionali del regolamento originale (scelta dei set, scelta del primo giocatore). Dal menu (☰) puoi attivare «Mostra le carte uscite»: le carte del round già giocate sbarrate e la tua mano col contorno.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -775,6 +791,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -790,6 +807,7 @@ function render(){
     body=`${roundInfo()}
       <div class="table n${G.N}">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,CFGN[G.N].pos[i])).join('')}</div>
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
+      ${OPT.memo&&!G.over&&G.S.phase!=='score'?memoHtml():''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -816,6 +834,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('qt-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('qt-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

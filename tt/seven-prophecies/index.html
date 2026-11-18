@@ -171,6 +171,14 @@ table.pt tr.me td:first-child{font-weight:800}
 .sfx{display:inline-flex;align-items:center;gap:4px;font-weight:700;color:var(--ink)}
 .sfx .sw{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,0.5)}
 
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:70px;font-size:11px;font-weight:700;color:var(--ink)}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;color:#fff;font-weight:800;font-size:11px;line-height:1;border:1px solid rgba(0,0,0,.5)}
+.nc.s0{background:var(--t0)} .nc.s1{background:var(--t1)} .nc.s2{background:var(--t2);color:rgba(80,40,0,0.85)} .nc.s3{background:var(--t3)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
+body.a11y .nc.s0{background-image:radial-gradient(rgba(255,255,255,0.22) 22%,transparent 24%);background-size:7px 7px}
 .recap{background:var(--surface);border:2px solid var(--deep);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
 .recap-row{display:block;font-size:12px;line-height:1.7}
 .recap-row > *{margin-right:6px}
@@ -240,8 +248,8 @@ const HUM = 0;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('sp-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('sp-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('sp-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('sp-a11y')==='1'; OPT.memo=localStorage.getItem('sp-memo')==='1'; }catch(e){}
 const mk = (s,v) => ({s,v,id:s*11+v-1});
 const cname = c => `${c.v} ${SUITS[c.s].n}`;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
@@ -607,6 +615,15 @@ function playersHtml(){
   track+='</div>';
   return `<div class="panel"><h3>PROFEZIE (CUBI ANCORA DA REALIZZARE) E PUNTEGGI</h3><div class="scroll-x"><table class="pt"><tr><th>Giocatore</th>${Array.from({length:R},(_,r)=>`<th>${ORD[r]}</th>`).join('')}<th>Rimasti</th><th>Carte</th><th>Punti</th></tr>${rows}</table></div>${track}</div>`;
 }
+// carte del round giocate = G.seen (pubblico; restano nascoste quelle da parte); contorno = la tua mano
+function memoHtml(){
+  const mine=new Set(G.hands[HUM].map(c=>c.id));
+  const rows=SUITS.map((s,k)=>{
+    const cs=makeDeck(G.n).filter(c=>c.s===k);
+    return `<div class="ur"><span class="l">${esc(s.n)}</span>${cs.map(c=>`<span class="nc s${k} ${G.seen[c.id]?'gone':''} ${mine.has(c.id)?'own':''}" title="${cname(c)}">${c.v}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="panel"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const nr=G.pl[0].hist.length;
   const rows=G.pl.map(p=>`<tr><td>${cubeHtml(p.id)} ${esc(p.name)}</td>${p.hist.map(x=>`<td>${x}</td>`).join('')}<td><b>${p.total}</b></td></tr>`).join('');
@@ -686,13 +703,22 @@ const RULES_HTML = `
 <p>Il round successivo comincia dal giocatore a sinistra di chi ha aperto il round appena concluso. Si gioca finché un giocatore arriva a 7 o più punti: è il vincitore. Altrimenti si giocano tanti round quanti sono i giocatori (4 giocatori = 4 round) e vince il totale più alto; in caso di parità la vittoria è condivisa.</p>
 <h4>Variante a 3 giocatori</h4>
 <p>Si tolgono il 10 e l'11 di ogni seme e la carta Profezia 4º: si usano solo carte Numero 1–9 in 4 semi (36 carte) e le carte Profezia 1º–3º. Si distribuiscono 10 carte a testa e le altre 6 si mettono da parte coperte. Tutte le altre regole sono identiche.</p>
-<p><i>Nell'app:</i> il primo giocatore del primo round è scelto a caso. Il punto del «secondo posto» va a chi ha meno cubi rimasti tra chi non ha completato la profezia (anche a pari merito); chi la completa non lo prende in aggiunta. Se più giocatori completano la profezia nella stessa presa, ognuno ottiene i punti di quella presa. Se un round arriva alla 10ª presa senza che nessuno completi la profezia, nessuno segna. Se più giocatori raggiungono 7 punti nello stesso round, vince chi ha il totale più alto (pareggio condiviso). Il seme da seguire è sempre quello della carta Futuro, mai quello del primo giocatore della presa. L'AI vede le carte giocate e quali semi non sono stati seguiti, ma non vede le tue carte né le carte messe da parte.</p>
+<p><i>Nell'app:</i> il primo giocatore del primo round è scelto a caso. Il punto del «secondo posto» va a chi ha meno cubi rimasti tra chi non ha completato la profezia (anche a pari merito); chi la completa non lo prende in aggiunta. Se più giocatori completano la profezia nella stessa presa, ognuno ottiene i punti di quella presa. Se un round arriva alla 10ª presa senza che nessuno completi la profezia, nessuno segna. Se più giocatori raggiungono 7 punti nello stesso round, vince chi ha il totale più alto (pareggio condiviso). Il seme da seguire è sempre quello della carta Futuro, mai quello del primo giocatore della presa. L'AI vede le carte giocate e quali semi non sono stati seguiti, ma non vede le tue carte né le carte messe da parte. Dal menu (☰) puoi attivare «Mostra le carte uscite»: le carte del round già giocate sbarrate e la tua mano col contorno.</p>
 <p><i>Crediti:</i> gioco di Hinata Origuchi; grafica di Daniel Newman (Tiew Mill Industries).</p>
 </div></details>`;
 
 let LOGOPEN=false;
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 let MENUOPEN=false;
+// ridefinisce menuHtml di core.js aggiungendo «Mostra le carte uscite»
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
+    </div>`:''}</div>`;
+}
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
@@ -706,6 +732,7 @@ function render(){
     body=`${boardHtml()}
       <div class="panel">${stripHtml()}<h3>LA TUA MANO</h3>${handHtml()}</div>
       ${playersHtml()}
+      ${OPT.memo&&!G.over&&G.hands.length&&!G.show?memoHtml():''}
       ${G.pl[0].hist.length&&!G.over?`<div class="panel">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -729,6 +756,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('sp-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('sp-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

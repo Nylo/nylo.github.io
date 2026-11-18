@@ -131,6 +131,13 @@ body.a11y .fc.k0,body.a11y .rchip.k0{background-image:repeating-linear-gradient(
 .recap-row .rchip{vertical-align:middle}
 .rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(0,0,0,0.3);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
 .rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1)} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:70px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;color:#fff;font-weight:800;font-size:11px;line-height:1;border:1px solid rgba(0,0,0,.5)}
+.nc.k0{background-color:var(--k0)} .nc.k1{background-color:var(--k1)} .nc.k2{background-color:var(--k2)} .nc.k3{background-color:var(--k3)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--text)}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap{display:block;padding:14px 16px}
@@ -314,8 +321,8 @@ const GCOL = {G:'Verde',P:'Viola',O:'Arancione',B:'Azzurra',R:'Rossa',Y:'Gialla'
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('pt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('pt-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('pt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('pt-a11y')==='1'; OPT.memo=localStorage.getItem('pt-memo')==='1'; }catch(e){}
 let SETUP = {ch:1};
 try{ const c=localStorage.getItem('pt-ch'); if(c!==null&&/^[0-7]$/.test(c)) SETUP.ch=+c; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
@@ -982,6 +989,16 @@ function centerHtml(){
   return `<div class="center"><span class="lbl2">${lbl}${lowTxt}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div>
     <span class="tc-ind">Briscola: ${trumpTxt(S)}${S.curDouble?` · presa da ${1+S.curDouble}`:''}</span></div>`;
 }
+// carte del round (S.deckAll) giocate = S.seen (pubblico); contorno = la tua mano
+function memoHtml(){
+  const S=G.S, mine=new Set(S.hands[HUM].map(key)), seen=new Set(S.seen);
+  const rows=SUITS.map((s,k)=>{
+    const cs=S.deckAll.filter(c=>c.s===k).sort((a,b)=>a.r-b.r);
+    if(!cs.length) return '';
+    return `<div class="ur"><span class="l">${s.n}</span>${cs.map(c=>`<span class="nc k${k} ${seen.has(key(c))?'gone':''} ${mine.has(key(c))?'own':''}" title="${cname(c)}">${c.r}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const rounds=Math.max(...G.pl.map(p=>p.hist.length));
   if(!rounds) return '';
@@ -1050,7 +1067,7 @@ const RULES_HTML = `
 <li>Più i punti delle gemme.</li></ul>
 <h4>Fine della partita</h4>
 <p>Dopo 3 round vince chi ha più punti. In caso di parità vince chi ha preso il potere più alto nell'ultimo round.</p>
-<p><i>Interpretazioni nell'app:</i> il valore di una carta è il suo numero più il potere del giocatore (e gli effetti delle gemme). Se nessun potere è stato afferrato non c'è bonus anche se rispetti la puntata. Le gemme prese sono visibili a tutti. Le gemme azzurre ±1 si usano a fine round solo se convengono; «pesca tre gemme» scarta la carta e ti fa tenere una delle tre pescate (non un'altra «pesca tre»). «Scarta: seme a scelta» cambia il seme della carta per quella presa (l'obbligo di seme si controlla sul seme vero); chi apre con quella carta fissa il seme d'apertura. «Sempre per ultimo» vale dalla presa successiva a quella in cui prendi la gemma. «Presa vinta dalla più bassa» usa gli stessi gruppi di una presa normale (briscola, poi seme d'apertura) ma vince il valore più basso, con le stesse regole di parità. «Cambia briscola» vale da subito fino a fine round. La presa che conta 2 prese vale 2 anche per puntata e punti presa (se più giocatori la usano nella stessa presa si sommano). La puntata del round dipende dal numero di giocatori (carta Puntata A/B).</p>
+<p><i>Interpretazioni nell'app:</i> il valore di una carta è il suo numero più il potere del giocatore (e gli effetti delle gemme). Se nessun potere è stato afferrato non c'è bonus anche se rispetti la puntata. Le gemme prese sono visibili a tutti. Le gemme azzurre ±1 si usano a fine round solo se convengono; «pesca tre gemme» scarta la carta e ti fa tenere una delle tre pescate (non un'altra «pesca tre»). «Scarta: seme a scelta» cambia il seme della carta per quella presa (l'obbligo di seme si controlla sul seme vero); chi apre con quella carta fissa il seme d'apertura. «Sempre per ultimo» vale dalla presa successiva a quella in cui prendi la gemma. «Presa vinta dalla più bassa» usa gli stessi gruppi di una presa normale (briscola, poi seme d'apertura) ma vince il valore più basso, con le stesse regole di parità. «Cambia briscola» vale da subito fino a fine round. La presa che conta 2 prese vale 2 anche per puntata e punti presa (se più giocatori la usano nella stessa presa si sommano). La puntata del round dipende dal numero di giocatori (carta Puntata A/B). Dal menu (☰) puoi attivare «Mostra le carte uscite»: le carte del round già giocate sbarrate e la tua mano col contorno.</p>
 <p><i>Icone:</i> mazza e gemma da game-icons.net (licenza CC BY 3.0; autore Lorc).</p>
 </div></details>`;
 
@@ -1062,6 +1079,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai semi per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -1077,6 +1095,7 @@ function render(){
     body=`${roundInfo()}
       <div class="table n${G.N}">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,CFGN[G.N].pos[i])).join('')}</div>
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
+      ${OPT.memo&&!G.over&&G.S.phase!=='score'?memoHtml():''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -1117,6 +1136,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('pt-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('pt-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

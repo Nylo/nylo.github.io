@@ -121,6 +121,14 @@ body.a11y .fc.k3,body.a11y .rchip.k3{background-image:repeating-linear-gradient(
 .recap-row .lbl{font-weight:600;color:var(--text-soft)}
 .recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
 .recap-row .rchip{vertical-align:middle}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700;color:var(--text)}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;color:#fff;font-weight:800;font-size:11px;line-height:1;border:1px solid rgba(255,255,255,.4)}
+.nc.k0{background-color:var(--k0)} .nc.k1{background-color:var(--k1);color:#2e2000} .nc.k2{background-color:var(--k2)} .nc.k3{background-color:var(--k3)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--text)}
+body.a11y .nc.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
 .rchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,0.4);text-shadow:0 1px 1px rgba(0,0,0,0.3)}
 .rchip.k0{background-color:var(--k0)} .rchip.k1{background-color:var(--k1);color:#2e2000;text-shadow:none} .rchip.k2{background-color:var(--k2)} .rchip.k3{background-color:var(--k3)}
 table.rsvt{border-collapse:collapse;font-size:12px;margin:6px 0 8px;width:100%;max-width:560px}
@@ -180,8 +188,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('sc-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('sc-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('sc-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('sc-a11y')==='1'; OPT.memo=localStorage.getItem('sc-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
 const cname = c => `${SUITS[c.s].n} ${c.v}`;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
@@ -546,6 +554,12 @@ function centerHtml(){
   if(S.extra) cells.push(`<div class="tcell extra">${kface(S.extra)}<span class="who" style="background:#ccc">Mazzo</span></div>`);
   return `<div class="center"><span class="lbl2">${S.phase==='play'?`PRESA ${Math.min(S.done+1,S.tot)}/${S.tot}`:'PREVISIONE'} · BRISCOLA ${ico(SUITS[TRUMP].icon)} ROSSO${S.trick.length?` · SEME ${SUITS[S.trick[0].c.s].n.toUpperCase()}`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div></div>`;
 }
+// carte uscite = S.played (giocate e scoperte dal mazzo avanzato: pubbliche; le previsioni restano coperte); contorno = tua mano + tue carte di previsione
+function memoHtml(){
+  const S=G.S, mine=new Set(S.hands[HUM].concat(S.pred[HUM]).map(key)), seen=new Set(S.played.map(key));
+  const rows=SUITS.map((s,k)=>`<div class="ur"><span class="l">${s.n}</span>${FULL.filter(c=>c.s===k).map(c=>`<span class="nc k${k} ${seen.has(key(c))?'gone':''} ${mine.has(key(c))?'own':''}" title="${cname(c)}">${c.v}</span>`).join('')}</div>`).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const R=roundsOf(G.n);
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:R},(_,i)=>i<p.hist.length?`<td>${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
@@ -607,7 +621,7 @@ const RULES_HTML = `
 <p>Dopo 3 round vince chi ha più punti esperienza; a parità la vittoria è condivisa. Il giocatore alla sinistra di chi ha aperto il round precedente apre il nuovo round.</p>
 <h4>Partita a 2 giocatori</h4>
 <p>Si giocano <b>4 round</b>. Ognuno prende una delle 4 pile e sceglie <b>tre</b> carte per la previsione. Con più punti presa di tutti (e ≠ previsione) si prendono le <b>5</b> carte più alte e si sottrae il resto; con punti presa pari la regola non vale. Nel secondo round non si rimescola: ognuno prende una delle due pile rimaste; per il terzo e il quarto round si rimescola tutto.</p>
-<p><i>Interpretazioni nell'app:</i> uso direttamente le regole complete (il regolamento di apprendimento a tre round del primo gioco è omesso); con zero punti presa per tutti vale il ×2. Le AI non vedono le tue carte né la tua previsione.</p>
+<p><i>Interpretazioni nell'app:</i> uso direttamente le regole complete (il regolamento di apprendimento a tre round del primo gioco è omesso); con zero punti presa per tutti vale il ×2. Le AI non vedono le tue carte né la tua previsione. Dal menu (☰) puoi attivare «Mostra le carte uscite»: le carte già giocate sbarrate, le tue (mano e previsione) col contorno.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -618,6 +632,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -633,6 +648,7 @@ function render(){
     const pos=POS[G.n];
     body=`<div class="table n${G.n}">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}</div>
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
+      ${OPT.memo&&!G.over&&!G.show?memoHtml():''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -655,6 +671,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('sc-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('sc-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

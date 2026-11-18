@@ -173,6 +173,11 @@ button.rc:disabled{cursor:default}
 
 .scorebox{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:14px}
 .scorebox h3{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em;margin-bottom:8px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:70px;font-size:11px;font-weight:700}
+.cchip.gone{opacity:.2;text-decoration:line-through}
+.cchip.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
 .recap{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
 .recap-row{display:block;font-size:12px;line-height:1.7}
 .recap-row > *{margin-right:6px}
@@ -247,8 +252,8 @@ const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
 let LOGOPEN=false, HISTOPEN=false, RULESOPEN=false, RECAPOPEN=false;
-const OPT = {undo:true, hands:1};
-try{ let s=localStorage.getItem('rw-undo'); if(s!==null) OPT.undo=s==='1'; s=Number(localStorage.getItem('rw-hands')); if(HANDS_OPTS.includes(s)) OPT.hands=s; }catch(e){}
+const OPT = {undo:true, hands:1, memo:false};
+try{ let s=localStorage.getItem('rw-undo'); if(s!==null) OPT.undo=s==='1'; s=Number(localStorage.getItem('rw-hands')); if(HANDS_OPTS.includes(s)) OPT.hands=s; OPT.memo=localStorage.getItem('rw-memo')==='1'; }catch(e){}
 const cname = c => `${c.r} ${SUITS[c.s].n}`;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.r-b.r);
 const plural = (n,a,b) => n===1?a:b;
@@ -717,6 +722,17 @@ function statusTable(){
   }).join('');
   return `<div class="scorebox"><h3>SITUAZIONE DELLA MANO</h3><div class="scroll-x"><table class="score"><tr><th>Giocatore</th><th>Mano</th><th>Marker</th><th>${G.round===1?'Punti a rischio':'Punti ora'}</th><th>Spareggio</th><th>Totale</th></tr>${rows}</table></div></div>`;
 }
+// carte della mano uscite nel round in corso (prese chiuse G.r1/G.r2 + presa in corso G.plays: tutte pubbliche); contorno = la tua mano residua
+function memoHtml(){
+  const seen=new Set(); (G.round===1?G.r1:G.r2).forEach(r=>{ if(r) r.plays.forEach(x=>seen.add(x.c.id)); }); G.plays.forEach(x=>seen.add(x.c.id));
+  const mine=new Set(G.hands[HUM].map(c=>c.id));
+  const rows=SUITS.map((s,k)=>{
+    const cs=G.deck.filter(c=>c.s===k);
+    if(!cs.length) return '';
+    return `<div class="ur"><span class="l">${s.n}</span>${cs.map(c=>`<span class="cchip s${k} ${seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" title="${cname(c)}">${c.r}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="scorebox"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function histHtml(){
   if(!G.r1.length) return '';
   const hd=G.pl.map(p=>`<th>${esc(shortName(p.id))}</th>`).join('');
@@ -796,13 +812,14 @@ const RULES_HTML = `
 <p>I marker rimasti sul tabellone valgono <b>2 punti sul 1° posto</b> e <b>1 punto sugli altri</b>. <b>Vince il punteggio più basso.</b> In caso di parità vince chi ha più marker nell'area dello spareggio; se c'è ancora parità la vittoria è condivisa.</p>
 <h4>Più mani</h4>
 <p>Il gioco è pensato per una mano (Round I + Round II). Per una partita più lunga si può giocare due, tre o quattro volte: dopo ogni Round II si annotano punti e marker dello spareggio, si rimescola e si ridistribuisce.</p>
-<p><i>Nell'app:</i> con 3 giocatori il seme tolto è scelto a caso (mai le Cassette). Il primo di mano è casuale e nelle mani successive passa al giocatore dopo. Nel Round II tutti sanno quali carte ha ciascuno (sono quelle giocate nel Round I): l'AI le usa e la tabella «Storia della mano» mostra anche a te le carte giocate da ognuno in ogni presa. Nel Round I l'AI conosce solo la propria mano, le carte giocate e i semi che un giocatore non ha (non ha risposto). Quando l'ultimo giocatore di un pari merito è l'AI, sceglie l'ordine da solo: nel Round I si mette dietro agli altri del gruppo, nel Round II sceglie l'ordine che fa centrare il proprio obiettivo e, se può, fa mancare quello degli altri. Se sei tu, scegli l'ordine dal dock. Nel menu c'è «Abilita annulla» (chiede conferma prima di giocare una carta).</p>
+<p><i>Nell'app:</i> con 3 giocatori il seme tolto è scelto a caso (mai le Cassette). Il primo di mano è casuale e nelle mani successive passa al giocatore dopo. Nel Round II tutti sanno quali carte ha ciascuno (sono quelle giocate nel Round I): l'AI le usa e la tabella «Storia della mano» mostra anche a te le carte giocate da ognuno in ogni presa. Nel Round I l'AI conosce solo la propria mano, le carte giocate e i semi che un giocatore non ha (non ha risposto). Quando l'ultimo giocatore di un pari merito è l'AI, sceglie l'ordine da solo: nel Round I si mette dietro agli altri del gruppo, nel Round II sceglie l'ordine che fa centrare il proprio obiettivo e, se può, fa mancare quello degli altri. Se sei tu, scegli l'ordine dal dock. Nel menu c'è «Abilita annulla» (chiede conferma prima di giocare una carta) e «Mostra le carte uscite» (le carte del round in corso già giocate sbarrate, la tua mano col contorno).</p>
 </div></details>`;
 
 function menuHtml(){
   return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare una carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 
@@ -827,6 +844,7 @@ function render(){
     body=`${ready?`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>`:''}
       ${ready?boardHtml():''}
       ${ready&&!G.over&&G.phase==='play'?statusTable():''}
+      ${OPT.memo&&ready&&!G.over&&G.phase==='play'?memoHtml():''}
       ${ready?histHtml():''}
       ${G.pl[0].hist.length&&!G.over?`<div class="scorebox"><h3>PUNTEGGI</h3>${scoreTable()}</div>`:''}
       ${logHtml()}
@@ -853,6 +871,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.go!==undefined) goTurn(b.dataset.go);
 });
 document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('rw-memo',OPT.memo?'1':'0'); }catch(err){}
+    render(); return;
+  }
   if(e.target.id!=='optUndo') return;
   OPT.undo=e.target.checked;
   try{ localStorage.setItem('rw-undo',OPT.undo?'1':'0'); }catch(err){}
