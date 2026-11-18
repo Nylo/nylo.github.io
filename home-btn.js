@@ -54,7 +54,7 @@ var NYLO_DISCLAIMER = 'Questo gioco (o strumento di supporto), le sue idee, rego
     '.rtext ol,details.rules ol{padding-left:22px}' +
     // niente scroll orizzontale: se un elemento sborda il browser mobile rimpicciolisce la pagina e lascia spazio bianco in fondo
     'html,body{overflow-x:clip}' +
-    '.nylo-disclaimer{display:block;clear:both;box-sizing:border-box;width:100%;max-width:640px;margin:24px auto 0;padding:0 16px 18px;text-align:center;font:400 11px/1.5 Inter,system-ui,sans-serif;color:rgba(148,163,184,.75)}';
+    '.nylo-disclaimer{display:block;clear:both;box-sizing:border-box;width:calc(100% - 24px);max-width:620px;margin:24px auto 0;padding:8px 14px;border-radius:8px;background:rgba(0,0,0,.55);text-align:center;font:400 11px/1.5 Inter,system-ui,sans-serif;color:#e2e8f0}';
   document.head.appendChild(st);
 
   // accordion: lo stato aperto/chiuso resta mentre la pagina si ridisegna (si azzera solo cambiando o ricaricando la pagina)
@@ -124,8 +124,8 @@ var NYLO_DISCLAIMER = 'Questo gioco (o strumento di supporto), le sue idee, rego
     var busy = false;
     function place() {
       busy = false;
-      d.style.marginTop = '24px';
-      var gap = window.innerHeight - (d.getBoundingClientRect().bottom + window.pageYOffset + 18);
+      d.style.marginTop = '24px'; d.style.marginBottom = '12px';
+      var gap = window.innerHeight - (d.getBoundingClientRect().bottom + window.pageYOffset + 12);
       if (gap > 0) d.style.marginTop = (24 + gap) + 'px';
     }
     function later() { if (!busy) { busy = true; requestAnimationFrame(place); } }
