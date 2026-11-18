@@ -402,6 +402,7 @@ function best(tot){
 function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
 function newMatch(){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={round:0,lead:rnd(2),msg:'',log:[],over:null,trump:-1,trumpCard:null,left:0,table:[],turn:-1,win:-1,lose:-1,fresh:-1,trickNo:0,
      popped:[],show:null,popFlash:-1,
      pl:[0,1].map(i=>({id:i,name:NAMES[i],hand:[],front:[],aside:[],stars:0,hist:[]}))};
@@ -483,22 +484,27 @@ async function scoring(){
   G.show=null;
   return done;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;;k++){
-      g.round=k;
-      if(k>0) g.lead=1-g.lead;                           // a ogni round si cambia il giocatore di mano
-      deal();
-      logMsg(`— Round ${k+1}${k>=WINS+1?' (supplementare)':''}: briscola ${SUITS[g.trump].n} (${SUITS[g.trump].gum}), di mano ${P(g.lead).name} —`);
-      status(k?`Briscola: ${SUITS[g.trump].n}. ${g.lead===HUM?'Sei tu il primo giocatore.':'Primo giocatore: '+P(g.lead).name+'.'}`:`Buona partita a Bubble Gum, ${P(HUM).name}!`);
-      await ask(HUM,`Briscola: ${SUITS[g.trump].n}. ${g.lead===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.lead).name}`,[{label:'Ok, si parte',value:1}]);
-      for(let t=0;t<HANDN;t++) await oneTrick();
-      g.win=-1; g.table=[]; g.turn=-1;
+    let res=!!rs;
+    for(let k=res?g.round:0;;k++){
+      if(res){ res=false; status(`Partita ripresa: round ${k+1}.`); }
+      else{
+        g.round=k;
+        if(k>0) g.lead=1-g.lead;                           // a ogni round si cambia il giocatore di mano
+        deal(); ckpt();
+        logMsg(`— Round ${k+1}${k>=WINS+1?' (supplementare)':''}: briscola ${SUITS[g.trump].n} (${SUITS[g.trump].gum}), di mano ${P(g.lead).name} —`);
+        status(k?`Briscola: ${SUITS[g.trump].n}. ${g.lead===HUM?'Sei tu il primo giocatore.':'Primo giocatore: '+P(g.lead).name+'.'}`:`Buona partita a Bubble Gum, ${P(HUM).name}!`);
+        await ask(HUM,`Briscola: ${SUITS[g.trump].n}. ${g.lead===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.lead).name}`,[{label:'Ok, si parte',value:1}]);
+      }
+      for(let t=g.trickNo;t<HANDN;t++){ ckpt(); await oneTrick(); }
+      g.win=-1; g.table=[]; g.turn=-1; ckpt();
       if(await scoring()) break;
     }
     const [s0,s1]=[P(0).stars,P(1).stars];
     g.over={winner:s0>s1?0:1};
+    ckpt();
     render();
   }catch(e){
     if(e===ABORT||g!==G) return;
@@ -688,7 +694,10 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
-if(window.NYLO_START&&NYLO_START.mode==='ai'){NAMES[0]=NYLO_START.name||'Tu';newMatch();}
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('bubble-gum',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){ NAMES[0]=NYLO_START.name||'Tu'; newMatch(); }
+}
 </script>
 <script type="text/plain" id="src-room">
 const RULES_HTML = `
@@ -1312,6 +1321,9 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
   // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
   var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
   if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.pl)rsm={}}}catch(e){}}
   function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
   function draw(){
     var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
@@ -1366,6 +1378,7 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
     }
   });
   app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:P.counts[0],resume:true};run('src-ai');return}
   draw();
   if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
 })();

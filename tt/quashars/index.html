@@ -397,6 +397,7 @@ function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=l
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,game:0,start0:rnd(n),start:0,msg:'',log:[],over:null,conds:[],order:mkOrder(n),
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],pred:null,white:0,flex:false,blue:0,won:0,total:0,hist:[]})),
      trick:[],leader:0,winner:-1,turn:-1,show:null,prev:-1,t:0};
@@ -457,9 +458,9 @@ const legalIdx = (p,lead) => {
 };
 
 async function tricks(){
-  G.leader=G.start;
-  for(let t=0;t<TRICKS;t++){
-    G.trick=[]; G.winner=-1; G.t=t;
+  if(!G.t) G.leader=G.start;
+  for(let t=G.t;t<TRICKS;t++){
+    G.trick=[]; G.winner=-1; G.t=t; ckpt();
     const lp=P(G.leader);
     for(let i=0;i<G.n;i++){
       const p=(G.leader+i)%G.n;
@@ -492,15 +493,20 @@ async function scoring(){
   G.show=null;
 }
 
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    for(let k=0;k<g.n;k++){
-      g.game=k; g.start=(g.start0+k)%g.n;
-      deal();
-      logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.start).name} —`);
-      await announceFirst(k===0);
-      await predictions();
+    let res=!!rs, pd=false;
+    for(let k=res?g.game:0;k<g.n;k++){
+      if(res){ res=false; pd=g.pl.every(p=>p.pred); status(`Partita ripresa: round ${k+1}/${g.n}.`); }
+      else{
+        g.game=k; g.start=(g.start0+k)%g.n;
+        deal(); ckpt();
+        logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.start).name} —`);
+        await announceFirst(k===0);
+      }
+      if(!pd) await predictions();
+      pd=false;
       await tricks();
       await scoring();
     }
@@ -727,7 +733,10 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
-if(window.NYLO_START&&NYLO_START.mode==='ai'){NAMES[0]=NYLO_START.name||'Tu';newMatch(NYLO_START.n);}
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('quashars',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){ NAMES[0]=NYLO_START.name||'Tu'; newMatch(NYLO_START.n); }
+}
 </script>
 <script type="text/plain" id="src-room">
 // ═════════════════════════ QUASHARS · ONLINE ═════════════════════════
@@ -1240,6 +1249,9 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
   // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
   var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
   if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.n)rsm={n:sg.n}}}catch(e){}}
   function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
   function draw(){
     var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
@@ -1294,6 +1306,7 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
     }
   });
   app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-common');run('src-ai');return}
   draw();
   if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
 })();

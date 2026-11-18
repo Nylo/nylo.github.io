@@ -513,6 +513,7 @@ function aiClaim(p,R){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   const cols=shuffle([0,1,2,3,4]).slice(0,n).sort((a,b)=>a-b);
   G={n,cols,round:0,msg:'',log:[],over:null,show:null,phase:'idle',chip:rnd(n),turn:-1,win:-1,claimed:-1,trickNo:0,trick:[],order:[],res:null,
      deck:makeDeck(cols),seen:new Set(),void:[],
@@ -539,6 +540,7 @@ async function playRound(){
   G.phase='play';
   const n=G.n;
   for(;;){
+    ckpt();
     G.trickNo++; G.trick=[]; G.win=-1; G.claimed=-1; G.res=null;
     G.order=[]; for(let k=0;k<n;k++) G.order.push((G.chip+k)%n);
     const order=G.order;
@@ -620,19 +622,23 @@ async function scoreRound(){
   if(!last) G.show=null;
   return last;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a Bannish, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    if(!res) await ask(HUM,`Buona partita a Bannish, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
     for(;;){
-      deal();
-      logMsg(`— Round ${g.round+1}: ${g.n*HAND} carte (${g.cols.map(s=>COLS[s]).join(', ')}), ${HAND} a testa. Segnalino a ${P(g.chip).name} —`);
+      if(res){ res=false; status(`Partita ripresa: round ${g.round+1}.`); }
+      else{
+        deal();
+        logMsg(`— Round ${g.round+1}: ${g.n*HAND} carte (${g.cols.map(s=>COLS[s]).join(', ')}), ${HAND} a testa. Segnalino a ${P(g.chip).name} —`);
+      }
       await playRound();
       if(await scoreRound()) break;
       g.round++;
     }
     g.over={winners:g.pl.map((p,i)=>p.vp>=VPWIN?i:-1).filter(i=>i>=0)};
-    g.phase='over';
+    g.phase='over'; NYLO_CK=null;
     render();
   }catch(e){
     if(e===ABORT||g!==G) return;
@@ -822,7 +828,10 @@ document.getElementById('app').addEventListener('change',e=>{
 });
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
-if(window.NYLO_START&&NYLO_START.mode==='ai'){ NAMES[0]=NYLO_START.name||'Tu'; newMatch(NYLO_START.n); }
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('bannish',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){ NAMES[0]=NYLO_START.name||'Tu'; newMatch(NYLO_START.n); }
+}
 </script>
 <script type="text/plain" id="src-room">
 // ═════════════════════════ BANNISH · ONLINE ═════════════════════════
@@ -1413,6 +1422,9 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
   // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
   var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
   if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.n)rsm={n:sg.n}}}catch(e){}}
   function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
   function draw(){
     var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
@@ -1467,6 +1479,7 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
     }
   });
   app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-ai');return}
   draw();
   if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
 })();

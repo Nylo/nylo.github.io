@@ -308,6 +308,7 @@ function confirmCard(ok){
 function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,game:0,start0:rnd(n),start:0,msg:'',log:[],over:null,chips:CHIPS,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],pred:null,trump:null,acts:{predict:false,trump:false},won:0,total:0,hist:[]})),
      trick:[],leader:0,winner:-1,turn:-1,show:null};
@@ -451,8 +452,9 @@ function trickWinner(trick,ind){
 }
 
 async function tricks(){
-  G.leader=G.start;
-  for(let t=0;t<TRICKS;t++){
+  if(G.tn<=0) G.leader=G.start;
+  for(let t=Math.max(G.tn,0);t<TRICKS;t++){
+    G.tn=t; ckpt();
     G.trick=[]; G.winner=-1;
     const lp=P(G.leader), ind=TR(lp.trump);
     for(let i=0;i<G.n;i++){
@@ -491,21 +493,25 @@ async function scoring(){
   G.show=null;
 }
 
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a 6 Forces, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let k=0;k<g.n;k++){
-      g.game=k; g.start=(g.start0+k)%g.n;
-      deal();
-      logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.start).name} —`);
-      await announceFirst();
-      await planning();
+    let res=!!rs;
+    if(!res) await ask(HUM,`Buona partita a 6 Forces, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let k=res?g.game:0;k<g.n;k++){
+      if(res){ res=false; status(`Partita ripresa: round ${k+1}/${g.n}.`); }
+      else{
+        g.game=k; g.start=(g.start0+k)%g.n;
+        deal(); g.tn=-1; ckpt();
+        logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.start).name} —`);
+        await announceFirst();
+      }
+      if(g.tn<0) await planning();
       await tricks();
       await scoring();
     }
     const m=Math.max(...g.pl.map(p=>p.total));
-    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)}; NYLO_CK=null;
     render();
   }catch(e){
     if(e===ABORT||g!==G) return;
@@ -812,7 +818,10 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
-if(window.NYLO_START&&NYLO_START.mode==='ai'){NAMES[0]=NYLO_START.name||'Tu';newMatch(NYLO_START.n);}
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('six-forces',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){ NAMES[0]=NYLO_START.name||'Tu'; newMatch(NYLO_START.n); }
+}
 </script>
 <script type="text/plain" id="src-room">
 const RULES_HTML = `
@@ -1436,6 +1445,9 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
     var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
   }catch(e){}
   needName=!st.name;   // il nome arriva dalla sessione; il campo compare solo se manca
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.n)rsm={n:sg.n}}}catch(e){}}
   // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
   var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
   if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
@@ -1493,6 +1505,7 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
     }
   });
   app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-ai');return}
   draw();
   if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
 })();

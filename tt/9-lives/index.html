@@ -416,6 +416,7 @@ function aiBet(p,opts){
 function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,round:0,msg:'',log:[],over:null,show:null,turn:-1,S:null,starter:rnd(n),
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],score:0,hist:[]}))};
   run();
@@ -459,18 +460,18 @@ function humanTake(ok){
   const g=G;
   return new Promise((res,rej)=>{ PR={type:'take',ok:new Set(ok.map(key)),res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
 }
-async function playRound(){
-  const S=G.S, n=G.n; S.phase='play'; S.started=true;
-  logMsg(`Apre ${P(S.lead).name}.`);
+async function playRound(rs){
+  const S=G.S, n=G.n;
+  if(!rs){ S.phase='play'; S.started=true; logMsg(`Apre ${P(S.lead).name}.`); }
   while(!S.hands.some(h=>h.length===0)){
-    S.trick=[]; S.res=null;
+    S.trick=[]; S.res=null; ckpt();
     for(let k=0;k<n;k++){
       const p=(S.lead+k)%n; G.turn=p;
       status(p===HUM?'Tocca a te: gioca una carta.':`Tocca a ${P(p).name}.`);
       let c;
       if(p===HUM) c=await humanPlay(); else { await sleep(650); c=aiPlay(p); }
       S.hands[p]=S.hands[p].filter(x=>x!==c);
-      S.kn[p]=S.kn[p].filter(x=>x!==c);
+      S.kn[p]=S.kn[p].filter(x=>key(x)!==key(c));
       const offSuit=S.trick.length&&c.s!==S.trick[0].c.s, ls=S.trick.length?S.trick[0].c.s:-1;
       if(offSuit) S.void[p].add(ls);
       S.trick.push({p,c});
@@ -514,15 +515,21 @@ async function scoring(){
   await ask(HUM,'Punteggi del round',[{label:last?'Mostra risultato finale':'Prossimo round',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await ask(HUM,`Buona partita a 9 Lives, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<ROUNDS;r++){
-      g.round=r; deal();
-      logMsg(`— Round ${r+1}/${ROUNDS} — comincia ${P(g.starter).name}.`);
-      await betPhase();
-      await playRound();
+    let res=!!rs;
+    if(!res) await ask(HUM,`Buona partita a 9 Lives, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let r=res?g.round:0;r<ROUNDS;r++){
+      const rr=res; res=false;
+      if(rr) status(`Partita ripresa: round ${r+1}/${ROUNDS}.`);
+      else{
+        g.round=r; deal();
+        logMsg(`— Round ${r+1}/${ROUNDS} — comincia ${P(g.starter).name}.`);
+        ckpt();
+      }
+      if(!rr||g.S.phase==='bet') await betPhase();
+      await playRound(rr&&g.S.phase!=='bet');
       await scoring();
       g.starter=(g.starter+1)%g.n;
       if(g.pl.some(p=>p.score>=TARGET)){ logMsg(`Qualcuno ha raggiunto ${TARGET} punti: la partita finisce.`); break; }
@@ -753,7 +760,10 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
-if(window.NYLO_START&&NYLO_START.mode==='ai'){NAMES[0]=NYLO_START.name||'Tu';newMatch(NYLO_START.n);}
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('9-lives',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){ NAMES[0]=NYLO_START.name||'Tu'; newMatch(NYLO_START.n); }
+}
 </script>
 <script type="text/plain" id="src-room">
 const RULES_HTML = `
@@ -1360,6 +1370,9 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
     var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
   }catch(e){}
   needName=!st.name;   // il nome arriva dalla sessione; il campo compare solo se manca
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.n)rsm={n:sg.n}}}catch(e){}}
   // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
   var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
   if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
@@ -1417,6 +1430,7 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
     }
   });
   app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-ai');return}
   draw();
   if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
 })();

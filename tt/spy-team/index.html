@@ -728,7 +728,17 @@ document.getElementById('app').addEventListener('click',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
-if(window.NYLO_START&&NYLO_START.mode==='ai'){NAMES[0]=NYLO_START.name||'Tu';newGame();}
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  // salvataggio: lo stato G è un oggetto semplice e il motore è a macchina a stati, quindi si può salvare in qualsiasi momento;
+  // alla ripresa si riparte da advance() (o dalla chiusura della presa, se era in corso)
+  nyloSaveInit('spy-team',snap=>{
+    gen++; NAMES[0]=snap._nm||NAMES[0]; delete snap._nm;
+    G=snap; ui={tile:null,low:null,initFor:-1}; MENUOPEN=false; render();
+    if(G.resolving&&G.trick.length===4) later(()=>finishTrick(G.winnerSeat),900); else advance();
+  });
+  window.NYLO_SAVE.snap=()=>{ try{ return G&&!G.over&&G.phase!=='gameEnd'?nyloSer(Object.assign({},G,{_nm:NAMES[0]})):null; }catch(e){ return null; } };
+  if(!NYLO_START.resume){NAMES[0]=NYLO_START.name||'Tu';newGame();}
+}
 </script>
 <script type="text/plain" id="src-room">
 
@@ -1363,6 +1373,9 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
   // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
   var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
   if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.hands)rsm={n:4}}}catch(e){}}
   function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
   function draw(){
     var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
@@ -1417,6 +1430,7 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
     }
   });
   app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-ai');return}
   draw();
   if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
 })();

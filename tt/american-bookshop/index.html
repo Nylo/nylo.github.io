@@ -400,6 +400,7 @@ function aiRemaining(p){
 // ═════════════════════════ PARTITA ═════════════════════════
 function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
 function newMatch(n){
+  NYLO_CK=null;
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   G={n,round:0,first0:rnd(n),first:0,msg:'',log:[],over:null,limit:LIMIT[n],gone:[],aside:0,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],pile:[0,0,0,0],won:[],total:0,hist:[],played:null})),
@@ -449,9 +450,10 @@ async function oneTrick(){
   await sleep(2200);
   G.leader=win;
 }
-async function tricks(){
-  G.leader=G.first;
+async function tricks(res){
+  if(!res) G.leader=G.first;
   while(true){
+    ckpt();
     await oneTrick();
     if(G.pl.some(p=>p.hand.length===0)) break;
   }
@@ -513,24 +515,29 @@ async function scoring(){
   logMsg(`${chooser===HUM?'Tu scegli':P(chooser).name+' sceglie'} ${next===chooser?'sé stesso':P(next).name} come primo giocatore.`);
 }
 
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    g.first=g.first0;
-    for(let k=0;k<g.n;k++){
-      g.round=k;
-      deal();
-      logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.first).name}${g.aside?` (${g.aside} carte messe da parte)`:''} —`);
-      if(k===0){
-        status(`Buona partita a American Bookshop, ${P(HUM).name}!`);
-        await ask(HUM,g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name,[{label:'Ok, si parte',value:1}]);
+    let res=!!rs;
+    if(!res) g.first=g.first0;
+    for(let k=res?g.round:0;k<g.n;k++){
+      if(res) status(`Partita ripresa: round ${k+1}/${g.n}.`);
+      else{
+        g.round=k;
+        deal();
+        logMsg(`— Round ${k+1}/${g.n}: primo giocatore ${P(g.first).name}${g.aside?` (${g.aside} carte messe da parte)`:''} —`);
+        if(k===0){
+          status(`Buona partita a American Bookshop, ${P(HUM).name}!`);
+          await ask(HUM,g.first===HUM?'Sei tu il primo giocatore':'Primo giocatore: '+P(g.first).name,[{label:'Ok, si parte',value:1}]);
+        }
       }
-      await tricks();
+      await tricks(res); res=false;
       await remaining();
       await scoring();
     }
     const m=Math.max(...g.pl.map(p=>p.total));
     g.over={winners:g.pl.filter(p=>p.total===m).map(p=>p.id)};
+    NYLO_CK=null;
     render();
   }catch(e){
     if(e===ABORT||g!==G) return;
@@ -725,7 +732,10 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
-if(window.NYLO_START&&NYLO_START.mode==='ai'){NAMES[0]=NYLO_START.name||'Tu';newMatch(NYLO_START.n);}
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('american-bookshop',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){ NAMES[0]=NYLO_START.name||'Tu'; newMatch(NYLO_START.n); }
+}
 </script>
 <script type="text/plain" id="src-room">
 const RULES_HTML = `
@@ -1371,6 +1381,9 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
   // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
   var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
   if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.n)rsm={n:sg.n}}}catch(e){}}
   function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
   function draw(){
     var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
@@ -1425,6 +1438,7 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
     }
   });
   app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-ai');return}
   draw();
   if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
 })();
