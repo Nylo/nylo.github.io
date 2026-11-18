@@ -40,6 +40,9 @@
     '.menu-pop .nylo-nav{display:block;width:100%;padding:9px 10px;border:0;border-radius:6px;text-align:left;white-space:nowrap;font:500 13px Inter,system-ui,sans-serif;cursor:pointer;background:transparent;color:var(--text,inherit)}' +
     '.menu-pop .nylo-nav:hover{background:var(--accent-soft,rgba(255,255,255,.1))}' +
     '.logbody b.nylo-me{font-weight:800;color:var(--text,inherit)}' +
+    // voce di menu a pulsante («Mostra/Nascondi le carte uscite»): senza questo il pulsante prende lo stile grigio del browser
+    '.menu-pop button.opt-toggle{display:block;width:100%;background:transparent;border:0;border-radius:6px;padding:9px 10px;text-align:left;font-family:inherit;font-size:13px;color:var(--text,inherit);cursor:pointer;white-space:nowrap}' +
+    '.menu-pop button.opt-toggle:hover,.menu-pop button.opt-toggle:focus-visible{background:var(--accent-soft,rgba(255,255,255,.1));outline:0}' +
     '.menu-pop .nylo-sep{height:1px;margin:2px 0;background:var(--border,rgba(255,255,255,.2))}' +
     // elenchi numerati del regolamento: senza padding (reset globale) i numeri finiscono sul bordo dell'accordion
     '.rtext ol,details.rules ol{padding-left:22px}' +
