@@ -146,6 +146,17 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;background:#888;color:#fff;font-weight:800;font-size:11px;line-height:1;border:1px solid rgba(0,0,0,0.5)}
+.nc.k0{background:var(--k0)} .nc.k1{background:var(--k1)} .nc.k2{background:var(--k2);color:#3a2600} .nc.k3{background:var(--k3)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--text)}
+body.a11y .nc.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .nc.k1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.4) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k2{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k3{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 
 @media(max-width:600px){
   :root{--cw:30px;--ch:44px}
@@ -205,8 +216,8 @@ const mk = c => c.s*20+c.v;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('ts-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ts-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('ts-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ts-a11y')==='1'; OPT.memo=localStorage.getItem('ts-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
 const cname = c => `${COLS[c.s].n} ${c.v}`;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
@@ -609,6 +620,19 @@ function trackHtml(){
   }).join('');
   return `<div class="track">${rows}</div>`;
 }
+// carte della gara in corso: sbarrate = giocate da tutti, scarti scoperti e la tua carta scartata coperta; contorno = tua mano.
+// Le carte scartate coperte degli altri e i mazzetti non in gara non compaiono.
+function memoHtml(){
+  const S=G.S, seen=new Set(), mine=new Set(S.hand[HUM].map(mk));
+  S.played.forEach(a=>a.forEach(c=>seen.add(mk(c))));
+  S.disc.forEach(a=>a.forEach(c=>seen.add(mk(c))));
+  if(S.thrown[HUM]) seen.add(mk(S.thrown[HUM]));
+  const rows=COLS.map((s,si)=>{
+    const chips=Array.from({length:12},(_,i)=>{ const c={s:si,v:i+1}; return `<span class="nc k${si} ${seen.has(mk(c))?'gone':''} ${mine.has(mk(c))?'own':''}">${c.v}</span>`; }).join('');
+    return `<div class="ur"><span class="l">${s.n}</span>${chips}</div>`;
+  }).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const R=G.n, pls=G.pl.filter(p=>!p.dummy);
   const rows=pls.map(p=>`<tr><td>${esc(p.name)}</td>${Array.from({length:R},(_,i)=>i<p.hist.length?`<td>${p.hist[i]}</td>`:'<td>–</td>').join('')}<td><b>${p.total}</b></td></tr>`).join('');
@@ -673,7 +697,7 @@ const RULES_HTML = `
 <p>Ognuno riprende le carte scartate, poi passa a sinistra mazzetto di 12 carte e carta cavallo. Le quote cambiano in base all'arrivo: 1° +0, 2° +1, 3° +2, 4° +3. Dopo l'ultima gara vince chi ha più punti; a parità, chi ha guidato il cavallo arrivato meglio nell'ultima gara.</p>
 <h4>3 giocatori: il Fantino Dummy</h4>
 <p>Il Fantino Dummy guida uno dei 4 cavalli e siede a destra di chi riceve Vanilla Bean; non scommette e il suo mazzetto passa come gli altri. Nel Paddock scarta la prima e l'ultima carta del mazzetto (scoperte); le altre 10 sono scoperte in ordine e sono visibili a tutti. Se il Dummy ha carte del colore di apertura gioca la più alta; altrimenti gioca la prima carta e, se ha ancora la frusta e nessuno l'ha usata in quella presa, la usa. Se è di mano gioca sempre la prima carta. Può diventare primo giocatore vincendo una presa.</p>
-<p><i>Interpretazioni nell'app:</i> la frusta non è una briscola (come chiarito dalle note al regolamento); «cavallo del giocatore» è quello che guida in quella gara, non quello scelto con la carta scommessa; negli esempi del regolamento Peaches e Nibble sono i cavalli citati. I simboli di avanzamento per numero sono letti dalle immagini del regolamento (1–2: 4, 5–6: 3, 8–9: 2, 10–11: 1; gli altri valori interpolati). Le AI ricordano i mazzetti che hanno già guidato e usano simulazioni per scartare, scommettere e giocare.</p>
+<p><i>Interpretazioni nell'app:</i> la frusta non è una briscola (come chiarito dalle note al regolamento); «cavallo del giocatore» è quello che guida in quella gara, non quello scelto con la carta scommessa; negli esempi del regolamento Peaches e Nibble sono i cavalli citati. I simboli di avanzamento per numero sono letti dalle immagini del regolamento (1–2: 4, 5–6: 3, 8–9: 2, 10–11: 1; gli altri valori interpolati). Le AI ricordano i mazzetti che hanno già guidato e usano simulazioni per scartare, scommettere e giocare. Nel menu, «Mostra le carte uscite» elenca le 48 carte: sbarrate quelle già giocate o scartate scoperte nella gara in corso, col contorno le tue.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -684,6 +708,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite nella gara e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -698,6 +723,7 @@ function render(){
   if(G&&G.S){
     body=`${trackHtml()}
       <div class="table">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,POS[i])).join('')}</div>
+      ${OPT.memo&&!G.over&&G.S.phase!=='payout'?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -739,6 +765,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('ts-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('ts-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

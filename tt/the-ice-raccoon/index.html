@@ -150,6 +150,17 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
 .rtext a{color:#216e9b}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;color:#fff;font-weight:800;font-size:11px;line-height:1;border:1px solid rgba(0,0,0,0.5)}
+.nc.c0{color:#322609}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--text)}
+body.a11y .c0.nc{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.17) 0 2px,transparent 2px 6px)}
+body.a11y .c1.nc{background-image:radial-gradient(rgba(255,255,255,0.38) 22%,transparent 24%);background-size:8px 8px}
+body.a11y .c2.nc{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.28) 0 2px,transparent 2px 6px)}
+body.a11y .c3.nc{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.28) 0 2px,transparent 2px 7px)}
 
 @media(max-width:600px){
   :root{--cw:32px;--ch:48px}
@@ -197,8 +208,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('ice-raccoon-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ice-raccoon-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('ice-raccoon-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ice-raccoon-a11y')==='1'; OPT.memo=localStorage.getItem('ice-raccoon-memo')==='1'; }catch(e){}
 const cname = c => `${SUITS[c.c].n} ${c.n}`;
 
 // scelta di una carta dal retro (di qualunque mano): il numero stampato sul retro è la previsione
@@ -269,7 +280,7 @@ function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   NYLO_CK=null;
   G={n,round:0,msg:'',log:[],over:null,show:null,phase:'idle',dealer:rnd(n),dealer0:0,leader:-1,turn:-1,win:-1,trickNo:0,trick:[],
-     piles:[],draw:[],chips:[],discarded:null,
+     piles:[],draw:[],chips:[],discarded:null,played:[],
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],forecast:null,chip:null,won:0,score:START,hist:[]}))};
   G.dealer0=G.dealer;
   run();
@@ -277,7 +288,7 @@ function newMatch(n){
 function deal(){
   const n=G.n, deck=shuffle(makeDeck(n));
   G.piles=Array.from({length:n+1},(_,i)=>deck.slice(i*8,(i+1)*8));
-  G.draw=[]; G.trick=[]; G.trickNo=0; G.win=-1; G.turn=-1; G.leader=-1; G.show=null;
+  G.draw=[]; G.played=[]; G.trick=[]; G.trickNo=0; G.win=-1; G.turn=-1; G.leader=-1; G.show=null;
   G.pl.forEach(p=>{ p.hand=[]; p.forecast=null; p.chip=null; p.won=0; });
   const chips=n===3?[1,2,4]:[1,2,3,4];
   G.discarded=chips.splice(rnd(chips.length),1)[0];
@@ -351,6 +362,7 @@ async function playRound(){
       else{ await sleep(650); idx=aiPlay(p); }
       const card=pl.hand.splice(idx,1)[0];
       G.trick.push({p,card});
+      (G.played||(G.played=[])).push(card);
       logMsg(`${pl.name} gioca ${cname(card)}.`);
     }
     G.turn=-1;
@@ -475,6 +487,15 @@ function centerHtml(){
     <div class="hint" style="color:inherit">Chip disponibili</div>${chipsHtml()}
     <div class="hint" style="color:inherit">Il Viola è briscola</div></div>`;
 }
+// carte giocate in questo round (pubbliche) e carte della propria mano; le carte uscite dal gioco con la previsione restano coperte e non compaiono
+function memoHtml(){
+  const k=c=>c.c*100+c.n, mine=new Set(P(HUM).hand.map(k)), seen=new Set(G.played.map(k));
+  const rows=SUITS.map((s,si)=>{
+    const chips=Array.from({length:MAXN[G.n]+1},(_,v)=>`<span class="nc c${si} ${seen.has(si*100+v)?'gone':''} ${mine.has(si*100+v)?'own':''}">${v}</span>`).join('');
+    return `<div class="ur"><span class="l">${s.n}</span>${chips}</div>`;
+  }).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function scoreTable(){
   const cols=Array.from({length:G.n},(_,i)=>i);
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${START}</td>${cols.map(i=>{ const d=p.hist[i]; return `<td class="${d===undefined?'':(d<0?'neg':'pos')}">${d===undefined?'–':(d>0?'+':'')+d}</td>`; }).join('')}<td><b>${p.score}</b></td></tr>`).join('');
@@ -542,6 +563,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare previsioni e carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già giocate in questo round e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -555,6 +577,7 @@ function render(){
   let body='';
   if(G){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&G.phase==='play'&&G.played?memoHtml():''}
       <div class="dock" style="position:static">${scoreTable()}</div>
       ${logHtml()}
       ${recapHtml()}
@@ -578,6 +601,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('ice-raccoon-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('ice-raccoon-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

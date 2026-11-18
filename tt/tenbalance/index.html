@@ -144,6 +144,12 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Cinzel',serif;font-weight:700;font-size:14px;color:#8a6a1c;margin:14px 0 4px;letter-spacing:0.03em}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;color:#fff;font-weight:800;font-size:11px;line-height:1;border:1px solid rgba(0,0,0,0.5)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
 .rtext table{border-collapse:collapse;font-size:12px;margin:6px 0}
 .rtext td,.rtext th{border:1px solid var(--border);padding:4px 8px;text-align:center}
 
@@ -193,8 +199,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('tb-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tb-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('tb-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tb-a11y')==='1'; OPT.memo=localStorage.getItem('tb-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
 const cname = c => `${COLS[c.c].n} ${c.v}`;
 const sum = a => a.reduce((x,y)=>x+y,0);
@@ -548,6 +554,19 @@ function centerHtml(){
     <div class="cc">${cs.map(c=>kface(c,'mini')).join('')}</div>
     <div>Round <b>${G.round+1}/${G.n}</b> · Presa <b>${G.trickNo}</b></div></div>`;
 }
+// le carte non spariscono ma passano da mani, centro e aree: «sbarrate» = carte in vista (centro, carte in presa, scoperte di tutti, tue coperte, scartate);
+// con contorno = nella tua mano. Le coperte degli altri restano non in vista (come le loro mani).
+function memoHtml(){
+  const seen=new Set(), mine=new Set(G.pl[HUM].hand.map(c=>c.id));
+  const add=c=>seen.add(c.id);
+  G.center.forEach(add); G.trick.forEach(x=>add(x.c)); G.gone.forEach(add);
+  G.pl.forEach((p,i)=>{ p.up.forEach(add); if(i===HUM) p.dn.forEach(add); });
+  const rows=COLS.map((s,k)=>{
+    const cs=deckFor(G.n).filter(c=>c.c===k);
+    return `<div class="ur"><span class="l">${s.n}</span>${cs.map(c=>`<span class="nc k${k} ${seen.has(c.id)&&!mine.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}">${c.v}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="recap paper"><h3>CARTE IN VISTA (SBARRATE) · TUE IN MANO (CONTORNO)</h3><div class="unseen">${rows}</div><div class="hint">Le carte tornano al centro a ogni presa: sbarrate sono quelle già visibili (centro, scoperte, scarti); le altre sono nelle mani avversarie o coperte.</div></div>`;
+}
 function scoreTable(){
   const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.rw}</td><td>${p.ang.length}</td></tr>`).join('');
   return `<table class="score"><tr><th>Giocatore</th><th>Round vinti</th><th>Angeli</th></tr>${rows}</table>`;
@@ -619,7 +638,7 @@ const RULES_HTML = `
 <h4>Fine del round e della partita</h4>
 <p>Quando una presa finisce e nessuno ha più carte in mano il round termina. Vince il round chi ha il totale più vicino a 10. In caso di parità: 1) vince chi ha meno carte nella sua area personale; 2) se c'è ancora parità vincono tutti i pari merito. Il vincitore del round prende 1 Angelo e lo mette nella sua area personale, scoperto (lato colore) o coperto; vale 0 punti e resta per i round successivi. Poi raccoglie tutte le carte del round, le mescola e le distribuisce per il successivo; <b>sceglie lui il primo giocatore</b> del round dopo.</p>
 <p><b>Vincitore della partita:</b> se un giocatore vince un round avendo già un Angelo nella sua area personale, vince la partita. Se alla fine dell'ultimo round nessuno ha vinto: 1) vince chi ha un Angelo; 2) a parità chi ha meno carte nell'area personale alla fine dell'ultimo round; 3) se c'è ancora parità vincono tutti i pari merito.</p>
-<p><i>Nell'app:</i> il primo giocatore del primo round e il colore iniziale di riferimento sono casuali. Le carte scartate sono considerate note all'AI. Se scarti «tutte le carte rimaste» vanno via anche gli Angeli. Nella classifica finale le «carte in area» sono le sole carte numero. Con più vincitori a pari merito, la scelta del primo giocatore spetta al primo di loro in senso orario dal precedente primo giocatore; l'AI sceglie a caso. L'AI stima le mani avversarie con simulazioni.</p>
+<p><i>Nell'app:</i> il primo giocatore del primo round e il colore iniziale di riferimento sono casuali. Le carte scartate sono considerate note all'AI. Se scarti «tutte le carte rimaste» vanno via anche gli Angeli. Nella classifica finale le «carte in area» sono le sole carte numero. Con più vincitori a pari merito, la scelta del primo giocatore spetta al primo di loro in senso orario dal precedente primo giocatore; l'AI sceglie a caso. L'AI stima le mani avversarie con simulazioni. Nel menu, «Mostra le carte uscite» elenca tutte le carte del mazzo: quelle già in vista sono sbarrate, quelle nella tua mano hanno il contorno.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -628,6 +647,14 @@ function logHtml(){
 }
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra quali carte sono già in vista e quali hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
+    </div>`:''}</div>`;
+}
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
@@ -639,6 +666,7 @@ function render(){
   let body='';
   if(G){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over&&G.center.length?memoHtml():''}
       ${G.pl.some(p=>p.rw)?`<div class="dock paper" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -660,6 +688,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('tb-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('tb-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

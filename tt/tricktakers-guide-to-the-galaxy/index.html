@@ -137,6 +137,13 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;background:#888;color:#fff;font-weight:800;font-size:11px;line-height:1;border:1px solid rgba(0,0,0,0.5)}
+.nc.k0{background:var(--k0)} .nc.k1{background:var(--k1)} .nc.k2{background:var(--k2)} .nc.k3{background:var(--k3)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--text)}
 
 .table.n5{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"tl tl tr tr" "left center center right" "bottom bottom bottom bottom"}
 .seat.tl{grid-area:tl} .seat.tr{grid-area:tr}
@@ -216,9 +223,9 @@ const rew = n => n===1?5:n===2?1:0;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false,facePar:true};
+const OPT = {undo:true,a11y:false,facePar:true,memo:false};
 let FP = true;
-try{ const s=localStorage.getItem('tg-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tg-a11y')==='1'; OPT.facePar=localStorage.getItem('tg-facepar')!=='0'; }catch(e){}
+try{ const s=localStorage.getItem('tg-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tg-a11y')==='1'; OPT.facePar=localStorage.getItem('tg-facepar')!=='0'; OPT.memo=localStorage.getItem('tg-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>900) G.log.pop(); render(); }
 const cname = c => `${rlab(c.r)} di ${SUITS[c.s].n}`;
 const csym = c => `${rlab(c.r)}${SUITS[c.s].ch}`;
@@ -758,6 +765,16 @@ function centerHtml(){
   const lbl=S.phase==='play'&&S.done<S.NT?`PRESA ${S.done+1}/${S.NT}${S.trick.length?` · SEME ${SUITS[S.trick[0].c.s].n.toUpperCase()}`:''}`:S.phase==='pick'?'SCELTA DELLE REGOLE ATTIVE':'ROUND CONCLUSO';
   return `<div class="center"><span class="lbl2">${lbl}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div>${rev}</div>`;
 }
+// carte giocate (S.seen) e carte avanzate scoperte fuori gioco (S.revealed) sbarrate; contorno = tua mano
+function memoHtml(){
+  const S=G.S, mine=new Set(S.hands[HUM].map(key)), seen=new Set(S.seen);
+  S.revealed.forEach(c=>seen.add(key(c)));
+  const rows=SUITS.map((s,si)=>{
+    const chips=Array.from({length:13},(_,i)=>{ const c={s:si,r:i+1}, k=key(c); return `<span class="nc k${si} ${seen.has(k)?'gone':''} ${mine.has(k)?'own':''}">${rlab(c.r)}</span>`; }).join('');
+    return `<div class="ur"><span class="l">${s.n}</span>${chips}</div>`;
+  }).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function myRules(){
   const S=G.S;
   let cards='';
@@ -836,7 +853,7 @@ const RULES_HTML = `
 <li><b>+1</b> per ogni presa vinta (non per carta) e <b>+1</b> per ogni moneta posseduta, segnalino compreso.</li></ul>
 <h4>Più round</h4>
 <p>A fine round si assegnano i <b>Punti Galassia</b>: 1° posto 3 punti, 2° e 3° posto 1 punto, gli altri 0 (parità = posizione condivisa). Si gioca un altro round finché qualcuno raggiunge 6 Punti Galassia: vince chi ne ha di più tra chi ha raggiunto 6 (in caso di parità in testa si continua).</p>
-<p><i>Interpretazioni nell'app:</i> l'Asso vale 1 (carta più bassa) e il Re 13; le figure sono J, Q e K. Il regolamento non chiarisce se le figure contino per pari/dispari (regole F e G): per default valgono 11, 12 e 13 (pari: 2, 4, 6, 8, 10, Q); dal menu puoi escluderle, così non hanno né parità né effetto su quelle regole. «Giocare per ultimo» significa essere l'ultimo della presa; «scartare» è giocare una carta di un altro seme (briscola compresa). «Vinci prese consecutive» richiede almeno due prese di fila una volta sola (confermato dall'autore): non servono tutte di fila. Il giocatore che apre il draft ruota a ogni round. Le AI vedono solo la loro mano e le carte giocate, e stimano le regole con simulazioni.</p>
+<p><i>Interpretazioni nell'app:</i> l'Asso vale 1 (carta più bassa) e il Re 13; le figure sono J, Q e K. Il regolamento non chiarisce se le figure contino per pari/dispari (regole F e G): per default valgono 11, 12 e 13 (pari: 2, 4, 6, 8, 10, Q); dal menu puoi escluderle, così non hanno né parità né effetto su quelle regole. «Giocare per ultimo» significa essere l'ultimo della presa; «scartare» è giocare una carta di un altro seme (briscola compresa). «Vinci prese consecutive» richiede almeno due prese di fila una volta sola (confermato dall'autore): non servono tutte di fila. Il giocatore che apre il draft ruota a ogni round. Le AI vedono solo la loro mano e le carte giocate, e stimano le regole con simulazioni. Nel menu, «Mostra le carte uscite» elenca le 52 carte: sbarrate quelle già giocate o scoperte fuori gioco, col contorno le tue.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -848,6 +865,7 @@ function menuHtml(){
       <label class="opt-toggle" title="Chiede conferma prima di giocare la carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Se attivo J, Q, K contano come 11, 12, 13 per le regole pari/dispari (F e G); vale dal prossimo round"><input type="checkbox" id="optFace" ${OPT.facePar?'checked':''}> Figure pari/dispari (dal prossimo round)</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai semi per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -861,6 +879,7 @@ function render(){
   let body='';
   if(G&&G.S){
     body=`<div class="table n${G.N}">${centerHtml()}${G.pl.map((p,i)=>seatHtml(i,CFG[G.N].pos[i])).join('')}</div>
+      ${OPT.memo&&!G.over&&G.S.phase!=='score'?memoHtml():''}
       ${myRules()}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
@@ -902,6 +921,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('tg-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('tg-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id==='optFace'){

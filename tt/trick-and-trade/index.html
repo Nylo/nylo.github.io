@@ -180,6 +180,12 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext ul{padding-left:18px}
 .rtext table{border-collapse:collapse;font-size:12px;margin:6px 0}
 .rtext td,.rtext th{border:1px solid var(--border);padding:4px 8px;text-align:center}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:60px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;color:#1b2430;font-weight:800;font-size:11px;line-height:1;border:1px solid rgba(0,0,0,0.5)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px var(--ink),0 0 0 3.5px #fff}
 
 @media(max-width:700px){
   .board{grid-template-columns:1fr}
@@ -227,8 +233,8 @@ const sico = (s,cls='') => SU[s].svg ? `<i class="rc-i ${cls}">${RC_SVG}</i>` : 
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('tat-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tat-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('tat-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('tat-a11y')==='1'; OPT.memo=localStorage.getItem('tat-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
 const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
 const cardTxt = c => `${c.r} di ${SU[c.s].n} (valore ${c.v})`;
@@ -583,6 +589,15 @@ function areaHtml(){
     <div class="wzc">${G.wcards[s].map(c=>`${c.r}<small>(${c.v})</small>`).join(' ')||'—'}</div></div>`).join('')}</div>
     <div class="hint" style="margin-top:6px">Sotto ogni valuta: forza (valore) delle carte vincenti. I valori si sommano.</div>`;
 }
+// carte Trick già giocate (G.seen: tutte scoperte al tavolo, vincenti e scartate) e carte della propria mano; numero = forza della carta
+function memoHtml(){
+  const seen=new Set(G.seen.map(c=>c.id)), mine=new Set(P(HUM).hand.map(c=>c.id));
+  const rows=SU.map((s,si)=>{
+    const chips=ALLT.filter(c=>c.s===si).map(c=>`<span class="nc k${si} ${seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" title="${esc(cardTxt(c))}">${c.r}</span>`).join('');
+    return `<div class="ur"><span class="l">${s.n}</span>${chips}</div>`;
+  }).join('');
+  return `<div class="recap paper"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function portHtml(final){
   const m=final?final.mult:multipliers(G.win), sc=final?final.scores:curScores();
   const head=`<tr><th>${final?'Risultato finale':'Portafogli (icone Trade)'}</th>${[0,1,2,3].map(s=>`<th class="on-dark t${s}" title="${SU[s].n}">${sico(s)} <span style="color:var(--text-soft)">${fmtM(m[s])}</span></th>`).join('')}<th>Punti${final?'':' ora'}</th></tr>`;
@@ -634,7 +649,7 @@ const RULES_HTML = `
 <p>Quando la riga 1 è vuota, la riga 2 scende nella riga 1 e si rivela una nuova riga dal mazzo (se il mazzo è finito non si aggiunge nulla). La partita finisce dopo tante prese quante le carte in mano, quando sono state distribuite tutte le carte Trade.</p>
 <h4>Punteggio finale</h4>
 <p>Si guardano i valori totali delle valute nella Zona vincente. La valuta con il valore più alto vale <b>×3</b>, la seconda ×2, la terza ×1 e l'ultima <b>×−1</b>. Valute con lo stesso totale condividono il moltiplicatore più alto e il successivo viene saltato (es. 5, 5, 2, 2 → ×3, ×3, ×1, ×1). Ogni giocatore moltiplica le icone di ciascuna valuta sulle sue carte Trade per il moltiplicatore e somma. Vince il punteggio più alto; a parità, chi ha più icone della valuta col moltiplicatore maggiore; poi vittoria condivisa.</p>
-<p><i>Nell'app:</i> la carta Lead può essere presa da qualunque giocatore nel proprio turno di scelta finché è disponibile (come nell'esempio del regolamento); se più valute condividono il moltiplicatore massimo, nello spareggio si sommano le loro icone. I punti mostrati durante la partita usano i moltiplicatori attuali e sono provvisori. L'AI stima le mani avversarie e il mazzo Trade con simulazioni.</p>
+<p><i>Nell'app:</i> la carta Lead può essere presa da qualunque giocatore nel proprio turno di scelta finché è disponibile (come nell'esempio del regolamento); se più valute condividono il moltiplicatore massimo, nello spareggio si sommano le loro icone. I punti mostrati durante la partita usano i moltiplicatori attuali e sono provvisori. L'AI stima le mani avversarie e il mazzo Trade con simulazioni. Nel menu, «Mostra le carte uscite» elenca le 40 carte Trick (col numero grande): sbarrate quelle già giocate, col contorno le tue.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -648,6 +663,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge lettere e filigrane alle valute per distinguerle senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte Trick già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -661,6 +677,7 @@ function render(){
   let body='';
   if(G){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over?memoHtml():''}
       <div class="board paper"><div>${marketHtml()}</div><div>${areaHtml()}</div><div class="wide">${G.over?'':portHtml()}</div></div>
       ${logHtml()}
       ${recapHtml()}
@@ -703,6 +720,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('tat-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('tat-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;
