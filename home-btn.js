@@ -118,24 +118,19 @@
       var updateGameMenu = function () {
         var topbar = document.querySelector('.topbar');
         var menu = document.querySelector('.menu-wrap .menu-pop');
-        // Indietro / Home / Nuova partita stanno sempre nel menu hamburger (senza icone)
+        // Menu condiviso: «Nuova partita» in cima (se la pagina la offre), poi le voci del gioco, poi dopo un divisore «Salva» (solo se la
+        // partita è salvabile) ed «Esci» (che chiede dove andare: pagina del gioco / elenco giochi / home)
         if (topbar && menu && !menu.querySelector('.nylo-nav')) {
           var mk = function (label, attrs) {
             var b = document.createElement('button'); b.type = 'button'; b.className = 'nylo-nav'; b.textContent = label;
             Object.keys(attrs).forEach(function (k) { b.setAttribute(k, attrs[k]); });
             return b;
           };
-          var items = [];
-          if (topbar.querySelector(':scope > [data-home]')) items.push(mk('Home', { 'data-home': '1' }));
-          var back = topbar.querySelector(':scope > [data-back]');
-          if (back) items.push(mk('Indietro', { 'data-back': back.getAttribute('data-back'), 'data-back-what': back.getAttribute('data-back-what') || '' }));
-          if (topbar.querySelector(':scope > [data-new]')) items.push(mk('Nuova partita', { 'data-new': '1' }));
-          if (items.length) {
-            var sep = document.createElement('div'); sep.className = 'nylo-sep';
-            var first = menu.firstChild;
-            items.forEach(function (it) { menu.insertBefore(it, first); });
-            menu.insertBefore(sep, first);
-          }
+          if (topbar.querySelector(':scope > [data-new]')) menu.insertBefore(mk('Nuova partita', { 'data-new': '1' }), menu.firstChild);
+          var sep = document.createElement('div'); sep.className = 'nylo-sep';
+          menu.appendChild(sep);
+          if (canSaveNow()) menu.appendChild(mk('Salva', { 'data-nylo-save': '1' }));
+          menu.appendChild(mk('Esci', { 'data-nylo-exit': '1' }));
         }
 
         Array.prototype.forEach.call(document.querySelectorAll('.menu-pop .opt-toggle input#optA11y, .menu-pop .opt-toggle input#optUndo'), function (input) {
@@ -223,6 +218,107 @@
     ov.querySelector('[data-gamehome]').addEventListener('click', gameHome);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') ov.style.display = 'none'; });
   }
+  // ── Salva / Esci (voci del menu condiviso) ──
+  function curSave() {
+    var sv = window.NYLO_SAVE, snap = null;
+    try { snap = sv && sv.snap ? sv.snap() : null; } catch (e) {}
+    return snap ? { sv: sv, snap: snap } : null;
+  }
+  function canSaveNow() { return !!curSave() && !gameOver() && !notStarted(); }
+  // la partita corrente coincide con quella già salvata (nessuna domanda sul salvataggio uscendo)
+  function isSavedNow() {
+    var c = curSave(), info = window.nyloSaveInfo();
+    return !!(c && info && info.id === c.sv.id && info.data === c.snap);
+  }
+  function toast(msg) {
+    var t = document.createElement('div');
+    t.setAttribute('role', 'status');
+    t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483002;max-width:calc(100% - 32px);padding:10px 16px;border-radius:10px;background:#0d9488;color:#fff;font:600 13px Inter,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.45);text-align:center';
+    t.textContent = msg; document.body.appendChild(t);
+    setTimeout(function () { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; setTimeout(function () { t.remove(); }, 450); }, 2200);
+  }
+  function closeMenu() { try { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })); } catch (e) {} }
+  function doSave() {
+    var c = curSave(); if (!c || gameOver() || notStarted()) return false;
+    var old = window.nyloSaveInfo();
+    if (!window.nyloSaveGame(c.sv.id, document.title, c.snap)) { toast('Salvataggio non riuscito'); return false; }
+    toast('Partita salvata' + (old && old.id !== c.sv.id ? ' (ha sostituito «' + old.title + '»)' : ''));
+    return true;
+  }
+  function inRoom() { try { return typeof roomRef !== 'undefined' && !!roomRef && typeof leave === 'function'; } catch (e) { return false; } }
+  // si lascia la stanza (se c'è) prima di cambiare pagina
+  function navigateTo(url) {
+    if (inRoom()) { try { leave(url); return; } catch (e) {} }
+    location.href = url;
+  }
+  // destinazioni di «Esci»
+  function exitTargets() {
+    var m = location.pathname.match(/^\/(n?tt)\//), backEl = document.querySelector('[data-back]');
+    var back = backEl && backEl.getAttribute('data-back');
+    var out = [];
+    if (back && !(window.NYLO_IN_SETUP || notStarted())) out.push({ k: 'game', label: 'Pagina del gioco' });
+    if (back) out.push({ k: 'list', label: back === '/#lab' ? 'Lab' : 'Elenco giochi', to: back === '/#lab' ? back : (m ? '/' + m[1] + '/' : '/tt/') });
+    out.push({ k: 'home', label: 'Home', to: '/' });
+    return out;
+  }
+  var ov2;
+  var BTN = 'display:block;width:100%;padding:10px 14px;border-radius:8px;border:0;color:#fff;font-weight:600;cursor:pointer;font-size:14px;text-align:center;';
+  function exitGo(t) {
+    ov2.style.display = 'none';
+    window.__nyloSaved = isSavedNow();      // salvata: uscire non conta come partita abbandonata nelle statistiche
+    if (t.k === 'game') { if (inRoom()) navigateTo(location.pathname); else gameHome(); }
+    else navigateTo(t.to);
+  }
+  function openExit() {
+    if (!ov2) {
+      ov2 = document.createElement('div');
+      ov2.style.cssText = 'position:fixed;inset:0;z-index:2147483001;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:16px;font-family:Inter,system-ui,sans-serif';
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') ov2.style.display = 'none'; });
+      document.body.appendChild(ov2);
+    }
+    closeMenu();
+    var targets = exitTargets(), inProgress = !(notStarted() || gameOver() || window.NYLO_IN_SETUP);
+    var pending = null;
+    var cancel = '<button type="button" data-x="cancel" style="' + BTN + 'background:transparent;border:1px solid #64748b;color:#e2e8f0;font-weight:500">Annulla</button>';
+    var box = function (title, text, btns) {
+      ov2.innerHTML = '<div role="dialog" aria-modal="true" style="width:min(340px,100%);padding:20px;border-radius:12px;background:#1e293b;color:#f1f5f9;border:1px solid #475569;box-shadow:0 14px 40px rgba(0,0,0,.5)">' +
+        '<div style="font-size:16px;font-weight:600;margin-bottom:6px">' + title + '</div>' +
+        '<div style="font-size:13px;color:#cbd5e1;margin-bottom:14px;line-height:1.5">' + text + '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:8px">' + btns + '</div></div>';
+      ov2.style.display = 'flex';
+      var f = ov2.querySelector('[data-x]'); if (f) f.focus();
+    };
+    var step1 = function () {
+      var warn = 'Dove vuoi andare?';
+      if (inRoom()) { var st0 = null; try { st0 = typeof S !== 'undefined' ? S : null; } catch (er) {} warn = st0 ? 'Potrai rientrare nella stanza con lo stesso codice. Dove vuoi andare?' : 'Dove vuoi andare?'; }
+      else if (inProgress && !canSaveNow()) warn = 'La partita in corso andrà persa. Dove vuoi andare?';
+      else if (inProgress && isSavedNow()) warn = 'La partita è salvata. Dove vuoi andare?';
+      box('Uscire?', warn, targets.map(function (t, i) { return '<button type="button" data-x="' + i + '" style="' + BTN + 'background:#334155">' + t.label + '</button>'; }).join('') + cancel);
+    };
+    var step2 = function () {
+      var old = window.nyloSaveInfo(), c = curSave();
+      var repl = old ? (old.id === (c && c.sv.id) ? ' Sostituirà quella già salvata di questo gioco.' : ' Sostituirà quella già salvata («' + old.title + '»).') : '';
+      box('Salvare la partita?', 'Potrai riprenderla più tardi dall\'elenco giochi. Se ne può salvare una sola.' + repl,
+        '<button type="button" data-x="save" style="' + BTN + 'background:#2563eb">Salva ed esci</button>' +
+        '<button type="button" data-x="nosave" style="' + BTN + 'background:#0d9488">Non salvare</button>' + cancel);
+    };
+    ov2.onclick = function (e) {
+      var b = e.target.closest && e.target.closest('[data-x]');
+      if (!b) { if (e.target === ov2) ov2.style.display = 'none'; return; }
+      var x = b.getAttribute('data-x');
+      if (x === 'cancel') { ov2.style.display = 'none'; return; }
+      if (x === 'save') { doSave(); exitGo(pending); return; }
+      if (x === 'nosave') { exitGo(pending); return; }
+      pending = targets[Number(x)]; if (!pending) return;
+      if (inProgress && canSaveNow() && !isSavedNow()) step2(); else exitGo(pending);
+    };
+    step1();
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-nylo-exit],[data-nylo-save]');
+    if (!b) return;
+    if (b.hasAttribute('data-nylo-save')) { doSave(); closeMenu(); } else openExit();
+  });
   // 'Menu del gioco': la schermata iniziale della pagina (scelta giocatori / modalita). Pagine framework (src-ai): si ricarica senza hash;
   // pagine classiche: si azzera la partita con toSetup() (stessa azione di 'Nuova partita')
   function gameHome() {
@@ -290,9 +386,9 @@
       armed = false;
       var b = backEl();
       if (!b || !ov) { history.back(); return; }
-      if (ov.style.display === 'flex') { arm(); ov.style.display = 'none'; return; }   // avviso già aperto: Indietro = Annulla
+      if (ov.style.display === 'flex' || (ov2 && ov2.style.display === 'flex')) { arm(); ov.style.display = 'none'; if (ov2) ov2.style.display = 'none'; return; }   // avviso già aperto: Indietro = Annulla
       arm();
-      askLeave(b);
+      openExit();
     });
   })();
   // statistiche personali per gioco: partite concluse / abbandonate / vinte / perse, salvate nel browser per nome giocatore
