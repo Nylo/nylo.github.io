@@ -82,3 +82,15 @@ function nyloSaveInit(id,resume){
   if(!d) return;
   try{ resume(nyloDes(d)); if(window.nyloSaveClear) nyloSaveClear(); }catch(e){ console.error('Ripresa non riuscita',e); G=null; render(); }
 }
+
+// ═══ Voce di menu «Mostra/Nascondi le carte uscite» (pulsante, non checkbox): al click simula un 'change' con checked = nuovo stato, così i gestori delle pagine restano quelli di prima ═══
+(function(){
+  const st=document.createElement('style');
+  st.textContent=':where(button.opt-toggle){background:transparent;border:0;color:inherit;font-family:inherit;text-align:left;cursor:pointer;width:100%}';
+  document.head.appendChild(st);
+  document.addEventListener('click',e=>{
+    const b=e.target.closest&&e.target.closest('button#optMemo'); if(!b) return;
+    b.checked=/^\s*Mostra/.test(b.textContent);
+    b.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+})();
