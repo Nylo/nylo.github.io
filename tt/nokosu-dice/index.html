@@ -439,6 +439,7 @@ function aiPlay(p){
 
 function newMatch(n){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
   G={n,cfg:CFG[n],round:0,dealer:rnd(n),msg:'',log:[],over:null,show:null,turn:-1,S:null,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[],last:0}))};
   run();
@@ -459,19 +460,23 @@ function deal(){
 const roll = () => 1+rnd(6);
 async function drawPhase(){
   const S=G.S, n=G.n, cfg=G.cfg;
-  logMsg(`Mazziere: ${P(G.dealer).name}. Ognuno pesca ${plu(cfg.draw,'dado','dadi')} dal sacchetto e li tira.`);
-  for(let k=1;k<=n;k++){
-    const p=(G.dealer+k)%n;
-    for(let i=0;i<cfg.draw;i++){ const d=S.bag.pop(); d.r=roll(); S.dice[p].push(d); }
-    logMsg(`${P(p).name} tira: ${S.dice[p].map(iname).join(', ')}.`);
-    await sleep(250);
+  if(!S.drawn){
+    logMsg(`Mazziere: ${P(G.dealer).name}. Ognuno pesca ${plu(cfg.draw,'dado','dadi')} dal sacchetto e li tira.`);
+    for(let k=1;k<=n;k++){
+      const p=(G.dealer+k)%n;
+      for(let i=0;i<cfg.draw;i++){ const d=S.bag.pop(); d.r=roll(); S.dice[p].push(d); }
+      logMsg(`${P(p).name} tira: ${S.dice[p].map(iname).join(', ')}.`);
+      await sleep(250);
+    }
+    for(let i=0;i<cfg.centre;i++){ const d=S.bag.pop(); d.r=roll(); S.centre.push(d); }
+    S.zc=2; S.drawn=true;
+    logMsg(`Il mazziere tira ${cfg.centre} dadi al centro, più i 2 dadi «Zero prese».`);
+    status('Fase dadi: ognuno prende un dado dal centro. L\'ultimo dado rimasto sarà la briscola.');
+    ckpt();
+    await sleep(500);
   }
-  for(let i=0;i<cfg.centre;i++){ const d=S.bag.pop(); d.r=roll(); S.centre.push(d); }
-  S.zc=2;
-  logMsg(`Il mazziere tira ${cfg.centre} dadi al centro, più i 2 dadi «Zero prese».`);
-  status('Fase dadi: ognuno prende un dado dal centro. L\'ultimo dado rimasto sarà la briscola.');
-  await sleep(500);
   while(S.centre.length>1){
+    G.turn=-1; ckpt();
     S.pickIdx++;
     const p=S.pickOrder[S.pickIdx]; G.turn=p;
     status(p===HUM?'Tocca a te: prendi un dado dal centro.':`Tocca a ${P(p).name}: sceglie un dado.`);
@@ -495,14 +500,14 @@ async function drawPhase(){
   S.trump=S.centre[0];
   const all=[]; S.deck.forEach(c=>all.push(c)); S.dice.forEach(d=>d.forEach(x=>all.push(x))); setPower(all,S.trump);
   logMsg(`Dado rimasto al centro = briscola: ${iname(S.trump)}. Sono briscola: stesso numero e colore (la più forte), stesso numero, stesso colore.`);
-  S.phase='play';
+  S.phase='play'; ckpt();
   await choose('Fase dadi conclusa',[{label:'Inizia le prese',value:1}],`<div class="hint">Dado briscola:</div><div class="dicerow" style="justify-content:flex-start">${dieFace(S.trump,'big')}</div>`);
 }
 async function playRound(){
   const S=G.S, n=G.n;
-  logMsg(`Apre ${P(S.lead).name}.`);
+  if(!S.opened){ S.opened=true; logMsg(`Apre ${P(S.lead).name}.`); }
   while(S.done<S.tot){
-    S.trick=[]; S.res=null;
+    S.trick=[]; S.res=null; G.turn=-1; ckpt();
     for(let k=0;k<n;k++){
       const p=(S.lead+k)%n; G.turn=p;
       status(p===HUM?'Tocca a te: gioca una carta o un dado.':`Tocca a ${P(p).name}.`);
@@ -529,28 +534,41 @@ async function playRound(){
   }
   S.phase='end';
 }
-async function scoring(){
+async function scoring(res){
   const S=G.S, n=G.n;
-  const fin=S.dice.map((d,q)=>S.zero[q]?0:d[0].r);
-  const rows=roundScore(n,S.won,fin,S.zero);
-  rows.forEach((r,p)=>{ P(p).total+=r.pts; P(p).hist.push(r.pts); P(p).last=r.fin; r.p=p; r.zero=S.zero[p]; });
-  G.show={rows};
-  rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ha vinto ${plu(r.won,'presa','prese')} e tiene ${r.zero?'il dado Zero':'il dado '+r.fin} → ${r.pts} punti${r.match?` (bonus ${r.bonus}${r.zb?` + ${r.zb} Zero`:''})`:''}.`));
-  status(`Round ${G.round+1} concluso.`);
+  if(!res){
+    const fin=S.dice.map((d,q)=>S.zero[q]?0:d[0].r);
+    const rows=roundScore(n,S.won,fin,S.zero);
+    rows.forEach((r,p)=>{ P(p).total+=r.pts; P(p).hist.push(r.pts); P(p).last=r.fin; r.p=p; r.zero=S.zero[p]; });
+    G.show={rows};
+    rows.forEach(r=>logMsg(`Round ${G.round+1}: ${P(r.p).name} ha vinto ${plu(r.won,'presa','prese')} e tiene ${r.zero?'il dado Zero':'il dado '+r.fin} → ${r.pts} punti${r.match?` (bonus ${r.bonus}${r.zb?` + ${r.zb} Zero`:''})`:''}.`));
+    status(`Round ${G.round+1} concluso.`);
+    S.scored=true; ckpt();
+  }
   await choose('Punti del round',[{label:G.round<n-1?'Round successivo':'Mostra risultato finale',value:1}]);
   G.show=null;
 }
-async function run(){
+async function run(rs){
   const g=G;
   try{
-    await choose(`Buona partita a Nokosu Dice, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
-    for(let r=0;r<g.n;r++){
-      g.round=r; g.dealer=(g.dealer+(r?1:0))%g.n; deal();
-      logMsg(`— Round ${r+1}/${g.n} —`);
-      await drawPhase();
-      await playRound();
-      await scoring();
+    let res=!!rs;
+    if(!res) await choose(`Buona partita a Nokosu Dice, ${P(HUM).name}!`,[{label:'Ok, si parte',value:1}]);
+    for(let r=res?g.round:0;r<g.n;r++){
+      if(res) status(`Partita ripresa: round ${r+1}/${g.n}.`);
+      else{
+        g.round=r; g.dealer=(g.dealer+(r?1:0))%g.n; deal();
+        logMsg(`— Round ${r+1}/${g.n} —`);
+        ckpt();
+      }
+      const S=g.S, scored=!!S.scored;
+      if(!scored){
+        if(S.phase==='draw') await drawPhase();
+        await playRound();
+      }
+      res=false;
+      await scoring(scored);
     }
+    NYLO_CK=null;
     const m=Math.max(...g.pl.map(p=>p.total));
     let ws=g.pl.filter(p=>p.total===m), tie=false;
     if(ws.length>1){ const l=Math.max(...ws.map(p=>p.last)); const w2=ws.filter(p=>p.last===l); tie=true; ws=w2; }
@@ -758,6 +776,18 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
+// ripristino: le carte in mano/giocate erano le STESSE istanze di S.deck (setPower le aggiorna da lì): dopo JSON sono copie, quindi le ricollego per colore+numero; gli uid dei pulsanti si riassegnano
+function nyloRestore(snap){
+  (function strip(o){ if(o&&typeof o==='object'){ delete o.uid; Object.values(o).forEach(strip); } })(snap);
+  const S=snap.S;
+  if(S){
+    const by=new Map(S.deck.map(c=>[ck(c),c]));
+    S.cards=S.cards.map(h=>h.map(c=>by.get(ck(c))||c));
+    S.playedC=S.playedC.map(c=>by.get(ck(c))||c);
+  }
+  return snap;
+}
+nyloSaveInit('nokosu-dice',snap=>{ G=nyloRestore(snap); PR=null; render(); run(true); });
 
 </script>
 </body>
