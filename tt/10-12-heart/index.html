@@ -208,6 +208,44 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
 
+/* stanze online (kit condiviso) */
+:root{--topc:#fff}
+.panel{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:18px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;color:var(--text)}
+.panel h2{font-size:16px;font-weight:700}
+.muted{color:var(--text-soft);font-size:12px;line-height:1.5}
+body .app>section>p.muted{color:var(--topc,var(--text-soft));margin-bottom:10px}
+.status{font-size:13px;min-height:20px;line-height:1.5;color:var(--topc,var(--text))}
+.panel input[type=text]{background:#fff;border:1px solid var(--border);color:#222;border-radius:6px;padding:9px 11px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none;letter-spacing:1px}
+.panel input[type=text]:focus{border-color:var(--accent)}
+.radios{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.radios label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.roster{list-style:none;display:flex;flex-direction:column;gap:8px}
+.roster li{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-raised);border:1px solid var(--border);border-radius:8px;font-size:13px}
+.roster .seat-n{width:20px;color:var(--text-soft)}
+.roster .grow{flex:1}
+.roster .soft{color:var(--text-soft)}
+.room-code{padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:Consolas,monospace;letter-spacing:1px;font-size:12px;color:var(--topc,var(--text));border-color:var(--topc,var(--border))}
+.conn{font-size:11px;color:var(--topc,var(--text-soft))}
+.room-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.room-bar .room-code,.room-bar .btn{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 10px;line-height:1;box-sizing:border-box;white-space:nowrap}
+.room-bar .conn{margin-left:auto}
+.err{position:fixed;left:12px;right:12px;bottom:12px;max-width:680px;margin:0 auto;padding:12px 14px;border:1px solid rgba(217,107,107,0.6);border-radius:8px;background:#3a1d22;color:#fff;font-size:13px;line-height:1.4;z-index:200}
+.sx-card{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:12px;color:var(--text)}
+.sx-label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text-soft);margin-top:2px}
+.sx-row{display:flex;gap:8px;flex-wrap:wrap}
+.sx-opt{padding:10px 16px;border-radius:7px;border:1px solid var(--ink);background:#fff;color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;transition:border-color .12s,background .12s}
+.sx-opt:hover:not(:disabled){background:var(--surface-raised)}
+.sx-opt.on{border-color:var(--accent);background:var(--accent);color:#fff;font-weight:600}
+.sx-opt:disabled{opacity:.4;cursor:not-allowed}
+.sx-row .sx-opt{flex:1 1 0;min-width:0}
+.sx-go{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;margin-top:1rem}
+.sx-go:hover:not(:disabled){background:var(--accent);filter:brightness(1.15)}
+.sx-in{background:#fff;border:1px solid var(--border);color:#222;border-radius:6px;padding:10px 12px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none}
+.sx-in:focus{border-color:var(--accent)}
+.sx-in.code{letter-spacing:2px;text-transform:uppercase;font-family:Consolas,monospace}
+.sx-nav{display:flex;gap:8px;align-items:center;margin-left:auto}
+.sx-sub{display:flex;flex-direction:column;gap:10px;padding-top:2px}
+
 @media(max-width:600px){
   .logo{font-size:18px}
   .logo svg{width:28px;height:28px}
@@ -246,8 +284,8 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 <div class="app" id="app"></div>
 
 <script src="/tt/shared/core.js"></script>
-<script>
-// ═════════════════════════ COSTANTI ═════════════════════════
+<script type="text/plain" id="src-common">
+// ═════════════════════════ COMUNE (modalità AI e stanze) ═════════════════════════
 // Semi: 0 Blu 1–9, 1 Rosso 1–8, 2 Verde 1–7, 3 Giallo 1–6 (30 carte)
 const SUITS = [{n:'Blu',l:'B',max:9},{n:'Rosso',l:'R',max:8},{n:'Verde',l:'V',max:7},{n:'Giallo',l:'G',max:6}];
 const ICON = [
@@ -257,9 +295,8 @@ const ICON = [
   '<circle cx="12" cy="12" r="5" fill="currentColor"/><g stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></g>'
 ];
 const ico = s => `<svg class="ic s${s}" viewBox="0 0 24 24" aria-hidden="true">${ICON[s]}</svg>`;
-const NAMES = ['Tu','Balil','Mira','Richard'];
 const SEATC = ['#f0c14b','#8fd3e8','#f19a8a','#b9a6e8'];
-const HUM = 0, ROUNDS = 4, TRICKS = 10;
+const ROUNDS = 4, TRICKS = 10;
 // Categorie delle tessere (ordine dello spazio tessere, punti decrescenti)
 const KEYS = ['tr','s7','o','t','b','l'];
 const PTS = [4,3,2,2,2,2];
@@ -272,23 +309,12 @@ const CATS = [
   {k:'l',lab:'9ª/10ª presa (vinci la 9ª e/o la 10ª)',sh:'9ª/10ª',pts:2}
 ];
 const RN = ['Mazziere','A','B','C'];
-
-// ═════════════════════════ UTILITÀ ═════════════════════════
-const rnd = n => Math.floor(Math.random()*n);
-const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-let G = null, PR = null;
-const OPT = {undo:true, seeHands:false};
-try{ const s=localStorage.getItem('hh-undo'); if(s!==null) OPT.undo=s==='1'; OPT.seeHands=localStorage.getItem('hh-seehands')==='1'; }catch(e){}
 const mk = (s,v) => ({s,v,id:s*16+v});
 const ALL = []; SUITS.forEach((S,s)=>{ for(let v=1;v<=S.max;v++) ALL.push(mk(s,v)); });
 const CARD = {}; ALL.forEach(c=>{ CARD[c.id]=c; });
 const cname = c => `${c.v} ${SUITS[c.s].n}`;
 const sortHand = h => h.sort((a,b)=>a.s-b.s||a.v-b.v);
 const plural = (n,a,b) => n===1?a:b;
-const roleOf = p => (p-G.dealer+4)%4;                       // 0 mazziere, 1 A, 2 B, 3 C
-const seatOfRole = r => (G.dealer+(r==='A'?1:r==='B'?2:3))%4;
-const ROLEKEY = ['','A','B','C'];
-
 // ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
 function legalIdx(hand,lead){
   const all=hand.map((_,i)=>i);
@@ -339,6 +365,70 @@ function scoreTiles(tiles,O,d){
   const pts=[0,0,0,0]; pts[d]=dl; pts[sa]=a; pts[sb]=b; pts[sc]=30-dl;
   return {pts,mA,mB,ra,rb};
 }
+const clamp = (x,a,b) => x<a?a:(x>b?b:x);
+const tileTxt = (k,v) => k==='tr'?(v===7?'7–10':String(v)):(k==='s7'?String(v):(v?'✓':'✗'));
+const cardHtml = (c,cls='',tag='span',attrs='') => `<${tag} class="hc s${c.s} ${cls}" ${attrs} title="${cname(c)}"><b class="cn">${c.v}</b><i class="ci">${ico(c.s)}</i><i class="ci2">${ico(c.s)}</i></${tag}>`;
+const chipHtml = c => `<span class="pchip s${c.s}" title="${cname(c)}">${c.v}</span>`;
+const LOGO_SVG = `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9defc"/><stop offset=".5" stop-color="#2d62c8"/><stop offset="1" stop-color="#0a1e6e"/></linearGradient></defs><path d="M20 36C8 27.5 3 20.5 3 13.5A8.8 8.8 0 0 1 20 10a8.8 8.8 0 0 1 17 3.5C37 20.5 32 27.5 20 36z" fill="url(#rg)"/><path d="M6 31L34 7" stroke="#1c8fb5" stroke-width="3.2" stroke-linecap="round"/></svg>`;
+function recapHtml(){
+  return `<details class="recap"><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Mazzo</span>${SUITS.map((s,i)=>`<span class="lg">${ico(i)} ${s.n} 1–${s.max}</span>`).join('')}<span class="rv">30 carte, 10 a testa ai tre giocatori (il mazziere non ha mano)</span></div>
+    <div class="recap-row"><span class="lbl">Ruoli</span><span class="rv">Mazziere, poi in senso orario A, B, C · il mazziere cambia ogni round (a sinistra) · 4 round</span></div>
+    <div class="recap-row"><span class="lbl">Briscola</span><span class="rv">una tessera diversa per round, scelta a caso tra le quattro</span></div>
+    <div class="recap-row"><span class="lbl">Tessere</span><span class="rv">il mazziere, vedendo tutte le mani, prevede 6 cose per A e 6 per B: prese totali (4), totale 7 (3), esattamente due 1, briscola 3/5, somma 41–50, 9ª/10ª presa (2 ciascuna)</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">A apre, poi vince la presa chi ha vinto la precedente · obbligo di rispondere al seme · vince la briscola più alta, altrimenti la carta più alta del seme di mano · quando tocca al mazziere scopre una tessera coperta</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">mazziere: i punti di ogni tessera giusta · A/B: i punti delle proprie tessere giuste, doppi se sono l'unico dei due a indovinare · C: 30 − punti del mazziere</span></div>
+    <div class="recap-row"><span class="lbl">Fine</span><span class="rv">dopo 4 round vince il totale più alto (pari merito = vittoria condivisa)</span></div></details>`;
+}
+const RULES_HTML = `
+<details class="rules"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Che gioco è</h4>
+<p>10/12 Heart è un gioco di prese per <b>4 giocatori</b>. In ogni round uno di voi fa il <b>mazziere</b>: non ha carte in mano, ma vede quelle degli altri tre e deve prevedere come finirà la mano, piazzando 12 tessere coperte. Gli altri tre giocano la mano e cercano di avverare (o rovinare) quelle previsioni.</p>
+<p>Una partita dura 4 round; il mazziere cambia a ogni round. Vince chi ha più punti alla fine.</p>
+<h4>Componenti</h4>
+<ul><li><b>30 carte</b>: Blu 1–9, Rosso 1–8, Verde 1–7, Giallo 1–6, una per valore.</li>
+<li><b>Tessere giocatore</b> «A» e «B» e <b>6 tessere categoria</b>: Prese totali (★★★★), Totale 7 (★★★), Esattamente due 1, Briscola 3/5, Somma 41–50, 9ª/10ª presa (★★ ciascuna).</li>
+<li><b>4 tessere briscola</b> (una per seme) e <b>36 tessere previsione</b>: 20 numerate, 8 «✓», 8 «✗». Sulle tessere numerate «7–10» rappresenta un numero da 7 a 10 compreso.</li></ul>
+<h4>Preparazione</h4>
+<p>Si sceglie a caso il mazziere del primo round. Le 4 tessere briscola si mettono coperte al centro e si mescolano.</p>
+<h4>Fasi del round</h4>
+<p><b>1. Preparazione.</b> Il mazziere sceglie una tessera briscola coperta dal centro e la gira: quel seme è la briscola del round. Dispone lo spazio tessere: le tessere giocatore A e B nella seconda e terza riga della prima colonna, le sei tessere categoria nella prima riga (dalla colonna 2 alla 7, con le stelle in ordine decrescente). Poi mescola le 30 carte e le distribuisce <i>10 a testa agli altri tre giocatori</i>: i giocatori sono chiamati A, B e C in senso orario a partire da quello alla sinistra del mazziere.</p>
+<p><b>2. Piazzamento delle tessere.</b> Dopo aver guardato di nascosto le mani, il mazziere prevede come andrà la presa delle carte e piazza coperte 12 tessere sotto le categorie, 6 per la riga A e 6 per la riga B:</p>
+<ul><li><b>Prese totali:</b> un numero, le prese che quel giocatore vincerà.</li>
+<li><b>Totale 7:</b> un numero, quanti 7 otterrà.</li>
+<li><b>Esattamente due 1:</b> ✓ se otterrà esattamente due carte «1», altrimenti ✗.</li>
+<li><b>Briscola 3/5:</b> ✓ se otterrà il 3 della briscola e/o il 5 della briscola, altrimenti ✗.</li>
+<li><b>Somma 41–50:</b> ✓ se la somma dei valori di tutte le carte che otterrà è tra 41 e 50 compresi, altrimenti ✗.</li>
+<li><b>9ª/10ª presa:</b> ✓ se vincerà la 9ª e/o la 10ª presa, altrimenti ✗.</li></ul>
+<p><b>3. Svolgimento delle prese.</b> All'inizio il mazziere sceglie una tessera coperta dalla riga A e una dalla riga B e le gira. Poi si gioca, partendo da A e in senso orario, con l'obbligo di rispondere al seme. Se non si può rispondere si gioca una carta qualsiasi, anche una briscola. Vince la briscola più alta; se non ci sono briscole, la carta più alta del seme di mano. Dalla seconda presa apre chi ha vinto la precedente. Le carte vinte restano coperte accanto al vincitore, che è l'unico a poterle guardare.</p>
+<p><b>Importante:</b> quando, in senso orario, tocca al mazziere (che non ha carte) questi sceglie una qualsiasi tessera coperta tra quelle davanti a sé e la gira. Si continua finché le carte sono finite (10 prese): le tessere scoperte sono così 2 + 10 = 12.</p>
+<p><b>4. Punteggio.</b></p>
+<ul><li><b>Mazziere:</b> per ogni tessera (di A o di B) che corrisponde al risultato prende i punti della categoria: Prese totali 4, Totale 7 3, le altre 2 ciascuna.</li>
+<li><b>Giocatori A e B:</b> se il risultato nella propria categoria corrisponde alla tessera ottengono i punti della categoria. Se sono l'unico dei due (A o B) ad aver indovinato quella categoria, i punti sono <b>doppi</b>.</li>
+<li><b>Giocatore C:</b> prende 30 meno i punti totali del mazziere.</li></ul>
+<p><i>Esempio:</i> A 4, 1, ✗, ✗, ✓, ✓ e B 2, 1, ✗, ✓, ✗, ✓. Il mazziere ha 4×1 + 3×2 + 2×1 + 2×1 = 14 punti; A ne fa 4×2 + 3 + 2×2 = 15; B 3 + 2×2 = 7; C 30 − 14 = 16.</p>
+<h4>Round successivo e fine</h4>
+<p>Il giocatore alla sinistra del mazziere (A) diventa il nuovo mazziere. Dopo 4 round (ognuno è mazziere una volta) vince il punteggio più alto; in caso di parità la vittoria è condivisa.</p>
+<p><i>Nell'app:</i> il primo mazziere è scelto a caso e la briscola di ogni round è una tessera diversa pescata a caso tra le quattro (le tessere usate non tornano al centro). Le tessere numerate sono illimitate. Quando sei il mazziere vedi le mani di tutti e piazzi le tessere con un modulo (contro l'AI puoi chiedere un «Suggerimento»); scopri le tessere toccandole. Quando non sei il mazziere vedi solo la tua mano e le tessere scoperte: sotto ogni tessera scoperta della tua riga vedi a che punto sei. Le tessere coperte sono segrete anche per l'AI: A e B puntano a rendere vere le proprie tessere scoperte, C a rovinarle; l'AI ricorda le carte giocate e i semi mancanti ma non vede mai le carte altrui né le tessere coperte. Il mazziere AI vede tutte le mani e piazza le tessere simulando il round.</p>
+<p><i>Nelle stanze online</i> si gioca solo tra persone (4): i posti al tavolo e il primo mazziere sono assegnati a caso, non ci sono AI né suggerimenti per le tessere. Le mani e le tessere coperte stanno nello stato condiviso ma l'interfaccia le mostra solo a chi di dovere. Nelle prese il mazziere scopre la tessera quando tocca a lui; a fine presa apre chi l'ha vinta; chiunque può passare al round successivo.</p>
+</div></details>`;
+</script>
+<script type="text/plain" id="src-ai">
+// ═════════════════════════ COSTANTI ═════════════════════════
+const NAMES = ['Tu','Balil','Mira','Richard'];
+const HUM = 0;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+const OPT = {undo:true, seeHands:false};
+try{ const s=localStorage.getItem('hh-undo'); if(s!==null) OPT.undo=s==='1'; OPT.seeHands=localStorage.getItem('hh-seehands')==='1'; }catch(e){}
+const roleOf = p => (p-G.dealer+4)%4;                       // 0 mazziere, 1 A, 2 B, 3 C
+const seatOfRole = r => (G.dealer+(r==='A'?1:r==='B'?2:3))%4;
+const ROLEKEY = ['','A','B','C'];
+
 
 // ═════════════════════════ AI ═════════════════════════
 // L'AI di A/B/C conosce: la propria mano, le carte già giocate (tutte, anche nelle prese vinte), le tessere già scoperte e i semi mancanti.
@@ -346,7 +436,6 @@ function scoreTiles(tiles,O,d){
 // A/B cercano di rendere vere le proprie tessere; C cerca di renderle false. Decisioni: Monte Carlo con mani nascoste campionate e rollout con politica euristica.
 // Il mazziere AI conosce tutte le mani e piazza le tessere simulando il round; sceglie quali tessere scoprire confrontando rollout.
 const AIP = {ms:140, minW:24, maxW:300, eps:0.04};
-const clamp = (x,a,b) => x<a?a:(x>b?b:x);
 const strength = (id,tr) => (((id>>4)===tr?10:0)+(id&15))/19;
 function cloneS(S){
   return {d:S.d,sa:S.sa,sb:S.sb,sc:S.sc,tr:S.tr,tn:S.tn,ld:S.ld,
@@ -575,9 +664,10 @@ function aiPlay(p){
 }
 
 // ═════════════════════════ PARTITA ═════════════════════════
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
 function newMatch(){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
-  G={round:0,msg:'',log:[],over:null,show:null,phase:'',dealer0:rnd(4),dealer:0,trumps:shuffle([0,1,2,3]),trump:0,
+  G={n:4,round:0,msg:'',log:[],over:null,show:null,phase:'',dealer0:rnd(4),dealer:0,trumps:shuffle([0,1,2,3]),trump:0,
      hands:[[],[],[],[]],won:[[],[],[],[]],played:[],void:[],st:newStats(),tiles:null,rev:{},lastFlip:null,
      trickNo:0,leader:0,T:{lead:-1,plays:[],res:null,leader:0},turn:-1,win:-1,fresh:-1,
      pl:Array.from({length:4},(_,i)=>({id:i,name:NAMES[i],total:0,hist:[]}))};
@@ -593,7 +683,6 @@ function deal(){
   G.tiles=null; G.rev={}; G.lastFlip=null; G.show=null; G.phase='place';
   G.trickNo=0; G.leader=(d+1)%4; G.T={lead:-1,plays:[],res:null,leader:G.leader}; G.turn=-1; G.win=-1; G.fresh=-1;
 }
-const tileTxt = (k,v) => k==='tr'?(v===7?'7–10':String(v)):(k==='s7'?String(v):(v?'✓':'✗'));
 function pick(legal,hint){
   const g=G;
   return new Promise((res,rej)=>{ PR={type:'card',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
@@ -753,9 +842,6 @@ async function run(rs){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
-const cardHtml = (c,cls='',tag='span',attrs='') => `<${tag} class="hc s${c.s} ${cls}" ${attrs} title="${cname(c)}"><b class="cn">${c.v}</b><i class="ci">${ico(c.s)}</i><i class="ci2">${ico(c.s)}</i></${tag}>`;
-const chipHtml = c => `<span class="pchip s${c.s}" title="${cname(c)}">${c.v}</span>`;
-const LOGO_SVG = `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9defc"/><stop offset=".5" stop-color="#2d62c8"/><stop offset="1" stop-color="#0a1e6e"/></linearGradient></defs><path d="M20 36C8 27.5 3 20.5 3 13.5A8.8 8.8 0 0 1 20 10a8.8 8.8 0 0 1 17 3.5C37 20.5 32 27.5 20 36z" fill="url(#rg)"/><path d="M6 31L34 7" stroke="#1c8fb5" stroke-width="3.2" stroke-linecap="round"/></svg>`;
 function tableauHtml(p){
   if(p===G.dealer){
     if(G.lastFlip&&G.phase==='play'){
@@ -905,9 +991,7 @@ function tileForm(){
     <div class="opts"><button class="opt" data-tsug="1">Suggerimento (AI)</button><button class="opt" data-trs="1">Resetta</button><button class="opt" data-tok="1">Conferma le 12 tessere</button></div>`;
 }
 function dockHtml(){
-  if(!G) return `<div class="dock-msg">10/12 Heart contro l'AI: si gioca in 4 (tu + 3 AI), 4 round.</div>
-    <div class="opts"><button class="opt" data-n="4">Inizia la partita (tu + 3 AI)</button></div>
-    <label class="opt-toggle" style="padding-left:0" title="Di regola il mazziere vede le mani solo per piazzare le tessere; con questa opzione le vede anche durante le prese"><input type="checkbox" id="optSee" ${OPT.seeHands?'checked':''}> Quando sei il mazziere, vedi le mani anche durante le prese</label>`;
+  if(!G) return '';
   if(G.over){
     const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
     return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}`;
@@ -931,54 +1015,13 @@ function dockHtml(){
   }
   return html;
 }
-function recapHtml(){
-  return `<details class="recap"><summary>RIEPILOGO</summary>
-    <div class="recap-row"><span class="lbl">Mazzo</span>${SUITS.map((s,i)=>`<span class="lg">${ico(i)} ${s.n} 1–${s.max}</span>`).join('')}<span class="rv">30 carte, 10 a testa ai tre giocatori (il mazziere non ha mano)</span></div>
-    <div class="recap-row"><span class="lbl">Ruoli</span><span class="rv">Mazziere, poi in senso orario A, B, C · il mazziere cambia ogni round (a sinistra) · 4 round</span></div>
-    <div class="recap-row"><span class="lbl">Briscola</span><span class="rv">una tessera diversa per round, scelta a caso tra le quattro</span></div>
-    <div class="recap-row"><span class="lbl">Tessere</span><span class="rv">il mazziere, vedendo tutte le mani, prevede 6 cose per A e 6 per B: prese totali (4), totale 7 (3), esattamente due 1, briscola 3/5, somma 41–50, 9ª/10ª presa (2 ciascuna)</span></div>
-    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">A apre, poi vince la presa chi ha vinto la precedente · obbligo di rispondere al seme · vince la briscola più alta, altrimenti la carta più alta del seme di mano · quando tocca al mazziere scopre una tessera coperta</span></div>
-    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">mazziere: i punti di ogni tessera giusta · A/B: i punti delle proprie tessere giuste, doppi se sono l'unico dei due a indovinare · C: 30 − punti del mazziere</span></div>
-    <div class="recap-row"><span class="lbl">Fine</span><span class="rv">dopo 4 round vince il totale più alto (pari merito = vittoria condivisa)</span></div></details>`;
-}
-const RULES_HTML = `
-<details class="rules"><summary>REGOLAMENTO</summary>
-<div class="rtext">
-<h4>Che gioco è</h4>
-<p>10/12 Heart è un gioco di prese per <b>4 giocatori</b>. In ogni round uno di voi fa il <b>mazziere</b>: non ha carte in mano, ma vede quelle degli altri tre e deve prevedere come finirà la mano, piazzando 12 tessere coperte. Gli altri tre giocano la mano e cercano di avverare (o rovinare) quelle previsioni.</p>
-<p>Una partita dura 4 round; il mazziere cambia a ogni round. Vince chi ha più punti alla fine.</p>
-<h4>Componenti</h4>
-<ul><li><b>30 carte</b>: Blu 1–9, Rosso 1–8, Verde 1–7, Giallo 1–6, una per valore.</li>
-<li><b>Tessere giocatore</b> «A» e «B» e <b>6 tessere categoria</b>: Prese totali (★★★★), Totale 7 (★★★), Esattamente due 1, Briscola 3/5, Somma 41–50, 9ª/10ª presa (★★ ciascuna).</li>
-<li><b>4 tessere briscola</b> (una per seme) e <b>36 tessere previsione</b>: 20 numerate, 8 «✓», 8 «✗». Sulle tessere numerate «7–10» rappresenta un numero da 7 a 10 compreso.</li></ul>
-<h4>Preparazione</h4>
-<p>Si sceglie a caso il mazziere del primo round. Le 4 tessere briscola si mettono coperte al centro e si mescolano.</p>
-<h4>Fasi del round</h4>
-<p><b>1. Preparazione.</b> Il mazziere sceglie una tessera briscola coperta dal centro e la gira: quel seme è la briscola del round. Dispone lo spazio tessere: le tessere giocatore A e B nella seconda e terza riga della prima colonna, le sei tessere categoria nella prima riga (dalla colonna 2 alla 7, con le stelle in ordine decrescente). Poi mescola le 30 carte e le distribuisce <i>10 a testa agli altri tre giocatori</i>: i giocatori sono chiamati A, B e C in senso orario a partire da quello alla sinistra del mazziere.</p>
-<p><b>2. Piazzamento delle tessere.</b> Dopo aver guardato di nascosto le mani, il mazziere prevede come andrà la presa delle carte e piazza coperte 12 tessere sotto le categorie, 6 per la riga A e 6 per la riga B:</p>
-<ul><li><b>Prese totali:</b> un numero, le prese che quel giocatore vincerà.</li>
-<li><b>Totale 7:</b> un numero, quanti 7 otterrà.</li>
-<li><b>Esattamente due 1:</b> ✓ se otterrà esattamente due carte «1», altrimenti ✗.</li>
-<li><b>Briscola 3/5:</b> ✓ se otterrà il 3 della briscola e/o il 5 della briscola, altrimenti ✗.</li>
-<li><b>Somma 41–50:</b> ✓ se la somma dei valori di tutte le carte che otterrà è tra 41 e 50 compresi, altrimenti ✗.</li>
-<li><b>9ª/10ª presa:</b> ✓ se vincerà la 9ª e/o la 10ª presa, altrimenti ✗.</li></ul>
-<p><b>3. Svolgimento delle prese.</b> All'inizio il mazziere sceglie una tessera coperta dalla riga A e una dalla riga B e le gira. Poi si gioca, partendo da A e in senso orario, con l'obbligo di rispondere al seme. Se non si può rispondere si gioca una carta qualsiasi, anche una briscola. Vince la briscola più alta; se non ci sono briscole, la carta più alta del seme di mano. Dalla seconda presa apre chi ha vinto la precedente. Le carte vinte restano coperte accanto al vincitore, che è l'unico a poterle guardare.</p>
-<p><b>Importante:</b> quando, in senso orario, tocca al mazziere (che non ha carte) questi sceglie una qualsiasi tessera coperta tra quelle davanti a sé e la gira. Si continua finché le carte sono finite (10 prese): le tessere scoperte sono così 2 + 10 = 12.</p>
-<p><b>4. Punteggio.</b></p>
-<ul><li><b>Mazziere:</b> per ogni tessera (di A o di B) che corrisponde al risultato prende i punti della categoria: Prese totali 4, Totale 7 3, le altre 2 ciascuna.</li>
-<li><b>Giocatori A e B:</b> se il risultato nella propria categoria corrisponde alla tessera ottengono i punti della categoria. Se sono l'unico dei due (A o B) ad aver indovinato quella categoria, i punti sono <b>doppi</b>.</li>
-<li><b>Giocatore C:</b> prende 30 meno i punti totali del mazziere.</li></ul>
-<p><i>Esempio:</i> A 4, 1, ✗, ✗, ✓, ✓ e B 2, 1, ✗, ✓, ✗, ✓. Il mazziere ha 4×1 + 3×2 + 2×1 + 2×1 = 14 punti; A ne fa 4×2 + 3 + 2×2 = 15; B 3 + 2×2 = 7; C 30 − 14 = 16.</p>
-<h4>Round successivo e fine</h4>
-<p>Il giocatore alla sinistra del mazziere (A) diventa il nuovo mazziere. Dopo 4 round (ognuno è mazziere una volta) vince il punteggio più alto; in caso di parità la vittoria è condivisa.</p>
-<p><i>Nell'app:</i> il primo mazziere è scelto a caso e la briscola di ogni round è una tessera diversa pescata a caso tra le quattro (le tessere usate non tornano al centro). Le tessere numerate sono illimitate. Quando sei il mazziere vedi le mani di tutti e piazzi le tessere con un modulo (puoi chiedere un «Suggerimento» dell'AI); scopri le tessere toccandole. Quando non sei il mazziere vedi solo la tua mano e le tessere scoperte: sotto ogni tessera scoperta della tua riga vedi a che punto sei. Le tessere coperte sono segrete anche per l'AI: A e B puntano a rendere vere le proprie tessere scoperte, C a rovinarle; l'AI ricorda le carte giocate e i semi mancanti ma non vede mai le carte altrui né le tessere coperte. Il mazziere AI vede tutte le mani e piazza le tessere simulando il round.</p>
-</div></details>`;
 
 // menu senza «Modalità accessibile»: ridefinisce menuHtml di core.js
 function menuHtml(){
   return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Di regola il mazziere vede le mani solo per piazzare le tessere; con questa opzione le vede anche durante le prese"><input type="checkbox" id="optSee" ${OPT.seeHands?'checked':''}> Quando sei il mazziere, vedi le mani anche durante le prese</label>
     </div>`:''}</div>`;
 }
 let LOGOPEN=false;
@@ -1009,8 +1052,7 @@ function render(){
 document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
-  if(b.dataset.n){ MENUOPEN=false; if(G) newMatch(); else askName(4); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')){ MENUOPEN=false; toSetup(); } }
+  if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')){ MENUOPEN=false; toSetup(); } }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
@@ -1036,8 +1078,750 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
-nyloSaveInit('10-12-heart',snap=>{ G=snap; PR=null; render(); run(true); });
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('10-12-heart',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){ NAMES[0]=NYLO_START.name||'Tu'; newMatch(); }
+}
+</script>
+<script type="text/plain" id="src-room">
+// ═════════════════════════ 10/12 HEART · ONLINE ═════════════════════════
+// Si gioca solo tra persone (4): niente AI e niente «Suggerimento» per le tessere. Lo stato è un unico oggetto JSON (S) e ogni azione passa da gameReduce().
+// Costanti e regole pure (SUITS, CATS, scoreTiles, cardHtml, RULES_HTML…) arrivano dal blocco comune.
+var GAME={id:'10-12-heart',logo:LOGO_SVG+'<span>10/12 HEART</span>',counts:[4],
+  lobbyNote:'Servono 4 giocatori. Quando la stanza è piena, i posti al tavolo (e il primo mazziere) vengono assegnati a caso.'};
+var POSN=['bottom','left','top','right'];
+var OPT={undo:true,seeHands:false};
+try{var _u=localStorage.getItem('hh-undo');if(_u!==null)OPT.undo=_u==='1';OPT.seeHands=localStorage.getItem('hh-seehands')==='1'}catch(e){}
+var ui={sel:null,t:null,tk:-1};
+var LOGOPEN=false;
 
+// ─────────────── REGOLE (funzioni pure, usate dentro le transazioni) ───────────────
+// ogni distribuzione nasce da un seme numerico passato nell'azione: nessuna casualità dentro il riduttore
+function mkRng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function sshuffle(a,rng){for(var i=a.length-1;i>0;i--){var j=Math.floor(rng()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function newSeed(){return Math.floor(Math.random()*4294967296)}
+function validSeed(x){return typeof x==='number'&&x%1===0&&x>=0&&x<4294967296}
+function roleOfS(S,p){return (p-S.dealer+4)%4}
+function seatOfRoleS(S,r){return (S.dealer+(r==='A'?1:r==='B'?2:3))%4}
+function lg(S,t){S.log.unshift(t);if(S.log.length>160)S.log.pop()}
+function newTile(){return {tr:3,s7:1,o:false,t:false,b:false,l:false}}
+function validTile(t){
+  return !!t&&typeof t==='object'&&Number.isInteger(t.tr)&&t.tr>=0&&t.tr<=7&&Number.isInteger(t.s7)&&t.s7>=0&&t.s7<=3&&
+    ['o','t','b','l'].every(function(k){return typeof t[k]==='boolean'});
+}
+function cleanTile(t){return {tr:t.tr,s7:t.s7,o:t.o,t:t.t,b:t.b,l:t.l}}
+function handCards(S,p){return S.hands[p].map(function(id){return CARD[id]})}
+function dealRound(S,rng){
+  var k=S.round,d=(S.dealer0+k)%4,q,i=0;
+  S.dealer=d;S.trump=S.trumps[k];
+  var deck=sshuffle(ALL.map(function(c){return c.id}),rng);
+  S.hands=[[],[],[],[]];
+  for(q=1;q<=3;q++){S.hands[(d+q)%4]=deck.slice(i,i+10).sort(function(a,b){return a-b});i+=10}
+  S.won=[[],[],[],[]];S.st=newStats();S.tiles=null;S.rev={};S.lastFlip=null;S.show=null;
+  S.phase='place';S.fl=null;S.trickNo=0;S.leader=(d+1)%4;S.fresh=-1;
+  S.T={lead:-1,plays:[],res:null,leader:S.leader,k:0};
+  lg(S,'— Round '+(k+1)+'/'+ROUNDS+': mazziere '+S.names[d]+', briscola '+SUITS[S.trump].n+' · A '+S.names[(d+1)%4]+', B '+S.names[(d+2)%4]+', C '+S.names[(d+3)%4]+' —');
+}
+function newGame(S,rng){
+  S.round=0;S.dealer0=Math.floor(rng()*4);S.trumps=sshuffle([0,1,2,3],rng);
+  S.total=[0,0,0,0];S.hist=[[],[],[],[]];
+  dealRound(S,rng);
+}
+function gameInitial(players,seed){
+  var names=[];
+  players.forEach(function(p){var n=String(p.name||'Giocatore').slice(0,18),x=n,c=2;while(names.indexOf(x)>=0)x=n+' '+(c++);names.push(x)});
+  var S={uids:players.map(function(p){return p.uid}),names:names,log:[]};
+  newGame(S,mkRng(validSeed(seed)?seed:newSeed()));
+  return S;
+}
+function allowedFlips(S){
+  var out=[];
+  if(!S.fl)return out;
+  S.fl.roles.forEach(function(r){KEYS.forEach(function(k){var key=r+':'+k;if(!S.rev[key])out.push(key)})});
+  return out;
+}
+function applyFlip(S,key){
+  var r=key.charAt(0),k=key.slice(2),c=CATS[KEYS.indexOf(k)],fl=S.fl;
+  S.rev[key]=true;S.lastFlip=key;S.fl=null;
+  lg(S,S.names[S.dealer]+' scopre la tessera di '+S.names[seatOfRoleS(S,r)]+' ('+r+'): '+c.lab+' = '+tileTxt(k,S.tiles[r][k])+'.');
+  if(fl.ini){
+    if(fl.roles[0]==='A')S.fl={roles:['B'],ini:1};
+    else S.trickNo=1;                       // le prime due tessere sono girate: si gioca la prima presa
+  }else S.T.k++;
+}
+function resolveTrick(S){
+  var T=S.T,ids=T.plays.map(function(x){return x.id}),wi=winIdx(ids,S.trump),w=T.plays[wi].p,wc=CARD[ids[wi]];
+  T.res={winner:w,wi:wi};
+  takeStats(S.st,w,ids,S.trump,S.trickNo);
+  ids.forEach(function(id){S.won[w].push(id)});
+  S.leader=w;S.fresh=-1;
+  lg(S,S.names[w]+' vince la presa '+S.trickNo+' con '+cname(wc)+(wc.s===S.trump&&T.lead!==S.trump?' (briscola)':'')+'.');
+  if(S.trickNo>=TRICKS)endRound(S);
+}
+function endRound(S){
+  var d=S.dealer,sc=scoreTiles(S.tiles,S.st,d),ok=function(a){return a.filter(Boolean).length},p;
+  for(p=0;p<4;p++){S.total[p]+=sc.pts[p];S.hist[p].push({pts:sc.pts[p],role:roleOfS(S,p)})}
+  S.show={pts:sc.pts,mA:sc.mA,mB:sc.mB,ra:sc.ra,rb:sc.rb};
+  S.phase='score';S.fl=null;S.lastFlip=null;
+  lg(S,'Round '+(S.round+1)+': '+S.names[seatOfRoleS(S,'A')]+' (A) '+ok(sc.mA)+'/6 giuste, '+S.names[seatOfRoleS(S,'B')]+' (B) '+ok(sc.mB)+'/6 giuste.');
+  for(p=0;p<4;p++)lg(S,S.names[p]+' ('+RN[roleOfS(S,p)]+'): +'+sc.pts[p]+' punti, totale '+S.total[p]+'.');
+}
+// porta avanti da sola le fasi senza scelte: ultima tessera coperta, fine presa
+function settle(S){
+  for(;;){
+    if(S.fl){
+      var al=allowedFlips(S);
+      if(al.length===1){applyFlip(S,al[0]);continue}
+      return;
+    }
+    if(S.phase!=='play')return;
+    var T=S.T;
+    if(T.res)return;
+    if(T.k>=4){resolveTrick(S);continue}
+    if((T.leader+T.k)%4===S.dealer){S.fl={roles:['A','B']};continue}
+    return;
+  }
+}
+function turnOf(S){
+  if(S.phase==='place')return S.dealer;
+  if(S.phase!=='play')return -1;
+  if(S.fl)return S.dealer;
+  return S.T.res?S.leader:(S.T.leader+S.T.k)%4;
+}
+function winnersOf(S){var m=Math.max.apply(null,S.total);return [0,1,2,3].filter(function(i){return S.total[i]===m})}
+// ritorna il nuovo stato oppure null se l'azione non è valida
+function gameReduce(S,seat,a){
+  if(!a||typeof a.type!=='string'||!(seat>=0&&seat<4))return null;
+  var d=S.dealer;
+  if(a.type==='tiles'){
+    if(S.phase!=='place'||seat!==d||!a.v||!validTile(a.v.A)||!validTile(a.v.B))return null;
+    S.tiles={A:cleanTile(a.v.A),B:cleanTile(a.v.B)};
+    S.phase='play';S.fl={roles:['A'],ini:1};
+    lg(S,S.names[d]+' ha piazzato le 12 tessere coperte.');
+    settle(S);return S;
+  }
+  if(a.type==='flip'){
+    if(S.phase!=='play'||!S.fl||seat!==d||typeof a.key!=='string'||allowedFlips(S).indexOf(a.key)<0)return null;
+    applyFlip(S,a.key);settle(S);return S;
+  }
+  if(a.type==='play'){
+    if(S.phase!=='play'||S.fl||seat===d||turnOf(S)!==seat||!Number.isInteger(a.i))return null;
+    var T=S.T;
+    if(T.res){                              // la presa precedente è finita: comincia la successiva
+      S.trickNo++;S.T=T={lead:-1,plays:[],res:null,leader:S.leader,k:0};
+    }
+    var hand=handCards(S,seat),ok=legalIdx(hand,T.lead);
+    if(ok.indexOf(a.i)<0)return null;
+    if(!T.plays.length)S.lastFlip=null;
+    var c=hand[a.i];
+    S.hands[seat].splice(a.i,1);
+    T.plays.push({p:seat,id:c.id});T.k++;S.fresh=seat;
+    if(T.lead<0)T.lead=c.s;
+    lg(S,S.names[seat]+' '+(T.plays.length===1?'apre con':'gioca')+' '+cname(c)+(c.s===S.trump&&T.lead!==S.trump?' (briscola)':'')+'.');
+    settle(S);return S;
+  }
+  if(a.type==='next'){
+    if(S.phase!=='score'||!validSeed(a.seed))return null;
+    if(S.round>=ROUNDS-1){
+      S.phase='over';
+      var w=winnersOf(S);
+      lg(S,'Partita conclusa: '+(w.length>1?'vittoria condivisa di ':'vince ')+w.map(function(i){return S.names[i]}).join(' e ')+'.');
+    }else{S.round++;dealRound(S,mkRng(a.seed))}
+    return S;
+  }
+  if(a.type==='rematch'){
+    if(S.phase!=='over'||!validSeed(a.seed))return null;
+    lg(S,'— Rivincita —');
+    newGame(S,mkRng(a.seed));return S;
+  }
+  return null;
+}
+
+// ─────────────── INTERFACCIA ───────────────
+function ordSeats(){return [0,1,2,3].map(function(i){return (me+i)%4})}
+function rnm(p){return '<span class="nm" style="--sc:'+SEATC[p]+'">'+esc(S.names[p])+'</span>'}
+function ldr(){return S.T.res?S.leader:S.T.leader}
+function myPlayable(){
+  if(S.phase!=='play'||S.fl||me===S.dealer||turnOf(S)!==me)return null;
+  return legalIdx(handCards(S,me),S.T.res?-1:S.T.lead);
+}
+function flagH(p){
+  if(S.phase==='over')return winnersOf(S).indexOf(p)>=0?'<span class="flag win">Vince</span>':'';
+  var h=p===S.dealer?'<span class="flag first">Mazziere</span>':'<span class="flag role">'+RN[roleOfS(S,p)]+'</span>';
+  if(S.phase==='play'&&p!==S.dealer&&ldr()===p)h+='<span class="flag lead">Di mano</span>';
+  return h;
+}
+function handInfoH(p){
+  var s7=0,s1=0,t35=0,sum=0;
+  handCards(S,p).forEach(function(c){sum+=c.v;if(c.v===7)s7++;if(c.v===1)s1++;if(c.s===S.trump&&(c.v===3||c.v===5))t35++});
+  return '<span class="tag">somma <b>'+sum+'</b></span><span class="tag">7 <b>'+s7+'</b></span><span class="tag">1 <b>'+s1+'</b></span><span class="tag">brisc. 3/5 <b>'+t35+'</b></span>';
+}
+function tableauH(p){
+  if(p===S.dealer){
+    if(S.lastFlip&&S.phase==='play'){
+      var r=S.lastFlip.charAt(0),k=S.lastFlip.slice(2);
+      return '<div class="tableau"><span class="tile up" style="min-width:56px">'+tileTxt(k,S.tiles[r][k])+'<span class="sub">'+r+' · '+CATS[KEYS.indexOf(k)].sh+'</span></span></div>';
+    }
+    return '<div class="tableau"><span class="cap">senza carte</span></div>';
+  }
+  var T=S.T,x=null;T.plays.forEach(function(y){if(y.p===p)x=y});
+  if(!x)return '<div class="tableau"><span class="slot"></span></div>';
+  var res=T.res,c=CARD[x.id];
+  var cls='mini '+(S.fresh===p&&!res?'fresh':'')+' '+(res&&res.winner===p?'win':'');
+  var cap=res?(res.winner===p?'<span class="cap">vince la presa</span>':''):(T.lead>=0&&c.s!==T.lead?'<span class="cap">fuori seme</span>':'');
+  return '<div class="tableau">'+cardHtml(c,cls)+cap+'</div>';
+}
+function seatH(p,pos){
+  var d=S.dealer,hl=S.hands[p].length,over=S.phase==='over',active=turnOf(S)===p,h,lgl=myPlayable();
+  if(p===d)h='';
+  else if(p===me){
+    h='<div class="hand">'+S.hands[me].map(function(id,i){
+      var c=CARD[id];
+      if(lgl){var ok=lgl.indexOf(i)>=0;return cardHtml(c,(ok?'legal':'dim')+' '+(ui.sel===i?'sel':''),'button',(ok?'':'disabled')+' data-p="'+i+'"')}
+      return cardHtml(c);
+    }).join('')+'</div>';
+  }else if(me===d&&(S.phase==='place'||OPT.seeHands)){
+    h='<div class="pchips">'+S.hands[p].map(function(id){return chipHtml(CARD[id])}).join('')+'</div>';
+  }else{
+    h='<div class="backs">'+Array.apply(null,Array(hl)).map(function(){return '<span class="back"></span>'}).join('')+'</div>';
+  }
+  var dv=me===d&&S.phase==='place'&&p!==d;
+  var meta='<div class="seat-meta">'+(p===d?'':'<span class="tag">prese <b>'+S.st.n[p]+'</b></span><span class="tag">carte <b>'+hl+'</b></span>')+(dv?handInfoH(p):'')+'</div>';
+  var name='<div class="seat-name">'+rnm(p)+(p===me?' <span class="cap">(tu)</span>':'')+flagH(p)+'</div>';
+  var inner=pos==='bottom'?tableauH(p)+name+meta+h:(pos==='top'?h+name+meta+tableauH(p):name+meta+tableauH(p)+h);
+  var isW=S.T.res&&S.T.res.winner===p&&!over&&S.phase==='play';
+  var ld=S.phase==='play'&&p!==d&&ldr()===p&&!over;
+  return '<div class="seat '+pos+' '+(ld?'leader':'')+' '+(active?'active':'')+' '+(over&&winnersOf(S).indexOf(p)>=0?'winner':'')+' '+(isW?'winner':'')+'">'+inner+'</div>';
+}
+function centerH(){
+  var T=S.T,res=T.res;
+  var lead=T.lead>=0&&!res?'<div>Seme di mano: <b class="sfx">'+ico(T.lead)+SUITS[T.lead].n+'</b></div>':'<div>&nbsp;</div>';
+  var top='';
+  if(S.phase==='over')top='<div><b>Partita conclusa</b></div>';
+  else if(res&&S.phase==='play')top='<div>Vince la presa: <b>'+esc(S.names[res.winner])+'</b></div>';
+  return '<div class="center">'+top+
+    '<span class="trumpchip s'+S.trump+'">'+ico(S.trump)+' Briscola '+SUITS[S.trump].n+'</span>'+
+    '<div>Presa <b>'+Math.min(TRICKS,S.trickNo)+'</b>/'+TRICKS+'</div>'+lead+
+    '<div class="legend">'+SUITS.map(function(s,i){return '<span class="lg">'+ico(i)+' 1–'+s.max+'</span>'}).join('')+'</div></div>';
+}
+function nowTxt(k,s){
+  var st=S.st;
+  if(k==='tr')return 'ora '+st.n[s];
+  if(k==='s7')return 'ora '+st.s7[s];
+  if(k==='o')return 'ora '+st.o[s];
+  if(k==='t')return st.f35[s]?'ottenuta':'non ancora';
+  if(k==='b')return 'ora '+st.sm[s];
+  return st.lst[s]?'vinta':'non vinta';
+}
+function tileCellH(role,k,idx){
+  var t=S.tiles&&S.tiles[role];
+  if(!t)return '<div class="tile empty"></div>';
+  var key=role+':'+k,v=t[k],up=!!S.rev[key]||!!S.show,s=seatOfRoleS(S,role),mine=s===me&&S.phase!=='score';
+  var pickable=me===S.dealer&&allowedFlips(S).indexOf(key)>=0;
+  var cls=[],inner,tag='div',attrs='';
+  if(up){
+    cls.push('up');if(typeof v==='boolean')cls.push(v?'vy':'vn');
+    inner=tileTxt(k,v);
+    if(S.show){cls.push((role==='A'?S.show.mA:S.show.mB)[idx]?'ok':'ko');inner+='<span class="sub">→ '+tileTxt(k,(role==='A'?S.show.ra:S.show.rb)[k])+'</span>'}
+    else if(mine)inner+='<span class="sub">'+nowTxt(k,s)+'</span>';
+    if(S.lastFlip===key&&S.phase==='play')cls.push('fresh');
+  }else{
+    cls.push('down');
+    inner=S.dealer===me?tileTxt(k,v):'';
+  }
+  if(mine)cls.push('mine');
+  if(pickable){cls.push('pick');tag='button';attrs='data-tile="'+key+'"'}
+  return '<'+tag+' class="tile '+cls.join(' ')+'" '+attrs+' title="'+esc(CATS[idx].lab)+'">'+inner+'</'+tag+'>';
+}
+function boardH(){
+  var head='<div></div>'+CATS.map(function(c){return '<div class="bh" title="'+esc(c.lab)+'">'+c.sh+'<span class="st">'+'★'.repeat(c.pts===4?4:c.pts===3?3:2)+'</span></div>'}).join('');
+  var rows=['A','B'].map(function(r){
+    var s=seatOfRoleS(S,r);
+    return '<div class="brow"><span>'+r+'</span>'+rnm(s)+'</div>'+KEYS.map(function(k,i){return tileCellH(r,k,i)}).join('');
+  }).join('');
+  var note,rr=roleOfS(S,me);
+  if(!S.tiles)note='Il mazziere sta per piazzare le 12 tessere: una previsione per ognuna delle 6 categorie sulle prese di A e di B.';
+  else if(S.show)note='Risultato: verde = tessera giusta, rosso = sbagliata (sotto, → il risultato reale).';
+  else if(S.dealer===me)note='Le tue tessere (le vedi solo tu) sono in blu; quelle scoperte diventano bianche.';
+  else note='Le tessere coperte restano segrete: se ne scopre una per presa. '+(rr===1||rr===2?'La tua riga ha il bordo giallo.':'');
+  return '<div class="board"><h3>TESSERE DEL MAZZIERE</h3><div class="bgrid">'+head+rows+'</div><div class="bnote">'+note+'</div></div>';
+}
+function pileH(){
+  if(me===S.dealer)return '';
+  var w=S.won[me].slice().sort(function(a,b){return a-b}),st=S.st;
+  return '<div class="scorebox"><h3>LE TUE CARTE VINTE (SOLO TU PUOI GUARDARLE)</h3>'+
+    '<div class="prow"><span class="tag">prese <b>'+st.n[me]+'</b></span><span class="tag">7 <b>'+st.s7[me]+'</b></span><span class="tag">1 <b>'+st.o[me]+'</b></span><span class="tag">brisc. 3/5 <b>'+(st.f35[me]?'sì':'no')+'</b></span><span class="tag">somma <b>'+st.sm[me]+'</b></span><span class="tag">9ª/10ª <b>'+(st.lst[me]?'sì':'no')+'</b></span></div>'+
+    (w.length?'<div class="pchips" style="justify-content:flex-start">'+w.map(function(id){return chipHtml(CARD[id])}).join('')+'</div>':'<span class="cap">nessuna carta vinta</span>')+'</div>';
+}
+function scoreTableH(){
+  var nr=S.hist[0].length;
+  var rows=ordSeats().map(function(p){
+    return '<tr class="'+(p===me?'me':'')+'"><td>'+esc(S.names[p])+'</td>'+S.hist[p].map(function(x){return '<td>'+x.pts+' <span class="cap">'+(x.role?RN[x.role]:'M')+'</span></td>'}).join('')+'<td><b>'+S.total[p]+'</b></td></tr>';
+  }).join('');
+  var th='';for(var i=0;i<nr;i++)th+='<th>R'+(i+1)+'</th>';
+  return '<div class="scroll-x"><table class="score"><tr><th>Punteggi</th>'+th+'<th>Totale</th></tr>'+rows+'</table></div>';
+}
+function roundTableH(){
+  var sh=S.show,ok=function(a){return a.filter(Boolean).length};
+  var rows=ordSeats().map(function(p){
+    var r=roleOfS(S,p);
+    var info=r===0?(ok(sh.mA)+ok(sh.mB))+'/12 tessere giuste':(r===3?'30 − '+sh.pts[S.dealer]:ok(r===1?sh.mA:sh.mB)+'/6 tessere giuste');
+    return '<tr class="'+(p===me?'me':'')+'"><td>'+esc(S.names[p])+'</td><td>'+RN[r]+'</td><td>'+info+'</td><td class="'+(sh.pts[p]?'pos':'')+'"><b>+'+sh.pts[p]+'</b></td><td>'+S.total[p]+'</td></tr>';
+  }).join('');
+  return '<div class="scroll-x"><table class="score"><tr><th></th><th>Ruolo</th><th>Calcolo</th><th>Round</th><th>Totale</th></tr>'+rows+'</table></div>';
+}
+function ctlH(role,k){
+  var v=ui.t[role][k];
+  if(k==='tr'||k==='s7'){
+    var mx=k==='tr'?7:3;
+    return '<span class="ctl"><button class="stepb" data-ta="'+role+':'+k+':-1" '+(v<=0?'disabled':'')+' aria-label="meno">−</button><span class="num">'+tileTxt(k,v)+'</span><button class="stepb" data-ta="'+role+':'+k+':1" '+(v>=mx?'disabled':'')+' aria-label="più">+</button></span>';
+  }
+  return '<span class="ctl"><button class="tog '+(v?'yes':'no')+'" data-tt="'+role+':'+k+'">'+(v?'✓':'✗')+'</button></span>';
+}
+// modulo delle 12 tessere: nelle stanze non c'è alcun suggerimento (solo «Resetta» e «Conferma»)
+function tileFormH(){
+  var nA=esc(S.names[seatOfRoleS(S,'A')]),nB=esc(S.names[seatOfRoleS(S,'B')]);
+  return '<div class="dock-title">PIAZZA LE TESSERE: COSA FARANNO A E B?</div>'+
+    '<div class="tf"><div class="tfr h"><span></span><span style="text-align:center">A · '+nA+'</span><span style="text-align:center">B · '+nB+'</span></div>'+
+    CATS.map(function(c){return '<div class="tfr"><span class="tfl">'+c.lab+'<small>'+c.pts+' punti'+(c.k==='tr'?' · «7–10» vale 7, 8, 9 o 10 prese':'')+'</small></span>'+ctlH('A',c.k)+ctlH('B',c.k)+'</div>'}).join('')+'</div>'+
+    '<div class="hint">Segna cosa pensi che otterranno A e B a fine round (carte vinte nelle prese). Ogni tessera giusta vale i punti indicati a te; A e B segnano per le proprie tessere giuste (doppi se l\'altro sbaglia); C segna 30 − i tuoi punti.</div>'+
+    '<div class="opts"><button class="opt" data-trs="1">Resetta</button><button class="opt" data-tok="1">Conferma le 12 tessere</button></div>';
+}
+function msgH(){
+  var d=S.dealer,dn=esc(S.names[d]),tn=turnOf(S),T=S.T,tr=Math.min(TRICKS,S.trickNo);
+  if(S.phase==='over'){var w=winnersOf(S).map(function(i){return esc(S.names[i])}).join(' e ');return '<b>'+(winnersOf(S).length>1?'Vittoria condivisa: ':'Vince ')+w+'!</b>'}
+  if(S.phase==='score')return 'Round '+(S.round+1)+' concluso.';
+  if(S.phase==='place')return me===d?'Sei il mazziere: guarda le mani dei tre giocatori e piazza le 12 tessere (le tue previsioni sulle prese di '+esc(S.names[seatOfRoleS(S,'A')])+' e '+esc(S.names[seatOfRoleS(S,'B')])+').':dn+' (mazziere) sta piazzando le 12 tessere…';
+  if(S.fl){
+    var ini=!!S.fl.ini,row=S.fl.roles.length===1?S.fl.roles[0]:'';
+    if(me===d)return (ini?'Scopri una tessera della riga '+row+'.':'Presa '+tr+'/'+TRICKS+' · tocca a te, mazziere: scopri una tessera.');
+    return ini?dn+' sceglie una tessera da scoprire (riga '+row+')…':'Presa '+tr+'/'+TRICKS+' · tocca al mazziere '+dn+': sceglie una tessera da scoprire…';
+  }
+  var who=esc(S.names[tn]);
+  if(T.res)return who+' ha vinto la presa '+S.trickNo+': '+(tn===me?'apri tu la presa successiva.':'apre lui la presa successiva.');
+  return 'Presa '+tr+'/'+TRICKS+' · '+(tn===me?'tocca a te.':'tocca a '+who+'.');
+}
+function dockH(){
+  var h='<div class="dock-msg">'+msgH()+'</div>';
+  if(S.phase==='over')return h+scoreTableH()+'<div class="opts"><button class="opt" data-rematch="1">Rivincita</button></div>';
+  if(S.phase==='score')return h+roundTableH()+'<div class="opts"><button class="opt" data-next="1">'+(S.round>=ROUNDS-1?'Mostra risultato finale':'Prossimo round')+'</button></div>';
+  if(S.phase==='place'){if(me===S.dealer)h+=tileFormH();return h}
+  if(S.fl){
+    if(me===S.dealer)h+='<div class="hint">Le tessere che puoi scegliere pulsano: toccane una per scoprirla.</div>';
+    return h;
+  }
+  var lgl=myPlayable();
+  if(lgl){
+    var hand=handCards(S,me),lead=S.T.res?-1:S.T.lead,hint;
+    if(lead<0)hint='sei di mano: gioca una carta qualsiasi, il suo seme diventa il seme di mano.';
+    else if(hand.some(function(c){return c.s===lead}))hint='devi rispondere al seme '+SUITS[lead].n+'.';
+    else hint='non hai carte '+SUITS[lead].n+': puoi giocare qualsiasi carta (la briscola '+SUITS[S.trump].n+' vince).';
+    if(lgl.length===1)hint+=' Hai una sola carta giocabile.';
+    h+='<div class="hint">Tocca a te: '+hint+'</div>';
+    if(ui.sel!==null)h+='<div class="opts"><button class="opt" data-cf="1">'+esc('Conferma: gioca '+cname(hand[ui.sel]))+'</button><button class="opt" data-cf="0">Annulla</button></div>';
+    else if(OPT.undo)h+='<div class="opts"><button class="opt" disabled>Conferma</button><button class="opt" disabled>Annulla</button></div>';
+  }
+  return h;
+}
+function roomLogH(){
+  return '<details class="log" '+(LOGOPEN?'open':'')+'><summary>LOG DELLA PARTITA ('+S.log.length+')</summary><div class="logbody">'+S.log.map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div></details>';
+}
+function gameBadge(){return S.phase==='over'?'':'Round '+(S.round+1)+'/'+ROUNDS}
+function gameMenu(){
+  return '<label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" '+(OPT.undo?'checked':'')+'> Abilita annulla</label>'+
+    '<label class="opt-toggle" title="Di regola il mazziere vede le mani solo per piazzare le tessere; con questa opzione le vede anche durante le prese"><input type="checkbox" id="optSee" '+(OPT.seeHands?'checked':'')+'> Quando sei il mazziere, vedi le mani anche durante le prese</label>';
+}
+function gameChange(e){
+  if(e.target.id==='optUndo'){
+    OPT.undo=e.target.checked;try{localStorage.setItem('hh-undo',OPT.undo?'1':'0')}catch(x){}
+    if(!OPT.undo)ui.sel=null;render();
+  }else if(e.target.id==='optSee'){
+    OPT.seeHands=e.target.checked;try{localStorage.setItem('hh-seehands',OPT.seeHands?'1':'0')}catch(x){}
+    render();
+  }
+}
+function gameRender(){
+  var lgl=myPlayable();
+  if(ui.sel!==null&&!(lgl&&lgl.indexOf(ui.sel)>=0))ui.sel=null;
+  if(S.phase==='place'&&me===S.dealer){if(!ui.t||ui.tk!==S.round){ui.t={A:newTile(),B:newTile()};ui.tk=S.round}}
+  else if(ui.t&&S.phase!=='place')ui.t=null;
+  var lb=document.querySelector('.logbody'),lbTop=lb?lb.scrollTop:0;
+  if(lbTop)setTimeout(function(){var n=document.querySelector('.logbody');if(n)n.scrollTop=lbTop},0);
+  var tall=S.phase==='score'||S.phase==='over'||(S.phase==='place'&&me===S.dealer);
+  return '<div class="dock'+(tall?' tall':'')+'">'+dockH()+'</div>'+
+    '<div class="table">'+ordSeats().map(function(p,i){return seatH(p,POSN[i])}).join('')+centerH()+'</div>'+
+    boardH()+pileH()+
+    (S.hist[0].length&&S.phase!=='over'?'<div class="scorebox"><h3>PUNTEGGI</h3>'+scoreTableH()+'</div>':'')+
+    roomLogH()+recapHtml()+RULES_HTML;
+}
+function gameClick(b){
+  var d=b.dataset,a;
+  if(d.ta!==undefined){if(ui.t){a=d.ta.split(':');var t=ui.t[a[0]],mx=a[1]==='tr'?7:3;t[a[1]]=clamp(t[a[1]]+Number(a[2]),0,mx);render()}}
+  else if(d.tt!==undefined){if(ui.t){a=d.tt.split(':');ui.t[a[0]][a[1]]=!ui.t[a[0]][a[1]];render()}}
+  else if(d.trs!==undefined){ui.t={A:newTile(),B:newTile()};render()}
+  else if(d.tok!==undefined){if(ui.t&&S.phase==='place'&&me===S.dealer)act({type:'tiles',v:{A:cleanTile(ui.t.A),B:cleanTile(ui.t.B)}})}
+  else if(d.tile!==undefined){if(me===S.dealer&&allowedFlips(S).indexOf(d.tile)>=0)act({type:'flip',key:d.tile})}
+  else if(d.p!==undefined){
+    var i=Number(d.p),lgl=myPlayable();
+    if(lgl&&lgl.indexOf(i)>=0){if(OPT.undo){ui.sel=ui.sel===i?null:i;render()}else act({type:'play',i:i})}
+  }
+  else if(d.cf!==undefined){
+    if(d.cf==='1'){if(ui.sel!==null&&myPlayable()){var i2=ui.sel;ui.sel=null;act({type:'play',i:i2})}}
+    else{ui.sel=null;render()}
+  }
+  else if(d.next!==undefined)act({type:'next',seed:newSeed()});
+  else if(d.rematch!==undefined)act({type:'rematch',seed:newSeed()});
+}
+document.getElementById('app').addEventListener('toggle',function(e){if(e.target.matches&&e.target.matches('details.log'))LOGOPEN=e.target.open},true);
+
+
+// ═══ KIT STANZE ═══
+// Stesso schema di tt/spy-team/online: rooms/$room con hostUid, members, lobby, state (le regole già pubblicate bastano).
+// Lo stato di gioco è un unico oggetto JSON salvato come stringa in state.s (+ contatore state.v); ogni azione è una
+// transazione che applica gameReduce() all'ultima versione. Le mani stanno nello stato (nascoste solo dall'interfaccia).
+var FIREBASE_CONFIG={
+  apiKey:"AIzaSyAoOMLytOqFY9GRXpi2kUGEyzLK-r00nvQ",
+  authDomain:"gachapon-trick.firebaseapp.com",
+  databaseURL:"https://gachapon-trick-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"gachapon-trick",
+  storageBucket:"gachapon-trick.firebasestorage.app",
+  messagingSenderId:"869677835302",
+  appId:"1:869677835302:web:85768d5a6ac0d94f8372e7"
+};
+var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+var SAVE_KEY=GAME.id+'-online-last';
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var rnd=function(n){return Math.floor(Math.random()*n)};
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+function getPlayerName(){
+  var name='';
+  try{
+    name=localStorage.getItem('nylo-player-name')||'';
+    if(!name){var last=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');name=last&&last.name||''}
+  }catch(e){}
+  return String(name||'Giocatore').trim().slice(0,18)||'Giocatore';
+}
+var playerName=getPlayerName();
+var db=null,user=null,roomRef=null,roomCode='',lobbyData=null,S=null,me=-1,listeners=[],startingGame=false;
+var statusText='',connText='',joinVal='',chosenCount=GAME.counts[0],MENUOPEN=false,connecting=false;
+try{var lastRoom=JSON.parse(localStorage.getItem(SAVE_KEY));if(lastRoom)joinVal=lastRoom.code||''}catch(e){}
+
+function setStatus(t){statusText=t;render()}
+function setConn(t){connText=t;var c=document.getElementById('conn');if(c)c.textContent=t}
+function showErr(t){
+  var e=document.getElementById('err');
+  if(!e){e=document.createElement('div');e.id='err';e.className='err';e.setAttribute('role','alert');document.body.appendChild(e)}
+  e.textContent=t;e.hidden=false;setConn('Errore');clearTimeout(showErr.t);showErr.t=setTimeout(function(){e.hidden=true},8000);
+}
+function genCode(){var b=new Uint8Array(12);crypto.getRandomValues(b);return Array.from(b,function(x){return ALPHABET[x%ALPHABET.length]}).join('')}
+function withTimeout(p,ms,msg){
+  return new Promise(function(res,rej){var t=setTimeout(function(){rej(new Error(msg))},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})});
+}
+function authMsg(e){
+  if(e.code==='auth/operation-not-allowed')return 'Attiva il provider Anonimo in Firebase Authentication.';
+  if(e.code==='auth/unauthorized-domain')return 'Dominio non autorizzato: aggiungilo in Authentication > Impostazioni > Domini autorizzati.';
+  if(e.code==='auth/network-request-failed')return 'Firebase non raggiungibile: controlla la connessione e che il sito sia in HTTPS.';
+  return e.message||'Errore di autenticazione Firebase.';
+}
+async function connect(){
+  if(!window.firebase)throw new Error('Firebase non caricato. Controlla la connessione.');
+  if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+  db=firebase.database();
+  if(user)return;
+  try{user=(await withTimeout(firebase.auth().signInAnonymously(),15000,'Autenticazione scaduta dopo 15 secondi.')).user}
+  catch(e){throw new Error(authMsg(e))}
+}
+function saveLast(name){try{localStorage.setItem(SAVE_KEY,JSON.stringify({code:roomCode,name:name}))}catch(e){}}
+
+// ─────────────── LOBBY ───────────────
+async function createRoom(){
+  try{
+    setStatus('Connessione a Firebase...');await connect();
+    var created=false,lastErr=null;
+    for(var i=0;i<5&&!created;i++){
+      roomCode=genCode();roomRef=db.ref('rooms/'+roomCode);
+      try{
+        await roomRef.child('hostUid').set(user.uid);
+        await roomRef.child('members/'+user.uid).set(true);
+        await roomRef.child('lobby').set({game:GAME.id,hostUid:user.uid,playerCount:chosenCount,started:false,closed:false,players:{}});
+        created=true;
+      }catch(e){lastErr=e;roomRef=null}
+    }
+    if(!created)throw lastErr||new Error('Impossibile creare la stanza. Verifica le regole del database.');
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;connecting=false;setStatus(e.message||'Errore durante la creazione della stanza.')}
+}
+async function joinRoom(){
+  try{
+    roomCode=joinVal.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(roomCode.length!==12)throw new Error('Il codice stanza è di 12 caratteri.');
+    setStatus('Connessione...');await connect();
+    roomRef=db.ref('rooms/'+roomCode);
+    await roomRef.child('members/'+user.uid).set(true);
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;connecting=false;setStatus(e.code==='PERMISSION_DENIED'?'Stanza non trovata o non accessibile.':(e.message||'Errore durante l\'accesso alla stanza.'))}
+}
+function reserveSeat(name){
+  var lobbyRef=roomRef.child('lobby');
+  return lobbyRef.once('value').then(function(snap){
+    if(!snap.exists())throw new Error('Lobby non trovata: controlla il codice.');
+    var initial=snap.val();
+    if(initial.game!==GAME.id)throw new Error('Questo codice appartiene a un altro gioco.');
+    return new Promise(function(resolve,reject){
+      lobbyRef.transaction(function(cur){
+        if(cur===null)cur=initial;
+        if(!cur||!cur.playerCount||cur.closed)return;
+        cur.players=cur.players||{};
+        if(cur.players[user.uid])return cur;            // rientro: il posto è già tuo
+        if(cur.started)return;
+        var occ={};Object.keys(cur.players).forEach(function(u){occ[cur.players[u].seat]=true});
+        var seat=1;while(seat<=cur.playerCount&&occ[seat])seat++;
+        if(seat>cur.playerCount)return;
+        cur.players[user.uid]={uid:user.uid,name:name,seat:seat};
+        return cur;
+      },function(err,committed,snap2){
+        if(err){reject(err);return}
+        var cur=snap2&&snap2.val();
+        if(!cur||!cur.players||!cur.players[user.uid]){
+          reject(new Error(cur&&cur.started?'La partita è già iniziata.':'La stanza è piena o non disponibile.'));return;
+        }
+        lobbyData=cur;saveLast(name);enterRoom();resolve();
+      },false);
+    });
+  });
+}
+function orderedPlayers(d){
+  return Object.keys(d.players||{}).map(function(u){return d.players[u]}).sort(function(a,b){return a.seat-b.seat});
+}
+function maybeStart(){
+  if(!lobbyData||S||startingGame||lobbyData.started||lobbyData.hostUid!==user.uid)return;
+  if(orderedPlayers(lobbyData).length===lobbyData.playerCount)startGame();
+}
+function startGame(){
+  startingGame=true;
+  var seated=orderedPlayers(lobbyData);   // i posti si assegnano a caso all'avvio
+  shuffle(seated);
+  var init=gameInitial(seated.map(function(p){return {uid:p.uid,name:p.name}}));
+  init.v=0;
+  roomRef.child('state').transaction(function(cur){if(cur!==null)return;return {v:0,s:JSON.stringify(init)}},function(err){
+    if(err){startingGame=false;showErr('Errore durante l\'avvio: '+err.message);return}
+    roomRef.child('lobby/started').set(true).catch(function(e){startingGame=false;showErr(e.message)});
+  },false);
+}
+
+// ─────────────── STANZA ───────────────
+function enterRoom(){
+  setConn('Lobby');
+  var lobbyRef=roomRef.child('lobby');
+  var lh=function(snap){if(!snap.exists())return;lobbyData=snap.val();if(!S){render();maybeStart()}};
+  lobbyRef.on('value',lh,function(e){showErr(e.message)});listeners.push({ref:lobbyRef,h:lh});
+  var stateRef=roomRef.child('state');
+  var sh=function(snap){
+    if(!snap.exists())return;
+    var raw=snap.val();
+    try{S=JSON.parse(raw.s)}catch(e){showErr('Stato della stanza non leggibile.');return}
+    me=S.uids.indexOf(user.uid);
+    if(me<0){showErr('Non risulti tra i giocatori di questa partita.');return}
+    setConn('Connesso');
+    render();
+  };
+  stateRef.on('value',sh,function(e){showErr('Connessione persa: '+e.message)});listeners.push({ref:stateRef,h:sh});
+  render();
+}
+function leave(dest){
+  var go=function(){if(dest)window.location.href=dest;else window.location.reload()};
+  listeners.forEach(function(l){l.ref.off('value',l.h)});
+  if(!roomRef||S||!user){go();return}
+  // prima dell'inizio libera il posto; a partita avviata si può rientrare con lo stesso codice
+  roomRef.child('lobby').transaction(function(cur){
+    if(!cur||cur.started)return;
+    cur.players=cur.players||{};delete cur.players[user.uid];
+    var rest=orderedPlayers(cur);
+    if(cur.hostUid===user.uid&&rest.length)cur.hostUid=rest[0].uid;
+    return cur;
+  },function(){
+    roomRef.child('members/'+user.uid).remove().catch(function(){}).then(go);
+  },false);
+}
+
+// azioni: ogni azione è una transazione sullo stato, validata da gameReduce() sull'ultima versione
+function act(a){
+  if(!roomRef||me<0)return;
+  var seat=me;
+  roomRef.child('state').transaction(function(cur){
+    if(!cur||!cur.s)return;
+    var st;try{st=JSON.parse(cur.s)}catch(e){return}
+    var r=gameReduce(st,seat,a);
+    if(!r)return;
+    r.v=(st.v||0)+1;
+    return {v:r.v,s:JSON.stringify(r)};
+  },function(err,committed){
+    if(err)showErr('Errore di sincronizzazione: '+err.message);
+    else if(!committed)setConn('Azione non più valida');
+  },false);
+}
+
+// ─────────────── RENDER ───────────────
+function lobbyHtml(){
+  var radios=GAME.counts.length<2?'':GAME.counts.map(function(n){
+    return '<label><input type="radio" name="pc" value="'+n+'" '+(chosenCount===n?'checked':'')+'> '+n+' giocatori'+(GAME.countNote&&GAME.countNote[n]?' · '+GAME.countNote[n]:'')+'</label>';
+  }).join('');
+  return '<section><p class="muted">Sei connesso come <b>'+esc(playerName)+'</b>.</p>'+
+    '<div class="panel"><h2>Crea una stanza</h2><p class="muted">'+GAME.lobbyNote+'</p>'+
+    (radios?'<div class="radios" role="radiogroup" aria-label="Numero di giocatori">'+radios+'</div>':'')+
+    '<button class="opt" id="createRoom" type="button" data-create="1">Crea stanza</button></div>'+
+    '<div class="panel"><h2>Unisciti a una stanza</h2>'+
+    '<input type="text" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(joinVal)+'">'+
+    '<button class="opt" type="button" data-join="1">Unisciti</button></div>'+
+    '<p class="status" role="status" aria-live="polite">'+esc(statusText)+'</p>'+
+    '<button class="btn btn-sm" type="button" data-ai="1">← Torna alla scelta</button></section>';
+}
+function connectingHtml(){
+  return '<section><div class="panel"><p class="muted" role="status" aria-live="polite">'+esc(statusText||'Connessione alla stanza...')+'</p></div></section>';
+}
+function waitingHtml(){
+  var d=lobbyData||{players:{},playerCount:GAME.counts[0]};
+  var players=orderedPlayers(d),full=players.length===d.playerCount,html='';
+  for(var seat=1;seat<=d.playerCount;seat++){
+    var p=players[seat-1];
+    html+='<li><span class="seat-n">'+seat+'.</span>'+
+      (p?'<span class="grow">'+esc(p.name)+(p.uid===user.uid?' (tu)':'')+'</span>':'<span class="grow soft">In attesa di un giocatore</span>')+
+      (p&&p.uid===d.hostUid?'<span class="flag first">HOST</span>':'')+'</li>';
+  }
+  return '<section><div class="panel"><h2>Stanza '+roomCode+'</h2><p class="muted">'+
+    (d.started?'La partita si sta caricando...':players.length+' / '+d.playerCount+' giocatori'+(full?' · avvio in corso':' · condividi il codice con gli altri'))+
+    '</p><ul class="roster">'+html+'</ul></div></section>';
+}
+function kitMenuHtml(){
+  var extra=typeof gameMenu==='function'?gameMenu():'';
+  return '<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="'+MENUOPEN+'"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>'+
+    (MENUOPEN?'<div class="menu-pop">'+extra+'</div>':'')+'</div>';
+}
+function render(){
+  document.body.classList.toggle('a11y',!!(typeof OPT!=='undefined'&&OPT.a11y));
+  var focus=document.activeElement&&document.activeElement.id==='joinCode';
+  var badge=S&&typeof gameBadge==='function'?gameBadge():'';
+  var top='<div class="topbar"><div class="logo">'+GAME.logo+'</div>'+
+    (window.nyloBackBtn?nyloBackBtn(location.pathname,'alle opzioni del gioco'):'')+(window.nyloHomeBtn?nyloHomeBtn():'')+
+    (badge?'<span class="badge">'+badge+'</span>':'')+kitMenuHtml()+'</div>'+
+    (roomRef?'<div class="room-bar"><span class="room-code">'+roomCode+'</span><button class="btn btn-sm" type="button" data-copy="1">Copia codice</button><button class="btn btn-sm" type="button" data-leave="1">Esci</button><span class="conn" id="conn">'+esc(connText)+'</span></div>':'');
+  var body=!roomRef?(connecting?connectingHtml():lobbyHtml()):(!S?waitingHtml():gameRender());
+  document.getElementById('app').innerHTML=top+body;
+  if(focus){var j=document.getElementById('joinCode');if(j){j.focus();j.setSelectionRange(j.value.length,j.value.length)}}
+}
+var APP=document.getElementById('app');
+APP.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b||b.disabled)return;
+  var d=b.dataset;
+  if(d.back!==undefined){e.stopPropagation();if(!S||confirm('Tornare alle opzioni del gioco? Potrai rientrare nella stanza con lo stesso codice.'))leave(location.pathname);return}
+  if(d.menu){MENUOPEN=!MENUOPEN;render();return}
+  if(d.ai!==undefined){location.href=location.pathname;return}
+  if(d.create!==undefined){createRoom();return}
+  if(d.join!==undefined){joinRoom();return}
+  if(d.leave!==undefined){if(!S||confirm('Uscire dalla stanza? Potrai rientrare con lo stesso codice.'))leave();return}
+  if(d.copy!==undefined){
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(roomCode).then(function(){setConn('Codice copiato')});
+    else window.prompt('Copia il codice stanza:',roomCode);
+    return;
+  }
+  if(S&&typeof gameClick==='function')gameClick(b);
+});
+APP.addEventListener('input',function(e){if(e.target.id==='joinCode'){joinVal=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=joinVal}});
+APP.addEventListener('keydown',function(e){if(e.target.id==='joinCode'&&e.key==='Enter')joinRoom()});
+APP.addEventListener('change',function(e){
+  if(e.target.name==='pc'){chosenCount=Number(e.target.value);return}
+  if(typeof gameChange==='function')gameChange(e);
+});
+document.addEventListener('click',function(e){if(MENUOPEN&&!e.target.closest('.menu-wrap')){MENUOPEN=false;render()}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&MENUOPEN){MENUOPEN=false;render()}});
+connecting=!!(window.NYLO_START&&NYLO_START.mode==='room');
+render();
+if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosenCount;if(NYLO_START.name)playerName=NYLO_START.name.slice(0,18);if(NYLO_START.action==='join'){joinVal=NYLO_START.code||'';joinRoom()}else createRoom();}
+</script>
+<script>
+(function(){
+  run('src-common');
+  var P=window.NYLO_SETUP={id:'10-12-heart',logo:LOGO_SVG+'<span>10/12 HEART</span>',counts:[4]};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  function run(id){var s=document.createElement('script');s.textContent=document.getElementById(id).textContent;document.body.appendChild(s)}
+  window.addEventListener('hashchange',function(){location.reload()});
+  window.NYLO_IN_SETUP=true;   // finché si sceglie, Home/Indietro escono senza avviso
+  var app=document.getElementById('app');
+  var st={n:P.counts[0],mode:location.hash==='#stanze'?'room':(location.hash==='#ai'?'ai':''),sub:'',code:'',name:'',see:false};
+  var needName=false;
+  try{
+    st.name=localStorage.getItem('nylo-player-name')||'';
+    st.see=localStorage.getItem('hh-seehands')==='1';
+    var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
+  }catch(e){}
+  needName=!st.name;   // il nome arriva dalla sessione; il campo compare solo se manca
+  // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
+  var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
+  if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.n)rsm={n:sg.n}}}catch(e){}}
+  function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
+  function draw(){
+    var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
+    h+='<div class="sx-card">';
+    if(needName)h+='<label class="sx-label" for="sxName">IL TUO NOME</label><input class="sx-in" id="sxName" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(st.name)+'">';
+    if(P.counts.length>1){
+      h+='<div class="sx-label">GIOCATORI</div><div class="sx-row">'+P.counts.map(function(n){return btn('data-n="'+n+'"','',n+' giocatori',st.n===n)}).join('')+'</div>';
+    }
+    h+='<div class="sx-label">MODALITÀ</div><div class="sx-row">'+btn('data-mode="ai"','','Contro l’AI',st.mode==='ai')+btn('data-mode="room"','','A stanze',st.mode==='room')+'</div>';
+    if(st.mode==='ai'){
+      h+='<div class="sx-sub"><label class="opt-toggle" style="padding-left:0" title="Di regola il mazziere vede le mani solo per piazzare le tessere; con questa opzione le vede anche durante le prese"><input type="checkbox" id="sxSee" '+(st.see?'checked':'')+'> Quando sei il mazziere, vedi le mani anche durante le prese</label><div class="sx-row">'+btn('data-go="ai"','sx-go','Inizia',false)+'</div></div>';
+    }else if(st.mode==='room'){
+      h+='<div class="sx-label">OPZIONI STANZA</div><div class="sx-sub"><div class="sx-row">'+btn('data-sub="create"','','Crea nuova',st.sub==='create')+btn('data-sub="join"','','Unisciti',st.sub==='join')+'</div>';
+      if(st.sub==='create')h+='<div class="sx-row">'+btn('data-go="create"','sx-go','Inizia',false)+'</div>';
+      if(st.sub==='join')h+='<input class="sx-in code" id="sxCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(st.code)+'"><div class="sx-row"><button type="button" class="sx-opt sx-go" id="sxJoin" data-go="join" '+(st.code.length===12?'':'disabled')+'>Inizia</button></div>';
+      h+='</div>';
+    }
+    h+='</div>';
+    app.innerHTML=h;
+  }
+  function loadRoom(){
+    var libs=['app','auth','database'].map(function(n){return 'https://www.gstatic.com/firebasejs/10.12.2/firebase-'+n+'-compat.js'});
+    (function next(i){
+      if(i===libs.length){run('src-room');return}
+      var s=document.createElement('script');s.src=libs[i];s.onload=function(){next(i+1)};
+      s.onerror=function(){app.innerHTML='<p style="padding:20px;color:#fff">Firebase non raggiungibile: controlla la connessione.</p>'};
+      document.head.appendChild(s);
+    })(0);
+  }
+  function go(kind){
+    var nm=document.getElementById('sxName'),name=((nm&&nm.value)||st.name||'').trim().slice(0,16);
+    window.NYLO_IN_SETUP=false;
+    if(name){try{localStorage.setItem('nylo-player-name',name)}catch(e){}}
+    var cfg={name:name,n:st.n};
+    if(kind==='ai'){cfg.mode='ai';window.NYLO_START=cfg;run('src-ai');return}
+    cfg.mode='room';cfg.action=kind;if(kind==='join')cfg.code=st.code;
+    window.NYLO_START=cfg;app.innerHTML='';loadRoom();
+  }
+  app.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b||b.disabled)return;
+    var d=b.dataset;
+    if(d.n){st.n=Number(d.n);draw()}
+    else if(d.mode){st.mode=d.mode;st.sub='';draw()}
+    else if(d.sub){st.sub=d.sub;draw();var c=document.getElementById('sxCode');if(c)c.focus()}
+    else if(d.go)go(d.go);
+  });
+  app.addEventListener('change',function(e){
+    if(e.target.id==='sxSee'){st.see=e.target.checked;try{localStorage.setItem('hh-seehands',st.see?'1':'0')}catch(x){}}
+  });
+  app.addEventListener('input',function(e){
+    if(e.target.id==='sxName')st.name=e.target.value;
+    else if(e.target.id==='sxCode'){
+      st.code=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=st.code;
+      var j=document.getElementById('sxJoin');if(j)j.disabled=st.code.length!==12;
+    }
+  });
+  app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-ai');return}
+  draw();
+  if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
+})();
 </script>
 </body>
 </html>
