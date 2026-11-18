@@ -1,3 +1,9 @@
+// ═══ NOTA LEGALE (in fondo, al centro, di ogni pagina di gioco o strumento): modifica qui il testo ═══
+// Per cambiare la frase basta cambiare NYLO_DISCLAIMER. Per nasconderla su una pagina: <html data-no-disclaimer>.
+var NYLO_DISCLAIMER = 'Questo gioco (o strumento di supporto), le sue idee, regole, immagini e marchi appartengono ai rispettivi autori ed editori. ' +
+  'Qui viene riprodotto esclusivamente come test e per studio personale, senza alcuno scopo di lucro; ' +
+  'su richiesta dei legittimi titolari dei diritti verrà rimosso.';
+
 // Pulsante "casetta" per tornare alla home: chiede conferma con una finestra modale.
 // Nelle pagine con <html data-home-inline> il pulsante è nella barra in alto (window.nyloHomeBtn());
 // nelle altre compare un pulsante tondo fisso in basso a sinistra.
@@ -47,7 +53,8 @@
     // elenchi numerati del regolamento: senza padding (reset globale) i numeri finiscono sul bordo dell'accordion
     '.rtext ol,details.rules ol{padding-left:22px}' +
     // niente scroll orizzontale: se un elemento sborda il browser mobile rimpicciolisce la pagina e lascia spazio bianco in fondo
-    'html,body{overflow-x:clip}';
+    'html,body{overflow-x:clip}' +
+    '.nylo-disclaimer{display:block;clear:both;box-sizing:border-box;width:100%;max-width:640px;margin:24px auto 0;padding:0 16px 18px;text-align:center;font:400 11px/1.5 Inter,system-ui,sans-serif;color:rgba(148,163,184,.75)}';
   document.head.appendChild(st);
 
   // accordion: lo stato aperto/chiuso resta mentre la pagina si ridisegna (si azzera solo cambiando o ricaricando la pagina)
@@ -104,6 +111,26 @@
         node.parentNode.replaceChild(frag, node);
       });
     });
+  }
+  // nota legale in fondo alla pagina, centrata (in coda al body, non sopra il gioco). Non compare nelle liste dei giochi, né nella home
+  function addDisclaimer() {
+    var path = location.pathname.replace(/index\.html$/, '');
+    if (!NYLO_DISCLAIMER || document.documentElement.hasAttribute('data-no-disclaimer') || path === '/' || path === '/tt/' || path === '/ntt/') return;
+    if (document.querySelector('.nylo-disclaimer')) return;
+    var d = document.createElement('footer');
+    d.className = 'nylo-disclaimer'; d.textContent = NYLO_DISCLAIMER;
+    document.body.appendChild(d);
+    // pagina più corta dello schermo: la nota scende comunque in fondo alla finestra
+    var busy = false;
+    function place() {
+      busy = false;
+      d.style.marginTop = '24px';
+      var gap = window.innerHeight - (d.getBoundingClientRect().bottom + window.pageYOffset + 18);
+      if (gap > 0) d.style.marginTop = (24 + gap) + 'px';
+    }
+    function later() { if (!busy) { busy = true; requestAnimationFrame(place); } }
+    place(); window.addEventListener('resize', later); window.addEventListener('load', later);
+    new MutationObserver(later).observe(document.body, { childList: true, subtree: true });
   }
   var ov;
   function build() {
@@ -196,6 +223,7 @@
         if (friendsButton) location.href = friendsButton.getAttribute('data-mode-online');
       });
     }
+    if (!inFrame) addDisclaimer();
     if (inFrame) return;
     ov = document.createElement('div');
     ov.style.cssText = 'position:fixed;inset:0;z-index:2147483001;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:16px;font-family:Inter,system-ui,sans-serif';
