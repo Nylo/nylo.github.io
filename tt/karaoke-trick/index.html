@@ -142,6 +142,18 @@ details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
 details.recap[open]>:not(summary)+*{margin-top:10px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:62px;font-size:11px;font-weight:700;color:var(--text-soft)}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;color:#fff;font-weight:800;font-size:10px;line-height:1;border:1px solid rgba(0,0,0,0.5)}
+.nc.k0{background-color:var(--k0)} .nc.k1{background-color:var(--k1)} .nc.k2{background-color:var(--k2)} .nc.k3{background-color:var(--k3)} .nc.k4{background-color:var(--k4)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--text)}
+body.a11y .nc.k0{background-image:radial-gradient(rgba(255,255,255,0.5) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .nc.k1{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
+body.a11y .nc.k4{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 .rtext h4{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -191,8 +203,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('kt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('kt-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('kt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('kt-a11y')==='1'; OPT.memo=localStorage.getItem('kt-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
 const cname = c => `${COL[c.s].n} ${c.v}`;
 const plu = (n,s,p) => `${n} ${n===1?s:p}`;
@@ -422,7 +434,7 @@ async function playRound(){
     G.turn=l;
     if(l===HUM) await ask(HUM,`Apri con la tua prima canzone prenotata: ${cname(S.res[HUM][0])}`,[{label:`Apri con ${cname(S.res[HUM][0])}`,value:1}]);
     else{ status(`Di mano: ${P(l).name}.`); await sleep(700); }
-    const c=openTrick(S,l); S.count++; G.stamp++; G.ledAt[l]=G.stamp;
+    const c=openTrick(S,l); if(S.seen) S.seen.push(c); S.count++; G.stamp++; G.ledAt[l]=G.stamp;
     logMsg(`${P(l).name} apre con la sua prima canzone ${cname(c)}: seme di apertura ${COL[c.s].n}.`);
     for(let k=0;k<n-1;k++){
       const q=(l+1+k)%n; G.turn=q; S.ts.k=k;
@@ -581,6 +593,18 @@ function rsvTable(cur){
     const r=RESN[n]; return `<tr class="${n===cur?'cur':''}"><td>${n}</td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`;
   }).join('')}</table>`;
 }
+// carte uscite: giocate (prese concluse e presa in corso) e canzoni prenotate scoperte di tutti; contorno = tue carte in mano
+function memoHtml(){
+  const S=G.S, kk=c=>c.s*20+c.v, mine=new Set(S.hands[HUM].map(kk)), seen=new Set();
+  (S.seen||[]).forEach(c=>seen.add(kk(c)));
+  S.res.forEach(r=>r.forEach(c=>seen.add(kk(c))));
+  const ts=G.res||S.ts; if(ts) ts.plays.forEach(x=>seen.add(kk(x.c)));
+  const rows=G.suits.map(s=>{
+    const cs=G.deck.filter(c=>c.s===s);
+    return `<div class="ur"><span class="l">${ico(COL[s].icon)} ${COL[s].n}</span>${cs.map(c=>`<span class="nc k${s} ${seen.has(kk(c))?'gone':''} ${mine.has(kk(c))?'own':''}" title="${cname(c)}">${c.v}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function recapHtml(){
   return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${G.suits.map(s=>`<span class="rchip k${s}">${ico(COL[s].icon)} ${COL[s].n}</span>`).join('')}<span class="rv">${12*G.n} carte (1–12) · 12 carte a testa</span></div>
@@ -623,6 +647,14 @@ ${rsvTable(0)}
 let LOGOPEN=false;
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 let MENUOPEN=false;
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
+    </div>`:''}</div>`;
+}
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
@@ -635,6 +667,7 @@ function render(){
   if(G&&G.S){
     const pos=POS[G.n];
     body=`<div class="table ${G.n===5?'n5':''}">${G.pl.map((p,i)=>seatHtml(i,pos[i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over?memoHtml():''}
       ${G.pl.some(p=>p.hist.length)?`<div class="dock" style="position:static">${scoreTable()}</div>`:''}
       ${logHtml()}
       ${recapHtml()}
@@ -657,6 +690,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('kt-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('kt-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;

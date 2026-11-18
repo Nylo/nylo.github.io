@@ -152,6 +152,14 @@ details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
 details.recap[open]>:not(summary)+*{margin-top:10px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:62px;font-size:11px;font-weight:700;color:var(--text-soft)}
+.unseen .cc{min-width:22px;height:22px;font-size:11px}
+.unseen .cc.gone{opacity:.2;text-decoration:line-through}
+.unseen .cc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
+body.a11y .unseen .k0.cc{background-image:radial-gradient(rgba(0,0,0,0.3) 22%,transparent 24%);background-size:8px 8px}
+body.a11y .unseen .k1.cc{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.22) 0 2px,transparent 2px 7px)}
 .rtext h4{font-family:'Fredoka',sans-serif;font-size:15px;color:var(--coral);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -202,8 +210,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false,clair:false};
-try{ const s=localStorage.getItem('mt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('mt-a11y')==='1'; OPT.clair=localStorage.getItem('mt-clair')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,clair:false,memo:false};
+try{ const s=localStorage.getItem('mt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('mt-a11y')==='1'; OPT.clair=localStorage.getItem('mt-clair')==='1'; OPT.memo=localStorage.getItem('mergetake-memo')==='1'; }catch(e){}
 const cname = c => `${COLS[c.c].n} ${c.n}`;
 const sg = v => (v>0?'+':'')+v;
 const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
@@ -578,6 +586,18 @@ function scoreTable(){
   const rows=G.over.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td class="l">${grpsHtml(r.gs).replace('class="grps"','class="grps" style="justify-content:flex-start"')}</td><td class="l">+${r.plus} −${r.minus}</td><td><b>${r.sc}</b></td></tr>`).join('');
   return `<table class="score"><tr><th></th><th class="l">Gruppi (con carta briscola e traccia)</th><th class="l">Calcolo</th><th>Punti</th></tr>${rows}</table>`;
 }
+// carte uscite: giocate + carta briscola scoperta (+ la coperta se la vedi con la Chiaroveggenza); contorno = tue carte in mano
+function memoHtml(){
+  const mine=new Set(P(HUM).hand.map(c=>c.id)), seen=new Set();
+  G.played.forEach(c=>seen.add(c.id)); G.trick.forEach(x=>seen.add(x.c.id)); seen.add(G.ind.id);
+  if(G.peek&&G.hidden) seen.add(G.hidden.id);
+  const rows=COLS.map((col,k)=>{
+    const cs=fullDeck(G.n).filter(c=>c.c===k);
+    if(!cs.length) return '';
+    return `<div class="ur"><span class="l">${col.n}</span>${cs.map(c=>`<span class="cc k${k} ${seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" title="${esc(cname(c))}">${c.n}</span>`).join('')}</div>`;
+  }).join('');
+  return `<div class="recap paper"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
+}
 function recapHtml(){
   const n=G.n;
   const deck=n===4?'tutte le 46 carte (due Blu 19)':'35 carte (senza Rosa, Neri e un Blu 19)';
@@ -621,7 +641,7 @@ const RULES_HTML = `
 <p>Con 4 giocatori, se due Blu 19 vengono giocati nella stessa presa, vince chi ha giocato per primo il Blu 19. La regola dell'eccezione sulla guida si applica anche se le carte raccolte nella sola presa formano un gruppo da 4+, anche senza carte raccolte in precedenza.</p>
 <h4>Varianti</h4>
 <p>Una volta presa confidenza si consiglia la partita lunga (tante partite quanti sono i giocatori, passando ogni volta la carta Traccia di primo giocatore a sinistra); nell'app si gioca una singola partita. <b>Chiaroveggenza</b> (opzionale): il primo giocatore può guardare di nascosto la carta coperta al centro prima della prima presa; si attiva dal menu e vale solo se sei tu il primo giocatore.</p>
-<p><i>Nell'app:</i> le tue carte ricevute con lo scambio sono evidenziate in azzurro. Il punteggio accanto a ogni giocatore è quello delle sole carte raccolte finora. L'AI stima le mani avversarie con simulazioni e sa quali 3 carte ha passato a sinistra finché non vengono giocate.</p>
+<p><i>Nell'app:</i> le tue carte ricevute con lo scambio sono evidenziate in azzurro. Il punteggio accanto a ogni giocatore è quello delle sole carte raccolte finora. L'AI stima le mani avversarie con simulazioni e sa quali 3 carte ha passato a sinistra finché non vengono giocate. Nel menu: «Abilita annulla», «Modalità accessibile», «Chiaroveggenza» e «Mostra le carte uscite» (carte giocate e carta briscola sbarrate, le tue carte in mano col contorno).</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -636,6 +656,7 @@ function menuHtml(){
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
       <label class="opt-toggle" title="Variante: il primo giocatore guarda la carta coperta al centro (vale dalla prossima partita)"><input type="checkbox" id="optClair" ${OPT.clair?'checked':''}> Chiaroveggenza</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -649,6 +670,7 @@ function render(){
   let body='';
   if(G&&!G.welcome){
     body=`<div class="table">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over&&G.ind&&(G.phase==='pass'||G.phase==='play')?memoHtml():''}
       ${logHtml()}
       ${recapHtml()}
       ${RULES_HTML}`;
@@ -688,6 +710,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('mt-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('mergetake-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id==='optClair'){

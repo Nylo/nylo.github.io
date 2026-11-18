@@ -151,6 +151,12 @@ details.recap{display:block;padding:14px 16px}
 details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
 details.recap[open]>summary{margin-bottom:10px}
 details.recap[open]>:not(summary)+*{margin-top:10px}
+.unseen{display:flex;flex-direction:column;gap:5px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:54px;font-size:11px;font-weight:700;color:var(--text-soft)}
+.unseen .sw{min-width:22px;height:22px;padding:0 3px;font-size:10px}
+.unseen .sw.gone{opacity:.2;text-decoration:line-through}
+.unseen .sw.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--text)}
 .rtext h4{font-family:'Playfair Display',serif;font-size:14px;color:var(--accent);margin:14px 0 4px}
 .rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
 .rtext ul{padding-left:18px}
@@ -195,8 +201,8 @@ const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false};
-try{ const s=localStorage.getItem('inflation-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('inflation-a11y')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('inflation-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('inflation-a11y')==='1'; OPT.memo=localStorage.getItem('inflation-memo')==='1'; }catch(e){}
 function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
 const groupDigits = s => s.replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 
@@ -544,6 +550,18 @@ function dockHtml(){
   }
   return html;
 }
+// carte uscite: le carte sono numeri senza seme (n copie del numero n). Sbarrate = già giocate (visibili davanti ai giocatori), contorno = tue carte in mano.
+function memoHtml(){
+  const gone=new Array(11).fill(0), mine=new Array(11).fill(0);
+  G.pl.forEach(p=>p.played.forEach(c=>gone[c.n]++));
+  P(HUM).hand.forEach(c=>mine[c.n]++);
+  const rows=Array.from({length:10},(_,i)=>{
+    const n=i+1;
+    const chips=Array.from({length:n},(_,j)=>`<span class="sw k${n} ${j<gone[n]?'gone':''} ${j>=gone[n]&&j<gone[n]+mine[n]?'own':''}">${n}</span>`).join('');
+    return `<div class="ur"><span class="l">${n} (×${n})</span>${chips}</div>`;
+  }).join('');
+  return `<div class="recap"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div><div class="hint" style="font-size:11px;color:var(--text-soft)">Le ${G.discard} carte messe da parte non sono visibili.</div></div>`;
+}
 function recapHtml(){
   const n=G.n;
   return `<details class="recap"><summary>RIEPILOGO</summary>
@@ -580,6 +598,7 @@ function menuHtml(){
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare previsioni e carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
       <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
     </div>`:''}</div>`;
 }
 function render(){
@@ -593,6 +612,7 @@ function render(){
   let body='';
   if(G){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
+      ${OPT.memo&&!G.over&&(G.phase==='bid'||G.phase==='play'||G.phase==='score')?memoHtml():''}
       <div class="dock" style="position:static">${scoreTable()}</div>
       ${logHtml()}
       ${recapHtml()}
@@ -615,6 +635,11 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optA11y'){
     OPT.a11y=e.target.checked;
     try{ localStorage.setItem('inflation-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('inflation-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;
