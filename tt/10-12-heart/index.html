@@ -105,6 +105,8 @@ table.score tr.me td{font-weight:700}
 .seat.winner{border:2px solid var(--success);background:rgba(28,122,60,0.12)}
 .seat.loser{border:2px solid var(--danger);background:rgba(179,38,30,0.09)}
 .seat-name{font-weight:600;font-size:13px}
+.nm{display:inline-block;padding:2px 10px;border-radius:999px;color:#16202a;font-weight:700;border:1px solid rgba(0,0,0,.4);background:var(--sc,#eee);text-shadow:none}
+.brow .nm{padding:1px 7px;font-size:10px;align-self:flex-start;max-width:100%}
 .seat-meta{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
 .tag{background:rgba(10,30,92,0.09);border-radius:4px;padding:2px 6px;color:var(--text);display:inline-flex;align-items:center;gap:4px}
 .tag b{color:var(--accent)}
@@ -255,7 +257,8 @@ const ICON = [
   '<circle cx="12" cy="12" r="5" fill="currentColor"/><g stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></g>'
 ];
 const ico = s => `<svg class="ic s${s}" viewBox="0 0 24 24" aria-hidden="true">${ICON[s]}</svg>`;
-const NAMES = ['Tu','AI Cuore','AI Freccia','AI Sole'];
+const NAMES = ['Tu','Balil','Mira','Richard'];
+const SEATC = ['#f0c14b','#8fd3e8','#f19a8a','#b9a6e8'];
 const HUM = 0, ROUNDS = 4, TRICKS = 10;
 // Categorie delle tessere (ordine dello spazio tessere, punti decrescenti)
 const KEYS = ['tr','s7','o','t','b','l'];
@@ -264,7 +267,7 @@ const CATS = [
   {k:'tr',lab:'Prese totali',sh:'Prese',pts:4},
   {k:'s7',lab:'Totale 7',sh:'Totale 7',pts:3},
   {k:'o',lab:'Esattamente due 1',sh:'Due 1',pts:2},
-  {k:'t',lab:'Briscola 3/5 (la briscola 3 e/o la briscola 5)',sh:'Brisc. 3/5',pts:2},
+  {k:'t',lab:'Briscola 3/5 (la briscola 3 e/o la briscola 5)',sh:'Briscola 3 o 5',pts:2},
   {k:'b',lab:'Somma dei valori tra 41 e 50',sh:'41–50',pts:2},
   {k:'l',lab:'9ª/10ª presa (vinci la 9ª e/o la 10ª)',sh:'9ª/10ª',pts:2}
 ];
@@ -274,8 +277,8 @@ const RN = ['Mazziere','A','B','C'];
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true};
-try{ const s=localStorage.getItem('hh-undo'); if(s!==null) OPT.undo=s==='1'; }catch(e){}
+const OPT = {undo:true, seeHands:false};
+try{ const s=localStorage.getItem('hh-undo'); if(s!==null) OPT.undo=s==='1'; OPT.seeHands=localStorage.getItem('hh-seehands')==='1'; }catch(e){}
 const mk = (s,v) => ({s,v,id:s*16+v});
 const ALL = []; SUITS.forEach((S,s)=>{ for(let v=1;v<=S.max;v++) ALL.push(mk(s,v)); });
 const CARD = {}; ALL.forEach(c=>{ CARD[c.id]=c; });
@@ -782,6 +785,7 @@ function handInfo(p){
   let s7=0,s1=0,t35=0,sum=0; h.forEach(c=>{ sum+=c.v; if(c.v===7)s7++; if(c.v===1)s1++; if(c.s===G.trump&&(c.v===3||c.v===5)) t35++; });
   return `<span class="tag">somma <b>${sum}</b></span><span class="tag">7 <b>${s7}</b></span><span class="tag">1 <b>${s1}</b></span><span class="tag">brisc. 3/5 <b>${t35}</b></span>`;
 }
+const nmHtml = p => `<span class="nm" style="--sc:${SEATC[p]}">${esc(P(p).name)}</span>`;
 function seatHtml(p,pos){
   const pl=P(p), active=G.turn===p, hl=G.hands[p].length, d=G.dealer, over=!!G.over;
   let h;
@@ -794,14 +798,14 @@ function seatHtml(p,pos){
       }
       return cardHtml(c);
     }).join('')}</div>`;
-  }else if(d===HUM){
+  }else if(d===HUM&&(G.phase==='place'||OPT.seeHands)){
     h=`<div class="pchips">${G.hands[p].map(chipHtml).join('')}</div>`;
   }else{
     h=`<div class="backs">${Array.from({length:hl},()=>'<span class="back"></span>').join('')}</div>`;
   }
   const dv=d===HUM&&G.phase==='place'&&p!==d;
   const meta=`<div class="seat-meta">${p===d?'':`<span class="tag">prese <b>${G.st.n[p]}</b></span><span class="tag">carte <b>${hl}</b></span>`}${dv?handInfo(p):''}</div>`;
-  const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const name=`<div class="seat-name">${nmHtml(p)}${flagHtml(p)}</div>`;
   const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${h}`:(pos==='top'?`${h}${name}${meta}${tableauHtml(p)}`:`${name}${meta}${tableauHtml(p)}${h}`);
   const isW=G.win===p&&!over&&G.T.res;
   const ld=G.phase==='play'&&p!==d&&(G.turn>=0?G.T.leader:G.leader)===p&&!over;
@@ -854,7 +858,7 @@ function boardHtml(){
   const head=`<div></div>${CATS.map(c=>`<div class="bh" title="${esc(c.lab)}">${c.sh}<span class="st">${'★'.repeat(c.pts===4?4:c.pts===3?3:2)}</span></div>`).join('')}`;
   const rows=['A','B'].map(r=>{
     const s=seatOfRole(r);
-    return `<div class="brow"><span>${r}</span><span style="font-weight:500;font-size:10px">${esc(P(s).name)}</span></div>${KEYS.map((k,i)=>tileCell(r,k,i)).join('')}`;
+    return `<div class="brow"><span>${r}</span>${nmHtml(s)}</div>${KEYS.map((k,i)=>tileCell(r,k,i)).join('')}`;
   }).join('');
   let note;
   if(!G.tiles) note='Il mazziere sta per piazzare le 12 tessere: una previsione per ognuna delle 6 categorie sulle prese di A e di B.';
@@ -902,7 +906,8 @@ function tileForm(){
 }
 function dockHtml(){
   if(!G) return `<div class="dock-msg">10/12 Heart contro l'AI: si gioca in 4 (tu + 3 AI), 4 round.</div>
-    <div class="opts"><button class="opt" data-n="4">Inizia la partita (tu + 3 AI)</button></div>`;
+    <div class="opts"><button class="opt" data-n="4">Inizia la partita (tu + 3 AI)</button></div>
+    <label class="opt-toggle" style="padding-left:0" title="Di regola il mazziere vede le mani solo per piazzare le tessere; con questa opzione le vede anche durante le prese"><input type="checkbox" id="optSee" ${OPT.seeHands?'checked':''}> Quando sei il mazziere, vedi le mani anche durante le prese</label>`;
   if(G.over){
     const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
     return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}`;
@@ -1017,6 +1022,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(b.dataset.tile!==undefined) flipPick(b.dataset.tile);
 });
 document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optSee'){
+    OPT.seeHands=e.target.checked;
+    try{ localStorage.setItem('hh-seehands',OPT.seeHands?'1':'0'); }catch(err){}
+    render(); return;
+  }
   if(e.target.id!=='optUndo') return;
   OPT.undo=e.target.checked;
   try{ localStorage.setItem('hh-undo',OPT.undo?'1':'0'); }catch(err){}

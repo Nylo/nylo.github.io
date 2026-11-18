@@ -39,6 +39,7 @@
     '.topbar>.nylo-home,.topbar>[data-new]{display:none!important}' +
     '.menu-pop .nylo-nav{display:block;width:100%;padding:9px 10px;border:0;border-radius:6px;text-align:left;white-space:nowrap;font:500 13px Inter,system-ui,sans-serif;cursor:pointer;background:transparent;color:var(--text,inherit)}' +
     '.menu-pop .nylo-nav:hover{background:var(--accent-soft,rgba(255,255,255,.1))}' +
+    '.logbody b.nylo-me{font-weight:800;color:var(--text,inherit)}' +
     '.menu-pop .nylo-sep{height:1px;margin:2px 0;background:var(--border,rgba(255,255,255,.2))}' +
     // elenchi numerati del regolamento: senza padding (reset globale) i numeri finiscono sul bordo dell'accordion
     '.rtext ol,details.rules ol{padding-left:22px}' +
@@ -61,6 +62,44 @@
     Array.prototype.forEach.call(document.querySelectorAll('details'), function (d) {
       var k = accKey(d);
       if (k && Object.prototype.hasOwnProperty.call(ACC, k) && d.open !== ACC[k]) d.open = ACC[k];
+    });
+  }
+  // log della partita: il nome del giocatore collegato (quello salvato in nylo-player-name; per le partite contro l'AI è anche G.pl[0]) in grassetto.
+  // Si lavora sui nodi di testo già resi dalla pagina: nessuna modifica alle singole pagine di gioco.
+  var NB_RE = null, NB_NAME = null;
+  function myLogName() {
+    var n = '';
+    try { n = (localStorage.getItem('nylo-player-name') || '').trim(); } catch (e) {}
+    if (!n) { try { if (typeof G !== 'undefined' && G && G.pl && G.pl[0] && G.pl[0].name) n = String(G.pl[0].name).trim(); } catch (e) {} }
+    return n;
+  }
+  function boldLog() {
+    var lines = document.querySelectorAll('.logbody > div:not([data-nb])');
+    if (!lines.length) return;
+    var name = myLogName();
+    if (name !== NB_NAME) {
+      NB_NAME = name;
+      NB_RE = name ? new RegExp('(^|[^\\p{L}\\p{N}_])(' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')(?![\\p{L}\\p{N}_])', 'gu') : null;
+    }
+    Array.prototype.forEach.call(lines, function (div) {
+      div.setAttribute('data-nb', '1');
+      if (!NB_RE) return;
+      var walker = document.createTreeWalker(div, NodeFilter.SHOW_TEXT), nodes = [], t;
+      while ((t = walker.nextNode())) nodes.push(t);
+      nodes.forEach(function (node) {
+        var text = node.nodeValue; NB_RE.lastIndex = 0;
+        if (!NB_RE.test(text)) return;
+        NB_RE.lastIndex = 0;
+        var frag = document.createDocumentFragment(), last = 0, m;
+        while ((m = NB_RE.exec(text))) {
+          var start = m.index + m[1].length;
+          if (start > last) frag.appendChild(document.createTextNode(text.slice(last, start)));
+          var b = document.createElement('b'); b.className = 'nylo-me'; b.textContent = m[2]; frag.appendChild(b);
+          last = start + m[2].length;
+        }
+        if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+        node.parentNode.replaceChild(frag, node);
+      });
     });
   }
   var ov;
@@ -147,8 +186,8 @@
           }
         }
       };
-      updateGameMenu(); restoreAcc();
-      new MutationObserver(function () { updateGameMenu(); restoreAcc(); }).observe(document.body, { childList: true, subtree: true });
+      updateGameMenu(); restoreAcc(); boldLog();
+      new MutationObserver(function () { updateGameMenu(); restoreAcc(); boldLog(); }).observe(document.body, { childList: true, subtree: true });
       window.addEventListener('resize', updateGameMenu);
       document.addEventListener('keydown', function (e) {
         var label = e.target.closest && e.target.closest('.nylo-menu-action');
