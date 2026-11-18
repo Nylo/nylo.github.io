@@ -123,6 +123,22 @@ body.a11y .fc.k1,body.a11y .rchip.k1,body.a11y .pday.k1{background-image:repeati
 body.a11y .fc.k2,body.a11y .rchip.k2,body.a11y .pday.k2{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 body.a11y .fc.k3,body.a11y .rchip.k3,body.a11y .pday.k3{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.34) 0 3px,transparent 3px 8px)}
 
+/* modalità accessibile: al posto delle icone dei semi, simboli geometrici (Pesci ■, Gatti ⬢, Topi ✚, Uccelli ▬: forme diverse da quelle dei segnalini dei giocatori); gli stessi simboli compaiono nei testi (recap, regole, indicazioni) e sui dorsi degli avversari */
+:root{--y0:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3C/svg%3E");--y1:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpolygon points='12,1.5 21.1,6.75 21.1,17.25 12,22.5 2.9,17.25 2.9,6.75'/%3E%3C/svg%3E");--y2:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 2h6v7h7v6h-7v7H9v-7H2V9h7z'/%3E%3C/svg%3E");--y3:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='1' y='7.5' width='22' height='9' rx='2'/%3E%3C/svg%3E")}
+.sy{display:none}
+body.a11y .sy.only{display:inline-block;width:1em;height:1em;margin:0 .12em;vertical-align:-.12em;background:currentColor;-webkit-mask:center/contain no-repeat;mask:center/contain no-repeat}
+body.a11y .sy.y0{-webkit-mask-image:var(--y0);mask-image:var(--y0)}
+body.a11y .sy.y1{-webkit-mask-image:var(--y1);mask-image:var(--y1)}
+body.a11y .sy.y2{-webkit-mask-image:var(--y2);mask-image:var(--y2)}
+body.a11y .sy.y3{-webkit-mask-image:var(--y3);mask-image:var(--y3)}
+body.a11y i.ph-fish,body.a11y i.ph-cat,body.a11y i.ph-cheese,body.a11y i.ph-bird{display:none}
+.back{position:relative}
+body.a11y .back::after{content:'';position:absolute;left:50%;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;background:#fff;-webkit-mask:center/contain no-repeat;mask:center/contain no-repeat}
+body.a11y .back.k0::after{background:#10304a;-webkit-mask-image:var(--y0);mask-image:var(--y0)}
+body.a11y .back.k1::after{-webkit-mask-image:var(--y1);mask-image:var(--y1)}
+body.a11y .back.k2::after{-webkit-mask-image:var(--y2);mask-image:var(--y2)}
+body.a11y .back.k3::after{background:#2f3300;-webkit-mask-image:var(--y3);mask-image:var(--y3)}
+
 .recap{background:var(--surface);border:2px solid #2e1a14;border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
 .recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text-soft)}
 .recap-row{display:block;font-size:12px;line-height:1.7}
@@ -226,7 +242,8 @@ const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
 const NAMES = ['Tu','AI Felix','AI Luna','AI Tigro'];
 const SEATC = ['#f0594c','#c4966a','#f2c94c','#7da6e0'];
 const HUM = 0, ROUNDS = 4, TARGET = 9;
-const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+const SYI = {fish:0,cat:1,cheese:2,bird:3};
+const ico = n => `<i class="ph-fill ph-${n}"></i>${n in SYI?`<i class="sy only y${SYI[n]}"></i>`:''}`;
 function deckFor(n){ const d=[]; for(let s=(n===3?1:0);s<4;s++) for(let r=1;r<=9;r++) d.push({s,r}); return d; }
 
 // ═════════════════════════ UTILITÀ ═════════════════════════
@@ -591,7 +608,7 @@ function centerHtml(){
     return `<div class="tcell ${S.res===i?'win':''}">${take?`<button class="tcard" data-k="${key(e.c)}" title="Prendi ${cname(e.c)}">${f}</button>`:f}<span class="who" style="background:${SEATC[e.p]}">${esc(P(e.p).name.replace(/^AI /,''))}</span>${S.res===i?'vince':''}</div>`;
   });
   const lab=S.phase==='play'?`PRESA ${S.done+1}`:S.phase==='bet'?'PUNTATE':'FINE ROUND';
-  return `<div class="center"><span class="lbl2">${lab}${S.trick.length?` · SEME ${SUITS[S.trick[0].c.s].n.toUpperCase()}`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div><span class="lbl2">BRISCOLA: GATTI</span></div>`;
+  return `<div class="center"><span class="lbl2">${lab}${S.trick.length?` · SEME ${SUITS[S.trick[0].c.s].n.toUpperCase()}<i class="sy only y${S.trick[0].c.s}"></i>`:''}</span><div class="tr">${cells.join('')||'<span class="hint">—</span>'}</div><span class="lbl2">BRISCOLA: GATTI<i class="sy only y1"></i></span></div>`;
 }
 function rugHtml(){
   const S=G.S;
@@ -635,7 +652,7 @@ function dockHtml(){
     if(PR.sel!=null){ const c=G.S.hands[HUM].find(x=>key(x)===PR.sel); html+=`<div class="opts"><button class="opt" data-ok="1">Conferma: gioca ${cname(c)}</button><button class="opt" data-no="1">Annulla</button></div>`; }
     else{
       const S=G.S, b=S.bets[HUM];
-      html+=`<div class="hint">${S.trick.length?`Devi rispondere a ${SUITS[S.trick[0].c.s].n} se puoi.`:'Apri la presa con una carta qualsiasi.'} Hai puntato ${betName(b)} e finora hai vinto ${plu(S.t[HUM],'presa','prese')}.</div>`;
+      html+=`<div class="hint">${S.trick.length?`Devi rispondere a ${SUITS[S.trick[0].c.s].n}<i class="sy only y${S.trick[0].c.s}"></i> se puoi.`:'Apri la presa con una carta qualsiasi.'} Hai puntato ${betName(b)} e finora hai vinto ${plu(S.t[HUM],'presa','prese')}.</div>`;
     }
   }
   return html;
@@ -655,7 +672,7 @@ function recapHtml(){
   return `<details class="recap"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Carte</span>${SUITS.slice(n===3?1:0).map((s,i)=>`<span class="rchip k${i+(n===3?1:0)}">${ico(s.icon)} ${s.n}${s.n==='Gatti'?' (briscola)':''}</span>`).join('')}<span class="rv">${n===3?'27 carte':'36 carte'} · valori 1–9 · 9 carte a testa</span></div>
     <div class="recap-row"><span class="lbl">Puntata</span><span class="rv">scegli una puntata: 1 spazio (1/5, 2/6, 3/7, 4/8 = 4 punti) oppure 2 spazi adiacenti (1/2/5/6, 2/3/6/7, 3/4/7/8 = 2 punti). Due giocatori non possono fare la stessa puntata</span></div>
-    <div class="recap-row"><span class="lbl">Prese</span><span class="rv">obbligo di seme; vince il gatto più alto, altrimenti la carta più alta del seme d'apertura · chi vince porta in mano una delle altre carte della presa e scarta il resto · il round finisce quando qualcuno resta senza carte</span></div>
+    <div class="recap-row"><span class="lbl">Prese</span><span class="rv">obbligo di seme; vince il gatto<i class="sy only y1"></i> più alto, altrimenti la carta più alta del seme d'apertura · chi vince porta in mano una delle altre carte della presa e scarta il resto · il round finisce quando qualcuno resta senza carte</span></div>
     <div class="recap-row"><span class="lbl">Punteggio</span><span class="rv">segnalino sul tuo spazio: +4 (1 spazio) o +2 (2 spazi); altrimenti −1 per ogni spazio di distanza (il tappeto è circolare 4→1); mai sotto 0 · vince chi ha più punti</span></div></details>`;
 }
 const RULES_HTML = `
@@ -664,17 +681,17 @@ const RULES_HTML = `
 <h4>Obiettivo</h4>
 <p>«9 Lives» è un gioco di prese per 3–4 giocatori, circa 15 minuti. A ogni round scommetti quante prese riuscirai a vincere, ma attenzione: ogni vittoria rimette una carta in mano. Riuscirai a battere gli altri e a guadagnare le tue nove vite per primo?</p>
 <h4>Preparazione</h4>
-<ul><li>Il tappeto delle puntate e il segnapunti sono visibili a tutti; ogni giocatore ha un gatto e un segnalino (una forma diversa per ognuno: cerchio, triangolo, rombo, stella) per le prese, che parte sotto lo spazio 1.</li><li>Il primo giocatore è casuale. Si mescolano le carte e si danno 9 carte a testa. <b>Con 3 giocatori si tolgono i Pesci.</b></li></ul>
+<ul><li>Il tappeto delle puntate e il segnapunti sono visibili a tutti; ogni giocatore ha un gatto e un segnalino (una forma diversa per ognuno: cerchio, triangolo, rombo, stella) per le prese, che parte sotto lo spazio 1.</li><li>Il primo giocatore è casuale. Si mescolano le carte e si danno 9 carte a testa. <b>Con 3 giocatori si tolgono i Pesci<i class="sy only y0"></i>.</b></li></ul>
 <h4>Puntata</h4>
 <p>Dal primo giocatore in senso orario, ognuno punta quante prese vincerà mettendo il proprio gatto in orizzontale accanto a <b>un numero</b>, oppure in verticale a cavallo di <b>due numeri</b> del tappeto. Puoi metterlo a sinistra o a destra dei numeri; quando un gatto occupa un lato di un numero, nessun altro può mettersi dallo stesso lato di quel numero. Ogni spazio ha due numeri: se pensi di vincere 1 o 5 prese lo metti nello stesso posto (1/5, 2/6, 3/7, 4/8).</p>
 <h4>Le prese</h4>
-<p>Chi è di mano gioca una carta: il suo seme è il seme d'apertura. Gli altri, in senso orario, devono rispondere al seme se possono, altrimenti giocano qualsiasi carta. <b>I Gatti sono briscola</b>: se ne viene giocato uno, vince il Gatto più alto; altrimenti vince la carta più alta del seme d'apertura.</p>
+<p>Chi è di mano gioca una carta: il suo seme è il seme d'apertura. Gli altri, in senso orario, devono rispondere al seme se possono, altrimenti giocano qualsiasi carta. <b>I Gatti<i class="sy only y1"></i> sono briscola</b>: se ne viene giocato uno, vince il Gatto<i class="sy only y1"></i> più alto; altrimenti vince la carta più alta del seme d'apertura.</p>
 <p>Chi vince avanza il proprio segnalino di uno spazio sul tappeto (dopo il 4 si torna all'1), <b>prende in mano una carta della presa diversa da quella che ha giocato</b> e scarta le altre. Poi apre la presa successiva. Si continua finché un giocatore resta senza carte (9–12 prese circa).</p>
 <h4>Punteggio</h4>
 <ul><li>Gatto accanto a <b>uno spazio</b> e prese vinte pari a uno dei suoi due numeri: <b>4 punti</b>.</li><li>Gatto a cavallo di <b>due spazi</b> e prese vinte pari a uno dei numeri di quegli spazi: <b>2 punti</b>.</li><li>Altrimenti perdi <b>1 punto</b> per ogni spazio tra il tuo segnalino e il tuo gatto, ricordando che il tappeto è circolare (dal 4 si passa al 5, cioè all'1). Il punteggio non scende sotto zero.</li></ul>
 <h4>Round e fine partita</h4>
 <p>Il segnalino di primo giocatore passa in senso orario. Si giocano 4 round, o fino a quando qualcuno ha 9 punti o più. Vince chi ha più punti; non c'è spareggio (i pari merito vincono insieme).</p>
-<p><i>Interpretazioni nell'app:</i> la puntata si sceglie tra le 7 possibili (4 da un solo spazio, 3 da due spazi) e il lato del tappeto, a sinistra o a destra, è assegnato da solo (prima a sinistra); due giocatori non possono fare la stessa puntata, e una puntata a due spazi è disponibile solo se c'è ancora un lato libero per entrambi gli spazi. I semi sono Pesci (azzurro), Gatti (viola, briscola), Topi (rosa) e Uccelli (giallo-verde). Con 0 prese il cubetto è alla partenza e conta come mancato; la distanza è misurata sul tappeto circolare (la più corta tra «in meno» e «in più»). La carta che il vincitore prende è visibile a tutti. I dorsi delle carte hanno il colore del seme, quindi i semi delle mani avversarie sono visibili a tutti. Le AI non vedono i valori della tua mano: ragionano su mani plausibili (con i semi noti e le carte prese) e simulano il resto del round.</p>
+<p><i>Interpretazioni nell'app:</i> la puntata si sceglie tra le 7 possibili (4 da un solo spazio, 3 da due spazi) e il lato del tappeto, a sinistra o a destra, è assegnato da solo (prima a sinistra); due giocatori non possono fare la stessa puntata, e una puntata a due spazi è disponibile solo se c'è ancora un lato libero per entrambi gli spazi. I semi sono Pesci<i class="sy only y0"></i> (azzurro), Gatti<i class="sy only y1"></i> (viola, briscola), Topi<i class="sy only y2"></i> (rosa) e Uccelli<i class="sy only y3"></i> (giallo-verde). Con 0 prese il cubetto è alla partenza e conta come mancato; la distanza è misurata sul tappeto circolare (la più corta tra «in meno» e «in più»). La carta che il vincitore prende è visibile a tutti. I dorsi delle carte hanno il colore del seme, quindi i semi delle mani avversarie sono visibili a tutti. Le AI non vedono i valori della tua mano: ragionano su mani plausibili (con i semi noti e le carte prese) e simulano il resto del round.</p>
 </div></details>`;
 
 let LOGOPEN=false;
@@ -772,17 +789,17 @@ const RULES_HTML = `
 <h4>Obiettivo</h4>
 <p>«9 Lives» è un gioco di prese per 3–4 giocatori, circa 15 minuti. A ogni round scommetti quante prese riuscirai a vincere, ma attenzione: ogni vittoria rimette una carta in mano. Riuscirai a battere gli altri e a guadagnare le tue nove vite per primo?</p>
 <h4>Preparazione</h4>
-<ul><li>Il tappeto delle puntate e il segnapunti sono visibili a tutti; ogni giocatore ha un gatto e un segnalino (una forma diversa per ognuno: cerchio, triangolo, rombo, stella) per le prese, che parte sotto lo spazio 1.</li><li>Il primo giocatore è casuale. Si mescolano le carte e si danno 9 carte a testa. <b>Con 3 giocatori si tolgono i Pesci.</b></li></ul>
+<ul><li>Il tappeto delle puntate e il segnapunti sono visibili a tutti; ogni giocatore ha un gatto e un segnalino (una forma diversa per ognuno: cerchio, triangolo, rombo, stella) per le prese, che parte sotto lo spazio 1.</li><li>Il primo giocatore è casuale. Si mescolano le carte e si danno 9 carte a testa. <b>Con 3 giocatori si tolgono i Pesci<i class="sy only y0"></i>.</b></li></ul>
 <h4>Puntata</h4>
 <p>Dal primo giocatore in senso orario, ognuno punta quante prese vincerà mettendo il proprio gatto in orizzontale accanto a <b>un numero</b>, oppure in verticale a cavallo di <b>due numeri</b> del tappeto. Puoi metterlo a sinistra o a destra dei numeri; quando un gatto occupa un lato di un numero, nessun altro può mettersi dallo stesso lato di quel numero. Ogni spazio ha due numeri: se pensi di vincere 1 o 5 prese lo metti nello stesso posto (1/5, 2/6, 3/7, 4/8).</p>
 <h4>Le prese</h4>
-<p>Chi è di mano gioca una carta: il suo seme è il seme d'apertura. Gli altri, in senso orario, devono rispondere al seme se possono, altrimenti giocano qualsiasi carta. <b>I Gatti sono briscola</b>: se ne viene giocato uno, vince il Gatto più alto; altrimenti vince la carta più alta del seme d'apertura.</p>
+<p>Chi è di mano gioca una carta: il suo seme è il seme d'apertura. Gli altri, in senso orario, devono rispondere al seme se possono, altrimenti giocano qualsiasi carta. <b>I Gatti<i class="sy only y1"></i> sono briscola</b>: se ne viene giocato uno, vince il Gatto<i class="sy only y1"></i> più alto; altrimenti vince la carta più alta del seme d'apertura.</p>
 <p>Chi vince avanza il proprio segnalino di uno spazio sul tappeto (dopo il 4 si torna all'1), <b>prende in mano una carta della presa diversa da quella che ha giocato</b> e scarta le altre. Poi apre la presa successiva. Si continua finché un giocatore resta senza carte (9–12 prese circa).</p>
 <h4>Punteggio</h4>
 <ul><li>Gatto accanto a <b>uno spazio</b> e prese vinte pari a uno dei suoi due numeri: <b>4 punti</b>.</li><li>Gatto a cavallo di <b>due spazi</b> e prese vinte pari a uno dei numeri di quegli spazi: <b>2 punti</b>.</li><li>Altrimenti perdi <b>1 punto</b> per ogni spazio tra il tuo segnalino e il tuo gatto, ricordando che il tappeto è circolare (dal 4 si passa al 5, cioè all'1). Il punteggio non scende sotto zero.</li></ul>
 <h4>Round e fine partita</h4>
 <p>Il segnalino di primo giocatore passa in senso orario. Si giocano 4 round, o fino a quando qualcuno ha 9 punti o più. Vince chi ha più punti; non c'è spareggio (i pari merito vincono insieme).</p>
-<p><i>Interpretazioni nell'app:</i> la puntata si sceglie tra le 7 possibili (4 da un solo spazio, 3 da due spazi) e il lato del tappeto, a sinistra o a destra, è assegnato da solo (prima a sinistra); due giocatori non possono fare la stessa puntata, e una puntata a due spazi è disponibile solo se c'è ancora un lato libero per entrambi gli spazi. I semi sono Pesci (azzurro), Gatti (viola, briscola), Topi (rosa) e Uccelli (giallo-verde). Con 0 prese il cubetto è alla partenza e conta come mancato; la distanza è misurata sul tappeto circolare (la più corta tra «in meno» e «in più»). La carta che il vincitore prende è visibile a tutti. I dorsi delle carte hanno il colore del seme, quindi i semi delle mani avversarie sono visibili a tutti. Le AI non vedono i valori della tua mano: ragionano su mani plausibili (con i semi noti e le carte prese) e simulano il resto del round.</p>
+<p><i>Interpretazioni nell'app:</i> la puntata si sceglie tra le 7 possibili (4 da un solo spazio, 3 da due spazi) e il lato del tappeto, a sinistra o a destra, è assegnato da solo (prima a sinistra); due giocatori non possono fare la stessa puntata, e una puntata a due spazi è disponibile solo se c'è ancora un lato libero per entrambi gli spazi. I semi sono Pesci<i class="sy only y0"></i> (azzurro), Gatti<i class="sy only y1"></i> (viola, briscola), Topi<i class="sy only y2"></i> (rosa) e Uccelli<i class="sy only y3"></i> (giallo-verde). Con 0 prese il cubetto è alla partenza e conta come mancato; la distanza è misurata sul tappeto circolare (la più corta tra «in meno» e «in più»). La carta che il vincitore prende è visibile a tutti. I dorsi delle carte hanno il colore del seme, quindi i semi delle mani avversarie sono visibili a tutti. Le AI non vedono i valori della tua mano: ragionano su mani plausibili (con i semi noti e le carte prese) e simulano il resto del round.</p>
 </div></details>`;
 // ═════════════════════════ 9 LIVES · ONLINE ═════════════════════════
 var GAME={id:'9-lives',logo:'<span class="n9">9</span><span class="lv">Lives</span>',counts:[3,4],
@@ -792,7 +809,8 @@ var TR=1;                       // il seme dei gatti è briscola
 var POS={3:['bottom','left','right'],4:['bottom','left','top','right']};
 var SEATC=['#f0594c','#c4966a','#f2c94c','#7da6e0'];
 var ROUNDS=4,TARGET=9;
-var ico=function(n){return '<i class="ph-fill ph-'+n+'"></i>'};
+var SYI={fish:0,cat:1,cheese:2,bird:3};
+var ico=function(n){return '<i class="ph-fill ph-'+n+'"></i>'+(n in SYI?'<i class="sy only y'+SYI[n]+'"></i>':'')};
 var OPT={undo:true,a11y:false};
 try{var _s=localStorage.getItem('nl-undo');if(_s!==null)OPT.undo=_s==='1';OPT.a11y=localStorage.getItem('nl-a11y')==='1'}catch(e){}
 var ui={sel:null};
@@ -973,7 +991,7 @@ function centerHtml(){
       '<span class="who" style="background:'+SEATC[e.p]+'">'+esc(S.names[e.p].replace(/^AI /,''))+'</span>'+(S.res===i?'vince':'')+'</div>';
   });
   var lab=S.phase==='play'||S.phase==='take'?'PRESA '+(S.done+1):S.phase==='bet'?'PUNTATE':'FINE ROUND';
-  return '<div class="center"><span class="lbl2">'+lab+(S.trick.length?' · SEME '+SUITS[S.trick[0].c.s].n.toUpperCase():'')+'</span><div class="tr">'+(cells.join('')||'<span class="hint">—</span>')+'</div><span class="lbl2">BRISCOLA: GATTI</span></div>';
+  return '<div class="center"><span class="lbl2">'+lab+(S.trick.length?' · SEME '+SUITS[S.trick[0].c.s].n.toUpperCase()+'<i class="sy only y'+S.trick[0].c.s+'"></i>':'')+'</span><div class="tr">'+(cells.join('')||'<span class="hint">—</span>')+'</div><span class="lbl2">BRISCOLA: GATTI<i class="sy only y1"></i></span></div>';
 }
 function rugHtml(){
   var h='';
@@ -1037,7 +1055,7 @@ function dockHtml(){
     return msg+'<div class="hint">Hai vinto la presa: clicca una delle altre carte della presa per portarla in mano (le altre vengono scartate).</div>';
   }
   if(S.turn!==me){ui.sel=null;return msg+'<div class="hint">Tocca a '+esc(S.names[S.turn])+'.</div>'}
-  var h=msg+'<div class="hint">'+(S.trick.length?'Devi rispondere a '+SUITS[S.trick[0].c.s].n+' se puoi.':'Apri la presa con una carta qualsiasi.')+' Hai puntato '+betName(S.bets[me])+' e finora hai vinto '+plu(S.t[me],'presa','prese')+'.</div>';
+  var h=msg+'<div class="hint">'+(S.trick.length?'Devi rispondere a '+SUITS[S.trick[0].c.s].n+'<i class="sy only y'+S.trick[0].c.s+'"></i> se puoi.':'Apri la presa con una carta qualsiasi.')+' Hai puntato '+betName(S.bets[me])+' e finora hai vinto '+plu(S.t[me],'presa','prese')+'.</div>';
   if(ui.sel!==null){
     var c=S.hands[me].filter(function(x){return key(x)===ui.sel})[0];
     if(c)h+='<div class="opts"><button class="opt" data-ok="1">Conferma: gioca '+cname(c)+'</button><button class="opt" data-no="1">Annulla</button></div>';
@@ -1343,6 +1361,7 @@ if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosen
 .sx-opt{padding:10px 16px;border-radius:7px;border:1px solid var(--border);background:var(--surface-raised);color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;transition:border-color .12s,background .12s}
 .sx-opt:hover:not(:disabled){border-color:var(--accent)}
 .sx-opt.on{border-color:var(--accent);background:var(--accent);color:#fff;font-weight:600}
+.sx-opt.on:hover:not(:disabled){background:var(--accent);filter:brightness(1.1);border-color:var(--accent)}
 .sx-opt:disabled{opacity:.4;cursor:not-allowed}
 .sx-row .sx-opt{flex:1 1 0;min-width:0}
 .sx-go{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;margin-top:1rem}

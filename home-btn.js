@@ -163,7 +163,7 @@ var NYLO_DISCLAIMER = 'Questo gioco (o strumento di supporto), le sue idee, rego
         Array.prototype.forEach.call(document.querySelectorAll('.menu-pop .opt-toggle input#optA11y, .menu-pop .opt-toggle input#optUndo'), function (input) {
           var label = input.parentElement;
           var text = input.id === 'optA11y'
-            ? (input.checked ? 'Disattiva modalità accessibile' : 'Attiva modalità accessibile')
+            ? (input.checked ? 'Passa a modalità standard' : 'Passa a modalità accessibile')
             : (input.checked ? 'Disabilita annulla' : 'Abilita annulla');
           input.tabIndex = -1;
           input.setAttribute('aria-hidden', 'true');
