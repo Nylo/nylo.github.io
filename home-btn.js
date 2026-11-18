@@ -112,10 +112,10 @@ var NYLO_DISCLAIMER = 'Questo gioco (o strumento di supporto), le sue idee, rego
       });
     });
   }
-  // nota legale in fondo alla pagina, centrata (in coda al body, non sopra il gioco). Non compare nelle liste dei giochi, né nella home
+  // nota legale in fondo alla pagina, centrata (in coda al body, non sopra il gioco). Non compare nella home
   function addDisclaimer() {
     var path = location.pathname.replace(/index\.html$/, '');
-    if (!NYLO_DISCLAIMER || document.documentElement.hasAttribute('data-no-disclaimer') || path === '/' || path === '/tt/' || path === '/ntt/') return;
+    if (!NYLO_DISCLAIMER || document.documentElement.hasAttribute('data-no-disclaimer') || path === '/') return;
     if (document.querySelector('.nylo-disclaimer')) return;
     var d = document.createElement('footer');
     d.className = 'nylo-disclaimer'; d.textContent = NYLO_DISCLAIMER;
