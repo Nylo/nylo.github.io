@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agency</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Playfair+Display:wght@700&family=Libre+Baskerville:wght@700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#2b2c2c;
+  --surface:#f4efe6;
+  --surface-raised:#e7dfd0;
+  --accent:#98272a;
+  --accent-d:#5c1517;
+  --accent-soft:rgba(152,39,42,0.12);
+  --ink:#1d1d1d;
+  --text:#25211b;
+  --text-soft:#5d554a;
+  --danger:#b3261e;
+  --success:#1f7a3a;
+  --border:rgba(37,33,27,0.28);
+  --radius:12px;
+  --cw:44px; --ch:64px;
+  --red:#8a1c1c;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background-color:var(--bg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 2px,transparent 2px 14px),linear-gradient(180deg,#303131,#242525);background-attachment:fixed}
+.app{max-width:980px;margin:0 auto;padding:0 14px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{display:flex;flex-direction:column;flex:1;min-width:0}
+.plate{align-self:flex-start;display:inline-flex;flex-direction:column;background:#fbf8f2;border-radius:10px;padding:5px 14px 0;overflow:hidden;box-shadow:3px 3px 0 #000}
+.plate .by{font-family:'Playfair Display',serif;font-weight:700;font-size:11px;line-height:1.2;color:var(--accent)}
+.plate .nm1{display:block;font-family:'Anton',sans-serif;font-size:34px;line-height:1;letter-spacing:.05em;color:var(--accent);text-transform:uppercase}
+.plate .refl{display:block;height:.5em;font-size:34px;overflow:hidden;transform:scaleY(-1);margin-top:1px;line-height:1}
+.plate .refl span{display:block;margin-top:-.5em;font-family:'Anton',sans-serif;letter-spacing:.05em;color:#303232;text-transform:uppercase}
+.badge{background:var(--accent);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:800;white-space:nowrap}
+.btn{border-radius:8px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--ink);border:2px solid var(--ink)}
+.btn:hover{background:var(--surface-raised)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;width:34px;height:19px;flex:0 0 34px;margin:0;border:1px solid var(--border);border-radius:999px;background:#d8d0c0;cursor:pointer;transition:background .15s,border-color .15s}
+.opt-toggle input[type=checkbox]::before{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-soft);transition:transform .15s,background .15s}
+.opt-toggle input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.opt-toggle input[type=checkbox]:checked::before{transform:translateX(15px);background:#fff}
+.opt-toggle input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:8px;background:var(--surface);color:var(--ink);border:2px solid var(--ink);cursor:pointer}
+.hamb:hover{background:var(--surface-raised)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:260px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:4px 4px 0 #000}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:normal;line-height:1.35;text-align:left;width:100%}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+/* nel menu le voci sono azioni a testo (home-btn.js): l'interruttore stilizzato deve restare nascosto e non occupare spazio */
+.menu-pop .opt-toggle.nylo-menu-action input[type=checkbox]{position:absolute;width:1px;height:1px;flex:none;margin:0;border:0;opacity:0;pointer-events:none}
+.menu-pop button.opt-toggle{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--text);text-align:left;background:transparent;border:0;box-shadow:none;cursor:pointer}
+.flag{display:inline-block;margin-left:5px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:#fff;color:#16202a}
+.flag.lead{background:#ffd93d;color:#2a2000}
+.flag.win{background:#7fe0a8;color:#10301d}
+
+.log{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:4px 4px 0 #000;padding:10px 14px;margin-top:12px;margin-bottom:14px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:2px solid var(--ink);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:5px 5px 0 #000}
+.name-box h3{font-family:'Anton',sans-serif;font-weight:400;font-size:20px;letter-spacing:.04em;color:var(--accent)}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:8px;border:2px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:4px 4px 0 #000;padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.dock.tall{position:static}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.05em;line-height:1.3;color:var(--accent);text-transform:uppercase}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:var(--surface-raised);border:2px solid var(--ink);color:var(--ink);border-radius:8px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.12s;text-align:left;box-shadow:0 2px 0 var(--ink)}
+.opt:hover:not(:disabled){background:var(--accent);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.hint{font-size:12px;color:var(--text-soft);line-height:1.5}
+.hint b{color:var(--ink)}
+.stack{display:grid}.stack>*{grid-area:1/1}
+.scroll-x{overflow-x:auto;max-width:100%}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score tr.me td{background:var(--accent-soft)}
+table.score td.ok{font-weight:800;color:var(--success)}
+.bar{height:8px;border-radius:5px;background:rgba(0,0,0,.14);overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:var(--accent)}
+
+/* carte */
+.ic{width:1em;height:1em;display:inline-block;vertical-align:middle;flex:0 0 auto}
+.ac{width:var(--cw);height:var(--ch);border-radius:6px;border:1.5px solid #2a2a2a;box-shadow:0 2px 5px rgba(0,0,0,.45);position:relative;display:inline-block;overflow:hidden;flex-shrink:0;padding:0;font-family:'Libre Baskerville',serif;text-align:left;background-color:#f4f1ec;color:#161616}
+.ac.s0{background-image:conic-gradient(#dde2e5 25%,transparent 0 50%,#dde2e5 0 75%,transparent 0);background-size:12px 12px}
+.ac.s1{background-image:repeating-radial-gradient(circle at 50% 50%,#dde2e5 0 6px,#f6f8f9 6px 12px)}
+.ac.s2{background-image:repeating-linear-gradient(135deg,#dde2e5 0 6px,#f6f8f9 6px 12px)}
+.ac.s3{background-color:#f7efec;color:var(--red)}
+.ac .ix{position:absolute;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1}
+.ac .ix i{font-style:normal;font-weight:700;font-size:calc(var(--cw)*.3)}
+.ac .ix .ic{font-size:calc(var(--cw)*.24)}
+.ac .ix.t{top:calc(var(--ch)*.04);left:calc(var(--cw)*.07)}
+.ac .ix.b{bottom:calc(var(--ch)*.04);right:calc(var(--cw)*.07);transform:rotate(180deg)}
+.ac .pp{display:grid;grid-template-columns:repeat(2,auto);gap:1px}
+.ac .pp b{width:calc(var(--cw)*.075);height:calc(var(--cw)*.075);border-radius:50%;background:var(--red);display:block}
+.ac .big{position:absolute;left:50%;top:50%;font-size:calc(var(--cw)*.62);transform:translate(-50%,-50%);opacity:.92}
+.ac .cv{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-style:normal;font-weight:700;font-size:calc(var(--cw)*.3);color:#fff;text-shadow:0 0 2px #000,0 0 3px #000}
+.ac.s3 .cv{color:#fff}
+.ac.back,.ac.wall{background-color:#8c2b2b;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><path d='M0 .5H16M0 8.5H16M8 0V8M0 8V16M16 8V16' stroke='white' stroke-width='1' fill='none' opacity='.85'/></svg>");background-size:12px 12px;border-color:#f1ece0}
+.ac.back::after{content:'';position:absolute;left:50%;top:50%;width:62%;height:44%;transform:translate(-50%,-50%);background:#0d0d0d;border-radius:2px;background-image:radial-gradient(circle at 32% 50%,#fff 0 9%,transparent 10%),radial-gradient(circle at 68% 50%,#fff 0 9%,transparent 10%)}
+.ac.wall{background-color:#4a4a4a;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><path d='M0 .5H16M0 8.5H16M8 0V8M0 8V16M16 8V16' stroke='%23d7d2c6' stroke-width='1.200' fill='none'/></svg>");color:#fff}
+.ac.wall .wl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-90deg);font-style:normal;font-family:'Anton',sans-serif;letter-spacing:.12em;font-size:calc(var(--cw)*.3);background:#4a4a4a;padding:1px 4px;border-radius:2px;color:#fff}
+.ac.mini{--cw:54px;--ch:80px}
+.ac.fresh{box-shadow:0 0 0 3px #fff,0 0 0 5px #ffd93d,0 2px 6px rgba(0,0,0,.6)}
+.ac.win{box-shadow:0 0 0 3px #fff,0 0 0 5px #7fe0a8,0 2px 6px rgba(0,0,0,.6)}
+.ac.legal{box-shadow:0 0 0 2px #000,0 0 0 4px #ffd93d}
+.ac.dim{opacity:.5}
+.ac.blk{opacity:.5;filter:grayscale(.5)}
+.ac.sel{transform:translateY(-12px);box-shadow:0 0 0 2px #000,0 0 0 5px #ffd93d}
+button.ac{cursor:pointer;transition:transform .12s}
+button.ac:hover:not(:disabled){transform:translateY(-6px)}
+button.ac.sel:hover:not(:disabled){transform:translateY(-12px)}
+button.ac:disabled{cursor:default}
+body.a11y .ac.s0::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(0,0,0,.18) 0 2px,transparent 2px 7px)}
+.sw{display:inline-flex;flex-direction:column;align-items:flex-start}
+.sw+.sw{margin-left:calc(var(--cw)*-.32)}
+.ab{display:flex;gap:2px;height:5px;margin-top:2px;padding-left:2px}
+.ab i{display:block;width:calc(var(--cw)*.2);height:5px;border-radius:2px}
+.hrow{display:flex;align-items:flex-start;padding:16px 4px 4px;min-height:calc(var(--ch) + 40px)}
+
+/* tavolo di legno */
+.table{display:flex;flex-direction:column;gap:12px;background:linear-gradient(90deg,rgba(0,0,0,.05) 0 1px,transparent 1px 100%) 0 0/9px 100%,linear-gradient(180deg,#bb7d45,#a56a36 60%,#b27440);border:3px solid #4a2a10;border-radius:14px;box-shadow:inset 0 0 0 3px rgba(255,220,170,.35),4px 4px 0 #000;padding:14px;margin:0 0 14px;color:#2b1a08}
+.hold{background:rgba(0,0,0,.18);border-radius:10px;padding:8px 10px 6px;min-width:0}
+.hold.mine{background:rgba(255,255,255,.2)}
+.hh{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.hh .hc{margin-left:auto;font-weight:500;opacity:.9}
+.holds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.nm{display:inline-block;padding:2px 10px;border-radius:999px;color:#16202a;font-weight:700;border:1px solid rgba(0,0,0,0.4);background:var(--sc,#eee);text-shadow:none}
+.trick{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) minmax(0,1fr);grid-template-areas:". top ." "left center right" ". bottom .";gap:6px;align-items:center;justify-items:center;background:rgba(0,0,0,.22);border-radius:12px;padding:10px}
+.cell{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border-radius:10px;border:1px solid transparent;min-width:0}
+.cell.top{grid-area:top}.cell.left{grid-area:left}.cell.right{grid-area:right}.cell.bottom{grid-area:bottom}
+.cell.active{border:2px solid #ffd93d;background:rgba(255,217,61,.2);box-shadow:0 0 0 2px rgba(255,217,61,.45)}
+.cell.winner{border:2px solid #7fe0a8;background:rgba(127,224,168,.2)}
+.slot{display:inline-block;width:54px;height:80px;border:1px dashed rgba(255,255,255,0.55);border-radius:6px}
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;font-size:12px;line-height:1.45;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);min-width:0}
+.center b{color:#ffd93d}
+.rbox{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:#fff;color:var(--ink);font-weight:700;font-size:12px;border:2px solid var(--ink);text-shadow:none}
+.tag{background:rgba(0,0,0,0.35);border-radius:4px;padding:2px 6px;color:#fff;white-space:nowrap;font-size:11px;text-shadow:none}
+.tag b{color:#ffd93d}
+.tag.stt{background:#ffd93d;color:#2a2000}
+.scorebox{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:4px 4px 0 #000;padding:14px 16px;margin-bottom:14px}
+.scorebox h3{font-family:'Anton',sans-serif;font-weight:400;font-size:15px;letter-spacing:.05em;line-height:1.3;color:var(--accent);margin-bottom:8px;text-transform:uppercase}
+.acq{display:flex;flex-direction:column;gap:12px}
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:74px;font-size:11px;font-weight:700}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:5px;background:#fff;color:#161616;font-weight:800;font-size:11px;line-height:1;border:1.5px solid #2a2a2a}
+.nc.s3{color:var(--red);border-color:var(--red)}
+.nc.gone{opacity:.2;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px var(--accent)}
+.recap{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:4px 4px 0 #000;padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:700;color:var(--accent)}
+.recap-row .rv{color:var(--text-soft);margin-left:0 !important;margin-right:0}
+details.rules{background:var(--surface);border:2px solid var(--ink);border-radius:var(--radius);box-shadow:4px 4px 0 #000;padding:14px 16px}
+details.rules summary{cursor:pointer;font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.05em;line-height:1.3;color:var(--accent)}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.05em;line-height:1.3;color:var(--accent)}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Anton',sans-serif;font-weight:400;font-size:14px;letter-spacing:.04em;line-height:1.4;color:var(--accent);margin:16px 0 6px}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext ul,.rtext ol{padding-left:20px}
+.rtext b{color:var(--ink)}
+
+@media(max-width:700px){
+  .holds{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:600px){
+  .app{padding:0 12px 48px}
+  .plate .nm1,.plate .refl{font-size:26px}
+  :root{--cw:32px;--ch:47px}
+  .ac{border-radius:5px}
+  .ac.mini{--cw:42px;--ch:62px}
+  .ac .ix .ic{display:none}
+  .slot{width:42px;height:62px}
+  .table{padding:8px;gap:8px}
+  .hold{padding:6px 6px 4px}
+  .trick{padding:6px;gap:4px}
+  .cell{padding:3px}
+  .nm{padding:2px 7px;font-size:12px}
+  table.score td,table.score th{padding:5px 4px}
+}
+@media(max-width:380px){.topbar{gap:6px}.badge{padding:4px 9px}}
+</style>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#2b2c2c">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="/pwa.js" defer></script>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script src="/tt/shared/core.js"></script>
+<script>
+// ═════════════════════════ COSTANTI ═════════════════════════
+// 36 carte numerate 1–9 in 4 semi (Cappelli, Baffi, Valigette neri; Furgoni rossi = briscola) + 8 Muri.
+// 4 mani condivise: la mano k sta tra il giocatore k (estremo 0) e il giocatore k+1 (estremo 9); ogni giocatore può usare le sue due mani.
+const SU = [
+  {n:'Cappelli', n1:'Cappello'},
+  {n:'Baffi', n1:'Baffo'},
+  {n:'Valigette', n1:'Valigetta'},
+  {n:'Furgoni', n1:'Furgone'}
+];
+const TRUMP = 3;
+const ICON = [
+  '<path d="M2 15.500c0-2.200 4.500-3.500 10-3.500s10 1.300 10 3.500-4.500 3.500-10 3.500-10-1.300-10-3.500z"/><path d="M6.500 13c0-5.500 2.200-8.500 5.500-8.500s5.500 3 5.500 8.500c-1.500.8-3.500 1.200-5.500 1.200S8 13.800 6.500 13z"/><path d="M6.700 11.500c1.600.7 3.400 1 5.300 1s3.700-.3 5.300-1" fill="none" stroke="#fff" stroke-width="1.200" opacity=".7"/>',
+  '<path d="M12 11.500c-1.800-2-4.600-2.600-7.800-1.300C2.200 11 1.500 13 3 14.200c1.300 1 3 .4 4.500-.2 1.800-.7 3.200-.2 4.500 1 1.300-1.200 2.700-1.700 4.500-1 1.500.6 3.200 1.200 4.500.2 1.500-1.200.8-3.200-1.200-4-3.200-1.300-6-.7-7.800 1.300z"/>',
+  '<path d="M4 8h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><path d="M9 8V6.200a1.200 1.200 0 0 1 1.200-1.200h3.600A1.200 1.200 0 0 1 15 6.200V8" fill="none" stroke="currentColor" stroke-width="1.800"/><rect x="10.500" y="12" width="3" height="2.200" rx=".5" fill="#fff" opacity=".75"/>',
+  '<path d="M4.500 4h15a2.500 2.500 0 0 1 2.500 2.500V19a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.500A2.500 2.500 0 0 1 4.500 4z"/><path d="M12 9.500l-8-3.700V10l8 3.800L20 10V5.800z" fill="#fff" opacity=".7"/><circle cx="6" cy="16" r="1.700" fill="#fff" opacity=".85"/><circle cx="18" cy="16" r="1.700" fill="#fff" opacity=".85"/>'
+];
+const ico = (s,cls='') => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${ICON[s]}</svg>`;
+const NAMES = ['Tu','Nero','Socio','Grigio'];
+const SEATC = ['#f0c14b','#aab2ba','#ee8b7a','#8895a2'];
+const HUM = 0;
+const TARGET = 22;
+const teamOf = s => s%2;
+const TEAMN = t => t===0?`${NAMES[0]} e ${NAMES[2]}`:`${NAMES[1]} e ${NAMES[3]}`;
+const TEAMV = t => t===0?'la tua squadra':'la squadra avversaria';
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+let LOGOPEN=false, RULESOPEN=false, RECAPOPEN=false, MENUOPEN=false;
+const OPT = {undo:true, a11y:false, memo:false, long:false};
+try{ let s=localStorage.getItem('ag-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ag-a11y')==='1'; OPT.memo=localStorage.getItem('ag-memo')==='1'; OPT.long=localStorage.getItem('ag-long')==='1'; }catch(e){}
+const isAuto = s => s!==HUM||!!window.AG_AUTO;
+const randSeat = s => !!(window.AG_RAND&&window.AG_RAND.includes(s));      // solo per i test: gioca a caso
+const nameOf = s => P(s).name;
+const orderFrom = (l) => Array.from({length:4},(_,i)=>(l+i)%4);
+const plural = (n,a,b) => n===1?a:b;
+const S_ = ms => (window.AG_FAST||window.AG_NODELAY)?Promise.resolve():sleep(ms);
+const okAsk = (t,l) => isAuto(HUM)?Promise.resolve():ask(HUM,t,[{label:l,value:1}]);
+const cname = c => c.w?'Muro':`${SU[c.s].n1} ${c.v}`;
+const ptsOf = c => c.w?2:(c.s<TRUMP?(c.v===5?4:(c.v===3||c.v===7?2:0)):0);
+
+// ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
+// carte raggiungibili da un estremo della mano: dalla prima carta fino al primo Muro incluso (le carte giocate sono null)
+function accFrom(row,fromStart){
+  const r=[];
+  if(fromStart){ for(let i=0;i<10;i++){ const c=row[i]; if(!c) continue; r.push(i); if(c.w) break; } }
+  else{ for(let i=9;i>=0;i--){ const c=row[i]; if(!c) continue; r.push(i); if(c.w) break; } }
+  return r;
+}
+// il giocatore p usa la mano (p+3)%4 dal suo estremo 9 e la mano p dal suo estremo 0
+function accessible(hold,p){
+  const res=[], hL=(p+3)%4, hR=p;
+  for(const i of accFrom(hold[hL],false)) res.push({h:hL,i,c:hold[hL][i]});
+  for(const i of accFrom(hold[hR],true)) res.push({h:hR,i,c:hold[hR][i]});
+  return res;
+}
+// giocate legali. Apertura: una carta numerata (un Muro solo se non c'è altro). Poi: seme di apertura se ce l'hai (o briscola, o Muro);
+// se non lo hai, qualsiasi carta. Un solo Muro per presa; se un Muro ha aperto, la prima carta numerata fissa il seme.
+function legalAcc(acc,tr){
+  const As=acc.filter(a=>!a.c.w), Aw=acc.filter(a=>a.c.w);
+  if(tr.n===0) return As.length?As:Aw;
+  const wallOk=!tr.wall;
+  if(tr.lead<0) return As;
+  const fol=As.filter(a=>a.c.s===tr.lead);
+  if(fol.length) return fol.concat(tr.lead!==TRUMP?As.filter(a=>a.c.s===TRUMP):[],wallOk?Aw:[]);
+  return As.concat(wallOk?Aw:[]);
+}
+// vince la briscola più alta, altrimenti la carta più alta del seme di apertura (il primo seme fissato); i Muri non vincono
+function trickWinner(pl){
+  const first=pl.find(x=>!x.c.w); if(!first) return -1;
+  const lead=first.c.s; let best=-1,bk=-1;
+  pl.forEach((x,i)=>{ const c=x.c; if(c.w) return; const k=c.s===TRUMP?100+c.v:(c.s===lead?c.v:-1); if(k>bk){ bk=k; best=i; } });
+  return best;
+}
+const sumPts = pl => pl.reduce((t,x)=>t+ptsOf(x.c),0);
+
+// ═════════════════════════ IA ═════════════════════════
+// simulazione veloce: giocate casuali tra le legali fino a fine round
+function cloneHold(h){ return h.map(r=>r.slice()); }
+function simCompleteTrick(S,order,idx,pl,lead,wall){
+  for(let i=idx;i<4;i++){
+    const p=order[i], acc=accessible(S.hold,p);
+    if(!acc.length) return {end:true};
+    const leg=legalAcc(acc,{n:pl.length,lead,wall});
+    if(!leg.length) return {end:true};
+    const a=leg[rnd(leg.length)];
+    S.hold[a.h][a.i]=null; pl.push({s:p,c:a.c});
+    if(a.c.w) wall=true; else if(lead<0) lead=a.c.s;
+  }
+  const wi=trickWinner(pl), w=pl[wi].s; S.rp[teamOf(w)]+=sumPts(pl); S.last=teamOf(w); S.leader=w;
+  return {end:S.rp[teamOf(w)]>=TARGET};
+}
+function simRound(S){ for(let g=0;g<30;g++){ if(simCompleteTrick(S,orderFrom(S.leader),0,[],-1,false).end) break; } }
+function evalS(S,t){
+  const d=S.rp[t]-S.rp[1-t];
+  const w=d>0?1:(d<0?0:(S.last===t?1:(S.last<0?.5:0)));
+  return w*30+d;
+}
+// mani nascoste (le due che non vedo) compatibili con quello che so: carte non ancora uscite e non nelle mie mani
+function sampleHold(p){
+  const mine=new Set();
+  for(const h of [(p+3)%4,p]) for(const c of G.hold[h]) if(c&&!c.w) mine.add(c.u);
+  const pool=shuffle(G.deck.filter(c=>!G.played.has(c.u)&&!mine.has(c.u)));
+  const hold=cloneHold(G.hold); let k=0;
+  for(const h of [(p+1)%4,(p+2)%4]) for(let i=0;i<10;i++) if(hold[h][i]&&!hold[h][i].w) hold[h][i]=pool[k++];
+  return hold;
+}
+function aiPlay(p,legal){
+  if(legal.length===1) return legal[0];
+  if(randSeat(p)) return legal[rnd(legal.length)];
+  const order=orderFrom(G.leader), idx=order.indexOf(p), t=teamOf(p), tot=new Map(legal.map(a=>[a,0]));
+  const t0=performance.now(), lim=window.AG_FAST?10:90; let w=0;
+  while(w<6||(performance.now()-t0<lim&&w<300)){
+    const h0=sampleHold(p);
+    for(const a of legal){
+      const S={hold:cloneHold(h0),rp:G.rp.slice(),last:G.last,leader:G.leader};
+      S.hold[a.h][a.i]=null;
+      const pl=G.plays.map(x=>({s:x.s,c:x.c})); pl.push({s:p,c:a.c});
+      let lead=G.lead, wall=G.wallIn; if(a.c.w) wall=true; else if(lead<0) lead=a.c.s;
+      const r=simCompleteTrick(S,order,idx+1,pl,lead,wall);
+      if(!r.end) simRound(S);
+      tot.set(a,tot.get(a)+evalS(S,t));
+    }
+    w++;
+  }
+  let bc=null,bs=-Infinity;
+  for(const a of legal){ const v=tot.get(a)/w+Math.random()*0.002; if(v>bs){ bs=v; bc=a; } }
+  return bc;
+}
+
+// ═════════════════════════ STATO E ROUND ═════════════════════════
+function newMatch(n){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
+  G={n:4,R:OPT.long?3:2,rd:0,msg:'',log:[],over:null,show:null,phase:'',turn:-1,hold:[],undealt:[],deck:[],gp:[0,0],rp:[0,0],tw:[0,0],last:-1,
+     starter:0,leader:0,plays:[],lead:-1,wallIn:false,trick:0,res:null,fresh:-1,shown:null,endReason:'',played:new Set(),hist:[],
+     pl:Array.from({length:4},(_,i)=>({id:i,name:NAMES[i]}))};
+  run();
+}
+function dealRound(){
+  const deck=[]; for(let s=0;s<4;s++) for(let v=1;v<=9;v++) deck.push({u:s*10+v,s,v});
+  const d=shuffle(deck.slice());
+  G.deck=deck; G.hold=[];
+  for(let k=0;k<4;k++){
+    const cs=d.slice(k*8,(k+1)*8), w0={u:100+k*2,s:-1,v:0,w:true}, w1={u:101+k*2,s:-1,v:0,w:true};
+    G.hold.push([cs[0],cs[1],cs[2],w0,cs[3],cs[4],w1,cs[5],cs[6],cs[7]]);     // 3 carte, Muro, 2 carte, Muro, 3 carte
+  }
+  G.undealt=d.slice(32);
+  G.rp=[0,0]; G.tw=[0,0]; G.last=-1; G.played=new Set(); G.plays=[]; G.trick=0; G.res=null; G.fresh=-1; G.shown=null;
+  G.lead=-1; G.wallIn=false; G.endReason=''; G.show=null; G.turn=-1;
+  G.leader=G.starter; G.phase='play';
+}
+async function pickStarter(lt){
+  const seats=[lt,lt+2];
+  if(lt===0&&!isAuto(HUM)){
+    const v=await ask(HUM,'La tua squadra ha perso il round: chi apre la prima presa?',[{label:'Io',value:0},{label:`${NAMES[2]} (il tuo socio)`,value:2}]);
+    return v;
+  }
+  return seats[rnd(2)];
+}
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+function humanTurn(legal){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'turn',seat:HUM,legal:new Set(legal.map(a=>a.c.u)),list:legal,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function tapCard(u){
+  if(!PR||PR.type!=='turn'||!PR.legal.has(u)) return;
+  PR.sel=(PR.sel===u&&OPT.undo)?null:u;
+  if(!OPT.undo&&PR.sel!=null){ submitTurn(); return; }
+  render();
+}
+function submitTurn(){
+  if(!PR||PR.type!=='turn'||PR.sel==null) return;
+  const a=PR.list.find(x=>x.c.u===PR.sel), r=PR.res; PR=null; render(); r(a);
+}
+function clearSel(){ if(PR&&PR.sel!=null){ PR.sel=null; render(); } }
+
+// ═════════════════════════ SVOLGIMENTO ═════════════════════════
+function endRound(reason){
+  G.endReason=reason; G.turn=-1;
+  if(G.plays.length){ logMsg(`${reason} La presa in corso viene scartata.`); G.plays=[]; G.lead=-1; G.wallIn=false; }
+  else logMsg(reason);
+  status(reason);
+  return true;
+}
+async function oneTrick(){
+  const g=G; g.trick++; g.plays=[]; g.res=null; g.shown=null; g.fresh=-1; g.lead=-1; g.wallIn=false;
+  const order=orderFrom(g.leader);
+  for(let i=0;i<4;i++){
+    const p=order[i]; g.turn=p;
+    const acc=accessible(g.hold,p);
+    if(!acc.length) return endRound(`${nameOf(p)} non ha più carte nelle sue due mani: il round finisce.`);
+    const legal=legalAcc(acc,{n:g.plays.length,lead:g.lead,wall:g.wallIn});
+    if(!legal.length) return endRound(`${nameOf(p)} non ha giocate legali (solo Muri, ma nella presa ce n'è già uno): il round finisce.`);
+    let a;
+    if(isAuto(p)){ status(`${nameOf(p)} sceglie la carta…`); await S_(i===0?650:450); a=aiPlay(p,legal); }
+    else a=await humanTurn(legal);
+    g.hold[a.h][a.i]=null; g.played.add(a.c.u);
+    if(a.c.w) g.wallIn=true; else if(g.lead<0) g.lead=a.c.s;
+    g.plays.push({s:p,c:a.c}); g.fresh=p;
+    const t=a.c.w?`${nameOf(p)} gioca un Muro${i===0?' per aprire':''}.`:i===0?`${nameOf(p)} apre con ${cname(a.c)}.`:(g.plays.length>1&&g.plays.filter(x=>!x.c.w).length===1)?`${nameOf(p)} fissa il seme con ${cname(a.c)}.`:`${nameOf(p)} gioca ${cname(a.c)}.`;
+    logMsg(t); status(t);
+    await S_(450);
+  }
+  g.turn=-1;
+  const wi=trickWinner(g.plays), w=g.plays[wi].s, pts=sumPts(g.plays), tm=teamOf(w);
+  g.rp[tm]+=pts; g.tw[tm]++; g.last=tm; g.leader=w;
+  g.res={w,pts}; g.shown=g.plays.slice();
+  const t=`Presa ${g.trick}: vince ${nameOf(w)} con ${cname(g.plays[wi].c)} e porta ${pts} ${plural(pts,'punto','punti')} a ${TEAMN(tm)} (${g.rp[tm]}/${TARGET}).`;
+  logMsg(t); status(t);
+  await S_(1900);
+  g.shown=null; g.plays=[]; g.res=null; g.fresh=-1; g.lead=-1; g.wallIn=false;
+  if(g.rp[tm]>=TARGET){ g.endReason=`${TEAMN(tm)} raggiunge ${TARGET} punti: il round finisce.`; logMsg(g.endReason); return true; }
+  return false;
+}
+async function roundEnd(){
+  const g=G, d=g.rp[0]-g.rp[1];
+  const wt=d>0?0:(d<0?1:(g.last>=0?g.last:rnd(2)));
+  g.gp[wt]++; g.hist.push({rp:g.rp.slice(),w:wt}); g.lostTeam=1-wt;
+  logMsg(`Round ${g.rd} concluso: ${g.rp[0]} a ${g.rp[1]}${d===0?` (parità: vince chi ha preso l'ultima presa)`:''}. Punto partita a ${TEAMN(wt)}. Punti partita: ${g.gp[0]}–${g.gp[1]}.`);
+  const last=g.gp[wt]>=g.R;
+  g.show={rp:g.rp.slice(),wt,tie:d===0,reason:g.endReason,last}; g.phase='end'; g.turn=-1;
+  status(last?`Round ${g.rd} concluso: la partita è decisa.`:`Round ${g.rd} concluso.`);
+  await okAsk(`Fine del round ${g.rd}`,last?'Mostra il risultato finale':'Prossimo round');
+  g.show=null;
+  return last;
+}
+async function run(rs){
+  const g=G;
+  try{
+    let res=!!rs, fin=false;
+    while(!fin){
+      if(res){ res=false; status(`Partita ripresa: round ${g.rd}, presa ${g.trick+1}.`); }
+      else{
+        g.rd++; g.starter=g.rd===1?rnd(4):await pickStarter(g.lostTeam); dealRound(); ckpt();
+        logMsg(`— Round ${g.rd} —`);
+        const hello=g.rd===1?`Buona partita ad Agency, ${P(HUM).name}!¶`:'';
+        status(`${hello}Round ${g.rd}: apre ${nameOf(g.starter)}. Non hai una mano tua: usi le due mani condivise con i tuoi avversari, e le carte nascoste le conosce solo chi le vede.`);
+        await okAsk(`Round ${g.rd} · apre ${nameOf(g.starter)}`,'Ok, si parte');
+      }
+      let end=false;
+      while(!end){ ckpt(); end=await oneTrick(); }
+      fin=await roundEnd();
+    }
+    NYLO_CK=null;
+    g.over={team:g.gp[0]>g.gp[1]?0:1};
+    g.turn=-1; g.show=null; g.phase='over'; render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+function faceHtml(c,cls='',tag='span',attrs=''){
+  if(c.w) return `<${tag} class="ac wall ${cls}" ${attrs} title="Muro"><i class="wl">MURO</i></${tag}>`;
+  const dots=ptsOf(c)/2, pips=dots?`<span class="pp">${'<b></b>'.repeat(dots)}</span>`:'';
+  const ix=`<i>${c.v}</i>${pips}${ico(c.s)}`;
+  return `<${tag} class="ac s${c.s} ${cls}" ${attrs} title="${esc(cname(c))}${ptsOf(c)?` · ${ptsOf(c)} punti`:''}"><span class="ix t">${ix}</span><span class="ix b">${ix}</span>${ico(c.s,'big')}<i class="cv">${c.v}</i></${tag}>`;
+}
+const chipN = (c,cls='') => `<span class="nc s${c.s} ${cls}" title="${esc(cname(c))}">${c.v}</span>`;
+function seatChip(s){ return `<span class="nm" style="--sc:${SEATC[s]}">${esc(nameOf(s))}</span>`; }
+function holderHtml(k,mine){
+  const row=G.hold[k], a=k, b=(k+1)%4;           // a: estremo 0, b: estremo 9
+  const sa=new Set(accFrom(row,true)), sb=new Set(accFrom(row,false));
+  const idxs=[...Array(10).keys()]; if(mine) idxs.reverse();      // le mie mani: il mio estremo verso il centro, quello dell'avversario verso il suo lato
+  const left=mine?b:a, right=mine?a:b;
+  const myTurn=PR&&PR.type==='turn';
+  let cells='', cards=0, walls=0;
+  for(const i of idxs){
+    const c=row[i]; if(!c) continue;
+    if(c.w) walls++; else cards++;
+    const bars=`<span class="ab"><i style="background:${sa.has(i)?SEATC[a]:'transparent'}"></i><i style="background:${sb.has(i)?SEATC[b]:'transparent'}"></i></span>`;
+    let face;
+    if(c.w&&!(mine&&myTurn&&PR.legal.has(c.u))) face=faceHtml(c);
+    else if(mine){
+      const meSet=a===HUM?sa:sb, acc=meSet.has(i);
+      if(myTurn){ const lg=PR.legal.has(c.u); face=faceHtml(c,`${lg?'legal':(acc?'dim':'blk')} ${PR.sel===c.u?'sel':''}`,'button',`${lg?'':'disabled'} data-t="${c.u}"`); }
+      else face=faceHtml(c,acc?'':'blk');
+    }else face='<span class="ac back"></span>';
+    cells+=`<span class="sw">${face}${bars}</span>`;
+  }
+  return `<div class="hold ${mine?'mine':''}"><div class="hh">${seatChip(left)} ⇄ ${seatChip(right)}<span class="hc">${cards} ${plural(cards,'carta','carte')} · ${walls} ${plural(walls,'muro','muri')}</span></div><div class="hrow">${cells}</div></div>`;
+}
+function cellHtml(s,pos){
+  const src=G.shown||G.plays, x=src.find(y=>y.s===s), r=G.res&&G.shown?G.res:null;
+  let inner;
+  if(x) inner=faceHtml(x.c,`mini ${r&&r.w===s?'win':''} ${G.fresh===s&&!r?'fresh':''}`);
+  else inner=G.phase==='play'?'<span class="slot"></span>':'<span class="slot" style="visibility:hidden"></span>';
+  const act=G.turn===s&&!G.over, wn=r&&r.w===s;
+  const fl=(G.phase==='play'&&G.starter===s&&G.trick<=1&&!G.plays.length&&!G.shown)?'<span class="flag first">Primo giocatore</span>':((G.phase==='play'&&G.leader===s&&!G.plays.length&&!G.shown)?'<span class="flag lead">Leader</span>':'');
+  return `<div class="cell ${pos} ${act?'active':''} ${wn&&!G.over?'winner':''}">${seatChip(s)}${fl}${inner}</div>`;
+}
+function trickNow(){
+  const pl=G.plays; if(!pl.some(x=>!x.c.w)) return null;
+  const wi=trickWinner(pl); return {w:pl[wi].s,pts:sumPts(pl)};
+}
+function centerHtml(){
+  let top='';
+  if(G.over) top='<div><b>Partita conclusa</b></div>';
+  else if(G.res&&G.shown) top=`<div>Presa a <b>${esc(nameOf(G.res.w))}</b><br>${G.res.pts} ${plural(G.res.pts,'punto','punti')}</div>`;
+  const lead=G.lead>=0&&!G.shown?`<span class="tag">Seme: <b>${SU[G.lead].n}</b></span>`:(G.wallIn&&!G.shown&&G.lead<0?'<span class="tag">Aperta con un <b>Muro</b>: la prossima carta fissa il seme</span>':'');
+  const tn=!G.shown?trickNow():null;
+  return `<div class="center">${top}<span class="rbox">Round ${G.rd||1}</span>${lead}
+    <div>${G.phase==='play'&&G.trick?`Presa <b>${G.trick}</b>`:''}</div>${tn?`<div class="hint" style="color:#fff">Ora vince <b>${esc(nameOf(tn.w))}</b> · ${tn.pts} pt in palio</div>`:''}</div>`;
+}
+function scoreBox(){
+  const g=G, row=t=>`<tr class="${t===0?'me':''}"><td>${esc(TEAMN(t))}</td><td><b>${g.rp[t]}</b>/${TARGET}<div class="bar"><i style="width:${Math.min(100,100*g.rp[t]/TARGET)}%"></i></div></td><td>${g.tw[t]}</td><td><b>${g.gp[t]}</b>/${g.R}</td></tr>`;
+  return `<div class="scroll-x"><table class="score"><tr><th>Squadra</th><th>Punti del round</th><th>Prese</th><th>Punti partita</th></tr>${row(0)}${row(1)}</table></div>
+    <div class="hint" style="margin-top:6px">Il round finisce a ${TARGET} punti (su 40 possibili: 3, 5 e 7 neri valgono 2/4/2, i Muri 2, i Furgoni 0) o quando qualcuno resta senza carte o senza giocate legali. Le strisce colorate sotto le carte indicano chi può giocarle adesso.</div>`;
+}
+function memoHtml(){
+  const mine=new Set(); for(const h of [3,0]) for(const c of G.hold[h]) if(c&&!c.w) mine.add(c.u);
+  const rows=[0,1,2,3].map(s=>`<div class="ur"><span class="l">${SU[s].n}</span>${G.deck.filter(c=>c.s===s).map(c=>chipN(c,`${G.played.has(c.u)?'gone':''} ${mine.has(c.u)?'own':''}`)).join('')}</div>`).join('');
+  return `<div class="scorebox"><h3>Carte uscite (sbarrate) · nelle tue mani (contorno)</h3><div class="unseen">${rows}</div></div>`;
+}
+function histTable(){
+  const rows=G.hist.map((h,i)=>`<tr><td>Round ${i+1}</td><td>${h.rp[0]}</td><td>${h.rp[1]}</td><td>${esc(TEAMN(h.w))}</td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th></th><th>${esc(TEAMN(0))}</th><th>${esc(TEAMN(1))}</th><th>Punto a</th></tr>${rows}</table></div>`;
+}
+function previewText(c){
+  const pl=G.plays; let t=`<b>${esc(cname(c))}</b>${ptsOf(c)?` (${ptsOf(c)} ${plural(ptsOf(c),'punto','punti')})`:''} · `;
+  if(!pl.length) t+=c.w?`apri con un Muro: il prossimo giocatore fisserà il seme.`:`apri la presa: gli altri dovranno rispondere ${SU[c.s].n} (o giocare un Furgone o un Muro).`;
+  else if(c.w) t+=`un Muro non può vincere, ma porta 2 punti a chi vince la presa.`;
+  else{
+    const lead=G.lead>=0?G.lead:c.s, wl=pl.concat([{s:HUM,c}]), wi=trickWinner(wl);
+    const sets=G.lead<0;
+    t+=sets?`fissi tu il seme: ${SU[c.s].n}.`:(c.s===G.lead?`rispondi al seme ${SU[c.s].n}.`:(c.s===TRUMP?'giochi briscola (Furgone).':`non rispondi al seme: la carta non può vincere.`));
+    const w=wl[wi].s;
+    t+=` Con questa carta, per ora, vincerebbe ${esc(nameOf(w))} (${sumPts(wl)} pt in palio).`;
+  }
+  return t;
+}
+function turnHint(){
+  const pl=G.plays, acc=accessible(G.hold,HUM), n=acc.filter(a=>!a.c.w).length;
+  let t;
+  if(!pl.length) t=`<b>Apri tu la presa.</b> Puoi giocare le carte evidenziate (quelle raggiungibili: dalla prima fino al primo Muro di ciascuna mano). Un Muro non si può aprire se hai altro.`;
+  else if(G.lead<0) t=`<b>Un Muro ha aperto:</b> la carta numerata che giochi ora fissa il seme della presa.`;
+  else{
+    const has=acc.some(a=>!a.c.w&&a.c.s===G.lead);
+    t=has?`<b>Devi rispondere con ${SU[G.lead].n}</b>, oppure giocare un Furgone (briscola)${G.wallIn?'':' o un Muro'}.`:`<b>Non hai ${SU[G.lead].n} a portata:</b> puoi giocare qualsiasi carta${G.wallIn?'':' (anche un Muro)'}; senza briscola non vincerai la presa.`;
+  }
+  const tn=trickNow(); if(tn) t+=` Ora vince ${esc(nameOf(tn.w))} (${tn.pts} pt in palio).`;
+  return t;
+}
+function showHtml(){
+  const s=G.show;
+  const rows=[0,1].map(t=>`<tr class="${t===0?'me':''}"><td>${esc(TEAMN(t))}</td><td class="${s.wt===t?'ok':''}"><b>${s.rp[t]}</b></td><td>${s.wt===t?'1 punto partita':''}</td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Squadra</th><th>Punti</th><th></th></tr>${rows}</table></div><div class="hint">${esc(s.reason||'')}${s.tie?' Parità di punti: il punto partita va a chi ha preso l\'ultima presa.':''}</div>`;
+}
+function dockHtml(){
+  if(!G) return `<div class="dock-msg">Agency contro l'AI (di Daniel Newman). Giochi in squadra con il Socio di fronte a te, ma nessuno ha una mano propria: ogni coppia di vicini condivide un portacarte, e i Muri nascondono parte delle carte finché non vengono giocati.</div>
+    <div class="dock-title">Una partita a quattro</div>
+    <div class="opts"><button class="opt" data-m="4">Gioca: tu e il Socio contro Nero e Grigio</button></div>
+    <div class="hint">Si vince con ${OPT.long?3:2} punti partita (cambiabile dal menu).</div>`;
+  if(G.over){
+    const t=G.over.team;
+    return `<div class="dock-msg"><b>Vince ${esc(TEAMN(t))}${t===0?' (la tua squadra)':''}!</b> ${G.gp[0]}–${G.gp[1]} nei punti partita.</div>${histTable()}`;
+  }
+  let html=`<div class="dock-msg">${esc(G.msg).split('¶').join('<br>')}</div>`;
+  if(G.show) html+=`<div class="acq">${showHtml()}</div>`;
+  if(PR&&PR.type==='choose'){
+    html+=`<div class="dock-title">${esc(PR.title)}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='turn'){
+    const hand=PR.list.map(a=>a.c);
+    const PHS=()=>hand.map(x=>`<div class="hint" style="visibility:hidden" aria-hidden="true">${previewText(x)}</div>`).join('');
+    html+=`<div class="hint">${turnHint()}</div>`;
+    const c=PR.sel!=null?hand.find(x=>x.u===PR.sel):null;
+    if(c) html+=`<div class="stack"><div class="hint">${previewText(c)}</div>${PHS()}</div><div class="opts"><button class="opt" data-go="play">${esc('Gioca '+cname(c))}</button><button class="opt" data-go="x">Annulla</button></div>`;
+    else if(OPT.undo) html+=`<div class="stack"><div class="hint">Tocca una carta evidenziata per vedere l'anteprima.</div>${PHS()}</div><div class="opts"><button class="opt" disabled>Gioca</button><button class="opt" disabled>Annulla</button></div>`;
+  }
+  return html;
+}
+function recapHtml(){
+  return `<details class="recap" ${RECAPOPEN?'open':''}><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Squadre</span><span class="rv">tu e il Socio (di fronte) contro Nero e Grigio · le mani sono 4, condivise tra vicini (avversari)</span></div>
+    <div class="recap-row"><span class="lbl">Carte</span><span class="rv">36 numerate (1–9 in Cappelli, Baffi, Valigette neri e Furgoni rossi = briscola) + 8 Muri · 8 carte e 2 Muri per mano, 4 carte restano fuori</span></div>
+    <div class="recap-row"><span class="lbl">Accesso</span><span class="rv">giochi dalle tue due mani, dalla prima carta fino al primo Muro incluso · giocato un Muro, si sbloccano le carte dietro</span></div>
+    <div class="recap-row"><span class="lbl">Obbligo</span><span class="rv">rispondi al seme se puoi, oppure briscola o Muro (un Muro per presa, mai in apertura se hai altro) · senza il seme: carta libera</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv">vince la briscola più alta, altrimenti la carta più alta del seme · i Muri non vincono</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv">3 e 7 neri: 2 · 5 neri: 4 · Muri: 2 · Furgoni: 0 · il round finisce a ${TARGET} punti o se qualcuno resta senza carte o giocate legali</span></div>
+    <div class="recap-row"><span class="lbl">Vince</span><span class="rv">la squadra con ${G.R} punti partita (1 a round; a parità di punti: chi ha l'ultima presa)</span></div></details>`;
+}
+const RULES_HTML = () => `
+<details class="rules" ${RULESOPEN?'open':''}><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Che gioco è</h4>
+<p><i>Agency</i> (di Daniel Newman) è un gioco di prese <b>a coppie per 4 giocatori</b>: l'Agenzia ha incaricato te e il tuo socio di infiltrarvi nelle controparti straniere, ma l'altra organizzazione ha avuto la stessa idea. Non hai una mano tua: condividi le carte con gli avversari alla tua sinistra e alla tua destra, il socio siede di fronte a te. È un gioco a <b>prese a punti</b>: contano solo alcune carte.</p>
+<h4>Carte e punti</h4>
+<ul><li><b>44 carte:</b> 36 numerate da 1 a 9 in quattro semi (Cappelli, Baffi, Valigette, Furgoni) e 8 <b>Muri</b>. Il Furgone (rosso) è la <b>briscola</b>: si può giocare in qualsiasi momento e aprire senza che sia stata «rotta».</li>
+<li>Nei semi neri, i <b>3 e i 7 valgono 2 punti</b> e i <b>5 valgono 4</b> (lo dicono i puntini rossi sulla carta). I Furgoni non valgono nulla. Ogni <b>Muro vale 2 punti</b> per chi vince la presa. In totale sono 40 punti.</li>
+<li>I Muri non hanno numero, non vincono mai una presa e servono a separare le carte condivise.</li></ul>
+<h4>Preparazione</h4>
+<p>Si mescolano le 36 carte numerate e se ne danno 8 coperte a ogni giocatore (4 restano fuori). Ogni giocatore mette le sue carte, <b>senza riordinarle</b>, nel portacarte alla propria sinistra, inserendo i Muri così: 3 carte, Muro, 2 carte, Muro, 3 carte. Ogni portacarte è quindi condiviso da due vicini, che lo vedono da lati opposti; gli altri due giocatori non ne vedono le carte (tranne quando vengono giocate). Il primo giocatore è a caso.</p>
+<h4>Come si gioca</h4>
+<ul><li>Nel tuo turno puoi giocare una carta da una qualsiasi delle <b>due mani che usi</b>, ma solo <b>dal tuo estremo fino al primo Muro incluso</b>. Quando un Muro viene giocato (da chiunque) si sbloccano le carte che bloccava. Se i due Muri di una mano sono stati giocati, entrambi i giocatori hanno accesso a tutta la mano.</li>
+<li><b>Obbligo:</b> quando si apre un seme puoi rispondere con quel seme, oppure giocare una <b>briscola</b>, oppure un <b>Muro</b>; se non hai il seme richiesto puoi giocare qualsiasi carta.</li>
+<li>Un <b>Muro</b> si può giocare in qualsiasi momento, purché nella presa non ce ne sia già uno, ma non si può aprire con un Muro se si ha altro. Se si apre con un Muro, la carta del giocatore dopo fissa il seme.</li>
+<li>Vince la presa la <b>briscola più alta</b> giocata, altrimenti la carta più alta del seme di apertura. Chi vince apre la presa successiva (i punti della presa vanno alla sua squadra).</li></ul>
+<h4>Fine del round e della partita</h4>
+<ul><li>Il round finisce quando una squadra raccoglie <b>22 punti</b>, oppure quando un giocatore non ha più carte in nessuna delle due mani o non ha giocate legali (se succede a metà presa, la presa si scarta). Una giocata non legale è dover giocare un Muro quando nella presa ce n'è già uno.</li>
+<li>Chi ha più punti vince il round e prende <b>1 punto partita</b> (a parità vince chi ha preso l'ultima presa). Nel round dopo si rimescola tutto e <b>la squadra che ha perso</b> sceglie chi apre la prima presa.</li>
+<li>Si gioca fino a <b>2 punti partita</b> (3 per una partita più lunga).</li></ul>
+<h4>Come l'ho interpretato nell'app</h4>
+<ul><li><b>Mani e visibilità:</b> vedi a faccia in su le due mani che usi (con un tratto sotto ogni carta: chi può giocarla adesso). Le altre due mani le vedi coperte: le conoscono solo i loro due giocatori; anche il Socio vede le sue.</li>
+<li><b>Seme mancante:</b> se tra le carte a portata non hai il seme richiesto puoi giocare qualsiasi carta; se hai il seme devi rispondere o giocare briscola o Muro.</li>
+<li><b>Chi apre:</b> il primo round un giocatore a caso; poi sceglie la squadra che ha perso (le AI a caso).</li>
+<li>Le AI simulano molte continuazioni possibili del round (con le mani nascoste estratte a caso tra le carte non ancora uscite): non vedono le tue due mani se non per quello che si è già giocato, come vale per un giocatore umano. Nel menu: «Abilita annulla», «Modalità accessibile», «Mostra le carte uscite» e «Partita lunga».</li></ul>
+</div></details>`;
+
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma prima di giocare una carta"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge un pattern ai Cappelli per distinguerli dagli altri semi neri"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
+      <label class="opt-toggle" title="Mostra le carte già uscite e quelle nelle tue mani"><input type="checkbox" id="optMemo" ${OPT.memo?'checked':''}> Mostra le carte uscite</label>
+      <label class="opt-toggle" title="Si gioca a 3 punti partita invece di 2 (vale dalla prossima partita)"><input type="checkbox" id="optLong" ${OPT.long?'checked':''}> Partita lunga (3 punti partita)</label>
+    </div>`:''}</div>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{
+  if(!e.target.matches) return;
+  if(e.target.matches('details.log')) LOGOPEN=e.target.open;
+  else if(e.target.matches('details.rules')) RULESOPEN=e.target.open;
+  else if(e.target.matches('details.recap')) RECAPOPEN=e.target.open;
+},true);
+let LASTTALL=false;
+function render(){
+  document.body.classList.toggle('a11y',!!OPT.a11y);
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo"><span class="plate"><span class="by">Daniel Newman’s</span><span class="nm1">Agency</span><span class="refl"><span>Agency</span></span></span></div>
+    ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
+    ${G&&!G.over&&G.rd?`<span class="badge">Round ${G.rd}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    const ready=G.hold.length>0;
+    body=`${ready?`<div class="table">
+        <div class="holds">${holderHtml(1,false)}${holderHtml(2,false)}</div>
+        <div class="trick">${cellHtml(2,'top')}${cellHtml(1,'left')}${centerHtml()}${cellHtml(3,'right')}${cellHtml(0,'bottom')}</div>
+        <div class="holds">${holderHtml(0,true)}${holderHtml(3,true)}</div>
+      </div>`:''}
+      ${ready?`<div class="scorebox"><h3>Punteggio</h3>${scoreBox()}</div>`:''}
+      ${ready&&OPT.memo&&!G.over&&(G.phase==='play'||G.phase==='end')?memoHtml():''}
+      ${G.hist.length&&!G.over?`<div class="scorebox"><h3>Round conclusi</h3>${histTable()}</div>`:''}
+      ${logHtml()}
+      ${recapHtml()}
+      ${RULES_HTML()}`;
+  }
+  const lb=app.querySelector('.logbody'), lbTop=lb?lb.scrollTop:0;
+  app.innerHTML=top+`<div class="dock${G&&(G.show||G.over)?' tall':''}">${dockHtml()}</div>`+body;
+  if(lbTop){ const nb=app.querySelector('.logbody'); if(nb) nb.scrollTop=lbTop; }
+  const tall=!!(G&&(G.show||G.over)); if(tall&&!LASTTALL) window.scrollTo(0,0); LASTTALL=tall;
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.m){ MENUOPEN=false; const m=Number(b.dataset.m); if(G) newMatch(m); else askName(m); }
+  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')){ MENUOPEN=false; toSetup(); } }
+  else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.t!==undefined) tapCard(Number(b.dataset.t));
+  else if(b.dataset.go!==undefined){ if(b.dataset.go==='play') submitTurn(); else clearSel(); }
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optUndo'){
+    OPT.undo=e.target.checked;
+    try{ localStorage.setItem('ag-undo',OPT.undo?'1':'0'); }catch(err){}
+    if(!OPT.undo&&PR&&PR.type==='turn') PR.sel=null;
+    render();
+  }else if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('ag-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render();
+  }else if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('ag-memo',OPT.memo?'1':'0'); }catch(err){}
+    render();
+  }else if(e.target.id==='optLong'){
+    OPT.long=e.target.checked;
+    try{ localStorage.setItem('ag-long',OPT.long?'1':'0'); }catch(err){}
+    render();
+  }
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+render();
+nyloSaveInit('agency',snap=>{ G=snap; PR=null; render(); run(true); });
+
+</script>
+</body>
+</html>
