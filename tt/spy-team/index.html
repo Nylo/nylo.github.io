@@ -146,6 +146,13 @@ button.icard:hover:not(:disabled){transform:translateY(-6px);box-shadow:0 6px 12
 button.icard:disabled{cursor:default}
 .icard.dim{opacity:0.45;filter:saturate(0.6)}
 .icard.playable{box-shadow:0 0 0 2px var(--warn)}
+/* modalità accessibile: ★ sulle carte rosa, ■ sulle azzurre. Mie carte: in basso a destra; dorsi altrui: al centro */
+body.a11y .icard::after{content:'';position:absolute;right:2px;bottom:2px;width:14px;height:14px;background:center/contain no-repeat;pointer-events:none}
+body.a11y .icard.c0::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpolygon points='12,1.5 15,9 23,9.5 16.8,14.5 19,22.5 12,18 5,22.5 7.2,14.5 1,9.5 9,9' fill='%23fff' stroke='%230a2a44' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E")}
+body.a11y .icard.c1::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' fill='%23fff' stroke='%230a2a44' stroke-width='2'/%3E%3C/svg%3E")}
+body.a11y .icard.sm::after{width:10px;height:10px;right:0;bottom:0}
+body.a11y .icard.back::after{right:auto;bottom:auto;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px}
+body.a11y .icard.sm.back::after{width:14px;height:14px;right:auto;bottom:auto}
 .gap{width:14px;height:var(--ch);border:1px dashed var(--accent);background:var(--accent-soft);border-radius:4px;color:var(--accent);font-size:12px;cursor:pointer;padding:0}
 .gap:hover{background:var(--accent);color:#1d1500}
 
@@ -190,6 +197,9 @@ details.recap[open]>summary{margin-bottom:10px}
   .icard .corner{display:none}
   .icard.sm{width:14px;height:22px}
   .icard.sm.side{width:22px;height:13px}
+  body.a11y .icard::after{width:10px;height:10px}
+  body.a11y .icard.sm::after{width:8px;height:8px}
+  body.a11y .icard.back::after,body.a11y .icard.sm.back::after{width:10px;height:10px}
   .gap{width:10px}
   .hand{gap:2px}
   .table{padding:8px;gap:6px}
@@ -254,8 +264,8 @@ const mates  = t => [t, t+2];
 const pname  = i => NAMES[i];
 
 let G = null;          // stato partita
-const OPT = {memo:false};
-try{ OPT.memo=localStorage.getItem('spy-team-memo')==='1'; }catch(e){}
+const OPT = {memo:false,a11y:false};
+try{ OPT.memo=localStorage.getItem('spy-team-memo')==='1'; OPT.a11y=localStorage.getItem('spy-team-a11y')==='1'; }catch(e){}
 let ui = {};           // stato del modulo scelta tile (solo per l'umano)
 let gen = 0;           // invalida i timer di una partita precedente
 
@@ -645,6 +655,7 @@ function logHtml(){
 let MENUOPEN=false;
 function menuHtml(){
   return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Menu" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Aggiunge un simbolo alle carte per distinguere i colori senza vederli: ★ per le rosa, ■ per le azzurre"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
       <button type="button" class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano" id="optMemo">${OPT.memo?'Nascondi':'Mostra'} le carte uscite</button>
     </div>`:''}</div>`;
 }
@@ -668,6 +679,7 @@ function renderMode(){
       <button class="btn btn-primary" type="button" data-mode-online="#stanze">Contro gli amici</button></div></div>`;
 }
 function render(){
+  document.body.classList.toggle('a11y',!!OPT.a11y);
   if(!G){ renderMode(); return; }
   const app=document.getElementById('app');
   app.innerHTML=`
@@ -695,6 +707,11 @@ function render(){
 
 document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
 document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('spy-team-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
   if(e.target.id!=='optMemo') return;
   OPT.memo=e.target.checked;
   try{ localStorage.setItem('spy-team-memo',OPT.memo?'1':'0'); }catch(err){}
@@ -863,6 +880,14 @@ var cardBtn=function(i,idx,action,cls,enabled){
 };
 var seatAt=function(r){return (me+r)%4};
 function gameBadge(){return S.phase==='gameEnd'?'Partita conclusa':'Round '+S.round}
+var OPT={a11y:false};
+try{OPT.a11y=localStorage.getItem('spy-team-a11y')==='1'}catch(x){}
+function gameMenu(){
+  return '<label class="opt-toggle" title="Aggiunge un simbolo alle carte per distinguere i colori senza vederli: ★ per le rosa, ■ per le azzurre"><input type="checkbox" id="optA11y" '+(OPT.a11y?'checked':'')+'> Modalità accessibile</label>';
+}
+function gameChange(e){
+  if(e.target.id==='optA11y'){OPT.a11y=e.target.checked;try{localStorage.setItem('spy-team-a11y',OPT.a11y?'1':'0')}catch(x){}render()}
+}
 
 function seatTarget(p){
   if(S.phase==='tiles'){var t=teamOf(p);return S.ptile[t]?tileTargets(t,S.ptile[t],S.plow[t])[p]:null}
