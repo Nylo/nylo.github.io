@@ -207,6 +207,7 @@
       '<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">' +
       '<button type="button" data-no style="padding:8px 14px;border-radius:7px;border:1px solid #64748b;background:transparent;color:#e2e8f0;cursor:pointer;font-size:13px">Annulla</button>' +
       '<button type="button" data-save style="display:none;padding:8px 14px;border-radius:7px;border:0;background:#2563eb;color:#fff;font-weight:600;cursor:pointer;font-size:13px">Salva e esci</button>' +
+      '<button type="button" data-gamehome style="display:none;padding:8px 14px;border-radius:7px;border:0;background:#7c3aed;color:#fff;font-weight:600;cursor:pointer;font-size:13px">Menu del gioco</button>' +
       '<button type="button" data-yes style="padding:8px 14px;border-radius:7px;border:0;background:#0d9488;color:#fff;font-weight:600;cursor:pointer;font-size:13px">Torna alla home</button></div></div>';
     document.body.appendChild(ov);
     ov.addEventListener('click', function (e) { if (e.target === ov || e.target.hasAttribute('data-no')) ov.style.display = 'none'; });
@@ -216,7 +217,16 @@
       if (data && window.nyloSaveGame(sv.id, document.title, data)) window.__nyloSaved = true;
       location.href = ov._to || '/';
     });
+    ov.querySelector('[data-gamehome]').addEventListener('click', gameHome);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') ov.style.display = 'none'; });
+  }
+  // 'Menu del gioco': la schermata iniziale della pagina (scelta giocatori / modalita). Pagine framework (src-ai): si ricarica senza hash;
+  // pagine classiche: si azzera la partita con toSetup() (stessa azione di 'Nuova partita')
+  function gameHome() {
+    ov.style.display = 'none';
+    if (document.getElementById('src-ai')) { location.href = location.pathname; return; }
+    try { if (typeof toSetup === 'function') { toSetup(); return; } } catch (e) {}
+    location.href = location.pathname;
   }
   // partita conclusa (vincitore determinato): niente avviso di perdita. G / S sono lo stato globale delle pagine di gioco
   function gameOver() {
@@ -237,13 +247,15 @@
   });
   function askLeave(b) {
     var back = b.getAttribute('data-back');
-    if (window.NYLO_IN_SETUP) { location.href = back || '/'; return; }   // scelta iniziale: niente da perdere, si esce subito
+    if (window.NYLO_IN_SETUP || (back && notStarted())) { location.href = back || '/'; return; }   // scelta iniziale: niente da perdere, si esce subito
     ov._to = back || '/';
-    ov.querySelector('[data-title]').textContent = back ? 'Tornare ' + (b.getAttribute('data-back-what') || 'alla lista dei giochi') + '?' : 'Tornare alla home?';
-    ov.querySelector('[data-yes]').textContent = !back ? 'Torna alla home' : (back === '/tt/' || back === '/ntt/') ? 'Torna ai giochi' : 'Torna indietro';
+    var isList = back === '/tt/' || back === '/ntt/';
+    ov.querySelector('[data-title]').textContent = back ? 'Uscire dalla partita?' : 'Tornare alla home?';
+    ov.querySelector('[data-yes]').textContent = !back ? 'Torna alla home' : isList ? 'Elenco giochi' : 'Torna indietro';
+    ov.querySelector('[data-gamehome]').style.display = back ? '' : 'none';
     // niente avviso se la partita non è iniziata o è finita: al suo posto una riga vuota, per tenere staccati titolo e pulsanti
     var warn = ov.querySelector('[data-warn]'), noWarn = notStarted() || gameOver();
-    warn.textContent = noWarn ? ' ' : 'La partita in corso andrà persa.';
+    warn.textContent = noWarn ? (back ? 'Dove vuoi andare?' : ' ') : 'La partita in corso andrà persa.';
     // partita contro l'AI salvabile: si può tenerla (una sola) e riprenderla poi dall'elenco
     var sv = window.NYLO_SAVE, canSave = false;
     try { canSave = !noWarn && !!(sv && sv.snap && sv.snap()); } catch (er) {}
@@ -252,7 +264,7 @@
     if (canSave) {
       var old = window.nyloSaveInfo(), repl = old ? (old.id === sv.id ? ' Sostituirà quella già salvata di questo gioco.' : ' Sostituirà quella già salvata («' + old.title + '»).') : '';
       warn.textContent = 'Vuoi salvare la partita per riprenderla più tardi? Se ne può salvare una sola.' + repl;
-      yesBtn.textContent = 'Non salvare';
+      if (!back) yesBtn.textContent = 'Non salvare';
     }
     ov.style.display = 'flex'; ov.querySelector('[data-no]').focus();
   }
