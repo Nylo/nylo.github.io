@@ -110,18 +110,24 @@ table.score .pos{color:#7deea8}
 .seat.top .backs,.seat.left .backs,.seat.right .backs{display:grid;grid-template-columns:repeat(6,10px);max-width:none}   /* due righe da 6 carte coperte */
 .tableau{display:flex;gap:4px;align-items:center;justify-content:center;min-height:76px;min-width:60px;padding:4px 6px;border-radius:8px;background:rgba(255,255,255,0.08)}
 .tableau .pc.mini{width:42px;height:60px;gap:3px}
-.tableau .pc.mini b{font-size:18px;min-width:24px;padding:2px 3px 1px}
-.tableau .pc.mini i{font-size:14px}
+.tableau .pc.mini b{font-size:18px}
+.tableau .pc.mini .cb{gap:3px;padding:3px 4px 4px;min-width:26px}
+.tableau .pc.mini .cb i{font-size:14px}
+.tableau .pc.mini.side .cb{padding:3px 5px}
 .tableau .pc.mini.side{width:60px;height:42px;gap:4px}
 .tableau .empty{width:42px;height:60px;border:1px dashed rgba(255,255,255,0.4);border-radius:6px}
 
 .pc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #fff;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;line-height:1;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.5);font-family:'Inter',sans-serif}
-.pc b{font-family:'Inter',sans-serif;font-weight:800;font-variant-numeric:tabular-nums;font-size:20px;line-height:1;background:#2a2540;color:#fff;border-radius:4px;padding:3px 4px 2px;min-width:26px;text-align:center}
+.pc b{font-family:'Inter',sans-serif;font-weight:800;font-variant-numeric:tabular-nums;font-size:20px;line-height:1;color:#fff;text-align:center}
+.pc .cb{display:flex;flex-direction:column;align-items:center;gap:3px;background:#2a2540;border-radius:4px;padding:3px 4px 4px;min-width:26px}
+.pc .cb i{font-size:16px;color:#fff}
+.pc.side .cb{flex-direction:row;gap:4px;padding:3px 5px}
 .pc i{font-size:16px;color:rgba(20,16,40,0.78)}
 .pc small.lt{display:none;position:absolute;left:3px;bottom:2px;font-family:'Inter',sans-serif;font-size:8px;font-weight:800;color:#2a2540}
 .pc.mini{width:32px;height:46px;gap:2px}
-.pc.mini b{font-size:15px;min-width:20px;padding:2px 3px 1px}
-.pc.mini i{font-size:11px}
+.pc.mini b{font-size:15px}
+.pc.mini .cb{gap:2px;padding:2px 3px 3px;min-width:20px}
+.pc.mini .cb i{font-size:11px}
 .pc.side{width:var(--ch);height:var(--cw);flex-direction:row;gap:5px}
 .pc.mini.side{width:46px;height:32px;gap:3px}
 .pc .cwl{position:absolute;left:50%;top:-10px;transform:translateX(-50%) rotate(-5deg);background:var(--danger);color:#fff;font-family:'Inter',sans-serif;font-weight:700;font-size:10px;font-style:normal;padding:1px 4px;border-radius:3px;white-space:nowrap;border:1px solid #fff;z-index:2}
@@ -252,11 +258,13 @@ body .app>section>p.muted{color:var(--ink);margin-bottom:10px}
 @media(max-width:600px){
   :root{--cw:31px;--ch:46px}
   .pc{border-width:1px;border-radius:5px;gap:2px}
-  .pc b{font-size:14px;min-width:19px;padding:2px 2px 1px}
-  .pc i{font-size:10px}
+  .pc b{font-size:14px}
+  .pc .cb{gap:2px;padding:2px 3px 3px;min-width:19px}
+  .pc .cb i{font-size:10px}
   .pc.mini{width:25px;height:37px;gap:1px}
-  .pc.mini b{font-size:12px;min-width:16px}
-  .pc.mini i{font-size:8px}
+  .pc.mini b{font-size:12px}
+  .pc.mini .cb{min-width:16px;padding:1px 2px 2px}
+  .pc.mini .cb i{font-size:8px}
   .pc.mini.side{width:37px;height:25px}
   .pc .cwl{font-size:7px;top:-9px;padding:0 3px}
   .pc .nb{width:14px;height:14px;right:-5px;top:-5px}
@@ -264,8 +272,8 @@ body .app>section>p.muted{color:var(--ink);margin-bottom:10px}
   .tableau{min-width:44px}
   .tableau .empty{width:34px;height:50px}
   .tableau .pc.mini{width:34px;height:50px}
-  .tableau .pc.mini b{font-size:15px;min-width:20px}
-  .tableau .pc.mini i{font-size:11px}
+  .tableau .pc.mini b{font-size:15px}
+  .tableau .pc.mini .cb i{font-size:11px}
   .tableau .pc.mini.side{width:50px;height:34px}
   .table{padding:8px;gap:6px}
   .back{width:7px;height:11px}
@@ -370,7 +378,7 @@ function winnersOf(F,PP){
 
 // ═════════════════════════ GRAFICA ═════════════════════════
 function cardHtml(c,extra='',tag='span',attrs='',badge=''){
-  return `<${tag} class="pc s${c.s} ${extra}" ${attrs} title="${cardName(c)}"><b>${c.v}</b>${ico(SICO[c.s])}<small class="lt">${SL[c.s]}</small>${badge}</${tag}>`;
+  return `<${tag} class="pc s${c.s} ${extra}" ${attrs} title="${cardName(c)}"><span class="cb"><b>${c.v}</b>${ico(SICO[c.s])}</span><small class="lt">${SL[c.s]}</small>${badge}</${tag}>`;
 }
 function backHtml(extra=''){ return `<span class="pc bk ${extra}" title="Carta coperta"></span>`; }
 function tileHtml(t){
@@ -393,7 +401,7 @@ function recapHtml(n,beg){
   return `<details class="recap paper"><summary>RIEPILOGO</summary>
     <div class="recap-row"><span class="lbl">Mazzo</span>${[0,1,2,3].map(swHtml).join('')} carte 1–${n===3?9:12} (${n*HAND} carte), ${HAND} a testa · ${n} round</div>
     <div class="recap-row"><span class="lbl">Vincolo e puntata</span>Dal mazziere in senso orario ognuno sceglie prima il vincolo o la puntata, poi completa l'altra. Il primo che punta prende il segnalino Start e apre la prima presa.</div>
-    <div class="recap-row"><span class="lbl">Vincoli</span>${TILES.map((t,i)=>`<span class="tile t${i}">${ico(t.ico)} ${t.name}</span> ${t.desc}`).join(' · ')}</div>
+    <div class="recap-row"><span class="lbl">Vincoli</span>${TILES.map((t,i)=>`<div style="margin-top:4px"><span class="tile t${i}">${ico(t.ico)} ${t.name}</span> ${t.desc}</div>`).join('')}</div>
     <div class="recap-row"><span class="lbl">Presa</span>Si segue il colore se si può. Le carte vietate dal proprio vincolo vanno di traverso (Can't win!). Vince la briscola (Turchese) dritta più alta, poi il colore di mano dritto, poi qualsiasi carta dritta, infine la più alta di traverso (a parità, l'ultima giocata).</div>
     <div class="recap-row"><span class="lbl">Punti</span>Puntata centrata 1 punto, Zero centrato 2 punti${beg?'; regole per principianti: ogni gettone Aiuto sposta la puntata di ±1':''}. Finale = Σ prese × Σ punti; a pari merito vince chi ha più punti.</div></details>`;
 }
