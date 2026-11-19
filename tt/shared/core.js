@@ -67,7 +67,7 @@ function legalOf(hand,trick){
   return f.length?f:hand.slice();
 }
 
-// ═══ Salvataggio della partita contro l'AI (la modale di home-btn.js chiede se salvare uscendo; una sola partita, in localStorage) ═══
+// ═══ Salvataggio della partita contro l'AI (la modale di home-btn.js chiede se salvare uscendo; una partita per gioco, in localStorage) ═══
 // Una pagina di gioco chiama ckpt() ai punti sicuri (inizio mano / inizio presa), registra nyloSaveInit(id, resume) e fa ripartire
 // run() dal punto salvato. Lo stato G si serializza in JSON (Set e Map comprese): le carte vanno confrontate per id, non per identità.
 let NYLO_CK = null;
@@ -80,7 +80,7 @@ function nyloSaveInit(id,resume){
   const d=window.nyloSaveData&&nyloSaveData(id);
   try{ history.replaceState(null,'',location.pathname); }catch(e){}
   if(!d) return;
-  try{ resume(nyloDes(d)); if(window.nyloSaveClear) nyloSaveClear(); }catch(e){ console.error('Ripresa non riuscita',e); G=null; render(); }
+  try{ resume(nyloDes(d)); if(window.nyloSaveClear) nyloSaveClear(id); }catch(e){ console.error('Ripresa non riuscita',e); G=null; render(); }
 }
 
 // ═══ Voce di menu «Mostra/Nascondi le carte uscite» (pulsante, non checkbox): al click simula un 'change' con checked = nuovo stato, così i gestori delle pagine restano quelli di prima ═══

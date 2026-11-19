@@ -124,19 +124,27 @@
                         if (!SHOW_FAV_STATS) return '';
                         return '<button type="button" data-fav="' + esc(g.name) + '" aria-pressed="' + on + '" title="' + (on ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti') + '" aria-label="' + (on ? 'Rimuovi dai preferiti: ' : 'Aggiungi ai preferiti: ') + esc(g.name) + '" class="inline-flex h-8 w-8 items-center justify-center rounded-md text-lg transition-colors hover:bg-white/10 ' + (on ? 'text-amber-300' : 'text-slate-500 hover:text-slate-200') + '"><i class="' + (on ? 'ph-fill' : 'ph') + ' ph-bookmark-simple" aria-hidden="true"></i></button>';
                 }
-                // partita salvata contro l'AI (una sola, localStorage 'nylo-save', scritta da /home-btn.js): id = cartella del gioco
-                function savedGame() {
-                        try { var s = JSON.parse(localStorage.getItem('nylo-save') || 'null'); return s && s.id && s.data ? s : null; } catch (e) { return null; }
+                // partite salvate contro l'AI (una per gioco, localStorage 'nylo-saves', scritte da /home-btn.js): chiave = cartella del gioco
+                function savedFor(g) {
+                        var id = g.ai.split('#')[0].replace(/\/+$/, '').split('/').pop();
+                        try { var s = window.nyloSaveInfo ? window.nyloSaveInfo(id) : null; return s && s.id === id ? s : null; } catch (e) { return null; }
                 }
                 function resumeBtn(g) {
-                        var s = savedGame();
+                        var s = savedFor(g);
                         var base = g.ai.split('#')[0];
-                        if (!s || base.replace(/\/+$/, '').split('/').pop() !== s.id) return '';
+                        if (!s) return '';
                         return '<button type="button" data-resume="' + esc(base) + '" title="Riprendi la partita salvata" class="mr-2 inline-flex items-center gap-1 rounded-md border border-teal-500/60 bg-teal-500/10 px-2 py-0.5 align-middle text-[11px] font-semibold uppercase tracking-wide text-teal-300 transition-colors hover:bg-teal-500/20"><i class="ph ph-play" aria-hidden="true"></i>Riprendi</button>';
                 }
+                // stessa regola di /tt/: i giochi in alpha si vedono solo con accesso admin / giocatore nylo oppure con il Lab sbloccato
+                var IS_ADMIN = false;   // stesso accesso admin della collection (password master → localStorage nylo-admin)
+                try { IS_ADMIN = localStorage.getItem('nylo-admin') === '85770706df4d616a498c17a05c1f8fe200d36b219ea00c688d4ac39ee46103c4' || (localStorage.getItem('nylo-player-name') || '').trim().toLowerCase() === 'nylo'; } catch (e) {}
+                var LAB_OPEN = false;
+                try { LAB_OPEN = localStorage.getItem('nylo-tambu-unlocked') === 'c57025ae9174f33c56f41db133f1b855c82502a687de8eddcb9e1d6fa491bdfb'; } catch (e) {}
+                var CAN_ALPHA = IS_ADMIN || LAB_OPEN;
                 function show() {
                 var favs = loadFavs();
-                var list = GAMES.filter(function (g) { return favs.indexOf(g.name) >= 0; }).concat(GAMES.filter(function (g) { return favs.indexOf(g.name) < 0; }));
+                var vis = GAMES.filter(function (g) { return CAN_ALPHA || !g.alpha; });
+                var list = vis.filter(function (g) { return favs.indexOf(g.name) >= 0; }).concat(vis.filter(function (g) { return favs.indexOf(g.name) < 0; }));
                 games.innerHTML = list.map(function (g) {
                         var on = favs.indexOf(g.name) >= 0;
                         return '<tr data-href="' + esc(g.ai) + '" tabindex="0" aria-label="Apri ' + esc(g.name) + '" class="cursor-pointer transition-colors hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500">' +

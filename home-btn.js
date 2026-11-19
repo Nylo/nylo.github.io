@@ -10,17 +10,26 @@ var NYLO_DISCLAIMER = 'Questo gioco (o strumento di supporto), le sue idee, rego
 (function () {
   var inFrame = window.self !== window.top;
   if (inFrame) { window.nyloHomeBtn = function () { return ''; }; window.nyloBackBtn = function () { return ''; }; }
-  // Salvataggio di UNA partita contro l'AI (localStorage 'nylo-save'): { id, title, ts, data }.
+  // Salvataggi delle partite contro l'AI (localStorage 'nylo-saves'): { <id gioco>: { id, title, ts, data } }.
+  // Ogni gioco ha il proprio punto di ripristino (uno solo per gioco: salvare di nuovo lo stesso gioco lo sostituisce).
   // Le pagine di gioco si registrano con window.NYLO_SAVE = { id, snap() } (snap = stringa dello stato all'ultimo punto sicuro, o null).
-  var SAVE_KEY = 'nylo-save';
-  window.nyloSaveInfo = function () {
-    try { var s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); return s && s.id && s.data ? s : null; } catch (e) { return null; }
-  };
+  var SAVES_KEY = 'nylo-saves', OLD_SAVE_KEY = 'nylo-save';
+  function readSaves() {
+    var m = {};
+    try { var o = JSON.parse(localStorage.getItem(SAVES_KEY) || 'null'); if (o && typeof o === 'object') m = o; } catch (e) {}
+    try {   // migrazione dal vecchio salvataggio singolo
+      var old = JSON.parse(localStorage.getItem(OLD_SAVE_KEY) || 'null');
+      if (old && old.id && old.data) { if (!m[old.id]) m[old.id] = old; localStorage.setItem(SAVES_KEY, JSON.stringify(m)); }
+      if (localStorage.getItem(OLD_SAVE_KEY) !== null) localStorage.removeItem(OLD_SAVE_KEY);
+    } catch (e) {}
+    return m;
+  }
+  window.nyloSaveInfo = function (id) { var s = readSaves()[id]; return s && s.id && s.data ? s : null; };
   window.nyloSaveGame = function (id, title, data) {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ id: id, title: title, ts: Date.now(), data: data })); return true; } catch (e) { return false; }
+    try { var m = readSaves(); m[id] = { id: id, title: title, ts: Date.now(), data: data }; localStorage.setItem(SAVES_KEY, JSON.stringify(m)); return true; } catch (e) { return false; }
   };
-  window.nyloSaveData = function (id) { var s = window.nyloSaveInfo(); return s && s.id === id ? s.data : null; };
-  window.nyloSaveClear = function () { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} };
+  window.nyloSaveData = function (id) { var s = window.nyloSaveInfo(id); return s ? s.data : null; };
+  window.nyloSaveClear = function (id) { try { var m = readSaves(); if (id in m) { delete m[id]; localStorage.setItem(SAVES_KEY, JSON.stringify(m)); } } catch (e) {} };
   // valore con # = stanze nella stessa pagina del gioco (si ricarica con #stanze); altrimenti pagina separata
   var ONLINE_GAMES = {};
   var SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>';
@@ -255,8 +264,8 @@ var NYLO_DISCLAIMER = 'Questo gioco (o strumento di supporto), le sue idee, rego
   function canSaveNow() { return !!curSave() && !gameOver() && !notStarted(); }
   // la partita corrente coincide con quella già salvata (nessuna domanda sul salvataggio uscendo)
   function isSavedNow() {
-    var c = curSave(), info = window.nyloSaveInfo();
-    return !!(c && info && info.id === c.sv.id && info.data === c.snap);
+    var c = curSave(), info = c && window.nyloSaveInfo(c.sv.id);
+    return !!(c && info && info.data === c.snap);
   }
   function toast(msg) {
     var t = document.createElement('div');
@@ -268,9 +277,8 @@ var NYLO_DISCLAIMER = 'Questo gioco (o strumento di supporto), le sue idee, rego
   function closeMenu() { try { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })); } catch (e) {} }
   function doSave() {
     var c = curSave(); if (!c || gameOver() || notStarted()) return false;
-    var old = window.nyloSaveInfo();
     if (!window.nyloSaveGame(c.sv.id, document.title, c.snap)) { toast('Salvataggio non riuscito'); return false; }
-    toast('Partita salvata' + (old && old.id !== c.sv.id ? ' (ha sostituito «' + old.title + '»)' : ''));
+    toast('Partita salvata');
     return true;
   }
   function inRoom() { try { return typeof roomRef !== 'undefined' && !!roomRef && typeof leave === 'function'; } catch (e) { return false; } }
@@ -324,9 +332,9 @@ var NYLO_DISCLAIMER = 'Questo gioco (o strumento di supporto), le sue idee, rego
       box('Uscire?', warn, targets.map(function (t, i) { return '<button type="button" data-x="' + i + '" style="' + BTN + 'background:#334155">' + t.label + '</button>'; }).join('') + cancel);
     };
     var step2 = function () {
-      var old = window.nyloSaveInfo(), c = curSave();
-      var repl = old ? (old.id === (c && c.sv.id) ? ' Sostituirà quella già salvata di questo gioco.' : ' Sostituirà quella già salvata («' + old.title + '»).') : '';
-      box('Salvare la partita?', 'Potrai riprenderla più tardi dall\'elenco giochi. Se ne può salvare una sola.' + repl,
+      var c = curSave(), old = c && window.nyloSaveInfo(c.sv.id);
+      var repl = old ? ' Sostituirà quella già salvata di questo gioco.' : '';
+      box('Salvare la partita?', 'Potrai riprenderla più tardi dall\'elenco giochi. Per ogni gioco si può salvare una sola partita.' + repl,
         '<button type="button" data-x="save" style="' + BTN + 'background:#2563eb">Salva ed esci</button>' +
         '<button type="button" data-x="nosave" style="' + BTN + 'background:#0d9488">Non salvare</button>' + cancel);
     };
@@ -383,14 +391,14 @@ var NYLO_DISCLAIMER = 'Questo gioco (o strumento di supporto), le sue idee, rego
     // niente avviso se la partita non è iniziata o è finita: al suo posto una riga vuota, per tenere staccati titolo e pulsanti
     var warn = ov.querySelector('[data-warn]'), noWarn = notStarted() || gameOver();
     warn.textContent = noWarn ? (back ? 'Dove vuoi andare?' : ' ') : 'La partita in corso andrà persa.';
-    // partita contro l'AI salvabile: si può tenerla (una sola) e riprenderla poi dall'elenco
+    // partita contro l'AI salvabile: si può tenerla (una per gioco) e riprenderla poi dall'elenco
     var sv = window.NYLO_SAVE, canSave = false;
     try { canSave = !noWarn && !!(sv && sv.snap && sv.snap()); } catch (er) {}
     var saveBtn = ov.querySelector('[data-save]'), yesBtn = ov.querySelector('[data-yes]');
     saveBtn.style.display = canSave ? '' : 'none';
     if (canSave) {
-      var old = window.nyloSaveInfo(), repl = old ? (old.id === sv.id ? ' Sostituirà quella già salvata di questo gioco.' : ' Sostituirà quella già salvata («' + old.title + '»).') : '';
-      warn.textContent = 'Vuoi salvare la partita per riprenderla più tardi? Se ne può salvare una sola.' + repl;
+      var old = window.nyloSaveInfo(sv.id), repl = old ? ' Sostituirà quella già salvata di questo gioco.' : '';
+      warn.textContent = 'Vuoi salvare la partita per riprenderla più tardi? Per ogni gioco si può salvare una sola partita.' + repl;
       if (!back) yesBtn.textContent = 'Non salvare';
     }
     ov.style.display = 'flex'; ov.querySelector('[data-no]').focus();
