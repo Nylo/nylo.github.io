@@ -240,6 +240,42 @@ button.otr.can:hover{background:rgba(232,102,94,.28)}
   .logo{font-size:36px;-webkit-text-stroke:5px #111}
 }
 
+/* stanze online (kit condiviso) */
+.panel,.sx-card{background:var(--paper);color:var(--text);border:3px solid var(--ink);border-radius:var(--radius);padding:16px;margin:4px 0 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 6px 0 rgba(0,0,0,.25)}
+.panel h2{font-size:16px;font-weight:700;color:var(--ink)}
+.muted{color:var(--text-soft);font-size:12px;line-height:1.5}
+body .app>section>p.muted{color:#fff;margin-bottom:10px;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.status{font-size:13px;min-height:20px;line-height:1.5;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.panel input[type=text],.sx-in{background:#fff;border:2px solid var(--ink);color:var(--text);border-radius:6px;padding:9px 11px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none;letter-spacing:1px}
+.panel input[type=text]:focus,.sx-in:focus{border-color:var(--accent)}
+.radios{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.radios label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.radios input{accent-color:var(--accent)}
+.roster{list-style:none;display:flex;flex-direction:column;gap:8px}
+.roster li{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:2px solid var(--ink);border-radius:6px;font-size:13px}
+.roster .seat-n{width:20px;color:var(--text-soft)}
+.roster .grow{flex:1}
+.roster .soft{color:var(--text-soft)}
+.room-code{padding:4px 8px;border:2px solid var(--ink);border-radius:6px;background:#fff;color:var(--ink);font-family:Consolas,monospace;letter-spacing:1px;font-size:12px}
+.conn{font-size:11px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.room-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.room-bar .room-code,.room-bar .btn{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 10px;line-height:1;box-sizing:border-box;white-space:nowrap}
+.room-bar .conn{margin-left:auto}
+.flag.first{background:var(--gold);color:#3a2a00}
+.err{position:fixed;left:12px;right:12px;bottom:12px;max-width:680px;margin:0 auto;padding:12px 14px;border:1px solid rgba(217,107,107,0.6);border-radius:8px;background:#3a1d22;color:#fff;font-size:13px;line-height:1.4;z-index:200}
+.sx-label{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text-soft);margin-top:2px}
+.sx-row{display:flex;gap:8px;flex-wrap:wrap}
+.sx-opt{padding:10px 16px;border-radius:6px;border:2px solid var(--ink);background:#fff;color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:600}
+.sx-opt:hover:not(:disabled){background:var(--ink);color:#fff}
+.sx-opt.on,.sx-opt.on:hover:not(:disabled){background:var(--ink);color:#fff;box-shadow:0 0 0 3px var(--gold)}
+.sx-opt:disabled{opacity:.4;cursor:not-allowed}
+.sx-row .sx-opt{flex:1 1 0;min-width:0}
+.sx-go,.sx-go:hover:not(:disabled){background:var(--gold);border-color:var(--ink);color:#2a2000;margin-top:1rem}
+.sx-in.code{letter-spacing:2px;text-transform:uppercase;font-family:Consolas,monospace}
+.sx-nav{display:flex;gap:8px;align-items:center}
+.sx-sub{display:flex;flex-direction:column;gap:10px;padding-top:2px}
+.seat-name .hint{color:inherit}
+
 @media(max-width:400px){.logo{font-size:30px}.topbar{gap:6px}}
 </style>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
@@ -251,8 +287,10 @@ button.otr.can:hover{background:rgba(232,102,94,.28)}
 <body>
 <div class="app" id="app"></div>
 
+
 <script src="/tt/shared/core.js"></script>
-<script>
+<script type="text/plain" id="src-common">
+// ═════════════════════════ COMUNE (modalità AI e stanze) ═════════════════════════
 // ═════════════════════════ COSTANTI ═════════════════════════
 const SUITS = ['Leopardato','Righe','Pied-de-poule','Tartan'];
 const SL    = ['Le','Ri','Pp','Ta'];
@@ -265,20 +303,9 @@ const CFG = {
 const PLAYS = 8;      // carte giocate da ciascuno in un round (ne resta 1 in mano)
 const ZBONUS = 30;    // scommessa 0 riuscita
 const TEAMZ = 60;     // valore usato dall'AI per la scommessa 0 a squadre (vittoria immediata)
-const HUM = 0;
 const POS = {2:['bottom','top'],3:['bottom','left','right'],4:['bottom','left','top','right']};
-const NAMES = ['Tu','AI Ago','AI Bottone','AI Cucito'];
 const SEATC = ['#ffd166','#ff6fa8','#6ee7b7','#7cc4ff'];
 const ico = n => `<i class="ph-fill ph-${n}"></i>`;
-
-// ═════════════════════════ UTILITÀ ═════════════════════════
-const rnd = n => Math.floor(Math.random()*n);
-const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-let G = null, PR = null;
-const OPT = {undo:true, memo:false};
-try{ const s=localStorage.getItem('bt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.memo=localStorage.getItem('bt-memo')==='1'; }catch(e){}
-function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
-const argmax = a => { let b=0; for(let i=1;i<a.length;i++) if(a[i]>a[b]) b=i; return b; };
 
 // ═════════════════════════ CARTE E REGOLE (funzioni pure) ═════════════════════════
 // una carta è un intero: seme*16 + valore
@@ -376,6 +403,110 @@ function needOf(S,q){
   if(S.team){ const m=partner(q), bb=S.bets[m]; if(bb==null) return 1; return b+bb-S.tr[q]-S.tr[m]; }
   return b-S.tr[q];
 }
+
+// ═════════════════════════ GRAFICA ═════════════════════════
+function cardHtml(c,extra='',tag='span',attrs='',inner=''){
+  return `<${tag} class="pc s${cs(c)} ${extra}" ${attrs} title="${cardName(c)}"><b>${cv(c)}</b>${inner}</${tag}>`;
+}
+function backHtml(extra=''){ return `<span class="pc bk ${extra}" title="Carta coperta"></span>`; }
+const NM = {f:p=>'?'};   // nome del giocatore p (impostato dalla modalità AI / stanze)
+const initialOf = nm => esc((String(nm).replace(/^AI\s+/,'')[0]||'?').toUpperCase());
+function tcHtml(c,p,win){
+  const mark=p>=0?`<em class="ow" style="background:${SEATC[p]}" title="${esc(NM.f(p))}">${initialOf(NM.f(p))}</em>`:`<em class="fl" title="Carta iniziale">${ico('flag')}</em>`;
+  return `<span class="tc"><span class="cup">${win?ico('trophy'):''}</span>${cardHtml(c,'tk'+(win?' win':''))}<span class="who">${mark}</span></span>`;
+}
+function curWinIdx(start,plays){ resolveXs(start,plays,-1,-1); return RC.idx; }
+function lastResHtml(r){
+  if(!r) return '';
+  const xs=[{c:r.start,p:-1}].concat(r.plays);
+  return `<div class="lastres"><span class="tl">ULTIMA PRESA (${r.id})</span><span class="cs">${xs.map((x,i)=>tcHtml(x.c,x.p,i===r.idx)).join('')}</span>
+    <span>${r.p>=0?`vince <b>${esc(NM.f(r.p))}</b>`:'presa <b>scartata</b>'}</span></div>`;
+}
+function swHtml(s){ return `<span class="sw s${s}">${SUITS[s]}</span>`; }
+function scoreTable(un,R,team){
+  const cols=Array.from({length:R},(_,i)=>i);
+  const rows=un.map(u=>`<tr><td>${esc(u.name)}</td>${cols.map(i=>`<td>${u.hist[i]!=null?u.hist[i]:'–'}</td>`).join('')}<td><b>${u.total}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Punteggi</th>${cols.map(i=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table></div>
+    <div class="hint" style="margin-top:6px">Per ogni round: 1 punto per carta vinta + bonus della scommessa (5 per bottone; ${team?'uno 0 riuscito = vittoria immediata':'30 per uno 0 riuscito'}).</div>`;
+}
+function roundTable(rows,un,team){
+  const body=rows.map(r=>{
+    const out=r.zero?(team?'0 riuscito: vittoria immediata':`+${r.bonus} (0 riuscito)`):(r.ok?`+${r.bonus} (centrata)`:'mancata');
+    return `<tr><td>${esc(un[r.k].name)}</td><td>${r.bet}</td><td>${r.tr}</td><td>${r.cards}</td><td class="l ${r.ok?'pos':'neg'}">${out}</td><td><b>${r.tot}</b></td></tr>`;
+  }).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th></th><th>Scomm.</th><th>Prese</th><th>Carte</th><th class="l">Bonus</th><th>Round</th></tr>${body}</table></div>`;
+}
+
+function descRes(r,nm){
+  const w=r.p>=0?nm(r.p):'';
+  const base=`Presa ${r.id}`;
+  if(r.kind==='tie') return `${base}: pareggio senza vincitore, presa scartata (${plu(r.n,'carta','carte')}).`;
+  if(r.p<0) return `${base}: vince la carta iniziale (${cardName(r.card)}), presa scartata (${plu(r.n,'carta','carte')}).`;
+  const pts=`+${r.n} ${r.n===1?'carta':'carte'}, +1 presa`;
+  if(r.kind==='high') return `${base}: ${SUITS[r.suit]} in maggioranza, vince la carta più alta (${cardName(r.card)}) di ${w} (${pts}).`;
+  if(r.kind==='low') return `${base}: pareggio tra semi, vince la carta più bassa (${cardName(r.card)}) di ${w} (${pts}).`;
+  return `${base}: pareggio anche sulla carta più bassa, spareggio con la seconda: vince ${cardName(r.card)} di ${w} (${pts}).`;
+}
+function recapHtml(n,team){
+  const cfg=CFG[n];
+  return `<details class="recap paper"><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Mazzo</span>${[0,1,2,3].map(swHtml).join('')} carte da 1 a ${cfg.maxV} (${4*cfg.maxV} carte). Si distribuiscono ${cfg.hand} carte a testa; ${cfg.open} carte scoperte aprono le prese, il resto è il mazzo di pesca.</div>
+    <div class="recap-row"><span class="lbl">Scommesse</span>Dal giocatore a sinistra del mazziere, a turno: prendi quanti bottoni vuoi (${cfg.tokens} in tutto) oppure passa; chi passa non può più prenderne. Nessun bottone = scommetti di vincere 0 prese.</div>
+    <div class="recap-row"><span class="lbl">Prese</span>A turno giochi una carta in una presa aperta (al massimo ${cfg.maxPlays} volte per presa). Con 5 carte la presa si risolve subito e si apre una nuova presa dal mazzo. Dopo ${PLAYS} carte a testa il round finisce.</div>
+    <div class="recap-row"><span class="lbl">Vince</span>Se un seme ha la maggioranza netta, vince la sua carta più alta. Se due semi pareggiano, vince la carta più bassa tra i due (poi la seconda carta). Se la carta iniziale vince, o il pareggio resta, la presa si scarta.</div>
+    <div class="recap-row"><span class="lbl">Punti</span>1 punto per carta vinta. Scommessa centrata (prese vinte = bottoni): 5 punti per bottone; 0 bottoni e 0 prese: 30 punti. Dopo ${cfg.rounds} round vince chi ha più punti.</div>
+    ${team?`<div class="recap-row"><span class="lbl">Squadre</span>Compagni di fronte; prima delle scommesse si passano una carta coperta. La scommessa è la somma dei bottoni dei due; uno 0 riuscito fa vincere subito la partita.</div>`:''}</details>`;
+}
+const RULES_HTML = `
+<details class="rules paper"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>In Button ogni presa è una passerella di moda in cui gli stilisti fanno sfilare il loro capo di punta. Se una tendenza (un seme) emerge chiaramente, vince il capo più convenzionale, cioè la carta più alta di quel seme. Se nessuna tendenza domina (due semi pari), vince il capo più originale, cioè la carta più bassa. Prevedi quante prese vincerai prendendo bottoni scommessa: se indovini, bonus!</p>
+<h4>Componenti e preparazione (4 giocatori)</h4>
+<p>48 carte in 4 semi (Leopardato, Righe, Pied-de-poule, Tartan) con valori da 1 a 12 e 10 bottoni scommessa. Il primo mazziere è casuale. Si distribuiscono 9 carte a testa e si mettono 4 carte scoperte al centro: ognuna è la carta iniziale di una presa aperta. Le 8 carte rimaste formano il mazzo di pesca.</p>
+<h4>Fase scommesse</h4>
+<p>Inizia il giocatore a sinistra del mazziere, poi si procede in senso orario. Nel proprio turno si prendono quanti bottoni si vuole, oppure si passa; chi passa non può prenderne altri. Chi non prende nessun bottone scommette di vincere 0 prese. Le scommesse proseguono finché finiscono i bottoni o tutti hanno passato.</p>
+<h4>Fase prese</h4>
+<p>Inizia il giocatore a sinistra del mazziere e si procede in senso orario. Nel proprio turno si gioca una carta in una presa aperta. Un giocatore può giocare al massimo 2 volte nella stessa presa (nella partita a 2 giocatori, 3 volte) e ci sono sempre 4 prese aperte (tante quante i giocatori).</p>
+<p>Appena una presa contiene 5 carte (la carta iniziale e quattro giocate) si risolve subito:</p>
+<ul>
+<li><b>Maggioranza netta</b> di un seme: vince la carta più alta di quel seme.</li>
+<li><b>Due semi pari</b> per la maggioranza (es. 2-2-1): vince la carta più bassa tra quelle dei semi in pareggio. Se anche le due carte più basse sono uguali, si confronta la seconda carta dei due semi: vince la più bassa. Se è ancora pari, la presa viene scartata.</li>
+<li>Chi vince prende tutte le carte della presa e le mette coperte davanti a sé; il numero di prese vinte resta visibile. Se vince la <b>carta iniziale</b>, la presa viene scartata.</li>
+</ul>
+<p>Poi si scopre una carta dal mazzo di pesca per aprire una nuova presa e si riparte dal giocatore successivo.</p>
+<h4>Fine del round e punteggio</h4>
+<p>Quando tutti hanno giocato 8 carte (ne resta 1 in mano) il round finisce: ognuno tiene la carta rimasta per il round successivo e le prese ancora aperte si risolvono con le regole normali; contano per le scommesse.</p>
+<ul>
+<li>Ogni <b>carta vinta</b> vale 1 punto.</li>
+<li>Scommessa riuscita (prese vinte = bottoni presi): <b>5 punti per ogni bottone</b>.</li>
+<li>Scommessa di 0 bottoni e nessuna presa vinta: <b>30 punti</b>.</li>
+<li>Scommessa fallita: nessun bonus, solo i punti delle carte.</li>
+</ul>
+<h4>Nuovo round e fine partita</h4>
+<p>Il giocatore a sinistra del mazziere diventa il nuovo mazziere, che rimescola tutte le carte tranne quelle tenute e ne dà 8 a testa (si arriva a 9 con quella tenuta); si scoprono nuove prese e si riparte dalle scommesse. Dopo 4 round vince chi ha il punteggio totale più alto (pari merito: vittoria condivisa).</p>
+<h4>Varianti</h4>
+<p><b>2 giocatori:</b> mazzo da 28 carte (valori 1–7), 2 prese aperte, 8 carte di pesca, 7 bottoni, fino a 3 giocate per presa, 4 round.</p>
+<p><b>3 giocatori:</b> mazzo da 36 carte (valori 1–9), 3 prese aperte, 6 carte di pesca, 9 bottoni, fino a 2 giocate per presa, 3 round.</p>
+<p><b>A squadre (4 giocatori):</b> chi siede di fronte è compagno. Prima delle scommesse i compagni si scambiano una carta a faccia in giù. La scommessa della squadra è la somma dei bottoni dei due giocatori e la squadra deve vincere esattamente quel numero di prese; i punti si sommano per squadra. Una scommessa di 0 prese riuscita fa vincere subito la partita. 4 round.</p>
+<p><i>Nell'app:</i> il primo mazziere e le carte sono casuali (nelle stanze online anche i posti al tavolo, e si gioca solo tra persone: niente AI); i bottoni si prendono uno «scatto» alla volta (puoi prenderne più di uno nello stesso turno e, al giro dopo, altri); l'AI conosce solo le carte scoperte e stima il resto con simulazioni. Se un giocatore non ha nessuna presa dove giocare (ha già giocato il massimo in tutte), salta il turno. Il regolamento cita 40 carte da rimescolare, ma ne servono 44: l'app rimescola tutte le carte tranne quelle tenute. Contro l'AI, il menu offre «Mostra le carte uscite»: elenca le carte del mazzo, sbarrate quelle già scoperte nel round (carte iniziali, giocate, rivelate), in contorno le tue.</p>
+</div></details>`;
+
+
+</script>
+<script type="text/plain" id="src-ai">
+// ═════════════════════════ COSTANTI ═════════════════════════
+const HUM = 0;
+const NAMES = ['Tu','AI Ago','AI Bottone','AI Cucito'];
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+const OPT = {undo:true, memo:false};
+try{ const s=localStorage.getItem('bt-undo'); if(s!==null) OPT.undo=s==='1'; OPT.memo=localStorage.getItem('bt-memo')==='1'; }catch(e){}
+function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
+const argmax = a => { let b=0; for(let i=1;i<a.length;i++) if(a[i]>a[b]) b=i; return b; };
 
 // ═════════════════════════ AI ═════════════════════════
 const AIP = {play:700,bet:330,eps:0.05,peps:0.12};
@@ -536,6 +667,7 @@ function confirmMove(ok){
 }
 
 function newMatch(n,team){
+  NM.f=p=>P(p).name;
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   NYLO_CK=null;
   team=!!team&&n===4;
@@ -608,16 +740,8 @@ async function bettingPhase(){
     ? g.un.map(u=>`${u.name} ${u.m.reduce((a,i)=>a+P(i).tokens,0)}`).join(' · ')
     : g.pl.map(p=>`${p.name} ${p.tokens}`).join(' · '))+'.');
 }
-function describeRes(r){
-  const w=r.p>=0?(you(r.p)?'te':P(r.p).name):'';
-  const base=`Presa ${r.id}`;
-  if(r.kind==='tie') return `${base}: pareggio senza vincitore, presa scartata (${plu(r.n,'carta','carte')}).`;
-  if(r.p<0) return `${base}: vince la carta iniziale (${cardName(r.card)}), presa scartata (${plu(r.n,'carta','carte')}).`;
-  const pts=`+${r.n} ${r.n===1?'carta':'carte'}, +1 presa`;
-  if(r.kind==='high') return `${base}: ${SUITS[r.suit]} in maggioranza, vince la carta più alta (${cardName(r.card)}) di ${w} (${pts}).`;
-  if(r.kind==='low') return `${base}: pareggio tra semi, vince la carta più bassa (${cardName(r.card)}) di ${w} (${pts}).`;
-  return `${base}: pareggio anche sulla carta più bassa, spareggio con la seconda: vince ${cardName(r.card)} di ${w} (${pts}).`;
-}
+const describeRes = r => descRes(r,p=>you(p)?'te':P(p).name);
+
 async function playRound(){
   const g=G, S=g.S, cont=g.phase==='play'&&g.last!=null;   // ripresa a metà della fase prese
   g.phase='play';
@@ -703,10 +827,6 @@ async function run(rs){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
-function cardHtml(c,extra='',tag='span',attrs='',inner=''){
-  return `<${tag} class="pc s${cs(c)} ${extra}" ${attrs} title="${cardName(c)}"><b>${cv(c)}</b>${inner}</${tag}>`;
-}
-function backHtml(extra=''){ return `<span class="pc bk ${extra}" title="Carta coperta"></span>`; }
 function handHtml(p){
   const S=G.S, pm=PR&&PR.type==='move';
   return `<div class="hand">${S.hands[p].map((c,i)=>{
@@ -719,11 +839,6 @@ const you = p => p===HUM&&P(p).name==='Tu';
 const V = (p,third,second) => you(p)?second:third;
 const initial = p => esc((P(p).name.replace(/^AI\s+/,'')[0]||'?').toUpperCase());
 function ownerBadge(p){ return `<em class="ow" style="background:${SEATC[p]}" title="${esc(P(p).name)}">${initial(p)}</em>`; }
-function tcHtml(c,p,win){
-  const mark=p>=0?`<em class="ow" style="background:${SEATC[p]}" title="${esc(P(p).name)}">${initial(p)}</em>`:`<em class="fl" title="Carta iniziale">${ico('flag')}</em>`;
-  return `<span class="tc"><span class="cup">${win?ico('trophy'):''}</span>${cardHtml(c,'tk'+(win?' win':''))}<span class="who">${mark}</span></span>`;
-}
-function curWinIdx(start,plays){ resolveXs(start,plays,-1,-1); return RC.idx; }
 function trickHtml(t,ti){
   const pm=PR&&PR.type==='move'&&!PR.give;
   const can=pm&&PR.selC!=null&&PR.lt.includes(ti), sel=can&&PR.selT===ti;
@@ -733,12 +848,6 @@ function trickHtml(t,ti){
   for(let k=t.plays.length;k<4;k++) cards.push('<span class="tc empty"><span class="cup"></span><span class="slotc"></span><span class="who"></span></span>');
   const inner=`<span class="cs">${cards.join('')}</span>`;
   return can?`<button type="button" class="otr can ${sel?'sel':''}" data-t="${ti}">${inner}</button>`:`<div class="otr">${inner}</div>`;
-}
-function lastResHtml(){
-  const r=G.lastRes; if(!r) return '';
-  const xs=[{c:r.start,p:-1}].concat(r.plays);
-  return `<div class="lastres"><span class="tl">ULTIMA PRESA (${r.id})</span><span class="cs">${xs.map((x,i)=>tcHtml(x.c,x.p,i===r.idx)).join('')}</span>
-    <span>${r.p>=0?`vince <b>${esc(P(r.p).name)}</b>`:'presa <b>scartata</b>'}</span></div>`;
 }
 function flagHtml(p){
   if(!G||G.over||G.phase==='idle') return '';
@@ -760,7 +869,6 @@ function seatHtml(p,pos){
   const inner=pos==='bottom'?`${name}${meta}${hand}`:`${name}${meta}${hand}`;
   return `<div class="seat ${pos} ${active?'active':''} ${mate?'mate':''}">${inner}</div>`;
 }
-function swHtml(s){ return `<span class="sw s${s}">${SUITS[s]}</span>`; }
 function centerHtml(){
   const S=G.S;
   let mid='';
@@ -771,34 +879,19 @@ function centerHtml(){
   const ph=({idle:'',swap:'scambio con il compagno',bet:'scommesse',play:'prese',score:'risultato del round',over:'fine partita'})[G.phase]||'';
   return `<div class="center">
     <div>Round <b>${G.round+1}/${G.rounds}</b>${ph?` · fase: <b>${ph}</b>`:''}</div>
-    ${pool}${mid}${G.phase==='play'||G.phase==='score'?lastResHtml():''}
+    ${pool}${mid}${G.phase==='play'||G.phase==='score'?lastResHtml(G.lastRes):''}
     ${S?`<div class="hint" style="color:inherit">Mazzo di pesca: <b>${S.draw.length}</b> · Scartate: <b>${S.disc}</b> ${S.disc===1?'carta':'carte'}</div>`:''}</div>`;
 }
-function scoreTable(){
-  const R=G.rounds, cols=Array.from({length:R},(_,i)=>i);
-  const rows=G.un.map(u=>`<tr><td>${esc(u.name)}</td>${cols.map(i=>`<td>${u.hist[i]!=null?u.hist[i]:'–'}</td>`).join('')}<td><b>${u.total}</b></td></tr>`).join('');
-  return `<div class="scroll-x"><table class="score"><tr><th>Punteggi</th>${cols.map(i=>`<th>R${i+1}</th>`).join('')}<th>Totale</th></tr>${rows}</table></div>
-    <div class="hint" style="margin-top:6px">Per ogni round: 1 punto per carta vinta + bonus della scommessa (5 per bottone; ${G.team?'uno 0 riuscito = vittoria immediata':'30 per uno 0 riuscito'}).</div>`;
-}
-function roundTable(){
-  const rows=G.show.rows.map(r=>{
-    const out=r.zero?(G.team?'0 riuscito: vittoria immediata':`+${r.bonus} (0 riuscito)`):(r.ok?`+${r.bonus} (centrata)`:'mancata');
-    return `<tr><td>${esc(G.un[r.k].name)}</td><td>${r.bet}</td><td>${r.tr}</td><td>${r.cards}</td><td class="l ${r.ok?'pos':'neg'}">${out}</td><td><b>${r.tot}</b></td></tr>`;
-  }).join('');
-  return `<div class="scroll-x"><table class="score"><tr><th></th><th>Scomm.</th><th>Prese</th><th>Carte</th><th class="l">Bonus</th><th>Round</th></tr>${rows}</table></div>`;
-}
 function dockHtml(){
-  if(!G) return `<div class="dock-msg">Button contro l'AI. Scegli la modalità.</div>
-    <div class="opts">${[2,3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}
-    <button class="opt" data-n="4" data-team="1">A squadre: 4 giocatori (tu e un compagno AI contro 2 AI)</button></div>`;
+  if(!G) return '';
   if(G.over){
     const you1=G.over.winners.length===1&&!G.team&&G.un[G.over.winners[0]].name==='Tu';
     const nm=G.over.winners.map(i=>esc(G.un[i].name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
     const why=G.instant?' per la scommessa di 0 prese riuscita':'';
-    return `<div class="dock-msg"><b>${you1?'Hai vinto!':`${G.over.winners.length>1?'Vittoria condivisa: ':(G.team?'Vincono ':'Vince ')}${w}${why}!`}</b>${G.instant?'':` Punteggio finale ${G.un[G.over.winners[0]].total}.`}</div>${G.show?roundTable():''}`;
+    return `<div class="dock-msg"><b>${you1?'Hai vinto!':`${G.over.winners.length>1?'Vittoria condivisa: ':(G.team?'Vincono ':'Vince ')}${w}${why}!`}</b>${G.instant?'':` Punteggio finale ${G.un[G.over.winners[0]].total}.`}</div>${G.show?roundTable(G.show.rows,G.un,G.team):''}`;
   }
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
-  if(G.show) html+=roundTable();
+  if(G.show) html+=roundTable(G.show.rows,G.un,G.team);
   if(PR&&PR.type==='choose'){
     html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt ${PR.sel===i?'sel':''}" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
     if(PR.sel!=null) html+=`<div class="opts"><button class="opt" data-af="1">Conferma: ${esc(PR.options[PR.sel].label)}</button><button class="opt" data-af="0">Annulla</button></div>`;
@@ -818,51 +911,6 @@ function memoHtml(){
   const rows=SUITS.map((s,k)=>`<div class="ur"><span class="l">${s}</span>${G.deckAll.filter(c=>cs(c)===k).map(c=>`<span class="mk s${k} ${G.seen.has(c)?'gone':''} ${mine.has(c)?'own':''}" title="${cardName(c)}">${cv(c)}</span>`).join('')}</div>`).join('');
   return `<div class="scorebox"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
 }
-function recapHtml(){
-  const n=G.n, cfg=G.cfg;
-  return `<details class="recap paper"><summary>RIEPILOGO</summary>
-    <div class="recap-row"><span class="lbl">Mazzo</span>${[0,1,2,3].map(swHtml).join('')} carte da 1 a ${cfg.maxV} (${4*cfg.maxV} carte). Si distribuiscono ${cfg.hand} carte a testa; ${cfg.open} carte scoperte aprono le prese, il resto è il mazzo di pesca.</div>
-    <div class="recap-row"><span class="lbl">Scommesse</span>Dal giocatore a sinistra del mazziere, a turno: prendi quanti bottoni vuoi (${cfg.tokens} in tutto) oppure passa; chi passa non può più prenderne. Nessun bottone = scommetti di vincere 0 prese.</div>
-    <div class="recap-row"><span class="lbl">Prese</span>A turno giochi una carta in una presa aperta (al massimo ${cfg.maxPlays} volte per presa). Con 5 carte la presa si risolve subito e si apre una nuova presa dal mazzo. Dopo ${PLAYS} carte a testa il round finisce.</div>
-    <div class="recap-row"><span class="lbl">Vince</span>Se un seme ha la maggioranza netta, vince la sua carta più alta. Se due semi pareggiano, vince la carta più bassa tra i due (poi la seconda carta). Se la carta iniziale vince, o il pareggio resta, la presa si scarta.</div>
-    <div class="recap-row"><span class="lbl">Punti</span>1 punto per carta vinta. Scommessa centrata (prese vinte = bottoni): 5 punti per bottone; 0 bottoni e 0 prese: 30 punti. Dopo ${G.rounds} round vince chi ha più punti.</div>
-    ${G.team?`<div class="recap-row"><span class="lbl">Squadre</span>Compagni di fronte; prima delle scommesse si passano una carta coperta. La scommessa è la somma dei bottoni dei due; uno 0 riuscito fa vincere subito la partita.</div>`:''}</details>`;
-}
-const RULES_HTML = `
-<details class="rules paper"><summary>REGOLAMENTO</summary>
-<div class="rtext">
-<h4>Panoramica</h4>
-<p>In Button ogni presa è una passerella di moda in cui gli stilisti fanno sfilare il loro capo di punta. Se una tendenza (un seme) emerge chiaramente, vince il capo più convenzionale, cioè la carta più alta di quel seme. Se nessuna tendenza domina (due semi pari), vince il capo più originale, cioè la carta più bassa. Prevedi quante prese vincerai prendendo bottoni scommessa: se indovini, bonus!</p>
-<h4>Componenti e preparazione (4 giocatori)</h4>
-<p>48 carte in 4 semi (Leopardato, Righe, Pied-de-poule, Tartan) con valori da 1 a 12 e 10 bottoni scommessa. Il primo mazziere è casuale. Si distribuiscono 9 carte a testa e si mettono 4 carte scoperte al centro: ognuna è la carta iniziale di una presa aperta. Le 8 carte rimaste formano il mazzo di pesca.</p>
-<h4>Fase scommesse</h4>
-<p>Inizia il giocatore a sinistra del mazziere, poi si procede in senso orario. Nel proprio turno si prendono quanti bottoni si vuole, oppure si passa; chi passa non può prenderne altri. Chi non prende nessun bottone scommette di vincere 0 prese. Le scommesse proseguono finché finiscono i bottoni o tutti hanno passato.</p>
-<h4>Fase prese</h4>
-<p>Inizia il giocatore a sinistra del mazziere e si procede in senso orario. Nel proprio turno si gioca una carta in una presa aperta. Un giocatore può giocare al massimo 2 volte nella stessa presa (nella partita a 2 giocatori, 3 volte) e ci sono sempre 4 prese aperte (tante quante i giocatori).</p>
-<p>Appena una presa contiene 5 carte (la carta iniziale e quattro giocate) si risolve subito:</p>
-<ul>
-<li><b>Maggioranza netta</b> di un seme: vince la carta più alta di quel seme.</li>
-<li><b>Due semi pari</b> per la maggioranza (es. 2-2-1): vince la carta più bassa tra quelle dei semi in pareggio. Se anche le due carte più basse sono uguali, si confronta la seconda carta dei due semi: vince la più bassa. Se è ancora pari, la presa viene scartata.</li>
-<li>Chi vince prende tutte le carte della presa e le mette coperte davanti a sé; il numero di prese vinte resta visibile. Se vince la <b>carta iniziale</b>, la presa viene scartata.</li>
-</ul>
-<p>Poi si scopre una carta dal mazzo di pesca per aprire una nuova presa e si riparte dal giocatore successivo.</p>
-<h4>Fine del round e punteggio</h4>
-<p>Quando tutti hanno giocato 8 carte (ne resta 1 in mano) il round finisce: ognuno tiene la carta rimasta per il round successivo e le prese ancora aperte si risolvono con le regole normali; contano per le scommesse.</p>
-<ul>
-<li>Ogni <b>carta vinta</b> vale 1 punto.</li>
-<li>Scommessa riuscita (prese vinte = bottoni presi): <b>5 punti per ogni bottone</b>.</li>
-<li>Scommessa di 0 bottoni e nessuna presa vinta: <b>30 punti</b>.</li>
-<li>Scommessa fallita: nessun bonus, solo i punti delle carte.</li>
-</ul>
-<h4>Nuovo round e fine partita</h4>
-<p>Il giocatore a sinistra del mazziere diventa il nuovo mazziere, che rimescola tutte le carte tranne quelle tenute e ne dà 8 a testa (si arriva a 9 con quella tenuta); si scoprono nuove prese e si riparte dalle scommesse. Dopo 4 round vince chi ha il punteggio totale più alto (pari merito: vittoria condivisa).</p>
-<h4>Varianti</h4>
-<p><b>2 giocatori:</b> mazzo da 28 carte (valori 1–7), 2 prese aperte, 8 carte di pesca, 7 bottoni, fino a 3 giocate per presa, 4 round.</p>
-<p><b>3 giocatori:</b> mazzo da 36 carte (valori 1–9), 3 prese aperte, 6 carte di pesca, 9 bottoni, fino a 2 giocate per presa, 3 round.</p>
-<p><b>A squadre (4 giocatori):</b> chi siede di fronte è compagno. Prima delle scommesse i compagni si scambiano una carta a faccia in giù. La scommessa della squadra è la somma dei bottoni dei due giocatori e la squadra deve vincere esattamente quel numero di prese; i punti si sommano per squadra. Una scommessa di 0 prese riuscita fa vincere subito la partita. 4 round.</p>
-<p><i>Nell'app:</i> il primo mazziere e le carte sono casuali; i bottoni si prendono uno «scatto» alla volta (puoi prenderne più di uno nello stesso turno e, al giro dopo, altri); l'AI conosce solo le carte scoperte e stima il resto con simulazioni. Se un giocatore non ha nessuna presa dove giocare (ha già giocato il massimo in tutte), salta il turno. Il regolamento cita 40 carte da rimescolare, ma ne servono 44: l'app rimescola tutte le carte tranne quelle tenute. Nel menu, «Mostra le carte uscite» elenca le carte del mazzo: sbarrate quelle già scoperte nel round (carte iniziali, giocate, rivelate), in contorno le tue.</p>
-</div></details>`;
-
 let LOGOPEN=false, RULESOPEN=false;
 function logHtml(){
   return `<details class="log paper" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
@@ -890,37 +938,19 @@ function render(){
   if(G&&!G.welcome){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
       ${OPT.memo&&G.S&&!G.over&&!G.show?memoHtml():''}
-      <div class="dock paper" style="position:static">${scoreTable()}</div>
+      <div class="dock paper" style="position:static">${scoreTable(G.un,G.rounds,G.team)}</div>
       ${logHtml()}
-      ${recapHtml()}
+      ${recapHtml(G.n,G.team)}
       ${RULES_HTML.replace('<details class="rules','<details '+(RULESOPEN?'open ':'')+'class="rules')}`;
   }
   app.innerHTML=top+`<div class="dock paper">${dockHtml()}</div>`+body;
 }
 
-function askName(n,team){
-  try{ if(localStorage.getItem('nylo-skip-name')==='1'){ NAMES[0]=localStorage.getItem('nylo-player-name')||'Nylo'; newMatch(n,team); return; } }catch(e){}
-  let ov=document.getElementById('nameModal');
-  if(!ov){ ov=document.createElement('div'); ov.id='nameModal'; ov.className='name-modal'; document.body.appendChild(ov); }
-  let saved=''; try{ saved=localStorage.getItem('nylo-player-name')||''; }catch(e){}
-  ov.innerHTML='<form class="name-box"><h3>Come ti chiami?</h3><p>Il tuo nome sostituirà «Tu» al tavolo.</p><input id="nameInput" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(saved)+'"><div class="opts"><button class="opt" type="submit">Inizia la partita</button><button class="opt" type="button" data-cancel="1">Annulla</button></div></form>';
-  ov.style.display='flex';
-  const closeName=()=>{ ov.style.display='none'; };
-  ov.onclick=e=>{ if(e.target===ov||e.target.hasAttribute('data-cancel')) closeName(); };
-  ov.onkeydown=e=>{ if(e.key==='Escape') closeName(); };
-  const f=ov.firstChild, inp=f.querySelector('input'); inp.focus(); inp.select();
-  f.onsubmit=e=>{
-    e.preventDefault();
-    const v=inp.value.trim().slice(0,16)||'Tu';
-    try{ localStorage.setItem('nylo-player-name',v); }catch(x){}
-    NAMES[0]=v; ov.style.display='none'; newMatch(n,team);
-  };
-}
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
 document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
-  if(b.dataset.n){ const n=Number(b.dataset.n), team=b.dataset.team==='1'; if(G) newMatch(n,team); else askName(n,team); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.af!==undefined) confirmAns(b.dataset.af==='1');
   else if(b.dataset.p!==undefined) pickCard(Number(b.dataset.p));
@@ -943,8 +973,677 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
-nyloSaveInit('button',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('button',snap=>{ G=snap; NM.f=p=>P(p).name; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){ NAMES[0]=NYLO_START.name||'Tu'; const sn=NYLO_START.n||3; newMatch(sn===5?4:sn,sn===5); }
+}
 
+</script>
+<script type="text/plain" id="src-room">
+// ═════════════════════════ BUTTON · ONLINE ═════════════════════════
+// Si gioca solo tra persone (2–4, oppure 4 a squadre). Stato = un unico oggetto JSON (S); ogni azione passa da gameReduce().
+// Costanti, carte e regole pure arrivano dal blocco comune. Nelle stanze il valore 5 del numero di giocatori significa «4 a squadre».
+var GAME={id:'button',logo:'Button',counts:[2,3,4,5],countNote:{5:'a squadre: compagni di fronte'},
+  lobbyNote:'Servono da 2 a 4 giocatori (o 4 a squadre). Quando la stanza è piena, i posti al tavolo e il primo mazziere vengono assegnati a caso.'};
+var OPT={undo:true};
+try{var _u=localStorage.getItem('bt-undo');if(_u!==null)OPT.undo=_u==='1'}catch(e){}
+var ui={selC:null,selT:null,pick:null,ck:''};
+var LOGOPEN=false,RULESOPEN=false;
+NM.f=function(p){return S.names[p]};
+
+// ─────────────── REGOLE (funzioni pure, usate dentro le transazioni) ───────────────
+function mkRng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function sshuffle(a,rng){for(var i=a.length-1;i>0;i--){var j=Math.floor(rng()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function newSeed(){return Math.floor(Math.random()*4294967296)}
+function validSeed(x){return typeof x==='number'&&x%1===0&&x>=0&&x<4294967296}
+function lg(S,t){S.log.unshift(t);if(S.log.length>500)S.log.pop()}
+function nameOf(p){return S.names[p]}
+function zeros(n){var a=[],i;for(i=0;i<n;i++)a.push(0);return a}
+function unitOfS(S,p){return S.team?p%2:p}
+function bord(S,i){return (S.dealer+1+i)%S.n}
+function turnOf(S){
+  if(S.phase==='bet')return bord(S,S.bpos);
+  if(S.phase==='play')return nextMover(S,S.last);
+  return -1;
+}
+function dealRound(S,rng){
+  var n=S.n,cfg=S.cfg,i,k,kept={};
+  S.keep.forEach(function(a){a.forEach(function(c){kept[c]=1})});
+  S.dealer=(S.dealer0+S.round)%n;
+  var pool=sshuffle(makeDeck(cfg.maxV).filter(function(c){return !kept[c]}),rng);
+  S.hands=[];
+  for(i=0;i<n;i++)S.hands.push(sortHand(S.keep[i].concat(pool.splice(0,cfg.hand-S.keep[i].length))));
+  S.nid=0;S.open=[];
+  for(k=0;k<cfg.open;k++)S.open.push({id:++S.nid,start:pool.pop(),plays:[]});
+  S.draw=pool;S.cw=zeros(n);S.tr=zeros(n);S.disc=0;S.bets=null;
+  S.tokens=zeros(n);S.passed=[];for(i=0;i<n;i++)S.passed.push(false);
+  S.pool=cfg.tokens;S.bpos=0;S.last=S.dealer;S.lastRes=null;S.show=null;S.rt='';
+  S.give=[];S.recv=[];for(i=0;i<n;i++){S.give.push(null);S.recv.push(-1)}
+  S.phase=S.team?'swap':'bet';
+  lg(S,'— Round '+(S.round+1)+'/'+S.rounds+': mazziere '+S.names[S.dealer]+'; '+cfg.hand+' carte a testa, '+cfg.open+' prese aperte, '+S.draw.length+' carte nel mazzo di pesca —');
+}
+function newGame(S,rng){
+  S.round=0;S.dealer0=Math.floor(rng()*S.n);S.instant=null;
+  S.keep=[];S.names.forEach(function(){S.keep.push([])});
+  S.un=S.team?[0,1].map(function(k){return {name:S.names[k]+' + '+S.names[k+2],m:[k,k+2],total:0,hist:[]}})
+    :S.names.map(function(nm,i){return {name:nm,m:[i],total:0,hist:[]}});
+  dealRound(S,rng);
+}
+function gameInitial(players,seed,team){
+  var names=[];
+  players.forEach(function(p){var n=String(p.name||'Giocatore').slice(0,18),x=n,c=2;while(names.indexOf(x)>=0)x=n+' '+(c++);names.push(x)});
+  var n=players.length;
+  var S={n:n,team:!!team&&n===4,cfg:CFG[n],rounds:CFG[n].rounds,uids:players.map(function(p){return p.uid}),names:names,log:[]};
+  newGame(S,mkRng(validSeed(seed)?seed:newSeed()));
+  return S;
+}
+function winnersS(S){
+  if(S.instant)return S.instant.slice();
+  var mx=Math.max.apply(null,S.un.map(function(u){return u.total}));
+  return S.un.map(function(u,k){return u.total===mx?k:-1}).filter(function(k){return k>=0});
+}
+function betsLog(S){
+  return 'Scommesse: '+(S.team?S.un.map(function(u){return u.name+' '+u.m.reduce(function(a,i){return a+S.tokens[i]},0)}).join(' · ')
+    :S.names.map(function(nm,i){return nm+' '+S.tokens[i]}).join(' · '))+'.';
+}
+// avanza al prossimo giocatore che può ancora prendere bottoni; se non ce ne sono finiscono le scommesse
+function betAdvance(S){
+  var n=S.n,k;
+  if(S.pool>0){
+    for(k=1;k<=n;k++){var q=bord(S,S.bpos+k);if(!S.passed[q]){S.bpos=(S.bpos+k)%n;return}}
+  }
+  S.bets=S.tokens.slice();S.phase='play';S.last=S.dealer;
+  lg(S,betsLog(S));
+  lg(S,'Fase prese: inizia '+S.names[(S.dealer+1)%n]+', poi in senso orario.');
+}
+function scoreRoundS(S){
+  var last=S.round===S.rounds-1;
+  S.phase='score';S.keep=S.hands.map(function(h){return h.slice()});
+  var rows=S.un.map(function(u,k){
+    var bet=0,tr=0,cards=0;
+    u.m.forEach(function(i){bet+=S.tokens[i];tr+=S.tr[i];cards+=S.cw[i]});
+    var ok=bet===tr,zero=ok&&bet===0,bonus=S.team&&zero?0:bonusOf(bet,tr);
+    return {k:k,bet:bet,tr:tr,cards:cards,bonus:bonus,ok:ok,zero:zero,tot:cards+bonus};
+  });
+  rows.forEach(function(r){S.un[r.k].total+=r.tot;S.un[r.k].hist.push(r.tot)});
+  S.show={rows:rows};
+  if(S.team){
+    var z=rows.filter(function(r){return r.zero}).map(function(r){return r.k});
+    if(z.length){S.instant=z;lg(S,z.map(function(k){return S.un[k].name}).join(' e ')+': scommessa di 0 prese riuscita, vittoria immediata!')}
+  }
+  lg(S,'Punteggio del round: '+rows.map(function(r){return S.un[r.k].name+' '+plu(r.cards,'carta','carte')+(r.bonus?' + '+r.bonus+' bonus':'')+' = '+r.tot}).join(' · ')+'.');
+  return last;
+}
+function endPlay(S){
+  lg(S,'Fine del round: ogni giocatore tiene 1 carta; le prese ancora aperte si risolvono con le regole normali.');
+  while(S.open.length){
+    var res=settleTrick(S,0,false);
+    S.lastRes=res;S.rt=descRes(res,function(p){return S.names[p]});lg(S,S.rt);
+  }
+  scoreRoundS(S);
+}
+// ritorna il nuovo stato oppure null se l'azione non è valida
+function gameReduce(S,seat,a){
+  if(!a||typeof a.type!=='string'||!(seat>=0&&seat<S.n))return null;
+  if(a.type==='give'){
+    if(S.phase!=='swap'||S.give[seat]!==null||typeof a.c!=='number'||S.hands[seat].indexOf(a.c)<0)return null;
+    S.give[seat]=a.c;
+    if(S.give.every(function(g){return g!==null})){
+      var p;
+      for(p=0;p<4;p++)S.hands[p].splice(S.hands[p].indexOf(S.give[p]),1);
+      for(p=0;p<4;p++)S.hands[partner(p)].push(S.give[p]);
+      for(p=0;p<4;p++){sortHand(S.hands[p]);S.recv[p]=S.give[partner(p)]}
+      S.phase='bet';
+      lg(S,'Scambio carte completato: ognuno ha passato una carta coperta al compagno.');
+    }
+    return S;
+  }
+  if(a.type==='bet'){
+    if(S.phase!=='bet'||turnOf(S)!==seat||typeof a.k!=='number'||a.k%1!==0||a.k<0||a.k>Math.min(S.pool,10))return null;
+    var nm=S.names[seat];
+    if(a.k>0){
+      S.tokens[seat]+=a.k;S.pool-=a.k;
+      lg(S,nm+' prende '+a.k+(a.k===1?' bottone':' bottoni')+' (ora ne ha '+S.tokens[seat]+').');
+    }else{
+      S.passed[seat]=true;
+      lg(S,S.tokens[seat]?nm+' passa con '+S.tokens[seat]+(S.tokens[seat]===1?' bottone':' bottoni')+': scommette '+S.tokens[seat]+(S.tokens[seat]===1?' presa':' prese')+'.':nm+' passa senza bottoni: scommette 0 prese.');
+    }
+    betAdvance(S);return S;
+  }
+  if(a.type==='play'){
+    if(S.phase!=='play'||turnOf(S)!==seat||typeof a.c!=='number'||typeof a.t!=='number')return null;
+    var ci=S.hands[seat].indexOf(a.c),ti=-1;
+    S.open.forEach(function(t,i){if(t.id===a.t)ti=i});
+    if(ci<0||ti<0||legalTricks(S,seat).indexOf(ti)<0)return null;
+    var tid=S.open[ti].id,c=applyPlay(S,seat,ci,ti);
+    S.recv[seat]=-1;S.rt='';
+    lg(S,S.names[seat]+' gioca '+cardName(c)+' nella presa '+tid+'.');
+    if(S.open[ti].plays.length>=4){
+      var res=settleTrick(S,ti,true);
+      S.lastRes=res;S.rt=descRes(res,function(p){return S.names[p]})+(res.reveal>=0?' Si apre la presa '+S.open[ti].id+'.':'');lg(S,descRes(res,function(p){return S.names[p]}));
+    }
+    S.last=seat;
+    if(nextMover(S,seat)<0)endPlay(S);
+    return S;
+  }
+  if(a.type==='next'){
+    if(S.phase!=='score'||!validSeed(a.seed))return null;
+    if(S.instant||S.round>=S.rounds-1){
+      S.phase='over';
+      lg(S,'Punteggio finale: '+S.un.map(function(u){return u.name+' '+u.total}).join(' · ')+'.');
+    }else{S.round++;dealRound(S,mkRng(a.seed))}
+    return S;
+  }
+  if(a.type==='rematch'){
+    if(S.phase!=='over'||!validSeed(a.seed))return null;
+    lg(S,'— Rivincita —');
+    newGame(S,mkRng(a.seed));return S;
+  }
+  return null;
+}
+
+// ─────────────── INTERFACCIA ───────────────
+function ordSeats(){var o=[],i;for(i=0;i<S.n;i++)o.push((me+i)%S.n);return o}
+function myBet(){return S.phase==='bet'&&turnOf(S)===me}
+function myPlay(){return S.phase==='play'&&turnOf(S)===me}
+function mySwap(){return S.phase==='swap'&&S.give[me]===null}
+function betOpts(){
+  var pool=S.pool,t=S.tokens[me],o=[],i;
+  for(i=1;i<=Math.min(pool,10);i++)o.push({label:'Prendi '+i,k:i,num:true});
+  o.push({label:t?'Passa (scommessa: '+t+')':'Passa (scommetto 0 prese)',k:0});
+  return o;
+}
+function flagR(p){
+  if(S.phase==='over')return '';
+  var f='';
+  if(S.dealer===p)f+='<span class="flag deal">Mazziere</span>';
+  if(S.team)f+='<span class="flag team">'+(unitOfS(S,p)===unitOfS(S,me)?'Squadra tua':'Avversari')+'</span>';
+  return f;
+}
+function handR(p){
+  var pickable=myPlay()||mySwap();
+  return '<div class="hand">'+S.hands[p].map(function(c,i){
+    var tk=c===S.recv[p]?'taken':'';
+    if(pickable)return cardHtml(c,'legal '+(ui.selC===i?'sel':'')+' '+tk,'button','data-p="'+i+'"');
+    return cardHtml(c,tk);
+  }).join('')+'</div>';
+}
+function seatR(p,pos){
+  var S0=S,active=turnOf(S0)===p,mate=S0.team&&p!==me&&unitOfS(S0,p)===unitOfS(S0,me);
+  var hand=p===me?handR(p):'<div class="backs">'+S0.hands[p].map(function(){return '<span class="back"></span>'}).join('')+'</div>';
+  var tk=S0.tokens[p],toks='',i;
+  for(i=0;i<tk;i++)toks+='<span class="bt"></span>';
+  var meta='<div class="seat-meta"><span class="tag" title="Bottoni scommessa presi">'+((pos==='bottom'||pos==='top')&&tk>0&&tk<=5?toks:'<span class="bt"></span>')+' <b>'+tk+'</b></span>'+
+    '<span class="tag tg-s" title="Prese vinte in questo round">'+ico('stack')+' <b>'+S0.tr[p]+'</b></span><span class="tag tg-c" title="Carte vinte in questo round">'+ico('cards')+' <b>'+S0.cw[p]+'</b></span></div>';
+  var name='<div class="seat-name"><span class="dot" style="background:'+SEATC[p]+'"></span>'+esc(S0.names[p])+(p===me?' <span class="hint">(tu)</span>':'')+flagR(p)+'</div>';
+  return '<div class="seat '+pos+' '+(active?'active':'')+' '+(mate?'mate':'')+'">'+name+meta+hand+'</div>';
+}
+function trickR(t,ti){
+  var can=myPlay()&&ui.selC!=null&&legalTricks(S,me).indexOf(ti)>=0,sel=can&&ui.selT===ti;
+  var wi=curWinIdx(t.start,t.plays);
+  var cards=[tcHtml(t.start,-1,wi===0)].concat(t.plays.map(function(x,k){return tcHtml(x.c,x.p,wi===k+1)}));
+  for(var k=t.plays.length;k<4;k++)cards.push('<span class="tc empty"><span class="cup"></span><span class="slotc"></span><span class="who"></span></span>');
+  var inner='<span class="cs">'+cards.join('')+'</span>';
+  return can?'<button type="button" class="otr can '+(sel?'sel':'')+'" data-t="'+ti+'">'+inner+'</button>':'<div class="otr">'+inner+'</div>';
+}
+function centerR(){
+  var mid='';
+  if(S.phase==='play'||S.phase==='bet'||S.phase==='swap'||S.phase==='score')mid='<div class="otrs">'+S.open.map(trickR).join('')+'</div>';
+  var pool='';
+  if(S.phase==='bet'){var i,b='';for(i=0;i<S.pool;i++)b+='<span class="bt"></span>';pool='<div class="hint" style="color:inherit">Bottoni disponibili: <b>'+S.pool+'</b></div><div class="pool">'+b+'</div>'}
+  var ph={swap:'scambio con il compagno',bet:'scommesse',play:'prese',score:'risultato del round',over:'fine partita'}[S.phase]||'';
+  return '<div class="center"><div>Round <b>'+(S.round+1)+'/'+S.rounds+'</b>'+(ph?' · fase: <b>'+ph+'</b>':'')+'</div>'+pool+mid+
+    (S.phase==='play'||S.phase==='score'?lastResHtml(S.lastRes):'')+
+    '<div class="hint" style="color:inherit">Mazzo di pesca: <b>'+S.draw.length+'</b> · Scartate: <b>'+S.disc+'</b> '+(S.disc===1?'carta':'carte')+'</div></div>';
+}
+function msgH(){
+  if(S.phase==='over'){
+    var w=winnersS(S),nm=w.map(function(i){return esc(S.un[i].name)}),t=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
+    return '<b>'+(nm.length>1?'Vittoria condivisa: ':(S.team?'Vincono ':'Vince '))+t+(S.instant?' per la scommessa di 0 prese riuscita':'')+'!</b>'+(S.instant?'':' Punteggio finale '+S.un[w[0]].total+'.');
+  }
+  if(S.phase==='score')return 'Round '+(S.round+1)+' concluso.';
+  var pre=S.rt?esc(S.rt)+' ':'';
+  if(S.phase==='swap')return S.give[me]===null?'Scambio con il compagno: scegli una carta da passargli a faccia in giù.':'Hai scelto la carta da passare: aspetti gli altri…';
+  var tn=turnOf(S);
+  if(S.phase==='bet')return tn===me?'Tocca a te: quanti bottoni scommessa prendi? Ne restano '+S.pool+(S.tokens[me]?', ne hai già '+S.tokens[me]:'')+'.':esc(S.names[tn])+' decide la scommessa…';
+  return pre+(tn===me?'Tocca a te: scegli una carta e la presa in cui giocarla.':esc(S.names[tn])+' sta scegliendo…');
+}
+function dockH(){
+  var h='<div class="dock-msg">'+msgH()+'</div>';
+  if(S.phase==='over')return h+(S.show?roundTable(S.show.rows,S.un,S.team):'')+'<div class="opts"><button class="opt" data-rematch="1">Rivincita</button></div>';
+  if(S.phase==='score')return h+roundTable(S.show.rows,S.un,S.team)+'<div class="opts"><button class="opt" data-next="1">'+(S.instant||S.round>=S.rounds-1?'Mostra risultato finale':'Prossimo round')+'</button></div>';
+  if(myBet()){
+    var o=betOpts();
+    h+='<div class="dock-title">SCOMMESSA</div><div class="opts">'+o.map(function(x,i){return '<button class="opt '+(ui.pick===i?'sel':'')+'" data-i="'+i+'">'+esc(x.label)+'</button>'}).join('')+'</div>';
+    if(ui.pick!=null&&o[ui.pick])h+='<div class="opts"><button class="opt" data-af="1">Conferma: '+esc(o[ui.pick].label)+'</button><button class="opt" data-af="0">Annulla</button></div>';
+    return h;
+  }
+  var c=ui.selC!=null?S.hands[me][ui.selC]:null;
+  if(mySwap()){
+    if(c!=null&&OPT.undo)h+='<div class="opts"><button class="opt" data-cf="1">Conferma: passa '+esc(cardName(c))+' a '+esc(S.names[partner(me)])+'</button><button class="opt" data-cf="0">Annulla</button></div>';
+  }else if(myPlay()){
+    if(c==null){/* il messaggio di stato dice già cosa fare */}
+    else if(ui.selT==null)h+='<div class="hint">Hai scelto '+esc(cardName(c))+': tocca una delle prese evidenziate (oppure scegli un\'altra carta).</div><div class="opts"><button class="opt" data-cf="0">Annulla</button></div>';
+    else h+='<div class="opts"><button class="opt" data-cf="1">Conferma: gioca '+esc(cardName(c))+' nella presa '+S.open[ui.selT].id+'</button><button class="opt" data-cf="0">Annulla</button></div>';
+  }
+  return h;
+}
+function roomLogH(){
+  return '<details class="log paper" '+(LOGOPEN?'open':'')+'><summary>LOG DELLA PARTITA ('+S.log.length+')</summary><div class="logbody">'+S.log.map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div></details>';
+}
+function gameBadge(){return S.phase==='over'?'':'Round '+(S.round+1)}
+function gameMenu(){
+  return '<label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" '+(OPT.undo?'checked':'')+'> Abilita annulla</label>';
+}
+function submitPlay(){
+  var c=S.hands[me][ui.selC],t=S.open[ui.selT];
+  ui.selC=null;ui.selT=null;
+  act({type:'play',c:c,t:t.id});
+}
+function submitGive(){
+  var c=S.hands[me][ui.selC];ui.selC=null;
+  act({type:'give',c:c});
+}
+function gameChange(e){
+  if(e.target.id!=='optUndo')return;
+  OPT.undo=e.target.checked;try{localStorage.setItem('bt-undo',OPT.undo?'1':'0')}catch(x){}
+  if(!OPT.undo){
+    if(myPlay()&&ui.selC!=null&&ui.selT!=null){submitPlay();return}
+    if(mySwap()&&ui.selC!=null){submitGive();return}
+    if(myBet()&&ui.pick!=null){var o=betOpts()[ui.pick];ui.pick=null;if(o){act({type:'bet',k:o.k});return}}
+  }
+  render();
+}
+function gameRender(){
+  var ck=S.round+'.'+S.phase+'.'+S.bpos+'.'+S.log.length;
+  if(ui.ck!==ck){ui.ck=ck;ui.pick=null;if(!(myPlay()||mySwap())||ui.selC>=S.hands[me].length){ui.selC=null;ui.selT=null}}
+  var lb=document.querySelector('.logbody'),lbTop=lb?lb.scrollTop:0;
+  if(lbTop)setTimeout(function(){var n=document.querySelector('.logbody');if(n)n.scrollTop=lbTop},0);
+  var pos=POS[S.n];
+  return '<div class="dock paper">'+dockH()+'</div>'+
+    '<div class="table n'+S.n+'">'+ordSeats().map(function(p,i){return seatR(p,pos[i])}).join('')+centerR()+'</div>'+
+    '<div class="dock paper" style="position:static">'+scoreTable(S.un,S.rounds,S.team)+'</div>'+
+    roomLogH()+recapHtml(S.n,S.team)+RULES_HTML.replace('<details class="rules','<details '+(RULESOPEN?'open ':'')+'class="rules');
+}
+function gameClick(b){
+  var d=b.dataset;
+  if(d.i!==undefined){
+    if(!myBet())return;
+    var o=betOpts()[Number(d.i)];if(!o)return;
+    if(OPT.undo){ui.pick=Number(d.i);render()}else act({type:'bet',k:o.k});
+  }else if(d.af!==undefined){
+    var o2=myBet()&&ui.pick!=null?betOpts()[ui.pick]:null;
+    ui.pick=null;
+    if(d.af==='1'&&o2)act({type:'bet',k:o2.k});else render();
+  }else if(d.p!==undefined){
+    var i=Number(d.p);
+    if(i<0||i>=S.hands[me].length)return;
+    if(mySwap()){ui.selC=i;if(OPT.undo)render();else submitGive();return}
+    if(!myPlay())return;
+    ui.selC=i;
+    var lt=legalTricks(S,me);
+    ui.selT=lt.length===1?lt[0]:null;
+    if(ui.selT!=null&&!OPT.undo)submitPlay();else render();
+  }else if(d.t!==undefined){
+    if(!myPlay()||ui.selC==null||legalTricks(S,me).indexOf(Number(d.t))<0)return;
+    ui.selT=Number(d.t);
+    if(OPT.undo)render();else submitPlay();
+  }else if(d.cf!==undefined){
+    if(d.cf==='1'){
+      if(mySwap()&&ui.selC!=null){submitGive();return}
+      if(myPlay()&&ui.selC!=null&&ui.selT!=null){submitPlay();return}
+    }
+    ui.selC=null;ui.selT=null;render();
+  }
+  else if(d.next!==undefined)act({type:'next',seed:newSeed()});
+  else if(d.rematch!==undefined)act({type:'rematch',seed:newSeed()});
+}
+document.getElementById('app').addEventListener('toggle',function(e){if(e.target.matches&&e.target.matches('details.log'))LOGOPEN=e.target.open;if(e.target.matches&&e.target.matches('details.rules'))RULESOPEN=e.target.open},true);
+
+
+// ═══ KIT STANZE ═══
+// Stesso schema di tt/spy-team/online: rooms/$room con hostUid, members, lobby, state (le regole già pubblicate bastano).
+// Lo stato di gioco è un unico oggetto JSON salvato come stringa in state.s (+ contatore state.v); ogni azione è una
+// transazione che applica gameReduce() all'ultima versione. Le mani stanno nello stato (nascoste solo dall'interfaccia).
+var FIREBASE_CONFIG={
+  apiKey:"AIzaSyAoOMLytOqFY9GRXpi2kUGEyzLK-r00nvQ",
+  authDomain:"gachapon-trick.firebaseapp.com",
+  databaseURL:"https://gachapon-trick-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"gachapon-trick",
+  storageBucket:"gachapon-trick.firebasestorage.app",
+  messagingSenderId:"869677835302",
+  appId:"1:869677835302:web:85768d5a6ac0d94f8372e7"
+};
+var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+var SAVE_KEY=GAME.id+'-online-last';
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var rnd=function(n){return Math.floor(Math.random()*n)};
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+function getPlayerName(){
+  var name='';
+  try{
+    name=localStorage.getItem('nylo-player-name')||'';
+    if(!name){var last=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');name=last&&last.name||''}
+  }catch(e){}
+  return String(name||'Giocatore').trim().slice(0,18)||'Giocatore';
+}
+var playerName=getPlayerName();
+var db=null,user=null,roomRef=null,roomCode='',lobbyData=null,S=null,me=-1,listeners=[],startingGame=false;
+var statusText='',connText='',joinVal='',chosenCount=GAME.counts[0],MENUOPEN=false,connecting=false;
+try{var lastRoom=JSON.parse(localStorage.getItem(SAVE_KEY));if(lastRoom)joinVal=lastRoom.code||''}catch(e){}
+
+function setStatus(t){statusText=t;render()}
+function setConn(t){connText=t;var c=document.getElementById('conn');if(c)c.textContent=t}
+function showErr(t){
+  var e=document.getElementById('err');
+  if(!e){e=document.createElement('div');e.id='err';e.className='err';e.setAttribute('role','alert');document.body.appendChild(e)}
+  e.textContent=t;e.hidden=false;setConn('Errore');clearTimeout(showErr.t);showErr.t=setTimeout(function(){e.hidden=true},8000);
+}
+function genCode(){var b=new Uint8Array(12);crypto.getRandomValues(b);return Array.from(b,function(x){return ALPHABET[x%ALPHABET.length]}).join('')}
+function withTimeout(p,ms,msg){
+  return new Promise(function(res,rej){var t=setTimeout(function(){rej(new Error(msg))},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})});
+}
+function authMsg(e){
+  if(e.code==='auth/operation-not-allowed')return 'Attiva il provider Anonimo in Firebase Authentication.';
+  if(e.code==='auth/unauthorized-domain')return 'Dominio non autorizzato: aggiungilo in Authentication > Impostazioni > Domini autorizzati.';
+  if(e.code==='auth/network-request-failed')return 'Firebase non raggiungibile: controlla la connessione e che il sito sia in HTTPS.';
+  return e.message||'Errore di autenticazione Firebase.';
+}
+async function connect(){
+  if(!window.firebase)throw new Error('Firebase non caricato. Controlla la connessione.');
+  if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+  db=firebase.database();
+  if(user)return;
+  try{user=(await withTimeout(firebase.auth().signInAnonymously(),15000,'Autenticazione scaduta dopo 15 secondi.')).user}
+  catch(e){throw new Error(authMsg(e))}
+}
+function saveLast(name){try{localStorage.setItem(SAVE_KEY,JSON.stringify({code:roomCode,name:name}))}catch(e){}}
+
+// ─────────────── LOBBY ───────────────
+async function createRoom(){
+  try{
+    setStatus('Connessione a Firebase...');await connect();
+    var created=false,lastErr=null;
+    for(var i=0;i<5&&!created;i++){
+      roomCode=genCode();roomRef=db.ref('rooms/'+roomCode);
+      try{
+        await roomRef.child('hostUid').set(user.uid);
+        await roomRef.child('members/'+user.uid).set(true);
+        await roomRef.child('lobby').set(Object.assign({game:GAME.id,hostUid:user.uid,playerCount:chosenCount===5?4:chosenCount,started:false,closed:false,players:{}},chosenCount===5?{team:true}:{}));
+        created=true;
+      }catch(e){lastErr=e;roomRef=null}
+    }
+    if(!created)throw lastErr||new Error('Impossibile creare la stanza. Verifica le regole del database.');
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;connecting=false;setStatus(e.message||'Errore durante la creazione della stanza.')}
+}
+async function joinRoom(){
+  try{
+    roomCode=joinVal.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(roomCode.length!==12)throw new Error('Il codice stanza è di 12 caratteri.');
+    setStatus('Connessione...');await connect();
+    roomRef=db.ref('rooms/'+roomCode);
+    await roomRef.child('members/'+user.uid).set(true);
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;connecting=false;setStatus(e.code==='PERMISSION_DENIED'?'Stanza non trovata o non accessibile.':(e.message||'Errore durante l\'accesso alla stanza.'))}
+}
+function reserveSeat(name){
+  var lobbyRef=roomRef.child('lobby');
+  return lobbyRef.once('value').then(function(snap){
+    if(!snap.exists())throw new Error('Lobby non trovata: controlla il codice.');
+    var initial=snap.val();
+    if(initial.game!==GAME.id)throw new Error('Questo codice appartiene a un altro gioco.');
+    return new Promise(function(resolve,reject){
+      lobbyRef.transaction(function(cur){
+        if(cur===null)cur=initial;
+        if(!cur||!cur.playerCount||cur.closed)return;
+        cur.players=cur.players||{};
+        if(cur.players[user.uid])return cur;            // rientro: il posto è già tuo
+        if(cur.started)return;
+        var occ={};Object.keys(cur.players).forEach(function(u){occ[cur.players[u].seat]=true});
+        var seat=1;while(seat<=cur.playerCount&&occ[seat])seat++;
+        if(seat>cur.playerCount)return;
+        cur.players[user.uid]={uid:user.uid,name:name,seat:seat};
+        return cur;
+      },function(err,committed,snap2){
+        if(err){reject(err);return}
+        var cur=snap2&&snap2.val();
+        if(!cur||!cur.players||!cur.players[user.uid]){
+          reject(new Error(cur&&cur.started?'La partita è già iniziata.':'La stanza è piena o non disponibile.'));return;
+        }
+        lobbyData=cur;saveLast(name);enterRoom();resolve();
+      },false);
+    });
+  });
+}
+function orderedPlayers(d){
+  return Object.keys(d.players||{}).map(function(u){return d.players[u]}).sort(function(a,b){return a.seat-b.seat});
+}
+function maybeStart(){
+  if(!lobbyData||S||startingGame||lobbyData.started||lobbyData.hostUid!==user.uid)return;
+  if(orderedPlayers(lobbyData).length===lobbyData.playerCount)startGame();
+}
+function startGame(){
+  startingGame=true;
+  var seated=orderedPlayers(lobbyData);   // i posti si assegnano a caso all'avvio
+  shuffle(seated);
+  var init=gameInitial(seated.map(function(p){return {uid:p.uid,name:p.name}}),null,!!lobbyData.team);
+  init.v=0;
+  roomRef.child('state').transaction(function(cur){if(cur!==null)return;return {v:0,s:JSON.stringify(init)}},function(err){
+    if(err){startingGame=false;showErr('Errore durante l\'avvio: '+err.message);return}
+    roomRef.child('lobby/started').set(true).catch(function(e){startingGame=false;showErr(e.message)});
+  },false);
+}
+
+// ─────────────── STANZA ───────────────
+function enterRoom(){
+  setConn('Lobby');
+  var lobbyRef=roomRef.child('lobby');
+  var lh=function(snap){if(!snap.exists())return;lobbyData=snap.val();if(!S){render();maybeStart()}};
+  lobbyRef.on('value',lh,function(e){showErr(e.message)});listeners.push({ref:lobbyRef,h:lh});
+  var stateRef=roomRef.child('state');
+  var sh=function(snap){
+    if(!snap.exists())return;
+    var raw=snap.val();
+    try{S=JSON.parse(raw.s)}catch(e){showErr('Stato della stanza non leggibile.');return}
+    me=S.uids.indexOf(user.uid);
+    if(me<0){showErr('Non risulti tra i giocatori di questa partita.');return}
+    setConn('Connesso');
+    render();
+  };
+  stateRef.on('value',sh,function(e){showErr('Connessione persa: '+e.message)});listeners.push({ref:stateRef,h:sh});
+  render();
+}
+function leave(dest){
+  var go=function(){if(dest)window.location.href=dest;else window.location.reload()};
+  listeners.forEach(function(l){l.ref.off('value',l.h)});
+  if(!roomRef||S||!user){go();return}
+  // prima dell'inizio libera il posto; a partita avviata si può rientrare con lo stesso codice
+  roomRef.child('lobby').transaction(function(cur){
+    if(!cur||cur.started)return;
+    cur.players=cur.players||{};delete cur.players[user.uid];
+    var rest=orderedPlayers(cur);
+    if(cur.hostUid===user.uid&&rest.length)cur.hostUid=rest[0].uid;
+    return cur;
+  },function(){
+    roomRef.child('members/'+user.uid).remove().catch(function(){}).then(go);
+  },false);
+}
+
+// azioni: ogni azione è una transazione sullo stato, validata da gameReduce() sull'ultima versione
+function act(a){
+  if(!roomRef||me<0)return;
+  var seat=me;
+  roomRef.child('state').transaction(function(cur){
+    if(!cur||!cur.s)return;
+    var st;try{st=JSON.parse(cur.s)}catch(e){return}
+    var r=gameReduce(st,seat,a);
+    if(!r)return;
+    r.v=(st.v||0)+1;
+    return {v:r.v,s:JSON.stringify(r)};
+  },function(err,committed){
+    if(err)showErr('Errore di sincronizzazione: '+err.message);
+    else if(!committed)setConn('Azione non più valida');
+  },false);
+}
+
+// ─────────────── RENDER ───────────────
+function lobbyHtml(){
+  var radios=GAME.counts.length<2?'':GAME.counts.map(function(n){
+    return '<label><input type="radio" name="pc" value="'+n+'" '+(chosenCount===n?'checked':'')+'> '+(GAME.countLabel&&GAME.countLabel[n]||n+' giocatori')+(GAME.countNote&&GAME.countNote[n]?' · '+GAME.countNote[n]:'')+'</label>';
+  }).join('');
+  return '<section><p class="muted">Sei connesso come <b>'+esc(playerName)+'</b>.</p>'+
+    '<div class="panel"><h2>Crea una stanza</h2><p class="muted">'+GAME.lobbyNote+'</p>'+
+    (radios?'<div class="radios" role="radiogroup" aria-label="Numero di giocatori">'+radios+'</div>':'')+
+    '<button class="opt" id="createRoom" type="button" data-create="1">Crea stanza</button></div>'+
+    '<div class="panel"><h2>Unisciti a una stanza</h2>'+
+    '<input type="text" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(joinVal)+'">'+
+    '<button class="opt" type="button" data-join="1">Unisciti</button></div>'+
+    '<p class="status" role="status" aria-live="polite">'+esc(statusText)+'</p>'+
+    '<button class="btn btn-sm" type="button" data-ai="1">← Torna alla scelta</button></section>';
+}
+function connectingHtml(){
+  return '<section><div class="panel"><p class="muted" role="status" aria-live="polite">'+esc(statusText||'Connessione alla stanza...')+'</p></div></section>';
+}
+function waitingHtml(){
+  var d=lobbyData||{players:{},playerCount:GAME.counts[0]};
+  var players=orderedPlayers(d),full=players.length===d.playerCount,html='';
+  for(var seat=1;seat<=d.playerCount;seat++){
+    var p=players[seat-1];
+    html+='<li><span class="seat-n">'+seat+'.</span>'+
+      (p?'<span class="grow">'+esc(p.name)+(p.uid===user.uid?' (tu)':'')+'</span>':'<span class="grow soft">In attesa di un giocatore</span>')+
+      (p&&p.uid===d.hostUid?'<span class="flag first">HOST</span>':'')+'</li>';
+  }
+  return '<section><div class="panel"><h2>Stanza '+roomCode+'</h2><p class="muted">'+
+    (d.started?'La partita si sta caricando...':players.length+' / '+d.playerCount+' giocatori'+(d.team?' a squadre':'')+(full?' · avvio in corso':' · condividi il codice con gli altri'))+
+    '</p><ul class="roster">'+html+'</ul></div></section>';
+}
+function kitMenuHtml(){
+  var extra=typeof gameMenu==='function'?gameMenu():'';
+  return '<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="'+MENUOPEN+'"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>'+
+    (MENUOPEN?'<div class="menu-pop">'+extra+'</div>':'')+'</div>';
+}
+function render(){
+  document.body.classList.toggle('a11y',!!(typeof OPT!=='undefined'&&OPT.a11y));
+  var focus=document.activeElement&&document.activeElement.id==='joinCode';
+  var badge=S&&typeof gameBadge==='function'?gameBadge():'';
+  var top='<div class="topbar"><div class="logo">'+GAME.logo+'</div>'+
+    (window.nyloBackBtn?nyloBackBtn(location.pathname,'alle opzioni del gioco'):'')+(window.nyloHomeBtn?nyloHomeBtn():'')+
+    (badge?'<span class="badge">'+badge+'</span>':'')+kitMenuHtml()+'</div>'+
+    (roomRef?'<div class="room-bar"><span class="room-code">'+roomCode+'</span><button class="btn btn-sm" type="button" data-copy="1">Copia codice</button><button class="btn btn-sm" type="button" data-leave="1">Esci</button><span class="conn" id="conn">'+esc(connText)+'</span></div>':'');
+  var body=!roomRef?(connecting?connectingHtml():lobbyHtml()):(!S?waitingHtml():gameRender());
+  document.getElementById('app').innerHTML=top+body;
+  if(focus){var j=document.getElementById('joinCode');if(j){j.focus();j.setSelectionRange(j.value.length,j.value.length)}}
+}
+var APP=document.getElementById('app');
+APP.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b||b.disabled)return;
+  var d=b.dataset;
+  if(d.back!==undefined){e.stopPropagation();if(!S||confirm('Tornare alle opzioni del gioco? Potrai rientrare nella stanza con lo stesso codice.'))leave(location.pathname);return}
+  if(d.menu){MENUOPEN=!MENUOPEN;render();return}
+  if(d.ai!==undefined){location.href=location.pathname;return}
+  if(d.create!==undefined){createRoom();return}
+  if(d.join!==undefined){joinRoom();return}
+  if(d.leave!==undefined){if(!S||confirm('Uscire dalla stanza? Potrai rientrare con lo stesso codice.'))leave();return}
+  if(d.copy!==undefined){
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(roomCode).then(function(){setConn('Codice copiato')});
+    else window.prompt('Copia il codice stanza:',roomCode);
+    return;
+  }
+  if(S&&typeof gameClick==='function')gameClick(b);
+});
+APP.addEventListener('input',function(e){if(e.target.id==='joinCode'){joinVal=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=joinVal}});
+APP.addEventListener('keydown',function(e){if(e.target.id==='joinCode'&&e.key==='Enter')joinRoom()});
+APP.addEventListener('change',function(e){
+  if(e.target.name==='pc'){chosenCount=Number(e.target.value);return}
+  if(typeof gameChange==='function')gameChange(e);
+});
+document.addEventListener('click',function(e){if(MENUOPEN&&!e.target.closest('.menu-wrap')){MENUOPEN=false;render()}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&MENUOPEN){MENUOPEN=false;render()}});
+connecting=!!(window.NYLO_START&&NYLO_START.mode==='room');
+render();
+if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosenCount;if(NYLO_START.name)playerName=NYLO_START.name.slice(0,18);if(NYLO_START.action==='join'){joinVal=NYLO_START.code||'';joinRoom()}else createRoom();}
+</script>
+<script>
+(function(){
+  run('src-common');
+  var P=window.NYLO_SETUP={id:'button',logo:'Button',counts:[2,3,4,5],labels:{5:'4 a squadre'}};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  function run(id){var s=document.createElement('script');s.textContent=document.getElementById(id).textContent;document.body.appendChild(s)}
+  window.addEventListener('hashchange',function(){location.reload()});
+  window.NYLO_IN_SETUP=true;   // finché si sceglie, Home/Indietro escono senza avviso
+  var app=document.getElementById('app');
+  var st={n:P.counts[0],mode:location.hash==='#stanze'?'room':(location.hash==='#ai'?'ai':''),sub:'',code:'',name:'',see:false};
+  var needName=false;
+  try{
+    st.name=localStorage.getItem('nylo-player-name')||'';
+    var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
+  }catch(e){}
+  needName=!st.name;   // il nome arriva dalla sessione; il campo compare solo se manca
+  // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
+  var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
+  if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.n)rsm={n:sg.team?5:sg.n}}}catch(e){}}
+  function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
+  function draw(){
+    var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
+    h+='<div class="sx-card">';
+    if(needName)h+='<label class="sx-label" for="sxName">IL TUO NOME</label><input class="sx-in" id="sxName" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(st.name)+'">';
+    if(P.counts.length>1){
+      h+='<div class="sx-label">GIOCATORI</div><div class="sx-row">'+P.counts.map(function(n){return btn('data-n="'+n+'"','',P.labels&&P.labels[n]||n+' giocatori',st.n===n)}).join('')+'</div>';
+    }
+    h+='<div class="sx-label">MODALITÀ</div><div class="sx-row">'+btn('data-mode="ai"','','Contro l’AI',st.mode==='ai')+btn('data-mode="room"','','A stanze',st.mode==='room')+'</div>';
+    if(st.mode==='ai'){
+      h+='<div class="sx-sub"><div class="sx-row">'+btn('data-go="ai"','sx-go','Inizia',false)+'</div></div>';
+    }else if(st.mode==='room'){
+      h+='<div class="sx-label">OPZIONI STANZA</div><div class="sx-sub"><div class="sx-row">'+btn('data-sub="create"','','Crea nuova',st.sub==='create')+btn('data-sub="join"','','Unisciti',st.sub==='join')+'</div>';
+      if(st.sub==='create')h+='<div class="sx-row">'+btn('data-go="create"','sx-go','Inizia',false)+'</div>';
+      if(st.sub==='join')h+='<input class="sx-in code" id="sxCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(st.code)+'"><div class="sx-row"><button type="button" class="sx-opt sx-go" id="sxJoin" data-go="join" '+(st.code.length===12?'':'disabled')+'>Inizia</button></div>';
+      h+='</div>';
+    }
+    h+='</div>';
+    app.innerHTML=h;
+  }
+  function loadRoom(){
+    var libs=['app','auth','database'].map(function(n){return 'https://www.gstatic.com/firebasejs/10.12.2/firebase-'+n+'-compat.js'});
+    (function next(i){
+      if(i===libs.length){run('src-room');return}
+      var s=document.createElement('script');s.src=libs[i];s.onload=function(){next(i+1)};
+      s.onerror=function(){app.innerHTML='<p style="padding:20px;color:#fff">Firebase non raggiungibile: controlla la connessione.</p>'};
+      document.head.appendChild(s);
+    })(0);
+  }
+  function go(kind){
+    var nm=document.getElementById('sxName'),name=((nm&&nm.value)||st.name||'').trim().slice(0,16);
+    window.NYLO_IN_SETUP=false;
+    if(name){try{localStorage.setItem('nylo-player-name',name)}catch(e){}}
+    var cfg={name:name,n:st.n};
+    if(kind==='ai'){cfg.mode='ai';window.NYLO_START=cfg;run('src-ai');return}
+    cfg.mode='room';cfg.action=kind;if(kind==='join')cfg.code=st.code;
+    window.NYLO_START=cfg;app.innerHTML='';loadRoom();
+  }
+  app.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b||b.disabled)return;
+    var d=b.dataset;
+    if(d.n){st.n=Number(d.n);draw()}
+    else if(d.mode){st.mode=d.mode;st.sub='';draw()}
+    else if(d.sub){st.sub=d.sub;draw();var c=document.getElementById('sxCode');if(c)c.focus()}
+    else if(d.go)go(d.go);
+  });
+  app.addEventListener('input',function(e){
+    if(e.target.id==='sxName')st.name=e.target.value;
+    else if(e.target.id==='sxCode'){
+      st.code=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=st.code;
+      var j=document.getElementById('sxJoin');if(j)j.disabled=st.code.length!==12;
+    }
+  });
+  app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-ai');return}
+  draw();
+  if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
+})();
 </script>
 </body>
 </html>
