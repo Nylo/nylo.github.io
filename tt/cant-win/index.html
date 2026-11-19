@@ -211,6 +211,43 @@ body{font-family:'Inter',sans-serif;font-size:15px}
 .tableau{border-radius:0;background:rgba(255,255,255,.1)}
 .log summary,.logbody{color:#f6ecd2}
 
+/* stanze online (kit condiviso) */
+.panel,.sx-card{background:#262a47;color:var(--text);border:0;border-radius:0;padding:18px;margin:4px 4px 18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 -4px 0 0 #fff,0 4px 0 0 #fff,-4px 0 0 0 #fff,4px 0 0 0 #fff,0 10px 0 0 rgba(0,0,0,.25)}
+.panel h2{font-size:16px;font-weight:700;color:#f6ecd2}
+.muted{color:var(--text-soft);font-size:12px;line-height:1.5}
+body .app>section>p.muted{color:var(--ink);margin-bottom:10px}
+.status{font-size:13px;min-height:20px;line-height:1.5;color:var(--text)}
+.panel input[type=text],.sx-in{background:#f6ecd2;border:2px solid #fff;color:#262a47;border-radius:0;padding:9px 11px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none;letter-spacing:1px}
+.panel input[type=text]:focus,.sx-in:focus{border-color:var(--accent)}
+.radios{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.radios label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.roster{list-style:none;display:flex;flex-direction:column;gap:8px}
+.roster li{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#3a3f6b;border:2px solid #fff;border-radius:0;font-size:13px}
+.roster .seat-n{width:20px;color:var(--text-soft)}
+.roster .grow{flex:1}
+.roster .soft{color:var(--text-soft)}
+.room-code{padding:4px 8px;border:2px solid #fff;background:#262a47;color:#f6ecd2;font-family:Consolas,monospace;letter-spacing:1px;font-size:12px}
+.conn{font-size:11px;color:var(--ink);font-weight:700}
+.room-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 4px 12px}
+.room-bar .room-code,.room-bar .btn{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 10px;line-height:1;box-sizing:border-box;white-space:nowrap}
+.room-bar .conn{margin-left:auto}
+.err{position:fixed;left:12px;right:12px;bottom:12px;max-width:680px;margin:0 auto;padding:12px 14px;border:1px solid rgba(217,107,107,0.6);border-radius:8px;background:#3a1d22;color:#fff;font-size:13px;line-height:1.4;z-index:200}
+.sx-label{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text-soft);margin-top:2px}
+.sx-row{display:flex;gap:8px;flex-wrap:wrap}
+.sx-opt{padding:10px 16px;border-radius:0;border:2px solid #fff;background:#3a3f6b;color:#f6ecd2;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;box-shadow:2px 2px 0 #0e1127}
+.sx-opt:hover:not(:disabled){background:#f6ecd2;color:#262a47}
+.sx-opt.on,.sx-opt.on:hover:not(:disabled){background:#f6ecd2;color:#262a47;box-shadow:0 0 0 3px #18b4cc,2px 2px 0 3px #0e1127}
+.sx-opt:disabled{opacity:.4;cursor:not-allowed}
+.sx-row .sx-opt{flex:1 1 0;min-width:0}
+.sx-go,.sx-go:hover:not(:disabled){background:var(--gold);border-color:#fff;color:#2a2000;margin-top:1rem}
+.sx-in.code{letter-spacing:2px;text-transform:uppercase;font-family:Consolas,monospace}
+.sx-nav{display:flex;gap:8px;align-items:center;margin-left:auto}
+.sx-sub{display:flex;flex-direction:column;gap:10px;padding-top:2px}
+.sx-check{display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer}
+.sx-check input{accent-color:var(--accent);cursor:pointer}
+.panel .opt:hover:not(:disabled){background:#f6ecd2;color:#262a47}
+.seat-name .hint{color:inherit}
+
 @media(max-width:400px){.logo{font-size:20px;letter-spacing:0;white-space:nowrap}.topbar{gap:6px}}
 @media(max-width:600px){
   :root{--cw:31px;--ch:46px}
@@ -235,6 +272,7 @@ body{font-family:'Inter',sans-serif;font-size:15px}
   .seat.top .backs,.seat.left .backs,.seat.right .backs{grid-template-columns:repeat(6,7px)}
   .hand{gap:4px}
   .logo{font-size:24px}
+  .sx-nav{margin-left:0}
   table.score td,table.score th{padding:4px 3px;font-size:11px}
   .tile{font-size:11px}
   .tboard .tile{min-width:64px}
@@ -249,8 +287,10 @@ body{font-family:'Inter',sans-serif;font-size:15px}
 <body>
 <div class="app" id="app"></div>
 
+
 <script src="/tt/shared/core.js"></script>
-<script>
+<script type="text/plain" id="src-common">
+// ═════════════════════════ COMUNE (modalità AI e stanze) ═════════════════════════
 // ═════════════════════════ COSTANTI ═════════════════════════
 // colori: 0 = Turchese (briscola, spade), 1 = Rosa (Revive), 2 = Viola (Spell), 3 = Giallo (Item)
 const SUITS = ['Turchese','Rosa','Viola','Giallo'];
@@ -266,44 +306,10 @@ const TILES = [
   {name:'No XP',     ico:'skull',    desc:'non vinci prese con le carte dispari'},
 ];
 const HAND = 12, TRICKS = 12, BIDTOK = 18, SUPTOK = 12;
-const HUM = 0;
 const POS = {3:['bottom','left','right'],4:['bottom','left','top','right']};
-const NAMES = ['Tu','AI Hazel','AI Pixel','AI Slime'];
 const ico = n => `<i class="ph-fill ph-${n}"></i>`;
-
-// ═════════════════════════ UTILITÀ ═════════════════════════
-const rnd = n => Math.floor(Math.random()*n);
-const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-let G = null, PR = null;
-const OPT = {undo:true,a11y:false,beg:false,memo:false};
-try{ const s=localStorage.getItem('cw-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('cw-a11y')==='1'; OPT.beg=localStorage.getItem('cw-beg')==='1'; OPT.memo=localStorage.getItem('cw-memo')==='1'; }catch(e){}
-function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
-const argmax = a => { let b=0; for(let i=1;i<a.length;i++) if(a[i]>a[b]) b=i; return b; };
+const LOGO_HTML = 'CAN\'T WIN<span class="ex">!</span>';
 const cardName = c => `${c.v} ${SUITS[c.s]}`;
-
-// ═════════════════════════ INTERAZIONE ═════════════════════════
-// confirm = la scelta va confermata (se «Abilita annulla» è attivo)
-async function ask(p,title,options,confirm){
-  const ok=options.filter(x=>!x.disabled);
-  if(!ok.length) return null;
-  const g=G;
-  return new Promise((res,rej)=>{ PR={type:'choose',title,options,confirm:!!confirm,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
-}
-function askCard(legal,hint,mode){
-  const g=G;
-  return new Promise((res,rej)=>{ PR={type:'card',mode:mode||'play',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
-}
-function answer(i){
-  if(!PR||PR.type!=='choose') return;
-  const o=PR.options[i]; if(!o||o.disabled) return;
-  if(PR.confirm&&OPT.undo){ PR.sel=i; render(); return; }
-  const r=PR.res; PR=null; render(); r(o.value);
-}
-function confirmAns(ok){
-  if(!PR||PR.type!=='choose'||PR.sel==null) return;
-  if(!ok){ PR.sel=null; render(); return; }
-  const o=PR.options[PR.sel], r=PR.res; PR=null; render(); r(o.value);
-}
 
 // ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
 // 3 giocatori: carte 1–9 in 4 colori (36); 4 giocatori: 1–12 in 4 colori (48). Si distribuisce tutto il mazzo.
@@ -361,6 +367,115 @@ function winnersOf(F,PP){
   if(w.length>1){ const mp=Math.max(...w.map(i=>PP[i])); w=w.filter(i=>PP[i]===mp); }
   return w;
 }
+
+// ═════════════════════════ GRAFICA ═════════════════════════
+function cardHtml(c,extra='',tag='span',attrs='',badge=''){
+  return `<${tag} class="pc s${c.s} ${extra}" ${attrs} title="${cardName(c)}"><b>${c.v}</b>${ico(SICO[c.s])}<small class="lt">${SL[c.s]}</small>${badge}</${tag}>`;
+}
+function backHtml(extra=''){ return `<span class="pc bk ${extra}" title="Carta coperta"></span>`; }
+function tileHtml(t){
+  if(t<0) return `<span class="tag" title="Vincolo non ancora scelto">${ico('prohibit')} vincolo ?</span>`;
+  return `<span class="tile t${t}" title="${TILES[t].name}: ${TILES[t].desc}">${ico(TILES[t].ico)} ${TILES[t].name}</span>`;
+}
+function swHtml(s){ return `<span class="sw s${s}">${ico(SICO[s])}${SUITS[s]}</span>`; }
+function scoreTable(pls,R){
+  const cols=Array.from({length:R},(_,i)=>i);
+  const rows=pls.map(p=>`<tr><td>${esc(p.name)}</td>${cols.map(i=>{ const h=p.hist[i]; return `<td>${h?`${h.won} · <span class="${h.pts?'pos':'neg'}">${h.pts}</span>`:'–'}</td>`; }).join('')}<td><b>${p.T}</b></td><td><b>${p.P}</b></td><td><b>${p.T*p.P}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th>Punteggi</th>${cols.map(i=>`<th>R${i+1}</th>`).join('')}<th>Σ prese</th><th>Σ punti</th><th>Finale</th></tr>${rows}</table></div>
+    <div class="hint" style="margin-top:6px">Per ogni round: prese vinte · punti della puntata. Punteggio finale = Σ prese × Σ punti.</div>`;
+}
+function roundTable(rows,pls){
+  const body=rows.map(r=>`<tr><td>${esc(pls[r.p].name)}</td><td class="l">${TILES[r.tile].name}</td><td>${r.bid}</td><td>${r.won}</td><td class="l ${r.pts?'pos':'neg'}"><b>${r.pts}</b>${r.pts===2?' (Zero centrato)':(r.pts?' (centrata)':' (mancata)')}${r.note?` · ${r.note}`:''}</td><td><b>${r.T}×${r.P} = ${r.T*r.P}</b></td></tr>`).join('');
+  return `<div class="scroll-x"><table class="score"><tr><th></th><th class="l">Vincolo</th><th>Puntata</th><th>Prese</th><th class="l">Punti</th><th>Totale</th></tr>${body}</table></div>`;
+}
+
+function recapHtml(n,beg){
+  return `<details class="recap paper"><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Mazzo</span>${[0,1,2,3].map(swHtml).join('')} carte 1–${n===3?9:12} (${n*HAND} carte), ${HAND} a testa · ${n} round</div>
+    <div class="recap-row"><span class="lbl">Vincolo e puntata</span>Dal mazziere in senso orario ognuno sceglie prima il vincolo o la puntata, poi completa l'altra. Il primo che punta prende il segnalino Start e apre la prima presa.</div>
+    <div class="recap-row"><span class="lbl">Vincoli</span>${TILES.map((t,i)=>`<span class="tile t${i}">${ico(t.ico)} ${t.name}</span> ${t.desc}`).join(' · ')}</div>
+    <div class="recap-row"><span class="lbl">Presa</span>Si segue il colore se si può. Le carte vietate dal proprio vincolo vanno di traverso (Can't win!). Vince la briscola (Turchese) dritta più alta, poi il colore di mano dritto, poi qualsiasi carta dritta, infine la più alta di traverso (a parità, l'ultima giocata).</div>
+    <div class="recap-row"><span class="lbl">Punti</span>Puntata centrata 1 punto, Zero centrato 2 punti${beg?'; regole per principianti: ogni gettone Aiuto sposta la puntata di ±1':''}. Finale = Σ prese × Σ punti; a pari merito vince chi ha più punti.</div></details>`;
+}
+const RULES_HTML = `
+<details class="rules paper"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>Can't Win! (キャントウィン!, Taiki Shinzawa · Engames) è un gioco di prese per 3–4 giocatori in cui devi prevedere esattamente quante prese vincerai. All'inizio di ogni round scegli anche un <b>vincolo</b> (tessera Can't Win) che ti impedisce di vincere prese con certe carte: può aiutarti o ostacolarti nel centrare la puntata. Il punteggio finale è il totale delle prese vinte moltiplicato per il totale dei punti ottenuti con le puntate indovinate.</p>
+<h4>Componenti e preparazione</h4>
+<p>Le carte sono in 4 colori: <b>Turchese</b> (spade, è la <b>briscola</b>), <b>Rosa</b> (Revive), <b>Viola</b> (Spell) e <b>Giallo</b> (Item). In <b>4</b> giocatori si usano le carte 1–12 di ogni colore (48 carte); in <b>3</b> giocatori solo le carte 1–9 (36 carte). Ci sono 5 tessere Can't Win, 18 gettoni puntata e il segnalino Start. Si giocano tanti round quanti sono i giocatori.</p>
+<h4>1. Distribuzione</h4>
+<p>Nel primo round il mazziere è scelto a caso; poi passa ogni round al giocatore alla sua sinistra. Ognuno riceve 12 carte (tutto il mazzo).</p>
+<h4>2. Vincolo e puntata</h4>
+<p>Partendo dal mazziere e in senso orario, ognuno sceglie se fare prima <b>A</b> (prendere un vincolo) oppure <b>B</b> (fare la puntata). Quando tutti hanno fatto la prima scelta, si riparte dal mazziere e ognuno completa l'altra. Bisogna fare entrambe.</p>
+<ul>
+<li><b>A · Vincolo:</b> prendi una tessera tra quelle rimaste. Vale solo per te:
+<table><tr><th>Tessera</th><th>Non puoi vincere prese con</th></tr>
+<tr><td>Revive Ban</td><td>le carte rosa (Revive)</td></tr><tr><td>Spell Ban</td><td>le carte viola (Spell)</td></tr><tr><td>Item Ban</td><td>le carte gialle (Item)</td></tr><tr><td>No Escape</td><td>le carte pari</td></tr><tr><td>No XP</td><td>le carte dispari</td></tr></table></li>
+<li><b>B · Puntata:</b> prevedi quante prese vincerai e prendi altrettanti gettoni (puoi puntare 0 dicendo «Zero»). Il <b>primo</b> che fa la puntata prende il segnalino Start.</li>
+</ul>
+<h4>3. Le prese</h4>
+<p>Si giocano 12 prese. Apre la prima chi ha il segnalino Start, le successive chi ha vinto la presa precedente. Chi apre gioca una carta qualsiasi: il suo colore è il <b>colore di mano</b>. Gli altri, in senso orario, devono giocare una carta del colore di mano se ce l'hanno, altrimenti una carta qualsiasi.</p>
+<p>Se giochi una carta che ricade nel tuo vincolo dici «<b>Can't win!</b>» e la metti <b>di traverso</b>: con quella carta non puoi vincere la presa. Anche se la carta d'apertura è di traverso, il colore di mano resta il suo e va seguito.</p>
+<p><b>Chi vince la presa:</b></p>
+<ol>
+<li>se ci sono briscole (Turchese) dritte, vince la più alta;</li>
+<li>altrimenti vince la carta dritta più alta del colore di mano;</li>
+<li>se non ci sono né briscole né carte del colore di mano dritte, vince la carta dritta più alta di qualsiasi colore; a parità di numero vince chi l'ha giocata più tardi;</li>
+<li>se tutte le carte sono di traverso, vince la più alta di qualsiasi colore; a parità di numero vince chi l'ha giocata più tardi.</li>
+</ol>
+<p>Il vincitore mette le carte della presa coperte davanti a sé (una pila per ogni presa vinta) e apre la presa successiva.</p>
+<h4>4. Punteggio del round</h4>
+<p>Ognuno annota le prese vinte. Poi i punti della puntata: <b>1 punto</b> se le prese vinte sono esattamente quante ne avevi puntate; <b>2 punti</b> se avevi puntato Zero e non hai vinto prese; <b>0 punti</b> se hai sbagliato.</p>
+<h4>Fine della partita</h4>
+<p>Dopo tanti round quanti sono i giocatori, si sommano separatamente le prese e i punti: il <b>punteggio finale</b> è Σ prese × Σ punti. Vince il punteggio più alto; a parità vince chi ha più punti; se ancora pari, la vittoria è condivisa.</p>
+<h4>Regole per principianti (opzionali)</h4>
+<p>Si attivano dalla schermata iniziale. Chi sbaglia la puntata prende 0 punti ma riceve un <b>gettone Aiuto</b> (ce ne sono 12) e lo tiene finché non centra una puntata. Al momento del punteggio ogni gettone permette di aggiungere o togliere 1 alla puntata: se così la puntata corrisponde alle prese, è centrata. Quando una puntata è centrata (esattamente o grazie ai gettoni) si restituiscono tutti i gettoni Aiuto. I punti per una puntata centrata non cambiano.</p>
+<p><i>Nell'app:</i> il primo mazziere è scelto a caso; i 18 gettoni puntata sono un limite reale (non si può puntare più dei gettoni rimasti); con le regole per principianti i 2 punti spettano solo a chi ha puntato davvero Zero e non ha vinto prese, una puntata centrata con i gettoni Aiuto vale sempre 1 punto. Il log elenca le carte giocate (come se tutti avessero buona memoria); l'AI stima le mani avversarie con simulazioni. Nel menu, «Mostra le carte uscite» elenca le carte del mazzo: sbarrate quelle già giocate nel round, in contorno le tue.</p>
+<p><i>Nelle stanze online</i> si gioca solo tra persone (3–4): i posti al tavolo e il mazziere del primo round sono assegnati a caso, le mani restano visibili solo al proprietario, non ci sono AI né regole per principianti. Chiunque può passare al round successivo.</p>
+</div></details>`;
+
+
+</script>
+<script type="text/plain" id="src-ai">
+// ═════════════════════════ COSTANTI ═════════════════════════
+const HUM = 0;
+const NAMES = ['Tu','AI Hazel','AI Pixel','AI Slime'];
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false,beg:false,memo:false};
+try{ const s=localStorage.getItem('cw-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('cw-a11y')==='1'; OPT.memo=localStorage.getItem('cw-memo')==='1'; }catch(e){}
+function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
+const argmax = a => { let b=0; for(let i=1;i<a.length;i++) if(a[i]>a[b]) b=i; return b; };
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+// confirm = la scelta va confermata (se «Abilita annulla» è attivo)
+async function ask(p,title,options,confirm){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,confirm:!!confirm,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askCard(legal,hint,mode){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',mode:mode||'play',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function answer(i){
+  if(!PR||PR.type!=='choose') return;
+  const o=PR.options[i]; if(!o||o.disabled) return;
+  if(PR.confirm&&OPT.undo){ PR.sel=i; render(); return; }
+  const r=PR.res; PR=null; render(); r(o.value);
+}
+function confirmAns(ok){
+  if(!PR||PR.type!=='choose'||PR.sel==null) return;
+  if(!ok){ PR.sel=null; render(); return; }
+  const o=PR.options[PR.sel], r=PR.res; PR=null; render(); r(o.value);
+}
+
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
 
 // ═════════════════════════ AI ═════════════════════════
 // Monte-Carlo con determinizzazione: le mani avversarie si campionano tra le carte non ancora viste (rispettando i colori mancanti noti);
@@ -691,10 +806,6 @@ async function run(rs){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
-function cardHtml(c,extra='',tag='span',attrs='',badge=''){
-  return `<${tag} class="pc s${c.s} ${extra}" ${attrs} title="${cardName(c)}"><b>${c.v}</b>${ico(SICO[c.s])}<small class="lt">${SL[c.s]}</small>${badge}</${tag}>`;
-}
-function backHtml(extra=''){ return `<span class="pc bk ${extra}" title="Carta coperta"></span>`; }
 function handHtml(pl){
   const nb=`<span class="nb" title="Vietata dal tuo vincolo: andrebbe di traverso (Can't win!)">${ico('prohibit')}</span>`;
   return `<div class="hand">${pl.hand.map((c,i)=>{
@@ -711,10 +822,6 @@ function tableauHtml(p){
   if(!x) return `<div class="tableau"><span class="empty"></span></div>`;
   const cls=`mini ${x.side?'side':''} ${G.win===p&&G.turn<0?'win':''}`;
   return `<div class="tableau">${cardHtml(x.c,cls,'span','',x.side?'<em class="cwl">Can\'t win!</em>':'')}</div>`;
-}
-function tileHtml(t){
-  if(t<0) return `<span class="tag" title="Vincolo non ancora scelto">${ico('prohibit')} vincolo ?</span>`;
-  return `<span class="tile t${t}" title="${TILES[t].name}: ${TILES[t].desc}">${ico(TILES[t].ico)} ${TILES[t].name}</span>`;
 }
 function flagsHtml(p){
   if(!G||G.over) return '';
@@ -742,7 +849,6 @@ function seatHtml(p,pos){
     :(pos==='left'||pos==='right'?`${name}${meta}${tableauHtml(p)}${hand}`:`${hand}${name}${meta}${tableauHtml(p)}`);
   return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
 }
-function swHtml(s){ return `<span class="sw s${s}">${ico(SICO[s])}${SUITS[s]}</span>`; }
 function centerHtml(){
   let top='';
   if(G.phase==='choose'){
@@ -758,27 +864,15 @@ function centerHtml(){
     <div>Round <b>${G.round+1}/${G.rounds}</b> · Briscola: <b>Turchese</b></div>
     <div class="hint order" style="color:inherit">Forza: briscola dritta › colore di mano dritto › qualsiasi carta dritta › carte di traverso</div></div>`;
 }
-function scoreTable(){
-  const cols=Array.from({length:G.rounds},(_,i)=>i);
-  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td>${cols.map(i=>{ const h=p.hist[i]; return `<td>${h?`${h.won} · <span class="${h.pts?'pos':'neg'}">${h.pts}</span>`:'–'}</td>`; }).join('')}<td><b>${p.T}</b></td><td><b>${p.P}</b></td><td><b>${p.T*p.P}</b></td></tr>`).join('');
-  return `<div class="scroll-x"><table class="score"><tr><th>Punteggi</th>${cols.map(i=>`<th>R${i+1}</th>`).join('')}<th>Σ prese</th><th>Σ punti</th><th>Finale</th></tr>${rows}</table></div>
-    <div class="hint" style="margin-top:6px">Per ogni round: prese vinte · punti della puntata. Punteggio finale = Σ prese × Σ punti.</div>`;
-}
-function roundTable(){
-  const rows=G.show.rows.map(r=>`<tr><td>${esc(P(r.p).name)}</td><td class="l">${TILES[r.tile].name}</td><td>${r.bid}</td><td>${r.won}</td><td class="l ${r.pts?'pos':'neg'}"><b>${r.pts}</b>${r.pts===2?' (Zero centrato)':(r.pts?' (centrata)':' (mancata)')}${r.note?` · ${r.note}`:''}</td><td><b>${r.T}×${r.P} = ${r.T*r.P}</b></td></tr>`).join('');
-  return `<div class="scroll-x"><table class="score"><tr><th></th><th class="l">Vincolo</th><th>Puntata</th><th>Prese</th><th class="l">Punti</th><th>Totale</th></tr>${rows}</table></div>`;
-}
 function dockHtml(){
-  if(!G) return `<div class="dock-msg">Can't Win! contro l'AI. Quanti giocatori in tutto?</div>
-    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>
-    <label class="opt-toggle beg" title="Chi sbaglia la puntata riceve un gettone Aiuto: ognuno permette di spostare di ±1 le puntate successive"><input type="checkbox" id="optBeg" ${OPT.beg?'checked':''}> Regole per principianti (gettoni Aiuto)</label>`;
+  if(!G) return '';
   if(G.over){
     const nm=G.over.winners.map(i=>esc(P(i).name)), w=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
     const f=G.over.F[G.over.winners[0]];
-    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':(G.over.winners[0]===HUM&&nm[0]==='Tu'?'Hai vinto! ':'Vince ')}${G.over.winners[0]===HUM&&nm[0]==='Tu'&&nm.length===1?'':w}${G.over.winners[0]===HUM&&nm[0]==='Tu'&&nm.length===1?'':'!'}</b> Punteggio finale ${f} (Σ prese × Σ punti).</div>${G.show?roundTable():''}`;
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':(G.over.winners[0]===HUM&&nm[0]==='Tu'?'Hai vinto! ':'Vince ')}${G.over.winners[0]===HUM&&nm[0]==='Tu'&&nm.length===1?'':w}${G.over.winners[0]===HUM&&nm[0]==='Tu'&&nm.length===1?'':'!'}</b> Punteggio finale ${f} (Σ prese × Σ punti).</div>${G.show?roundTable(G.show.rows,G.pl):''}`;
   }
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
-  if(G.show) html+=roundTable();
+  if(G.show) html+=roundTable(G.show.rows,G.pl);
   if(PR&&PR.type==='choose'){
     const tiles=PR.options.some(o=>o.tile!=null);
     html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts ${tiles?'tiles':''}">${PR.options.map((o,i)=>`<button class="opt ${o.num?'num':''} ${PR.sel===i?'sel':''}" ${o.disabled?'disabled':''} data-i="${i}">${o.tile!=null?ico(TILES[o.tile].ico):''}${esc(o.label)}</button>`).join('')}</div>`;
@@ -798,52 +892,6 @@ function memoHtml(){
   const rows=SUITS.map((s,k)=>`<div class="ur"><span class="l">${ico(SICO[k])}${s}</span>${G.deck.filter(c=>c.s===k).map(c=>`<span class="mk s${k} ${G.seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" title="${cardName(c)}">${c.v}</span>`).join('')}</div>`).join('');
   return `<div class="scorebox paper"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
 }
-function recapHtml(){
-  const n=G.n;
-  return `<details class="recap paper"><summary>RIEPILOGO</summary>
-    <div class="recap-row"><span class="lbl">Mazzo</span>${[0,1,2,3].map(swHtml).join('')} carte 1–${n===3?9:12} (${n*HAND} carte), ${HAND} a testa · ${n} round</div>
-    <div class="recap-row"><span class="lbl">Vincolo e puntata</span>Dal mazziere in senso orario ognuno sceglie prima il vincolo o la puntata, poi completa l'altra. Il primo che punta prende il segnalino Start e apre la prima presa.</div>
-    <div class="recap-row"><span class="lbl">Vincoli</span>${TILES.map((t,i)=>`<span class="tile t${i}">${ico(t.ico)} ${t.name}</span> ${t.desc}`).join(' · ')}</div>
-    <div class="recap-row"><span class="lbl">Presa</span>Si segue il colore se si può. Le carte vietate dal proprio vincolo vanno di traverso (Can't win!). Vince la briscola (Turchese) dritta più alta, poi il colore di mano dritto, poi qualsiasi carta dritta, infine la più alta di traverso (a parità, l'ultima giocata).</div>
-    <div class="recap-row"><span class="lbl">Punti</span>Puntata centrata 1 punto, Zero centrato 2 punti${G.beg?'; regole per principianti: ogni gettone Aiuto sposta la puntata di ±1':''}. Finale = Σ prese × Σ punti; a pari merito vince chi ha più punti.</div></details>`;
-}
-const RULES_HTML = `
-<details class="rules paper"><summary>REGOLAMENTO</summary>
-<div class="rtext">
-<h4>Panoramica</h4>
-<p>Can't Win! (キャントウィン!, Taiki Shinzawa · Engames) è un gioco di prese per 3–4 giocatori in cui devi prevedere esattamente quante prese vincerai. All'inizio di ogni round scegli anche un <b>vincolo</b> (tessera Can't Win) che ti impedisce di vincere prese con certe carte: può aiutarti o ostacolarti nel centrare la puntata. Il punteggio finale è il totale delle prese vinte moltiplicato per il totale dei punti ottenuti con le puntate indovinate.</p>
-<h4>Componenti e preparazione</h4>
-<p>Le carte sono in 4 colori: <b>Turchese</b> (spade, è la <b>briscola</b>), <b>Rosa</b> (Revive), <b>Viola</b> (Spell) e <b>Giallo</b> (Item). In <b>4</b> giocatori si usano le carte 1–12 di ogni colore (48 carte); in <b>3</b> giocatori solo le carte 1–9 (36 carte). Ci sono 5 tessere Can't Win, 18 gettoni puntata e il segnalino Start. Si giocano tanti round quanti sono i giocatori.</p>
-<h4>1. Distribuzione</h4>
-<p>Nel primo round il mazziere è scelto a caso; poi passa ogni round al giocatore alla sua sinistra. Ognuno riceve 12 carte (tutto il mazzo).</p>
-<h4>2. Vincolo e puntata</h4>
-<p>Partendo dal mazziere e in senso orario, ognuno sceglie se fare prima <b>A</b> (prendere un vincolo) oppure <b>B</b> (fare la puntata). Quando tutti hanno fatto la prima scelta, si riparte dal mazziere e ognuno completa l'altra. Bisogna fare entrambe.</p>
-<ul>
-<li><b>A · Vincolo:</b> prendi una tessera tra quelle rimaste. Vale solo per te:
-<table><tr><th>Tessera</th><th>Non puoi vincere prese con</th></tr>
-<tr><td>Revive Ban</td><td>le carte rosa (Revive)</td></tr><tr><td>Spell Ban</td><td>le carte viola (Spell)</td></tr><tr><td>Item Ban</td><td>le carte gialle (Item)</td></tr><tr><td>No Escape</td><td>le carte pari</td></tr><tr><td>No XP</td><td>le carte dispari</td></tr></table></li>
-<li><b>B · Puntata:</b> prevedi quante prese vincerai e prendi altrettanti gettoni (puoi puntare 0 dicendo «Zero»). Il <b>primo</b> che fa la puntata prende il segnalino Start.</li>
-</ul>
-<h4>3. Le prese</h4>
-<p>Si giocano 12 prese. Apre la prima chi ha il segnalino Start, le successive chi ha vinto la presa precedente. Chi apre gioca una carta qualsiasi: il suo colore è il <b>colore di mano</b>. Gli altri, in senso orario, devono giocare una carta del colore di mano se ce l'hanno, altrimenti una carta qualsiasi.</p>
-<p>Se giochi una carta che ricade nel tuo vincolo dici «<b>Can't win!</b>» e la metti <b>di traverso</b>: con quella carta non puoi vincere la presa. Anche se la carta d'apertura è di traverso, il colore di mano resta il suo e va seguito.</p>
-<p><b>Chi vince la presa:</b></p>
-<ol>
-<li>se ci sono briscole (Turchese) dritte, vince la più alta;</li>
-<li>altrimenti vince la carta dritta più alta del colore di mano;</li>
-<li>se non ci sono né briscole né carte del colore di mano dritte, vince la carta dritta più alta di qualsiasi colore; a parità di numero vince chi l'ha giocata più tardi;</li>
-<li>se tutte le carte sono di traverso, vince la più alta di qualsiasi colore; a parità di numero vince chi l'ha giocata più tardi.</li>
-</ol>
-<p>Il vincitore mette le carte della presa coperte davanti a sé (una pila per ogni presa vinta) e apre la presa successiva.</p>
-<h4>4. Punteggio del round</h4>
-<p>Ognuno annota le prese vinte. Poi i punti della puntata: <b>1 punto</b> se le prese vinte sono esattamente quante ne avevi puntate; <b>2 punti</b> se avevi puntato Zero e non hai vinto prese; <b>0 punti</b> se hai sbagliato.</p>
-<h4>Fine della partita</h4>
-<p>Dopo tanti round quanti sono i giocatori, si sommano separatamente le prese e i punti: il <b>punteggio finale</b> è Σ prese × Σ punti. Vince il punteggio più alto; a parità vince chi ha più punti; se ancora pari, la vittoria è condivisa.</p>
-<h4>Regole per principianti (opzionali)</h4>
-<p>Si attivano dalla schermata iniziale. Chi sbaglia la puntata prende 0 punti ma riceve un <b>gettone Aiuto</b> (ce ne sono 12) e lo tiene finché non centra una puntata. Al momento del punteggio ogni gettone permette di aggiungere o togliere 1 alla puntata: se così la puntata corrisponde alle prese, è centrata. Quando una puntata è centrata (esattamente o grazie ai gettoni) si restituiscono tutti i gettoni Aiuto. I punti per una puntata centrata non cambiano.</p>
-<p><i>Nell'app:</i> il primo mazziere è scelto a caso; i 18 gettoni puntata sono un limite reale (non si può puntare più dei gettoni rimasti); con le regole per principianti i 2 punti spettano solo a chi ha puntato davvero Zero e non ha vinto prese, una puntata centrata con i gettoni Aiuto vale sempre 1 punto. Il log elenca le carte giocate (come se tutti avessero buona memoria); l'AI stima le mani avversarie con simulazioni. Nel menu, «Mostra le carte uscite» elenca le carte del mazzo: sbarrate quelle già giocate nel round, in contorno le tue.</p>
-</div></details>`;
-
 let LOGOPEN=false, RULESOPEN=false;
 function logHtml(){
   return `<details class="log paper" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
@@ -861,7 +909,7 @@ function menuHtml(){
 function render(){
   document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
-  const top=`<div class="topbar"><div class="logo">CAN'T WIN<span class="ex">!</span></div>
+  const top=`<div class="topbar"><div class="logo">${LOGO_HTML}</div>
     ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
     ${G&&!G.over?`<span class="badge">Round ${G.round+1}/${G.rounds}</span>`:''}
     ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
@@ -870,9 +918,9 @@ function render(){
   if(G){
     body=`<div class="table n${G.n}">${G.pl.map((p,i)=>seatHtml(i,POS[G.n][i])).join('')}${centerHtml()}</div>
       ${OPT.memo&&!G.over&&(G.phase==='choose'||G.phase==='play')?memoHtml():''}
-      <div class="dock paper" style="position:static">${scoreTable()}</div>
+      <div class="dock paper" style="position:static">${scoreTable(G.pl,G.rounds)}</div>
       ${logHtml()}
-      ${recapHtml()}
+      ${recapHtml(G.n,G.beg)}
       ${RULES_HTML.replace('<details class="rules','<details '+(RULESOPEN?'open ':'')+'class="rules')}`;
   }
   app.innerHTML=top+`<div class="dock paper">${dockHtml()}</div>`+body;
@@ -881,8 +929,7 @@ function render(){
 document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
-  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.af!==undefined) confirmAns(b.dataset.af==='1');
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
@@ -899,11 +946,6 @@ document.getElementById('app').addEventListener('change',e=>{
     try{ localStorage.setItem('cw-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
-  if(e.target.id==='optBeg'){
-    OPT.beg=e.target.checked;
-    try{ localStorage.setItem('cw-beg',OPT.beg?'1':'0'); }catch(err){}
-    return;
-  }
   if(e.target.id!=='optUndo') return;
   OPT.undo=e.target.checked;
   try{ localStorage.setItem('cw-undo',OPT.undo?'1':'0'); }catch(err){}
@@ -914,8 +956,650 @@ document.getElementById('app').addEventListener('change',e=>{
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
 render();
-nyloSaveInit('cant-win',snap=>{ G=snap; PR=null; render(); run(true); });
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('cant-win',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){ NAMES[0]=NYLO_START.name||'Tu'; OPT.beg=!!NYLO_START.beg; newMatch(NYLO_START.n||3); }
+}
 
+</script>
+<script type="text/plain" id="src-room">
+// ═════════════════════════ CAN'T WIN! · ONLINE ═════════════════════════
+// Si gioca solo tra persone (3–4). Stato = un unico oggetto JSON (S); ogni azione passa da gameReduce(). Costanti e regole pure arrivano dal blocco comune.
+var GAME={id:'cant-win',logo:LOGO_HTML,counts:[3,4],
+  lobbyNote:'Servono 3 o 4 giocatori. Quando la stanza è piena, i posti al tavolo e il mazziere del primo round vengono assegnati a caso. Nelle stanze non ci sono le regole per principianti.'};
+var OPT={undo:true,a11y:false};
+try{var _u=localStorage.getItem('cw-undo');if(_u!==null)OPT.undo=_u==='1';OPT.a11y=localStorage.getItem('cw-a11y')==='1'}catch(e){}
+var ui={pick:null,sel:null,ck:''};
+var LOGOPEN=false,RULESOPEN=false;
+
+// ─────────────── REGOLE (funzioni pure, usate dentro le transazioni) ───────────────
+function mkRng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function sshuffle(a,rng){for(var i=a.length-1;i>0;i--){var j=Math.floor(rng()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function newSeed(){return Math.floor(Math.random()*4294967296)}
+function validSeed(x){return typeof x==='number'&&x%1===0&&x>=0&&x<4294967296}
+function lg(S,t){S.log.unshift(t);if(S.log.length>400)S.log.pop()}
+function tokLeftS(S){return BIDTOK-S.pl.reduce(function(s,p){return s+(p.bid||0)},0)}
+function freeTilesS(S){return TILES.map(function(_,i){return i}).filter(function(t){return !S.pl.some(function(p){return p.tile===t})})}
+// sotto-fase della scelta: 'first' (A o B), 'tile' (vincolo) o 'bid' (puntata); null se non si sta scegliendo
+function subOf(S){
+  if(S.phase!=='choose'||S.cstep>=2*S.n)return null;
+  var p=(S.dealer+S.cstep%S.n)%S.n,pl=S.pl[p];
+  if(S.cstep<S.n&&pl.first===null)return 'first';
+  return ((S.cstep<S.n)===(pl.first==='A'))?'tile':'bid';
+}
+function turnOf(S){
+  if(S.phase==='choose')return S.cstep<2*S.n?(S.dealer+S.cstep%S.n)%S.n:-1;
+  if(S.phase==='play')return S.tdone?S.leader:(S.leader+S.trick.length)%S.n;
+  return -1;
+}
+function curTrick(S){return S.tdone?[]:S.trick}
+function dealRound(S,rng){
+  var n=S.n,deck=sshuffle(makeDeck(n),rng);
+  S.dealer=(S.dealer0+S.round)%n;
+  S.pl.forEach(function(p,i){p.hand=sortHand(deck.slice(i*HAND,(i+1)*HAND));p.tile=-1;p.bid=null;p.won=0;p.first=null});
+  S.start=-1;S.leader=-1;S.cstep=0;S.trick=[];S.win=-1;S.tdone=false;S.trickNo=0;S.show=null;S.rt='';S.phase='choose';
+  lg(S,'— Round '+(S.round+1)+'/'+S.rounds+': mazziere '+S.pl[S.dealer].name+', '+HAND+' carte a testa —');
+}
+function newGame(S,rng){
+  S.round=0;S.dealer0=Math.floor(rng()*S.n);
+  S.pl.forEach(function(p){p.T=0;p.P=0;p.hist=[]});
+  dealRound(S,rng);
+}
+function gameInitial(players,seed){
+  var names=[];
+  players.forEach(function(p){var n=String(p.name||'Giocatore').slice(0,18),x=n,c=2;while(names.indexOf(x)>=0)x=n+' '+(c++);names.push(x)});
+  var S={n:players.length,rounds:players.length,uids:players.map(function(p){return p.uid}),log:[],
+    pl:names.map(function(nm){return {name:nm,hand:[],tile:-1,bid:null,won:0,first:null,T:0,P:0,hist:[]}})};
+  newGame(S,mkRng(validSeed(seed)?seed:newSeed()));
+  return S;
+}
+function finalOf(S){return S.pl.map(function(p){return p.T*p.P})}
+function winnersS(S){return winnersOf(finalOf(S),S.pl.map(function(p){return p.P}))}
+function advance(S){
+  S.cstep++;
+  if(S.cstep===2*S.n){
+    S.phase='play';S.leader=S.start;S.trickNo=1;S.trick=[];S.win=-1;S.tdone=false;
+    lg(S,'Si gioca: apre '+S.pl[S.leader].name+' (segnalino Start).');
+  }
+}
+function scoreRoundS(S){
+  var rows=S.pl.map(function(pl,i){
+    var pts=roundPts(pl.bid,pl.won,0);
+    pl.T+=pl.won;pl.P+=pts;
+    pl.hist.push({tile:pl.tile,bid:pl.bid,won:pl.won,pts:pts});
+    return {p:i,tile:pl.tile,bid:pl.bid,won:pl.won,pts:pts,note:'',T:pl.T,P:pl.P};
+  });
+  S.show={rows:rows};S.phase='score';
+  lg(S,'Round '+(S.round+1)+' concluso: '+rows.map(function(r){return S.pl[r.p].name+' '+r.won+'/'+r.bid+' → '+r.pts+(r.pts===1?' punto':' punti')}).join(' · ')+'.');
+}
+// ritorna il nuovo stato oppure null se l'azione non è valida
+function gameReduce(S,seat,a){
+  if(!a||typeof a.type!=='string'||!(seat>=0&&seat<S.n))return null;
+  var pl=S.pl[seat];
+  if(a.type==='first'){
+    if(subOf(S)!=='first'||turnOf(S)!==seat||(a.v!=='A'&&a.v!=='B'))return null;
+    pl.first=a.v;
+    lg(S,pl.name+' fa per primo '+(a.v==='A'?'il vincolo':'la puntata')+'.');
+    return S;
+  }
+  if(a.type==='tile'){
+    if(subOf(S)!=='tile'||turnOf(S)!==seat||typeof a.t!=='number'||a.t%1!==0||freeTilesS(S).indexOf(a.t)<0)return null;
+    pl.tile=a.t;
+    lg(S,pl.name+' sceglie il vincolo '+TILES[a.t].name+': '+TILES[a.t].desc+'.');
+    advance(S);return S;
+  }
+  if(a.type==='bid'){
+    if(subOf(S)!=='bid'||turnOf(S)!==seat||typeof a.b!=='number'||a.b%1!==0||a.b<0||a.b>Math.min(HAND,tokLeftS(S)))return null;
+    pl.bid=a.b;
+    var m=pl.name+' punta '+(a.b===0?'Zero':a.b)+'.';
+    if(S.start<0){S.start=seat;m+=' È il primo a puntare: prende il segnalino Start e aprirà la prima presa.'}
+    lg(S,m);advance(S);return S;
+  }
+  if(a.type==='play'){
+    if(S.phase!=='play'||turnOf(S)!==seat)return null;
+    var tr=curTrick(S),idx=-1;
+    pl.hand.forEach(function(c,i){if(c.id===a.id)idx=i});
+    if(idx<0||legalIdx(pl.hand,tr).indexOf(idx)<0)return null;
+    if(S.tdone){S.trick=[];S.win=-1;S.tdone=false;S.trickNo++;S.rt=''}
+    var c=pl.hand.splice(idx,1)[0],side=banned(pl.tile,c);
+    S.trick.push({p:seat,c:c,side:side});
+    lg(S,pl.name+' gioca '+cardName(c)+(side?' di traverso: Can\'t win!':'')+'.');
+    if(S.trick.length===S.n){
+      var w=trickWinner(S.trick),pw=S.pl[w];
+      S.win=w;pw.won++;S.tdone=true;S.leader=w;
+      S.rt=pw.name+' vince la presa '+S.trickNo+' ('+winTier(S.trick,w)+').';
+      lg(S,pw.name+' vince la presa '+S.trickNo+' ('+winTier(S.trick,w)+'): '+pw.won+(pw.won===1?' presa':' prese')+', puntata '+(pw.bid===0?'Zero':pw.bid)+'.');
+      if(S.trickNo>=TRICKS)scoreRoundS(S);
+    }
+    return S;
+  }
+  if(a.type==='next'){
+    if(S.phase!=='score'||!validSeed(a.seed))return null;
+    if(S.round>=S.rounds-1){
+      S.phase='over';S.show=null;
+      var F=finalOf(S);
+      lg(S,'Punteggio finale: '+S.pl.map(function(p,i){return p.name+' '+p.T+'×'+p.P+' = '+F[i]}).join(' · ')+'.');
+    }else{S.round++;dealRound(S,mkRng(a.seed))}
+    return S;
+  }
+  if(a.type==='rematch'){
+    if(S.phase!=='over'||!validSeed(a.seed))return null;
+    lg(S,'— Rivincita —');
+    newGame(S,mkRng(a.seed));return S;
+  }
+  return null;
+}
+
+// ─────────────── INTERFACCIA ───────────────
+function ordSeats(){var o=[],i;for(i=0;i<S.n;i++)o.push((me+i)%S.n);return o}
+// opzioni di scelta per me (vincolo, puntata, cosa fare per primo); null se non tocca a me
+function myOpts(){
+  var sub=subOf(S);
+  if(!sub||turnOf(S)!==me)return null;
+  var pl=S.pl[me];
+  if(sub==='first')return {kind:'first',title:'Cosa fai per primo?',opts:[
+    {label:'A · Scegli il vincolo',val:'A'},{label:'B · Fai la puntata'+(S.start<0?' (prendi il segnalino Start)':''),val:'B'}]};
+  if(sub==='tile')return {kind:'tile',title:'Scegli il vincolo',tiles:true,opts:freeTilesS(S).map(function(t){
+    var k=pl.hand.filter(function(c){return banned(t,c)}).length;
+    return {label:TILES[t].name+' — '+TILES[t].desc+' ('+k+(k===1?' tua carta':' tue carte')+')',val:t,tile:t}})};
+  var mx=Math.min(HAND,tokLeftS(S)),o=[],i;
+  for(i=0;i<=mx;i++)o.push({label:i===0?'0 (Zero)':String(i),val:i,num:true});
+  return {kind:'bid',title:'La tua puntata',opts:o};
+}
+function actOf(kind,v){return kind==='first'?{type:'first',v:v}:(kind==='tile'?{type:'tile',t:v}:{type:'bid',b:v})}
+function myPlay(){return S.phase==='play'&&turnOf(S)===me}
+function humanHintR(){
+  var pl=S.pl[me],h=pl.hand,need=pl.bid-pl.won,tr=curTrick(S);
+  var tail=' Puntata '+pl.bid+', prese '+pl.won+': '+(need>0?(need===1?'te ne serve ancora 1.':'te ne servono ancora '+need+'.'):(need===0?'non devi vincerne altre.':'sei già oltre la puntata.'));
+  var side=h.some(function(c){return banned(pl.tile,c)})?' Le carte con '+ico('prohibit')+' vanno di traverso (Can\'t win!).':'';
+  if(!tr.length)return 'sei di mano: giochi quello che vuoi; il colore della tua carta diventa il colore di mano.'+tail+side;
+  var lc=tr[0].c.s,has=h.some(function(c){return c.s===lc});
+  return (has?'colore di mano '+SUITS[lc]+': devi giocarne una.':'non hai carte '+SUITS[lc]+': puoi giocare qualsiasi carta.')+tail+side;
+}
+function handR(pl){
+  var nb='<span class="nb" title="Vietata dal tuo vincolo: andrebbe di traverso (Can\'t win!)">'+ico('prohibit')+'</span>';
+  var mine=myPlay(),lg=mine?legalIdx(pl.hand,curTrick(S)):[];
+  return '<div class="hand">'+pl.hand.map(function(c,i){
+    var b=banned(pl.tile,c)?nb:'';
+    if(mine){var ok=lg.indexOf(i)>=0;return cardHtml(c,(ok?'legal':'dim')+' '+(ui.sel===c.id?'sel':''),'button',(ok?'':'disabled')+' data-p="'+i+'"',b)}
+    return cardHtml(c,'','span','',b);
+  }).join('')+'</div>';
+}
+function tableauR(p){
+  var x=S.trick.filter(function(t){return t.p===p})[0];
+  if(!x)return '<div class="tableau"><span class="empty"></span></div>';
+  var cls='mini '+(x.side?'side':'')+' '+(S.win===p&&S.tdone?'win':'');
+  return '<div class="tableau">'+cardHtml(x.c,cls,'span','',x.side?'<em class="cwl">Can\'t win!</em>':'')+'</div>';
+}
+function flagsR(p){
+  if(S.phase==='over')return '';
+  var f='';
+  if(S.dealer===p&&(S.phase==='choose'||S.phase==='play'))f+=S.phase==='choose'?'<span class="flag deal">Primo giocatore</span>':'<span class="flag deal">Mazziere</span>';
+  if(S.phase==='choose'&&S.start===p)f+='<span class="flag start">Start</span>';
+  if(S.phase==='play'&&S.leader===p)f+='<span class="flag lead">Di mano</span>';
+  return f;
+}
+function seatR(p,pos){
+  var pl=S.pl[p],isLeader=S.phase==='play'&&S.leader===p&&!S.tdone,active=turnOf(S)===p,winner=S.phase==='play'&&S.tdone&&S.win===p;
+  var hand=p===me?handR(pl):'<div class="backs">'+pl.hand.map(function(){return '<span class="back"></span>'}).join('')+'</div>';
+  var hit=pl.bid!=null&&pl.bid===pl.won;
+  var meta='<div class="seat-meta">'+
+    '<span class="tag" title="Puntata (gettoni)">'+ico('diamond')+' <b>'+(pl.bid==null?'?':pl.bid)+'</b></span>'+
+    '<span class="tag" title="Carte in mano">'+ico('cards')+' <b>'+pl.hand.length+'</b></span>'+
+    '<span class="tag '+(hit&&S.phase!=='choose'?'hit':'')+'" title="Prese vinte in questo round">'+ico('stack')+' <b>'+pl.won+'</b></span></div>';
+  var name='<div class="seat-name">'+esc(pl.name)+(p===me?' <span class="hint" style="color:inherit;opacity:.7">(tu)</span>':'')+flagsR(p)+'</div><div class="seat-tile">'+tileHtml(pl.tile)+'</div>';
+  var inner=pos==='bottom'?tableauR(p)+name+meta+hand:(pos==='left'||pos==='right'?name+meta+tableauR(p)+hand:hand+name+meta+tableauR(p));
+  return '<div class="seat '+pos+' '+(isLeader?'leader':'')+' '+(active?'active':'')+' '+(winner?'winner':'')+'">'+inner+'</div>';
+}
+function centerR(){
+  var top='';
+  if(S.phase==='choose'){
+    var tb=TILES.map(function(t,i){var o=S.pl.filter(function(p){return p.tile===i})[0];return '<span class="tile t'+i+' '+(o?'taken':'')+'" title="'+t.desc+'">'+ico(t.ico)+' '+t.name+'<small>'+(o?esc(o.name):'libero')+'</small></span>'}).join('');
+    top='<div>Vincoli e puntate · inizia il primo giocatore <b>'+esc(S.pl[S.dealer].name)+'</b></div><div class="tboard">'+tb+'</div>'+
+      '<div>Gettoni puntata rimasti: <b>'+tokLeftS(S)+'</b>/'+BIDTOK+' · Segnalino Start: <b>'+(S.start>=0?esc(S.pl[S.start].name):'libero')+'</b></div>';
+  }else if(S.phase==='play'){
+    var tr=curTrick(S),lc=tr.length?tr[0].c.s:-1;
+    top=(lc>=0?'<div class="trump s'+lc+'">'+ico(SICO[lc])+' Colore di mano: '+SUITS[lc]+'</div>':'<div class="hint" style="color:inherit">Nessun colore di mano: lo stabilisce la prima carta</div>')+
+      '<div>Di mano: <b>'+esc(S.pl[S.leader].name)+'</b> · Presa <b>'+S.trickNo+'/'+TRICKS+'</b></div>';
+  }else top='<div class="hint" style="color:inherit">Fase: '+(S.phase==='score'?'risultato del round':'fine partita')+'</div>';
+  return '<div class="center">'+top+
+    '<div>Round <b>'+(S.round+1)+'/'+S.rounds+'</b> · Briscola: <b>Turchese</b></div>'+
+    '<div class="hint order" style="color:inherit">Forza: briscola dritta › colore di mano dritto › qualsiasi carta dritta › carte di traverso</div></div>';
+}
+function msgH(){
+  if(S.phase==='over'){
+    var w=winnersS(S),nm=w.map(function(i){return esc(S.pl[i].name)}),t=nm.length>1?nm.slice(0,-1).join(', ')+' e '+nm[nm.length-1]:nm[0];
+    return '<b>'+(nm.length>1?'Vittoria condivisa: '+t:'Vince '+t)+'!</b> Punteggio finale '+finalOf(S)[w[0]]+' (Σ prese × Σ punti).';
+  }
+  if(S.phase==='score')return 'Round '+(S.round+1)+' concluso: ecco i punti.';
+  var tn=turnOf(S),nm2=tn>=0?esc(S.pl[tn].name):'';
+  if(S.phase==='choose'){
+    var sub=subOf(S);
+    if(tn===me)return sub==='first'?'Scegli cosa fare per primo: il vincolo (A) o la puntata (B).':(sub==='tile'?'Scegli il tuo vincolo: con le carte vietate giocherai di traverso e non potrai vincere la presa.':'Fai la tua puntata: quante prese vincerai esattamente? Gettoni puntata rimasti: '+tokLeftS(S)+'.');
+    return sub==='first'?nm2+' sceglie cosa fare per primo: il vincolo (A) o la puntata (B).':(sub==='tile'?nm2+' sceglie il vincolo…':nm2+' decide la puntata…');
+  }
+  return (S.tdone&&S.rt?esc(S.rt)+' ':'')+(tn===me?'Presa '+(S.tdone?S.trickNo+1:S.trickNo)+'/'+TRICKS+' · tocca a te.':'Presa '+(S.tdone?S.trickNo+1:S.trickNo)+'/'+TRICKS+' · tocca a '+nm2+'.');
+}
+function dockH(){
+  var h='<div class="dock-msg">'+msgH()+'</div>';
+  if(S.phase==='over')return h+'<div class="opts"><button class="opt" data-rematch="1">Rivincita</button></div>';
+  if(S.phase==='score')return h+roundTable(S.show.rows,S.pl)+'<div class="opts"><button class="opt" data-next="1">'+(S.round>=S.rounds-1?'Mostra risultato finale':'Round successivo')+'</button></div>';
+  var mo=myOpts();
+  if(mo){
+    h+='<div class="dock-title">'+esc(mo.title).toUpperCase()+'</div><div class="opts '+(mo.tiles?'tiles':'')+'">'+mo.opts.map(function(o,i){
+      return '<button class="opt '+(o.num?'num':'')+' '+(ui.pick===i?'sel':'')+'" data-i="'+i+'">'+(o.tile!=null?ico(TILES[o.tile].ico):'')+esc(o.label)+'</button>'}).join('')+'</div>';
+    if(ui.pick!=null&&mo.opts[ui.pick])h+='<div class="opts"><button class="opt" data-af="1">Conferma: '+esc(mo.opts[ui.pick].label)+'</button><button class="opt" data-af="0">Annulla</button></div>';
+  }else if(myPlay()){
+    h+='<div class="hint">'+humanHintR()+'</div>';
+    if(ui.sel!=null){
+      var c=S.pl[me].hand.filter(function(x){return x.id===ui.sel})[0];
+      if(c)h+='<div class="opts"><button class="opt" data-cf="1">'+esc('Conferma: gioca '+cardName(c)+(banned(S.pl[me].tile,c)?' (di traverso: Can\'t win!)':''))+'</button><button class="opt" data-cf="0">Annulla</button></div>';
+    }
+  }
+  return h;
+}
+function roomLogH(){
+  return '<details class="log paper" '+(LOGOPEN?'open':'')+'><summary>LOG DELLA PARTITA ('+S.log.length+')</summary><div class="logbody">'+S.log.map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div></details>';
+}
+function gameBadge(){return S.phase==='over'?'':'Round '+(S.round+1)+'/'+S.rounds}
+function gameMenu(){
+  return '<label class="opt-toggle" title="Chiede conferma e permette di annullare carte, vincoli e puntate"><input type="checkbox" id="optUndo" '+(OPT.undo?'checked':'')+'> Abilita annulla</label>'+
+    '<label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" '+(OPT.a11y?'checked':'')+'> Modalità accessibile</label>';
+}
+function gameChange(e){
+  if(e.target.id==='optUndo'){
+    OPT.undo=e.target.checked;try{localStorage.setItem('cw-undo',OPT.undo?'1':'0')}catch(x){}
+    if(!OPT.undo){
+      var mo=myOpts();
+      if(mo&&ui.pick!=null&&mo.opts[ui.pick]){var o=mo.opts[ui.pick];ui.pick=null;act(actOf(mo.kind,o.val));return}
+      if(myPlay()&&ui.sel!=null){var id=ui.sel;ui.sel=null;act({type:'play',id:id});return}
+    }
+    render();
+  }else if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;try{localStorage.setItem('cw-a11y',OPT.a11y?'1':'0')}catch(x){}
+    render();
+  }
+}
+function gameRender(){
+  var ck=S.round+'.'+S.cstep+'.'+(subOf(S)||'')+'.'+S.trickNo;
+  if(ui.ck!==ck){ui.ck=ck;ui.pick=null;ui.sel=null}
+  if(!myPlay())ui.sel=null;
+  var lb=document.querySelector('.logbody'),lbTop=lb?lb.scrollTop:0;
+  if(lbTop)setTimeout(function(){var n=document.querySelector('.logbody');if(n)n.scrollTop=lbTop},0);
+  var pos=POS[S.n];
+  return '<div class="dock paper">'+dockH()+'</div>'+
+    '<div class="table n'+S.n+'">'+ordSeats().map(function(p,i){return seatR(p,pos[i])}).join('')+centerR()+'</div>'+
+    '<div class="dock paper" style="position:static">'+scoreTable(S.pl,S.rounds)+'</div>'+
+    roomLogH()+recapHtml(S.n,false)+RULES_HTML.replace('<details class="rules','<details '+(RULESOPEN?'open ':'')+'class="rules');
+}
+function gameClick(b){
+  var d=b.dataset;
+  if(d.i!==undefined){
+    var mo=myOpts();if(!mo)return;
+    var o=mo.opts[Number(d.i)];if(!o)return;
+    if(OPT.undo){ui.pick=Number(d.i);render()}else act(actOf(mo.kind,o.val));
+  }else if(d.af!==undefined){
+    var m2=myOpts();
+    if(d.af==='1'&&m2&&ui.pick!=null&&m2.opts[ui.pick]){var o2=m2.opts[ui.pick];ui.pick=null;act(actOf(m2.kind,o2.val))}
+    else{ui.pick=null;render()}
+  }else if(d.p!==undefined){
+    if(!myPlay())return;
+    var c=S.pl[me].hand[Number(d.p)];if(!c)return;
+    if(OPT.undo){ui.sel=ui.sel===c.id?null:c.id;render()}else act({type:'play',id:c.id});
+  }else if(d.cf!==undefined){
+    if(d.cf==='1'&&myPlay()&&ui.sel!=null){var id=ui.sel;ui.sel=null;act({type:'play',id:id})}
+    else{ui.sel=null;render()}
+  }
+  else if(d.next!==undefined)act({type:'next',seed:newSeed()});
+  else if(d.rematch!==undefined)act({type:'rematch',seed:newSeed()});
+}
+document.getElementById('app').addEventListener('toggle',function(e){if(e.target.matches&&e.target.matches('details.log'))LOGOPEN=e.target.open;if(e.target.matches&&e.target.matches('details.rules'))RULESOPEN=e.target.open},true);
+
+
+// ═══ KIT STANZE ═══
+// Stesso schema di tt/spy-team/online: rooms/$room con hostUid, members, lobby, state (le regole già pubblicate bastano).
+// Lo stato di gioco è un unico oggetto JSON salvato come stringa in state.s (+ contatore state.v); ogni azione è una
+// transazione che applica gameReduce() all'ultima versione. Le mani stanno nello stato (nascoste solo dall'interfaccia).
+var FIREBASE_CONFIG={
+  apiKey:"AIzaSyAoOMLytOqFY9GRXpi2kUGEyzLK-r00nvQ",
+  authDomain:"gachapon-trick.firebaseapp.com",
+  databaseURL:"https://gachapon-trick-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"gachapon-trick",
+  storageBucket:"gachapon-trick.firebasestorage.app",
+  messagingSenderId:"869677835302",
+  appId:"1:869677835302:web:85768d5a6ac0d94f8372e7"
+};
+var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+var SAVE_KEY=GAME.id+'-online-last';
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var rnd=function(n){return Math.floor(Math.random()*n)};
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+function getPlayerName(){
+  var name='';
+  try{
+    name=localStorage.getItem('nylo-player-name')||'';
+    if(!name){var last=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');name=last&&last.name||''}
+  }catch(e){}
+  return String(name||'Giocatore').trim().slice(0,18)||'Giocatore';
+}
+var playerName=getPlayerName();
+var db=null,user=null,roomRef=null,roomCode='',lobbyData=null,S=null,me=-1,listeners=[],startingGame=false;
+var statusText='',connText='',joinVal='',chosenCount=GAME.counts[0],MENUOPEN=false,connecting=false;
+try{var lastRoom=JSON.parse(localStorage.getItem(SAVE_KEY));if(lastRoom)joinVal=lastRoom.code||''}catch(e){}
+
+function setStatus(t){statusText=t;render()}
+function setConn(t){connText=t;var c=document.getElementById('conn');if(c)c.textContent=t}
+function showErr(t){
+  var e=document.getElementById('err');
+  if(!e){e=document.createElement('div');e.id='err';e.className='err';e.setAttribute('role','alert');document.body.appendChild(e)}
+  e.textContent=t;e.hidden=false;setConn('Errore');clearTimeout(showErr.t);showErr.t=setTimeout(function(){e.hidden=true},8000);
+}
+function genCode(){var b=new Uint8Array(12);crypto.getRandomValues(b);return Array.from(b,function(x){return ALPHABET[x%ALPHABET.length]}).join('')}
+function withTimeout(p,ms,msg){
+  return new Promise(function(res,rej){var t=setTimeout(function(){rej(new Error(msg))},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})});
+}
+function authMsg(e){
+  if(e.code==='auth/operation-not-allowed')return 'Attiva il provider Anonimo in Firebase Authentication.';
+  if(e.code==='auth/unauthorized-domain')return 'Dominio non autorizzato: aggiungilo in Authentication > Impostazioni > Domini autorizzati.';
+  if(e.code==='auth/network-request-failed')return 'Firebase non raggiungibile: controlla la connessione e che il sito sia in HTTPS.';
+  return e.message||'Errore di autenticazione Firebase.';
+}
+async function connect(){
+  if(!window.firebase)throw new Error('Firebase non caricato. Controlla la connessione.');
+  if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+  db=firebase.database();
+  if(user)return;
+  try{user=(await withTimeout(firebase.auth().signInAnonymously(),15000,'Autenticazione scaduta dopo 15 secondi.')).user}
+  catch(e){throw new Error(authMsg(e))}
+}
+function saveLast(name){try{localStorage.setItem(SAVE_KEY,JSON.stringify({code:roomCode,name:name}))}catch(e){}}
+
+// ─────────────── LOBBY ───────────────
+async function createRoom(){
+  try{
+    setStatus('Connessione a Firebase...');await connect();
+    var created=false,lastErr=null;
+    for(var i=0;i<5&&!created;i++){
+      roomCode=genCode();roomRef=db.ref('rooms/'+roomCode);
+      try{
+        await roomRef.child('hostUid').set(user.uid);
+        await roomRef.child('members/'+user.uid).set(true);
+        await roomRef.child('lobby').set({game:GAME.id,hostUid:user.uid,playerCount:chosenCount,started:false,closed:false,players:{}});
+        created=true;
+      }catch(e){lastErr=e;roomRef=null}
+    }
+    if(!created)throw lastErr||new Error('Impossibile creare la stanza. Verifica le regole del database.');
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;connecting=false;setStatus(e.message||'Errore durante la creazione della stanza.')}
+}
+async function joinRoom(){
+  try{
+    roomCode=joinVal.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(roomCode.length!==12)throw new Error('Il codice stanza è di 12 caratteri.');
+    setStatus('Connessione...');await connect();
+    roomRef=db.ref('rooms/'+roomCode);
+    await roomRef.child('members/'+user.uid).set(true);
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;connecting=false;setStatus(e.code==='PERMISSION_DENIED'?'Stanza non trovata o non accessibile.':(e.message||'Errore durante l\'accesso alla stanza.'))}
+}
+function reserveSeat(name){
+  var lobbyRef=roomRef.child('lobby');
+  return lobbyRef.once('value').then(function(snap){
+    if(!snap.exists())throw new Error('Lobby non trovata: controlla il codice.');
+    var initial=snap.val();
+    if(initial.game!==GAME.id)throw new Error('Questo codice appartiene a un altro gioco.');
+    return new Promise(function(resolve,reject){
+      lobbyRef.transaction(function(cur){
+        if(cur===null)cur=initial;
+        if(!cur||!cur.playerCount||cur.closed)return;
+        cur.players=cur.players||{};
+        if(cur.players[user.uid])return cur;            // rientro: il posto è già tuo
+        if(cur.started)return;
+        var occ={};Object.keys(cur.players).forEach(function(u){occ[cur.players[u].seat]=true});
+        var seat=1;while(seat<=cur.playerCount&&occ[seat])seat++;
+        if(seat>cur.playerCount)return;
+        cur.players[user.uid]={uid:user.uid,name:name,seat:seat};
+        return cur;
+      },function(err,committed,snap2){
+        if(err){reject(err);return}
+        var cur=snap2&&snap2.val();
+        if(!cur||!cur.players||!cur.players[user.uid]){
+          reject(new Error(cur&&cur.started?'La partita è già iniziata.':'La stanza è piena o non disponibile.'));return;
+        }
+        lobbyData=cur;saveLast(name);enterRoom();resolve();
+      },false);
+    });
+  });
+}
+function orderedPlayers(d){
+  return Object.keys(d.players||{}).map(function(u){return d.players[u]}).sort(function(a,b){return a.seat-b.seat});
+}
+function maybeStart(){
+  if(!lobbyData||S||startingGame||lobbyData.started||lobbyData.hostUid!==user.uid)return;
+  if(orderedPlayers(lobbyData).length===lobbyData.playerCount)startGame();
+}
+function startGame(){
+  startingGame=true;
+  var seated=orderedPlayers(lobbyData);   // i posti si assegnano a caso all'avvio
+  shuffle(seated);
+  var init=gameInitial(seated.map(function(p){return {uid:p.uid,name:p.name}}));
+  init.v=0;
+  roomRef.child('state').transaction(function(cur){if(cur!==null)return;return {v:0,s:JSON.stringify(init)}},function(err){
+    if(err){startingGame=false;showErr('Errore durante l\'avvio: '+err.message);return}
+    roomRef.child('lobby/started').set(true).catch(function(e){startingGame=false;showErr(e.message)});
+  },false);
+}
+
+// ─────────────── STANZA ───────────────
+function enterRoom(){
+  setConn('Lobby');
+  var lobbyRef=roomRef.child('lobby');
+  var lh=function(snap){if(!snap.exists())return;lobbyData=snap.val();if(!S){render();maybeStart()}};
+  lobbyRef.on('value',lh,function(e){showErr(e.message)});listeners.push({ref:lobbyRef,h:lh});
+  var stateRef=roomRef.child('state');
+  var sh=function(snap){
+    if(!snap.exists())return;
+    var raw=snap.val();
+    try{S=JSON.parse(raw.s)}catch(e){showErr('Stato della stanza non leggibile.');return}
+    me=S.uids.indexOf(user.uid);
+    if(me<0){showErr('Non risulti tra i giocatori di questa partita.');return}
+    setConn('Connesso');
+    render();
+  };
+  stateRef.on('value',sh,function(e){showErr('Connessione persa: '+e.message)});listeners.push({ref:stateRef,h:sh});
+  render();
+}
+function leave(dest){
+  var go=function(){if(dest)window.location.href=dest;else window.location.reload()};
+  listeners.forEach(function(l){l.ref.off('value',l.h)});
+  if(!roomRef||S||!user){go();return}
+  // prima dell'inizio libera il posto; a partita avviata si può rientrare con lo stesso codice
+  roomRef.child('lobby').transaction(function(cur){
+    if(!cur||cur.started)return;
+    cur.players=cur.players||{};delete cur.players[user.uid];
+    var rest=orderedPlayers(cur);
+    if(cur.hostUid===user.uid&&rest.length)cur.hostUid=rest[0].uid;
+    return cur;
+  },function(){
+    roomRef.child('members/'+user.uid).remove().catch(function(){}).then(go);
+  },false);
+}
+
+// azioni: ogni azione è una transazione sullo stato, validata da gameReduce() sull'ultima versione
+function act(a){
+  if(!roomRef||me<0)return;
+  var seat=me;
+  roomRef.child('state').transaction(function(cur){
+    if(!cur||!cur.s)return;
+    var st;try{st=JSON.parse(cur.s)}catch(e){return}
+    var r=gameReduce(st,seat,a);
+    if(!r)return;
+    r.v=(st.v||0)+1;
+    return {v:r.v,s:JSON.stringify(r)};
+  },function(err,committed){
+    if(err)showErr('Errore di sincronizzazione: '+err.message);
+    else if(!committed)setConn('Azione non più valida');
+  },false);
+}
+
+// ─────────────── RENDER ───────────────
+function lobbyHtml(){
+  var radios=GAME.counts.length<2?'':GAME.counts.map(function(n){
+    return '<label><input type="radio" name="pc" value="'+n+'" '+(chosenCount===n?'checked':'')+'> '+n+' giocatori'+(GAME.countNote&&GAME.countNote[n]?' · '+GAME.countNote[n]:'')+'</label>';
+  }).join('');
+  return '<section><p class="muted">Sei connesso come <b>'+esc(playerName)+'</b>.</p>'+
+    '<div class="panel"><h2>Crea una stanza</h2><p class="muted">'+GAME.lobbyNote+'</p>'+
+    (radios?'<div class="radios" role="radiogroup" aria-label="Numero di giocatori">'+radios+'</div>':'')+
+    '<button class="opt" id="createRoom" type="button" data-create="1">Crea stanza</button></div>'+
+    '<div class="panel"><h2>Unisciti a una stanza</h2>'+
+    '<input type="text" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(joinVal)+'">'+
+    '<button class="opt" type="button" data-join="1">Unisciti</button></div>'+
+    '<p class="status" role="status" aria-live="polite">'+esc(statusText)+'</p>'+
+    '<button class="btn btn-sm" type="button" data-ai="1">← Torna alla scelta</button></section>';
+}
+function connectingHtml(){
+  return '<section><div class="panel"><p class="muted" role="status" aria-live="polite">'+esc(statusText||'Connessione alla stanza...')+'</p></div></section>';
+}
+function waitingHtml(){
+  var d=lobbyData||{players:{},playerCount:GAME.counts[0]};
+  var players=orderedPlayers(d),full=players.length===d.playerCount,html='';
+  for(var seat=1;seat<=d.playerCount;seat++){
+    var p=players[seat-1];
+    html+='<li><span class="seat-n">'+seat+'.</span>'+
+      (p?'<span class="grow">'+esc(p.name)+(p.uid===user.uid?' (tu)':'')+'</span>':'<span class="grow soft">In attesa di un giocatore</span>')+
+      (p&&p.uid===d.hostUid?'<span class="flag first">HOST</span>':'')+'</li>';
+  }
+  return '<section><div class="panel"><h2>Stanza '+roomCode+'</h2><p class="muted">'+
+    (d.started?'La partita si sta caricando...':players.length+' / '+d.playerCount+' giocatori'+(full?' · avvio in corso':' · condividi il codice con gli altri'))+
+    '</p><ul class="roster">'+html+'</ul></div></section>';
+}
+function kitMenuHtml(){
+  var extra=typeof gameMenu==='function'?gameMenu():'';
+  return '<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="'+MENUOPEN+'"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>'+
+    (MENUOPEN?'<div class="menu-pop">'+extra+'</div>':'')+'</div>';
+}
+function render(){
+  document.body.classList.toggle('a11y',!!(typeof OPT!=='undefined'&&OPT.a11y));
+  var focus=document.activeElement&&document.activeElement.id==='joinCode';
+  var badge=S&&typeof gameBadge==='function'?gameBadge():'';
+  var top='<div class="topbar"><div class="logo">'+GAME.logo+'</div>'+
+    (window.nyloBackBtn?nyloBackBtn(location.pathname,'alle opzioni del gioco'):'')+(window.nyloHomeBtn?nyloHomeBtn():'')+
+    (badge?'<span class="badge">'+badge+'</span>':'')+kitMenuHtml()+'</div>'+
+    (roomRef?'<div class="room-bar"><span class="room-code">'+roomCode+'</span><button class="btn btn-sm" type="button" data-copy="1">Copia codice</button><button class="btn btn-sm" type="button" data-leave="1">Esci</button><span class="conn" id="conn">'+esc(connText)+'</span></div>':'');
+  var body=!roomRef?(connecting?connectingHtml():lobbyHtml()):(!S?waitingHtml():gameRender());
+  document.getElementById('app').innerHTML=top+body;
+  if(focus){var j=document.getElementById('joinCode');if(j){j.focus();j.setSelectionRange(j.value.length,j.value.length)}}
+}
+var APP=document.getElementById('app');
+APP.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b||b.disabled)return;
+  var d=b.dataset;
+  if(d.back!==undefined){e.stopPropagation();if(!S||confirm('Tornare alle opzioni del gioco? Potrai rientrare nella stanza con lo stesso codice.'))leave(location.pathname);return}
+  if(d.menu){MENUOPEN=!MENUOPEN;render();return}
+  if(d.ai!==undefined){location.href=location.pathname;return}
+  if(d.create!==undefined){createRoom();return}
+  if(d.join!==undefined){joinRoom();return}
+  if(d.leave!==undefined){if(!S||confirm('Uscire dalla stanza? Potrai rientrare con lo stesso codice.'))leave();return}
+  if(d.copy!==undefined){
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(roomCode).then(function(){setConn('Codice copiato')});
+    else window.prompt('Copia il codice stanza:',roomCode);
+    return;
+  }
+  if(S&&typeof gameClick==='function')gameClick(b);
+});
+APP.addEventListener('input',function(e){if(e.target.id==='joinCode'){joinVal=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=joinVal}});
+APP.addEventListener('keydown',function(e){if(e.target.id==='joinCode'&&e.key==='Enter')joinRoom()});
+APP.addEventListener('change',function(e){
+  if(e.target.name==='pc'){chosenCount=Number(e.target.value);return}
+  if(typeof gameChange==='function')gameChange(e);
+});
+document.addEventListener('click',function(e){if(MENUOPEN&&!e.target.closest('.menu-wrap')){MENUOPEN=false;render()}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&MENUOPEN){MENUOPEN=false;render()}});
+connecting=!!(window.NYLO_START&&NYLO_START.mode==='room');
+render();
+if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosenCount;if(NYLO_START.name)playerName=NYLO_START.name.slice(0,18);if(NYLO_START.action==='join'){joinVal=NYLO_START.code||'';joinRoom()}else createRoom();}
+</script>
+<script>
+(function(){
+  run('src-common');
+  var P=window.NYLO_SETUP={id:'cant-win',logo:'CAN\'T WIN<span class="ex">!</span>',counts:[3,4]};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  function run(id){var s=document.createElement('script');s.textContent=document.getElementById(id).textContent;document.body.appendChild(s)}
+  window.addEventListener('hashchange',function(){location.reload()});
+  window.NYLO_IN_SETUP=true;   // finché si sceglie, Home/Indietro escono senza avviso
+  var app=document.getElementById('app');
+  var st={n:P.counts[0],mode:location.hash==='#stanze'?'room':(location.hash==='#ai'?'ai':''),sub:'',code:'',name:'',see:false,beg:false};
+  var needName=false;
+  try{
+    st.name=localStorage.getItem('nylo-player-name')||'';st.beg=localStorage.getItem('cw-beg')==='1';
+    var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
+  }catch(e){}
+  needName=!st.name;   // il nome arriva dalla sessione; il campo compare solo se manca
+  // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
+  var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
+  if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.n)rsm={n:sg.n}}}catch(e){}}
+  function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
+  function draw(){
+    var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
+    h+='<div class="sx-card">';
+    if(needName)h+='<label class="sx-label" for="sxName">IL TUO NOME</label><input class="sx-in" id="sxName" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(st.name)+'">';
+    if(P.counts.length>1){
+      h+='<div class="sx-label">GIOCATORI</div><div class="sx-row">'+P.counts.map(function(n){return btn('data-n="'+n+'"','',n+' giocatori',st.n===n)}).join('')+'</div>';
+    }
+    h+='<div class="sx-label">MODALITÀ</div><div class="sx-row">'+btn('data-mode="ai"','','Contro l’AI',st.mode==='ai')+btn('data-mode="room"','','A stanze',st.mode==='room')+'</div>';
+    if(st.mode==='ai'){
+      h+='<div class="sx-sub"><label class="sx-check" title="Chi sbaglia la puntata riceve un gettone Aiuto: ognuno permette di spostare di ±1 le puntate successive"><input type="checkbox" id="sxBeg" '+(st.beg?'checked':'')+'> Regole per principianti (gettoni Aiuto)</label><div class="sx-row">'+btn('data-go="ai"','sx-go','Inizia',false)+'</div></div>';
+    }else if(st.mode==='room'){
+      h+='<div class="sx-label">OPZIONI STANZA</div><div class="sx-sub"><div class="sx-row">'+btn('data-sub="create"','','Crea nuova',st.sub==='create')+btn('data-sub="join"','','Unisciti',st.sub==='join')+'</div>';
+      if(st.sub==='create')h+='<div class="sx-row">'+btn('data-go="create"','sx-go','Inizia',false)+'</div>';
+      if(st.sub==='join')h+='<input class="sx-in code" id="sxCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(st.code)+'"><div class="sx-row"><button type="button" class="sx-opt sx-go" id="sxJoin" data-go="join" '+(st.code.length===12?'':'disabled')+'>Inizia</button></div>';
+      h+='</div>';
+    }
+    h+='</div>';
+    app.innerHTML=h;
+  }
+  function loadRoom(){
+    var libs=['app','auth','database'].map(function(n){return 'https://www.gstatic.com/firebasejs/10.12.2/firebase-'+n+'-compat.js'});
+    (function next(i){
+      if(i===libs.length){run('src-room');return}
+      var s=document.createElement('script');s.src=libs[i];s.onload=function(){next(i+1)};
+      s.onerror=function(){app.innerHTML='<p style="padding:20px;color:#fff">Firebase non raggiungibile: controlla la connessione.</p>'};
+      document.head.appendChild(s);
+    })(0);
+  }
+  function go(kind){
+    var nm=document.getElementById('sxName'),name=((nm&&nm.value)||st.name||'').trim().slice(0,16);
+    window.NYLO_IN_SETUP=false;
+    if(name){try{localStorage.setItem('nylo-player-name',name)}catch(e){}}
+    var cfg={name:name,n:st.n,beg:st.beg};
+    if(kind==='ai'){cfg.mode='ai';window.NYLO_START=cfg;run('src-ai');return}
+    cfg.mode='room';cfg.action=kind;if(kind==='join')cfg.code=st.code;
+    window.NYLO_START=cfg;app.innerHTML='';loadRoom();
+  }
+  app.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b||b.disabled)return;
+    var d=b.dataset;
+    if(d.n){st.n=Number(d.n);draw()}
+    else if(d.mode){st.mode=d.mode;st.sub='';draw()}
+    else if(d.sub){st.sub=d.sub;draw();var c=document.getElementById('sxCode');if(c)c.focus()}
+    else if(d.go)go(d.go);
+  });
+  app.addEventListener('input',function(e){
+    if(e.target.id==='sxName')st.name=e.target.value;
+    else if(e.target.id==='sxCode'){
+      st.code=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=st.code;
+      var j=document.getElementById('sxJoin');if(j)j.disabled=st.code.length!==12;
+    }
+  });
+  app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  app.addEventListener('change',function(e){if(e.target.id==='sxBeg'){st.beg=e.target.checked;try{localStorage.setItem('cw-beg',st.beg?'1':'0')}catch(x){}}});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-ai');return}
+  draw();
+  if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
+})();
 </script>
 </body>
 </html>
