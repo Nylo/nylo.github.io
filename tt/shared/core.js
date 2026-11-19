@@ -88,6 +88,10 @@ function nyloSaveInit(id,resume){
   const st=document.createElement('style');
   st.textContent=':where(button.opt-toggle){background:transparent;border:0;color:inherit;font-family:inherit;text-align:left;cursor:pointer;width:100%}';
   document.head.appendChild(st);
+  // accordion (log, riepilogo, regolamento…): da chiusi tutti alti uguali e con lo stesso font/font-size in ogni gioco
+  const ac=document.createElement('style');
+  ac.textContent='details.log,details.recap,details.rules,#app>details{padding:12px 16px!important}details.log>summary,details.recap>summary,details.rules>summary,#app>details>summary{font-family:inherit!important;font-size:12px!important;font-weight:600!important;line-height:20px!important;letter-spacing:.05em!important;text-transform:uppercase!important}';
+  document.head.appendChild(ac);
   document.addEventListener('click',e=>{
     const b=e.target.closest&&e.target.closest('button#optMemo'); if(!b) return;
     b.checked=/^\s*Mostra/.test(b.textContent);
