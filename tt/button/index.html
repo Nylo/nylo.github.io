@@ -71,6 +71,7 @@ body{background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.
 .opt:hover:not(:disabled){background:var(--ink);color:#fff}
 .opt:disabled{opacity:0.35;cursor:not-allowed}
 .opt.sel{background:var(--ink);color:#fff}
+.opt.num{min-width:42px;text-align:center}
 .hint{font-size:12px;color:var(--text-soft)}
 .scroll-x{overflow-x:auto}
 table.score{border-collapse:collapse;font-size:12px;width:100%}
@@ -725,7 +726,7 @@ async function bettingPhase(){
       g.turn=p; let k;
       if(p===HUM){
         status(`Tocca a te: quanti bottoni scommessa prendi? Ne restano ${g.pool}${pl.tokens?`, ne hai già ${pl.tokens}`:''}.`);
-        const opts=[]; for(let i=1;i<=Math.min(g.pool,10);i++) opts.push({label:`Prendi ${i}`,value:i,num:true});
+        const opts=[]; for(let i=1;i<=Math.min(g.pool,10);i++) opts.push({label:String(i),value:i,num:true});
         opts.push({label:pl.tokens?`Passa (scommessa: ${pl.tokens})`:'Passa (scommetto 0 prese)',value:0});
         k=await ask(HUM,'Scommessa',opts,true);
       }else{
@@ -895,8 +896,8 @@ function dockHtml(){
   let html=`<div class="dock-msg">${esc(G.msg)}</div>`;
   if(G.show) html+=roundTable(G.show.rows,G.un,G.team);
   if(PR&&PR.type==='choose'){
-    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt ${PR.sel===i?'sel':''}" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
-    if(PR.sel!=null) html+=`<div class="opts"><button class="opt" data-af="1">Conferma: ${esc(PR.options[PR.sel].label)}</button><button class="opt" data-af="0">Annulla</button></div>`;
+    html+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt ${o.num?'num':''} ${PR.sel===i?'sel':''}" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+    if(PR.sel!=null) html+=`<div class="opts"><button class="opt" data-af="1">Conferma: ${PR.options[PR.sel].num?'prendi ':''}${esc(PR.options[PR.sel].label)}</button><button class="opt" data-af="0">Annulla</button></div>`;
   }else if(PR&&PR.type==='move'){
     const c=PR.selC!=null?G.S.hands[HUM][PR.selC]:null;
     if(PR.give){
@@ -1151,7 +1152,7 @@ function myPlay(){return S.phase==='play'&&turnOf(S)===me}
 function mySwap(){return S.phase==='swap'&&S.give[me]===null}
 function betOpts(){
   var pool=S.pool,t=S.tokens[me],o=[],i;
-  for(i=1;i<=Math.min(pool,10);i++)o.push({label:'Prendi '+i,k:i,num:true});
+  for(i=1;i<=Math.min(pool,10);i++)o.push({label:String(i),k:i,num:true});
   o.push({label:t?'Passa (scommessa: '+t+')':'Passa (scommetto 0 prese)',k:0});
   return o;
 }
@@ -1216,8 +1217,8 @@ function dockH(){
   if(S.phase==='score')return h+roundTable(S.show.rows,S.un,S.team)+'<div class="opts"><button class="opt" data-next="1">'+(S.instant||S.round>=S.rounds-1?'Mostra risultato finale':'Prossimo round')+'</button></div>';
   if(myBet()){
     var o=betOpts();
-    h+='<div class="dock-title">SCOMMESSA</div><div class="opts">'+o.map(function(x,i){return '<button class="opt '+(ui.pick===i?'sel':'')+'" data-i="'+i+'">'+esc(x.label)+'</button>'}).join('')+'</div>';
-    if(ui.pick!=null&&o[ui.pick])h+='<div class="opts"><button class="opt" data-af="1">Conferma: '+esc(o[ui.pick].label)+'</button><button class="opt" data-af="0">Annulla</button></div>';
+    h+='<div class="dock-title">SCOMMESSA</div><div class="opts">'+o.map(function(x,i){return '<button class="opt '+(x.num?'num ':'')+(ui.pick===i?'sel':'')+'" data-i="'+i+'">'+esc(x.label)+'</button>'}).join('')+'</div>';
+    if(ui.pick!=null&&o[ui.pick])h+='<div class="opts"><button class="opt" data-af="1">Conferma: '+(o[ui.pick].num?'prendi ':'')+esc(o[ui.pick].label)+'</button><button class="opt" data-af="0">Annulla</button></div>';
     return h;
   }
   var c=ui.selC!=null?S.hands[me][ui.selC]:null;
