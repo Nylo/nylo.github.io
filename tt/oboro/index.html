@@ -175,6 +175,52 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 .logo{color:var(--ink)}.logo small{color:var(--text-soft)}
 .topbar .btn,.topbar .nylo-home,.topbar .hamb{color:var(--ink);border-color:var(--ink);background:rgba(255,255,255,0.6)}
 .topbar .btn:hover,.topbar .nylo-home:hover,.topbar .hamb:hover{background:#fff;color:var(--ink)}
+
+/* Riepilogo: stesso colore di Log e Regolamento */
+details.recap>summary,details.rules>summary,details.log>summary{color:var(--ink)}
+/* stanze online (kit condiviso) */
+:root{--surface-raised:#ece0e0}
+.panel,.sx-card{background:#f3e9e9;border:3px solid var(--ink);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:12px;color:var(--text);box-shadow:0 4px 0 rgba(0,0,0,0.12)}
+.panel{margin-bottom:14px}
+.panel h2{font-size:16px;font-weight:700}
+.muted{color:var(--text-soft);font-size:12px;line-height:1.5}
+body .app>section>p.muted{color:var(--ink);margin-bottom:10px}
+.status{font-size:13px;min-height:20px;line-height:1.5;color:var(--ink)}
+.panel input[type=text]{background:#fff;border:2px solid var(--ink);color:#222;border-radius:6px;padding:9px 11px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none;letter-spacing:1px}
+.panel input[type=text]:focus{border-color:var(--accent)}
+.radios{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.radios label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.roster{list-style:none;display:flex;flex-direction:column;gap:8px}
+.roster li{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:2px solid var(--ink);border-radius:8px;font-size:13px}
+.roster .seat-n{width:20px;color:var(--text-soft)}
+.roster .grow{flex:1}
+.roster .soft{color:var(--text-soft)}
+.room-code{padding:4px 8px;border:2px solid var(--ink);background:#fff;border-radius:6px;font-family:Consolas,monospace;letter-spacing:1px;font-size:12px;color:var(--ink)}
+.conn{font-size:11px;color:var(--ink)}
+.room-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.room-bar .room-code,.room-bar .btn{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 10px;line-height:1;box-sizing:border-box;white-space:nowrap}
+.room-bar .btn{color:var(--ink);border-color:var(--ink);background:rgba(255,255,255,0.6)}
+.room-bar .btn:hover{background:#fff}
+.room-bar .conn{margin-left:auto}
+.err{position:fixed;left:12px;right:12px;bottom:12px;max-width:680px;margin:0 auto;padding:12px 14px;border:1px solid rgba(217,107,107,0.6);border-radius:8px;background:#3a1d22;color:#fff;font-size:13px;line-height:1.4;z-index:200}
+.sx-label{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text-soft);margin-top:2px}
+.sx-row{display:flex;gap:8px;flex-wrap:wrap}
+.sx-opt{padding:10px 16px;border-radius:7px;border:2px solid var(--ink);background:#fff;color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;transition:border-color .12s,background .12s}
+.sx-opt:hover:not(:disabled){background:var(--surface-raised)}
+.sx-opt.on{background:var(--ink);color:#fff}
+.sx-opt.on:hover:not(:disabled){background:var(--ink);filter:brightness(1.3)}
+.sx-opt:disabled{opacity:.4;cursor:not-allowed}
+.sx-row .sx-opt{flex:1 1 0;min-width:0}
+.sx-go{background:#d92b2b;border-color:var(--ink);color:#fff;margin-top:1rem}
+.sx-go:hover:not(:disabled){background:#d92b2b;filter:brightness(1.12)}
+.sx-in{background:#fff;border:2px solid var(--ink);color:#222;border-radius:6px;padding:10px 12px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none}
+.sx-in:focus{border-color:var(--accent)}
+.sx-in.code{letter-spacing:2px;text-transform:uppercase;font-family:Consolas,monospace}
+.sx-nav{display:flex;gap:8px;align-items:center;margin-left:auto}
+.sx-sub{display:flex;flex-direction:column;gap:10px;padding-top:2px}
+table.score tr.me td{background:rgba(217,43,43,.14)}
+.panel .opt:hover:not(:disabled){background:var(--ink);color:#fff}
+@media(max-width:600px){.sx-nav{margin-left:0}table.score{font-size:11px}table.score td,table.score th{padding:4px 3px;overflow-wrap:anywhere}}
 </style>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -186,50 +232,18 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 <div class="app" id="app"></div>
 
 <script src="/tt/shared/core.js"></script>
-<script>
-// ═════════════════════════ COSTANTI ═════════════════════════
+<script type="text/plain" id="src-common">
+// ═════════════════════════ COMUNE (modalità AI e stanze) ═════════════════════════
 const COLN = ['Bianco','Rosso','Viola'];
 const LET  = ['B','R','V'];
 const HAND = 9;                                        // 9 carte a testa = 9 prese
 const NUMS = {3:21, 4:28};                             // carte numero in gioco (3 giocatori: 1–21, 4 giocatori: 1–28)
 const PAINTS = {3:6, 4:8};                             // pennelli in gioco
-const HUM = 0;
 const POS = {3:['bottom','left','right'],4:['bottom','left','top','right']};
-const NAMES = ['Tu','AI Mashika','AI Nigiri','AI Rabin'];
 const ico = n => `<i class="ph-fill ph-${n}"></i>`;
-
-// ═════════════════════════ UTILITÀ ═════════════════════════
-const rnd = n => Math.floor(Math.random()*n);
-const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-let G = null, PR = null;
-const OPT = {undo:true,a11y:false,long:false,memo:false};
-try{ const s=localStorage.getItem('ob-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ob-a11y')==='1'; OPT.long=localStorage.getItem('ob-long')==='1'; OPT.memo=localStorage.getItem('ob-memo')==='1'; }catch(e){}
-function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
-const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
 const cardName = (c,col) => c.paint ? 'un Pennello' : `${c.v} ${COLN[col]}`;
 const isPaint = c => !!(c&&c.paint);
-
-// ═════════════════════════ INTERAZIONE ═════════════════════════
-async function ask(p,title,options){
-  const ok=options.filter(x=>!x.disabled);
-  if(!ok.length) return null;
-  const g=G;
-  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
-}
-function askHandPick(allowed,k,hint){
-  const g=G;
-  return new Promise((res,rej)=>{ PR={type:'hpick',allowed:new Set(allowed),k,hint,sel:[],res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
-}
-function togglePick(i){
-  if(!PR||PR.type!=='hpick'||!PR.allowed.has(i)) return;
-  const k=PR.sel.indexOf(i);
-  if(k>=0) PR.sel.splice(k,1); else if(PR.sel.length<PR.k) PR.sel.push(i);
-  render();
-}
-function confirmPick(){
-  if(!PR||PR.type!=='hpick'||PR.sel.length!==PR.k) return;
-  const s=PR.sel.slice().sort((a,b)=>a-b), r=PR.res; PR=null; render(); r(s);
-}
+const posList = idx => idx.map(i=>i+1).join(', ');
 
 // ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
 // Colori derivati dalla posizione dei pennelli nella mano: 2 pennelli = bianco | rosso | viola; 1 pennello = bianco | rosso; 0 = tutto bianco.
@@ -265,6 +279,106 @@ function winnersOf(won,bid){
   const mb=Math.max(...grp.map(i=>bid[i]));
   return grp.filter(i=>bid[i]===mb);
 }
+// distribuzione: standard = mazzo mescolato (poi scambio dei pennelli); variante = 2 pennelli + 7 numeri a testa, mano mescolata (nessuno scambio).
+// sh = funzione che mescola un array e lo restituisce
+function dealHands(n,variant,sh){
+  const nums=[], pts=[];
+  for(let v=1;v<=NUMS[n];v++) nums.push({id:v,v,paint:false});
+  for(let k=0;k<PAINTS[n];k++) pts.push({id:100+k,v:0,paint:true});
+  if(!variant){ const deck=sh(nums.concat(pts)); return Array.from({length:n},(_,i)=>deck.slice(i*HAND,(i+1)*HAND)); }
+  sh(nums);
+  return Array.from({length:n},(_,i)=>sh(nums.slice(i*(HAND-2),(i+1)*(HAND-2)).concat(pts.slice(i*2,i*2+2))));
+}
+function handStr(h){
+  const cols=colorsOf(handFlags(h));
+  return h.map((c,i)=>c.paint?'P':`${c.v}${cols[i]>=0?LET[cols[i]]:''}`).join(' ');
+}
+
+// ═════════════════════════ GRAFICA ═════════════════════════
+function cardHtml(c,col,extra='',tag='span',attrs=''){
+  if(c.paint) return `<${tag} class="oc pt ${extra}" ${attrs} title="Pennello"><span class="ch">${ico('paint-brush')}</span></${tag}>`;
+  const k=col>=0?'c'+col:'cx';
+  return `<${tag} class="oc ${k} ${extra}" ${attrs} title="${c.v}${col>=0?' '+COLN[col]:''}"><span>${c.v}</span><small class="lt">${col>=0?LET[col]:''}</small></${tag}>`;
+}
+function ghostHtml(col){
+  const k=col>=0?'c'+col:'cx';
+  return `<span class="oc ${k} ghost" title="Carta numero in arrivo"><span>?</span><small class="lt">${col>=0?LET[col]:''}</small></span>`;
+}
+function rowHtml(h){
+  const cols=colorsOf(handFlags(h));
+  return `<div class="xrow">${h.map((c,i)=>cardHtml(c,cols[i],'mini')).join('')}</div>`;
+}
+function swHtml(c){ return `<span class="sw c${c}">${COLN[c]}</span>`; }
+function recapHtml(n,variant){
+  return `<details class="recap paper"><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Carte</span>${[0,1,2].map(swHtml).join('')}<span class="sw pt" style="background:var(--paint);color:#fff">Pennello</span><span class="rv"> numeri 1–${NUMS[n]} e ${PAINTS[n]} pennelli · 9 carte a testa, 9 prese</span></div>
+    <div class="recap-row"><span class="lbl">Colori</span>Dipendono dalla posizione dei pennelli nella tua mano (ordine fisso): prima del 1° pennello Bianco, tra i due Rosso, dopo il 2° Viola. Se giochi un pennello i colori si ridistribuiscono.</div>
+    ${variant?'<div class="recap-row"><span class="lbl">Variante</span>Ognuno riceve esattamente 2 pennelli e 7 numeri, poi mescola la propria mano: niente scambio dei pennelli.</div>':''}
+    <div class="recap-row"><span class="lbl">Presa</span>Chi è di mano gioca ciò che vuole; il colore del primo numero giocato è il colore di apertura. Se hai numeri di quel colore devi giocarne uno (o un pennello); i pennelli si possono sempre giocare.</div>
+    <div class="recap-row"><span class="lbl">Vincitore presa</span>Il colore più scuro (Viola &gt; Rosso &gt; Bianco &gt; Pennello); a parità il numero più alto. Chi vince apre la presa dopo. Se tutti giocano un pennello la partita finisce subito.</div>
+    <div class="recap-row"><span class="lbl">Vittoria</span>Vince chi ha fatto esattamente le prese puntate; se nessuno, il più vicino; a parità chi ha puntato di più; altrimenti vittoria condivisa.</div></details>`;
+}
+const RULES_HTML = `
+<details class="rules paper"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>Oboro (朧, «sfocato») è un gioco di prese per 3–4 giocatori in cui i colori delle tue carte non sono stampati: dipendono dalla posizione dei <b>pennelli</b> nella tua mano. Prima di ogni mano si puntano in segreto le prese che si pensa di fare: vince chi centra la puntata.</p>
+<h4>Componenti e preparazione</h4>
+<p>28 carte numero (1–28) e 8 pennelli. In 4 giocatori si usano tutte le 36 carte; in 3 giocatori si tolgono i numeri 22–28 e 2 pennelli (27 carte). Si mescolano insieme e se ne distribuiscono 9 a testa. <b>L'ordine della mano è fisso</b>: non si riordinano le carte e quelle giocate semplicemente escono.</p>
+<h4>Colori</h4>
+<p>I pennelli non hanno colore. I numeri hanno il colore della zona in cui si trovano: con 2 pennelli, a sinistra del primo = <b>Bianco</b>, in mezzo = <b>Rosso</b>, a destra del secondo = <b>Viola</b>. Con 1 pennello: sinistra Bianco, destra Rosso. Senza pennelli: tutto Bianco. I colori si ricalcolano ogni volta che un pennello lascia la mano.</p>
+<h4>Scambio dei pennelli</h4>
+<p>Ogni mano deve avere esattamente 2 pennelli. Chi ne ha 3 o più (in eccesso) mette sul tavolo, scoperti, tanti pennelli quanti ne ha in più, scegliendo quali (ricorda le posizioni). Chi ne ha 0 o 1 (in difetto) mette sul tavolo a faccia in giù tante carte numero quanti pennelli gli mancano, scegliendo obbligatoriamente i numeri <b>più bassi</b>, e prende i pennelli dal tavolo mettendoli esattamente al posto di quei numeri. Infine i giocatori in eccesso prendono i numeri rimasti sul tavolo (mescolati) e li inseriscono, uno alla volta, nelle posizioni da cui avevano tolto i pennelli.</p>
+<p><i>Variante «2 pennelli a testa» (opzione):</i> invece di mescolare tutto il mazzo, si danno a ciascun giocatore esattamente 2 pennelli e 7 carte numero a caso, poi ognuno mescola la propria mano. Così nessuno ha pennelli in più o in meno e lo scambio non serve.</p>
+<h4>Puntata</h4>
+<p>Tutti puntano contemporaneamente quante delle 9 prese faranno, da 1 a 9 (lo 0 non è ammesso). Poi le puntate diventano pubbliche.</p>
+<h4>Gioco</h4>
+<p>Chi è di mano gioca una carta qualsiasi, poi gli altri una a testa in senso orario. Quando si gioca un numero se ne annuncia il colore attuale; resta quel colore per tutta la presa. Il primo numero giocato nella presa stabilisce il <b>colore di apertura</b> (se il primo gioca un pennello, il secondo è libero, e così via finché qualcuno gioca un numero).</p>
+<p>Se hai numeri del colore di apertura devi giocarne uno, <b>ma puoi sempre giocare un pennello al suo posto</b> (modifica 2025). Se non ne hai, giochi ciò che vuoi. I pennelli si possono giocare in qualsiasi momento.</p>
+<p>Vince la presa il colore più scuro: <b>Viola &gt; Rosso &gt; Bianco &gt; Pennello</b>; a pari colore il numero più alto. Il vincitore prende le carte (conta come presa vinta) e apre la presa successiva. Se tutti giocano un pennello nella stessa presa non c'è vincitore e la partita finisce subito.</p>
+<h4>Fine e vittoria</h4>
+<p>La partita finisce dopo la 9ª presa. Vincono i giocatori che hanno fatto esattamente le prese puntate; se nessuno, quelli più vicini alla propria puntata; tra i pari merito vince chi ha puntato di più; se ancora pari, vittoria condivisa.</p>
+<p><i>Partita lunga (opzione):</i> si giocano tanti round quanti i giocatori, il primo giocatore passa a sinistra a ogni round; chi vince un round (anche condiviso) segna 1 punto e alla fine vince chi ha più punti.</p>
+<p><i>Nell'app:</i> il primo giocatore è casuale; l'obbligo di seguire il colore è applicato automaticamente (le carte non giocabili sono oscurate); le carte «esposte» della variante non sono usate. Il numero di pennelli che ogni avversario ha ancora in mano è pubblico (2 meno quelli già giocati). L'AI stima le mani avversarie con simulazioni.</p>
+<p><i>Nelle stanze online</i> si gioca solo tra persone (3–4): i posti al tavolo e il primo giocatore sono assegnati a caso, le mani restano visibili solo al proprietario, puntate e cessione dei pennelli sono simultanee e le puntate si rivelano quando tutti hanno scelto. Chiunque può passare al round successivo.</p>
+</div></details>`;
+</script>
+<script type="text/plain" id="src-ai">
+// ═════════════════════════ COSTANTI ═════════════════════════
+const HUM = 0;
+const NAMES = ['Tu','AI Mashika','AI Nigiri','AI Rabin'];
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('ob-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('ob-a11y')==='1'; OPT.memo=localStorage.getItem('ob-memo')==='1'; }catch(e){}
+function logMsg(t){ G.log.unshift(t); if(G.log.length>800) G.log.pop(); render(); }
+const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function askHandPick(allowed,k,hint){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'hpick',allowed:new Set(allowed),k,hint,sel:[],res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+function togglePick(i){
+  if(!PR||PR.type!=='hpick'||!PR.allowed.has(i)) return;
+  const k=PR.sel.indexOf(i);
+  if(k>=0) PR.sel.splice(k,1); else if(PR.sel.length<PR.k) PR.sel.push(i);
+  render();
+}
+function confirmPick(){
+  if(!PR||PR.type!=='hpick'||PR.sel.length!==PR.k) return;
+  const s=PR.sel.slice().sort((a,b)=>a-b), r=PR.res; PR=null; render(); r(s);
+}
+
 function shareOf(won,bid,me,margin=0.03){
   const w=winnersOf(won,bid);
   return (w.includes(me)?1/w.length:0)-margin*Math.abs(won[me]-bid[me]);
@@ -392,23 +506,20 @@ function aiGiveUp(p,k){
   return best;
 }
 
-function newMatch(n){
+function newMatch(){
   if(PR){ const r=PR.rej; PR=null; r(ABORT); }
   NYLO_CK=null;
-  G={n,long:OPT.long,round:0,rounds:OPT.long?n:1,start:rnd(n),msg:'',log:[],over:null,show:null,xchg:null,phase:'idle',showBids:false,
+  const o=(window.NYLO_START&&NYLO_START.opts)||{}, n=NYLO_START.n, long=!!o.long;
+  G={n,long,variant:!!o.variant,round:0,rounds:long?n:1,start:rnd(n),msg:'',log:[],over:null,show:null,xchg:null,phase:'idle',showBids:false,
      leader:0,turn:-1,win:-1,trickNo:0,trick:[],order:[],played:[],ended:false,
      pl:Array.from({length:n},(_,i)=>({id:i,name:NAMES[i],hand:[],bid:0,won:0,paints:2,pts:0,hist:[]}))};
   run();
 }
 function deal(){
-  const n=G.n, deck=[];
-  for(let v=1;v<=NUMS[n];v++) deck.push({id:v,v,paint:false});
-  for(let k=0;k<PAINTS[n];k++) deck.push({id:100+k,v:0,paint:true});
-  shuffle(deck);
-  G.pl.forEach((p,i)=>{ p.hand=deck.slice(i*HAND,(i+1)*HAND); p.bid=0; p.won=0; p.paints=p.hand.filter(isPaint).length; });
+  const hs=dealHands(G.n,G.variant,shuffle);
+  G.pl.forEach((p,i)=>{ p.hand=hs[i]; p.bid=0; p.won=0; p.paints=p.hand.filter(isPaint).length; });
   G.trick=[]; G.played=[]; G.win=-1; G.turn=-1; G.trickNo=0; G.order=[]; G.ended=false; G.show=null; G.xchg=null; G.showBids=false;
 }
-const posList = idx => idx.map(i=>i+1).join(', ');
 async function doExchange(){
   G.phase='exchange';
   const cnt=pl=>pl.hand.filter(isPaint).length;
@@ -462,10 +573,6 @@ async function doExchange(){
   });
   G.xchg={before:before[HUM],after:P(HUM).hand.slice(),lines:humanLines.length?humanLines:['Hai già 2 pennelli: non partecipi allo scambio.']};
   logMsg('Scambio concluso: ogni mano ha esattamente 2 pennelli.');
-}
-function handStr(h){
-  const cols=colorsOf(handFlags(h));
-  return h.map((c,i)=>c.paint?'P':`${c.v}${cols[i]>=0?LET[cols[i]]:''}`).join(' ');
 }
 async function doBids(){
   G.phase='bid'; G.showBids=false;
@@ -552,11 +659,16 @@ async function run(rs){
         deal();
         G.phase='deal'; ckpt();
         logMsg(`— ${g.long?`Round ${r+1}/${g.rounds}`:'Partita'}: inizia ${P(g.start).name} —`);
-        status('Mani distribuite (9 carte a testa, ordine fisso). Prima si pareggiano i pennelli: ogni mano deve averne 2.');
-        await ask(HUM,`${g.long?`Round ${r+1}/${g.rounds}: `:''}${g.start===HUM?'inizi tu':'inizia '+P(g.start).name} · mani distribuite`,[{label:'Scambio dei pennelli',value:1}]);
+        if(!g.variant) status('Mani distribuite (9 carte a testa, ordine fisso). Prima si pareggiano i pennelli: ogni mano deve averne 2.');
+        if(g.variant){
+          logMsg('Variante: 2 pennelli a testa, mano mescolata. Nessuno scambio.');
+          status('Mani distribuite: ognuno ha esattamente 2 pennelli e la mano mescolata. Niente scambio.');
+        }
+        await ask(HUM,`${g.long?`Round ${r+1}/${g.rounds}: `:''}${g.start===HUM?'inizi tu':'inizia '+P(g.start).name} · mani distribuite`,[{label:g.variant?'Vai alle puntate':'Scambio dei pennelli',value:1}]);
         ph='deal';
       }
-      if(ph==='deal'){ await doExchange(); ckpt(); ph='exchange'; }
+      if(ph==='deal'){ if(!g.variant){ await doExchange(); ckpt(); } ph='exchange'; }
+      if(ph==='exchange'&&g.variant) ph='bid';
       if(ph==='exchange'){
         status('Scambio concluso: ecco la tua mano, con i colori aggiornati.');
         await ask(HUM,'Scambio concluso',[{label:'Vai alle puntate',value:1}]);
@@ -578,19 +690,6 @@ async function run(rs){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
-function cardHtml(c,col,extra='',tag='span',attrs=''){
-  if(c.paint) return `<${tag} class="oc pt ${extra}" ${attrs} title="Pennello"><span class="ch">${ico('paint-brush')}</span></${tag}>`;
-  const k=col>=0?'c'+col:'cx';
-  return `<${tag} class="oc ${k} ${extra}" ${attrs} title="${c.v}${col>=0?' '+COLN[col]:''}"><span>${c.v}</span><small class="lt">${col>=0?LET[col]:''}</small></${tag}>`;
-}
-function ghostHtml(col){
-  const k=col>=0?'c'+col:'cx';
-  return `<span class="oc ${k} ghost" title="Carta numero in arrivo"><span>?</span><small class="lt">${col>=0?LET[col]:''}</small></span>`;
-}
-function rowHtml(h){
-  const cols=colorsOf(handFlags(h));
-  return `<div class="xrow">${h.map((c,i)=>cardHtml(c,cols[i],'mini')).join('')}</div>`;
-}
 function handHtml(pl){
   const h=pl.hand;
   let flags=handFlags(h), ghost=new Set();
@@ -632,14 +731,13 @@ function seatHtml(p,pos){
     :(pos==='top'?`${hand}${name}${meta}${tableauHtml(p)}`:`${name}${meta}${tableauHtml(p)}${hand}`);
   return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
 }
-function swHtml(c){ return `<span class="sw c${c}">${COLN[c]}</span>`; }
 function centerHtml(){
   const lead=G.trick.find(x=>!x.c.paint);
   return `<div class="center">
     ${lead?`<div class="trump c${lead.col}">Colore di apertura: ${COLN[lead.col]}</div>`:`<div class="hint">${G.phase==='play'?'Il primo numero giocato stabilisce il colore di apertura':'Fase: '+({idle:'',deal:'distribuzione',exchange:'scambio dei pennelli',bid:'puntate',score:'risultato'}[G.phase]||'')}</div>`}
     <div>${[0,1,2].map(swHtml).join(' ')} <span class="sw pt" style="background:var(--paint);color:#fff">Pennello</span></div>
     <div>${G.long?`Round <b>${G.round+1}/${G.rounds}</b> · `:''}Presa <b>${Math.min(G.trickNo,HAND)}/${HAND}</b></div>
-    <div class="hint">Viola &gt; Rosso &gt; Bianco &gt; Pennello · a pari colore vince il numero più alto</div></div>`;
+    <div class="hint">Viola &gt; Rosso &gt; Bianco &gt; Pennello · a pari colore vince il numero più alto</div>${G.variant?'<div class="hint">Variante: 2 pennelli a testa</div>':''}</div>`;
 }
 function roundTable(){
   const s=G.show;
@@ -657,11 +755,7 @@ function xchgHtml(){
     <div class="hint" style="margin-top:4px">${x.lines.map(esc).join('<br>')}</div></div>`;
 }
 function dockHtml(){
-  if(!G) return `<div class="dock-msg">In che modalità vuoi giocare?</div>
-    <div class="dock-title">TIPO DI PARTITA</div>
-    <div class="opts"><button class="opt ${OPT.long?'':'on'}" data-len="0" title="Un solo round">Partita corta (un round)</button><button class="opt ${OPT.long?'on':''}" data-len="1" title="Un round per giocatore, 1 punto al vincitore di ogni round">Partita lunga (un round per giocatore)</button></div>
-    <div class="dock-title">GIOCATORI</div>
-    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
+  if(!G) return '';
   if(G.over){
     const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
     return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${G.show?roundTable():''}${G.long?totalTable():''}`;
@@ -695,38 +789,6 @@ function menuHtml(){
       <button type="button" class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano" id="optMemo">${OPT.memo?'Nascondi':'Mostra'} le carte uscite</button>
     </div>`:''}</div>`;
 }
-function recapHtml(){
-  const n=G.n;
-  return `<details class="recap paper"><summary>RIEPILOGO</summary>
-    <div class="recap-row"><span class="lbl">Carte</span>${[0,1,2].map(swHtml).join('')}<span class="sw pt" style="background:var(--paint);color:#fff">Pennello</span><span class="rv"> numeri 1–${NUMS[n]} e ${PAINTS[n]} pennelli · 9 carte a testa, 9 prese</span></div>
-    <div class="recap-row"><span class="lbl">Colori</span>Dipendono dalla posizione dei pennelli nella tua mano (ordine fisso): prima del 1° pennello Bianco, tra i due Rosso, dopo il 2° Viola. Se giochi un pennello i colori si ridistribuiscono.</div>
-    <div class="recap-row"><span class="lbl">Presa</span>Chi è di mano gioca ciò che vuole; il colore del primo numero giocato è il colore di apertura. Se hai numeri di quel colore devi giocarne uno (o un pennello); i pennelli si possono sempre giocare.</div>
-    <div class="recap-row"><span class="lbl">Vincitore presa</span>Il colore più scuro (Viola &gt; Rosso &gt; Bianco &gt; Pennello); a parità il numero più alto. Chi vince apre la presa dopo. Se tutti giocano un pennello la partita finisce subito.</div>
-    <div class="recap-row"><span class="lbl">Vittoria</span>Vince chi ha fatto esattamente le prese puntate; se nessuno, il più vicino; a parità chi ha puntato di più; altrimenti vittoria condivisa.</div></details>`;
-}
-const RULES_HTML = `
-<details class="rules paper"><summary>REGOLAMENTO</summary>
-<div class="rtext">
-<h4>Panoramica</h4>
-<p>Oboro (朧, «sfocato») è un gioco di prese per 3–4 giocatori in cui i colori delle tue carte non sono stampati: dipendono dalla posizione dei <b>pennelli</b> nella tua mano. Prima di ogni mano si puntano in segreto le prese che si pensa di fare: vince chi centra la puntata.</p>
-<h4>Componenti e preparazione</h4>
-<p>28 carte numero (1–28) e 8 pennelli. In 4 giocatori si usano tutte le 36 carte; in 3 giocatori si tolgono i numeri 22–28 e 2 pennelli (27 carte). Si mescolano insieme e se ne distribuiscono 9 a testa. <b>L'ordine della mano è fisso</b>: non si riordinano le carte e quelle giocate semplicemente escono.</p>
-<h4>Colori</h4>
-<p>I pennelli non hanno colore. I numeri hanno il colore della zona in cui si trovano: con 2 pennelli, a sinistra del primo = <b>Bianco</b>, in mezzo = <b>Rosso</b>, a destra del secondo = <b>Viola</b>. Con 1 pennello: sinistra Bianco, destra Rosso. Senza pennelli: tutto Bianco. I colori si ricalcolano ogni volta che un pennello lascia la mano.</p>
-<h4>Scambio dei pennelli</h4>
-<p>Ogni mano deve avere esattamente 2 pennelli. Chi ne ha 3 o più (in eccesso) mette sul tavolo, scoperti, tanti pennelli quanti ne ha in più, scegliendo quali (ricorda le posizioni). Chi ne ha 0 o 1 (in difetto) mette sul tavolo a faccia in giù tante carte numero quanti pennelli gli mancano, scegliendo obbligatoriamente i numeri <b>più bassi</b>, e prende i pennelli dal tavolo mettendoli esattamente al posto di quei numeri. Infine i giocatori in eccesso prendono i numeri rimasti sul tavolo (mescolati) e li inseriscono, uno alla volta, nelle posizioni da cui avevano tolto i pennelli.</p>
-<h4>Puntata</h4>
-<p>Tutti puntano contemporaneamente quante delle 9 prese faranno, da 1 a 9 (lo 0 non è ammesso). Poi le puntate diventano pubbliche.</p>
-<h4>Gioco</h4>
-<p>Chi è di mano gioca una carta qualsiasi, poi gli altri una a testa in senso orario. Quando si gioca un numero se ne annuncia il colore attuale; resta quel colore per tutta la presa. Il primo numero giocato nella presa stabilisce il <b>colore di apertura</b> (se il primo gioca un pennello, il secondo è libero, e così via finché qualcuno gioca un numero).</p>
-<p>Se hai numeri del colore di apertura devi giocarne uno, <b>ma puoi sempre giocare un pennello al suo posto</b> (modifica 2025). Se non ne hai, giochi ciò che vuoi. I pennelli si possono giocare in qualsiasi momento.</p>
-<p>Vince la presa il colore più scuro: <b>Viola &gt; Rosso &gt; Bianco &gt; Pennello</b>; a pari colore il numero più alto. Il vincitore prende le carte (conta come presa vinta) e apre la presa successiva. Se tutti giocano un pennello nella stessa presa non c'è vincitore e la partita finisce subito.</p>
-<h4>Fine e vittoria</h4>
-<p>La partita finisce dopo la 9ª presa. Vincono i giocatori che hanno fatto esattamente le prese puntate; se nessuno, quelli più vicini alla propria puntata; tra i pari merito vince chi ha puntato di più; se ancora pari, vittoria condivisa.</p>
-<p><i>Partita lunga (opzione):</i> si giocano tanti round quanti i giocatori, il primo giocatore passa a sinistra a ogni round; chi vince un round (anche condiviso) segna 1 punto e alla fine vince chi ha più punti.</p>
-<p><i>Nell'app:</i> il primo giocatore è casuale; l'obbligo di seguire il colore è applicato automaticamente (le carte non giocabili sono oscurate); le carte «esposte» della variante non sono usate. Il numero di pennelli che ogni avversario ha ancora in mano è pubblico (2 meno quelli già giocati). L'AI stima le mani avversarie con simulazioni.</p>
-</div></details>`;
-
 let LOGOPEN=false;
 function logHtml(){
   return `<details class="log paper" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
@@ -747,7 +809,7 @@ function render(){
       ${OPT.memo&&!G.over&&['deal','exchange','bid','play'].includes(G.phase)?memoHtml():''}
       ${G.long&&G.pl.some(p=>p.hist.length)?`<div class="dock paper" style="position:static">${totalTable()}</div>`:''}
       ${logHtml()}
-      ${recapHtml()}
+      ${recapHtml(G.n,G.variant)}
       ${RULES_HTML}`;
   }
   app.innerHTML=top+`<div class="dock paper">${dockHtml()}</div>`+body;
@@ -756,12 +818,10 @@ function render(){
 document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
-  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
-  else if(b.dataset.len!==undefined){ OPT.long=b.dataset.len==='1'; try{ localStorage.setItem('ob-long',OPT.long?'1':'0'); }catch(err){} render(); }
   else if(b.dataset.h!==undefined) togglePick(Number(b.dataset.h));
   else if(b.dataset.hk!==undefined) confirmPick();
 });
@@ -784,9 +844,729 @@ document.getElementById('app').addEventListener('change',e=>{
 });
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
 render();
-nyloSaveInit('oboro',snap=>{ G=snap; PR=null; render(); run(true); });
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('oboro',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){ NAMES[0]=NYLO_START.name||'Tu'; newMatch(); }
+}
 
+</script>
+<script type="text/plain" id="src-room">
+// ═════════════════════════ OBORO · ONLINE ═════════════════════════
+// Si gioca solo tra persone (3–4). Stato = un unico oggetto JSON (S); ogni azione passa da gameReduce(). Costanti e regole pure arrivano dal blocco comune.
+var GAME={id:'oboro',logo:'Oboro',counts:[3,4],
+  lobbyNote:'Servono 3 o 4 giocatori. Quando la stanza è piena, i posti al tavolo e il primo giocatore vengono assegnati a caso. Puntate e cessione dei pennelli sono simultanee. Le opzioni (partita corta/lunga, variante dei pennelli) sono quelle scelte da chi crea la stanza.'};
+var OPT={undo:true,a11y:false};
+try{var _u=localStorage.getItem('ob-undo');if(_u!==null)OPT.undo=_u==='1';OPT.a11y=localStorage.getItem('ob-a11y')==='1'}catch(e){}
+var ui={sel:null,pick:[]};
+var LOGOPEN=false;
+
+// ─────────────── REGOLE (funzioni pure, usate dentro le transazioni) ───────────────
+function mkRng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function sshuffle(a,rng){for(var i=a.length-1;i>0;i--){var j=Math.floor(rng()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function newSeed(){return Math.floor(Math.random()*4294967296)}
+function validSeed(x){return typeof x==='number'&&x%1===0&&x>=0&&x<4294967296}
+function lg(S,t){S.log.unshift(t);if(S.log.length>200)S.log.pop()}
+function cntP(S,p){return S.pl[p].hand.filter(isPaint).length}
+function rotOrder(S,from){var o=[],k;for(k=0;k<S.n;k++)o.push((from+k)%S.n);return o}
+function roundTag(S){return S.long?'Round '+(S.round+1)+'/'+S.rounds:'Partita'}
+function dealRound(S,rng){
+  var hs=dealHands(S.n,S.variant,function(a){return sshuffle(a,rng)});
+  S.pl.forEach(function(p,i){p.hand=hs[i];p.bid=0;p.won=0;p.paints=p.hand.filter(isPaint).length});
+  S.trick=[];S.win=-1;S.tdone=false;S.trickNo=0;S.order=[];S.leader=S.start;S.ended=false;S.show=null;S.xchg=null;S.gave={};S.rt='';
+  S.xs=Math.floor(rng()*4294967296);
+  lg(S,'— '+roundTag(S)+': inizia '+S.names[S.start]+' —');
+  if(S.variant){lg(S,'Variante: 2 pennelli a testa, mano mescolata. Nessuno scambio.');S.phase='bid';return}
+  var anyEx=false;S.pl.forEach(function(p,i){if(cntP(S,i)>2)anyEx=true});
+  if(!anyEx){
+    lg(S,'Scambio: ogni mano ha già esattamente 2 pennelli, nessuno scambio.');
+    S.xchg=S.pl.map(function(p){return {before:p.hand.slice(),after:p.hand.slice(),lines:['Hai già 2 pennelli: nessuno scambio.']}});
+    S.phase='bid';return;
+  }
+  lg(S,'Mani distribuite. Prima si pareggiano i pennelli: ogni mano deve averne 2.');
+  S.phase='exchange';
+}
+function newGame(S,rng){
+  S.round=0;S.start=Math.floor(rng()*S.n);S.winners=[];
+  S.pl=S.names.map(function(){return {hand:[],bid:0,won:0,paints:2,pts:0,hist:[]}});
+  dealRound(S,rng);
+}
+function gameInitial(players,seed,opts){
+  var names=[];
+  players.forEach(function(p){var n=String(p.name||'Giocatore').slice(0,18),x=n,c=2;while(names.indexOf(x)>=0)x=n+' '+(c++);names.push(x)});
+  opts=opts||{};
+  var n=players.length;
+  var S={n:n,uids:players.map(function(p){return p.uid}),names:names,log:[],long:!!opts.long,variant:!!opts.variant,rounds:opts.long?n:1};
+  newGame(S,mkRng(validSeed(seed)?seed:newSeed()));
+  return S;
+}
+// di chi è il turno (-1 = nessuno)
+function turnOf(S){
+  if(S.phase!=='play')return -1;
+  return S.tdone?S.leader:S.order[S.trick.length];
+}
+// scambio dei pennelli: stessi passaggi della modalità AI, tutto deterministico (il mescolamento usa il seme dello stato)
+function applyExchange(S){
+  var rng=mkRng(S.xs),before=S.pl.map(function(p){return p.hand.slice()});
+  var ex=[],df=[];
+  S.pl.forEach(function(p,i){var c=cntP(S,i);if(c>2)ex.push(i);else if(c<2)df.push(i)});
+  var tp=[],tn=[],took={},lines=S.pl.map(function(){return []});
+  lg(S,'Scambio dei pennelli: '+ex.map(function(p){return S.names[p]+' ne cede '+(cntP(S,p)-2)}).join(', ')+'; '+df.map(function(p){return S.names[p]+' ne riceve '+(2-cntP(S,p))}).join(', ')+'.');
+  ex.forEach(function(p){S.gave[p].forEach(function(i){tp.push(S.pl[p].hand[i])})});
+  lg(S,'Sul tavolo ci sono '+tp.length+' pennelli scoperti.');
+  df.forEach(function(p){
+    var d=2-cntP(S,p);
+    var lows=S.pl[p].hand.map(function(c,i){return {c:c,i:i}}).filter(function(x){return !x.c.paint}).sort(function(a,b){return a.c.v-b.c.v}).slice(0,d);
+    took[p]=lows.map(function(x){return x.i}).sort(function(a,b){return a-b});
+    lows.forEach(function(x){tn.push(x.c)});
+  });
+  df.forEach(function(p){
+    var idx=took[p],hand=S.pl[p].hand,out=idx.map(function(i){return hand[i].v});
+    idx.forEach(function(i){hand[i]=tp.pop()});
+    lg(S,S.names[p]+' mette sul tavolo '+idx.length+' '+(idx.length>1?'carte numero più basse':'carta numero più bassa')+' a faccia in giù e prende '+(idx.length>1?'dei pennelli':'un pennello')+'.');
+    lines[p].push('Metti sul tavolo i tuoi numeri più bassi: '+out.map(function(v,j){return v+' (posizione '+(idx[j]+1)+')'}).join(', ')+'; al loro posto ricevi '+(idx.length>1?'dei pennelli':'un pennello')+'.');
+  });
+  sshuffle(tn,rng);
+  ex.forEach(function(p){
+    var idx=S.gave[p],hand=S.pl[p].hand,got=[];
+    idx.forEach(function(i){var c=tn.pop();hand[i]=c;got.push(c.v)});
+    lg(S,S.names[p]+' ritira '+idx.length+' '+(idx.length>1?'carte numero':'carta numero')+' dal tavolo e le inserisce al posto dei pennelli ceduti.');
+    lines[p].push('Cedi '+(idx.length>1?'i pennelli':'il pennello')+' in posizione '+posList(idx)+'; al loro posto ricevi: '+idx.map(function(i,j){return got[j]+' (posizione '+(i+1)+')'}).join(', ')+'.');
+  });
+  S.pl.forEach(function(p){p.paints=p.hand.filter(isPaint).length});
+  S.xchg=S.pl.map(function(p,i){return {before:before[i],after:p.hand.slice(),lines:lines[i].length?lines[i]:['Hai già 2 pennelli: non partecipi allo scambio.']}});
+  lg(S,'Scambio concluso: ogni mano ha esattamente 2 pennelli.');
+  S.phase='bid';
+}
+function endRound(S){
+  var bid=S.pl.map(function(p){return p.bid}),won=S.pl.map(function(p){return p.won});
+  var win=winnersOf(won,bid);
+  S.phase='score';
+  if(S.long)win.forEach(function(i){S.pl[i].pts++});
+  S.pl.forEach(function(p,i){p.hist.push(win.indexOf(i)>=0?1:0)});
+  S.show={rows:S.pl.map(function(p,i){return {p:i,bid:p.bid,won:p.won,win:win.indexOf(i)>=0}}),win:win,ended:S.ended};
+  lg(S,'Round '+(S.round+1)+' concluso'+(S.ended?' in anticipo':'')+': '+(win.length>1?'vittoria condivisa di ':'vince ')+win.map(function(i){return S.names[i]}).join(' e ')+'.');
+}
+function resolveTrick(S){
+  var w=trickWinner(S.trick);
+  S.tdone=true;
+  if(w<0){
+    S.ended=true;S.win=-1;
+    S.rt='Tutti hanno giocato un pennello: la presa non ha vincitore e la partita finisce subito.';
+    lg(S,S.rt);endRound(S);return;
+  }
+  S.win=w;S.pl[w].won++;
+  var wc=S.trick.filter(function(x){return x.p===w})[0];
+  S.rt=S.names[w]+' vince la presa con '+cardName(wc.c,wc.col)+' ('+S.pl[w].won+'/'+S.pl[w].bid+').';
+  lg(S,S.rt);
+  S.leader=w;S.order=rotOrder(S,w);
+  if(S.trickNo>=HAND)endRound(S);
+}
+function gameWinners(S){return S.winners||[]}
+// ritorna il nuovo stato oppure null se l'azione non è valida
+function gameReduce(S,seat,a){
+  if(!a||typeof a.type!=='string'||!(seat>=0&&seat<S.n))return null;
+  var pl=S.pl[seat],i,k;
+  if(a.type==='give'){
+    if(S.phase!=='exchange'||S.gave[seat]||!Array.isArray(a.idx))return null;
+    var c=cntP(S,seat);
+    if(c<=2||a.idx.length!==c-2)return null;
+    var idx=[];
+    for(i=0;i<a.idx.length;i++){
+      k=a.idx[i];
+      if(!Number.isInteger(k)||k<0||k>=pl.hand.length||!pl.hand[k].paint||idx.indexOf(k)>=0)return null;
+      idx.push(k);
+    }
+    S.gave[seat]=idx.sort(function(x,y){return x-y});
+    var all=true;S.pl.forEach(function(p,j){if(cntP(S,j)>2&&!S.gave[j])all=false});
+    if(all)applyExchange(S);
+    return S;
+  }
+  if(a.type==='bid'){
+    if(S.phase!=='bid'||pl.bid>0||!Number.isInteger(a.n)||a.n<1||a.n>HAND)return null;
+    pl.bid=a.n;
+    if(S.pl.every(function(p){return p.bid>0})){
+      lg(S,'Puntate: '+S.pl.map(function(p,j){return S.names[j]+' '+p.bid}).join(' · ')+'.');
+      S.phase='play';S.leader=S.start;S.order=rotOrder(S,S.start);S.trick=[];S.tdone=false;S.trickNo=0;S.win=-1;
+    }
+    return S;
+  }
+  if(a.type==='play'){
+    if(S.phase!=='play'||turnOf(S)!==seat||!Number.isInteger(a.id))return null;
+    var hi=-1;pl.hand.forEach(function(c,j){if(c.id===a.id)hi=j});
+    if(hi<0)return null;
+    if(S.tdone){S.trick=[];S.win=-1;S.tdone=false}           // la presa precedente è finita: comincia la successiva
+    var cols=colorsOf(handFlags(pl.hand)),lgl=legalIdx(pl.hand,cols,S.trick);
+    if(lgl.indexOf(hi)<0)return null;
+    if(!S.trick.length)S.trickNo++;
+    var card=pl.hand.splice(hi,1)[0],col=cols[hi];
+    if(card.paint)pl.paints--;
+    S.trick.push({p:seat,c:card,col:col,rank:rankOf(card,col)});
+    lg(S,S.names[seat]+' gioca '+cardName(card,col)+'.');
+    if(S.trick.length===S.order.length)resolveTrick(S);
+    return S;
+  }
+  if(a.type==='next'){
+    if(S.phase!=='score'||!validSeed(a.seed))return null;
+    if(S.round>=S.rounds-1){
+      var w;
+      if(S.long){var mx=Math.max.apply(null,S.pl.map(function(p){return p.pts}));w=S.pl.map(function(p,j){return p.pts===mx?j:-1}).filter(function(j){return j>=0})}
+      else w=S.show.win.slice();
+      S.winners=w;S.phase='over';
+      lg(S,'Partita conclusa: '+(w.length>1?'vittoria condivisa di ':'vince ')+w.map(function(x){return S.names[x]}).join(' e ')+'.');
+    }else{
+      S.start=(S.start+1)%S.n;S.round++;dealRound(S,mkRng(a.seed));
+    }
+    return S;
+  }
+  if(a.type==='rematch'){
+    if(S.phase!=='over'||!validSeed(a.seed))return null;
+    lg(S,'— Rivincita —');
+    newGame(S,mkRng(a.seed));return S;
+  }
+  return null;
+}
+
+// ─────────────── INTERFACCIA ───────────────
+function ordSeats(){var o=[],i;for(i=0;i<S.n;i++)o.push((me+i)%S.n);return o}
+function revealed(){return S.phase==='play'||S.phase==='score'||S.phase==='over'}
+function needGive(){return S.phase==='exchange'&&!S.gave[me]&&cntP(S,me)>2?cntP(S,me)-2:0}
+function myLegal(){
+  if(S.phase!=='play'||turnOf(S)!==me)return null;
+  var h=S.pl[me].hand,tr=S.tdone?[]:S.trick;
+  return {cols:colorsOf(handFlags(h)),lg:legalIdx(h,colorsOf(handFlags(h)),tr)};
+}
+function humanHint(){
+  var h=S.pl[me].hand,cols=colorsOf(handFlags(h)),tr=S.tdone?[]:S.trick;
+  var lead=tr.filter(function(x){return !x.c.paint})[0];
+  if(!tr.length)return 'Sei di mano: puoi giocare qualsiasi carta. Il colore del primo numero giocato diventa il colore di apertura.';
+  if(!lead)return 'Finora solo pennelli: puoi giocare qualsiasi carta; il primo numero giocato stabilirà il colore di apertura.';
+  var has=h.some(function(c,i){return !c.paint&&cols[i]===lead.col});
+  if(has)return 'Colore di apertura: '+COLN[lead.col]+'. Hai numeri '+COLN[lead.col]+': devi giocarne uno (oppure un pennello).';
+  return 'Colore di apertura: '+COLN[lead.col]+'. Non hai numeri '+COLN[lead.col]+': puoi giocare qualsiasi carta.';
+}
+function handH(){
+  var h=S.pl[me].hand,k=needGive(),flags=handFlags(h),ghost=[],lgl=null,sent=false,cols;
+  if(k){ghost=ui.pick.slice();flags=flags.map(function(f,j){return f&&ghost.indexOf(j)<0})}
+  else if(S.phase==='exchange'&&S.gave[me]){ghost=S.gave[me];sent=true;flags=flags.map(function(f,j){return f&&ghost.indexOf(j)<0})}
+  else lgl=myLegal();
+  cols=colorsOf(flags);
+  return '<div class="hand">'+h.map(function(c,i){
+    if(ghost.indexOf(i)>=0){
+      var inner='<span>?</span><small class="lt">'+(cols[i]>=0?LET[cols[i]]:'')+'</small>';
+      return sent?'<span class="oc '+(cols[i]>=0?'c'+cols[i]:'cx')+' ghost" title="Pennello ceduto">'+inner+'</span>':'<button class="oc '+(cols[i]>=0?'c'+cols[i]:'cx')+' ghost sel" data-pk="'+i+'" title="Pennello ceduto">'+inner+'</button>';
+    }
+    if(k)return cardHtml(c,cols[i],c.paint?'legal':'dim','button',(c.paint?'':'disabled')+' data-pk="'+i+'"');
+    if(lgl){var ok=lgl.lg.indexOf(i)>=0;return cardHtml(c,cols[i],(ok?'legal':'dim')+' '+(ui.sel===i?'sel':''),'button',(ok?'':'disabled')+' data-p="'+i+'"')}
+    return cardHtml(c,cols[i]);
+  }).join('')+'</div>';
+}
+function tableauH(p){
+  var x=null;S.trick.forEach(function(t){if(t.p===p)x=t});
+  return '<div class="tableau">'+(x?cardHtml(x.c,x.col,'mini '+(S.tdone&&S.win===p?'win':'')):'<span class="empty"></span>')+'</div>';
+}
+function flagH(p){
+  if(S.phase==='over')return gameWinners(S).indexOf(p)>=0?'<span class="flag first">Vince</span>':'';
+  if(S.phase==='score')return '';
+  if(S.phase==='play'&&!S.tdone&&S.leader===p&&S.trick.length>0)return '<span class="flag lead">Di mano</span>';
+  if(S.phase!=='play'&&S.start===p)return '<span class="flag first">Primo giocatore</span>';
+  return '';
+}
+function seatH(p,pos){
+  var pl=S.pl[p],hand,rv=revealed();
+  if(p===me)hand=handH();
+  else hand='<div class="backs">'+pl.hand.map(function(){return '<span class="back"></span>'}).join('')+'</div>';
+  var meta='<div class="seat-meta">';
+  if(S.phase==='bid'||rv){
+    var bt=rv?pl.bid:(p===me&&pl.bid?pl.bid:(pl.bid?'✓':'?'));
+    meta+='<span class="tag" title="Puntata">'+ico('target')+' <b>'+bt+'</b></span>';
+    if(rv)meta+='<span class="tag" title="Prese vinte">'+ico('stack')+' <b>'+pl.won+'</b></span>';
+  }
+  if(S.phase!=='exchange')meta+='<span class="tag" title="Pennelli ancora in mano">'+ico('paint-brush')+' <b>'+pl.paints+'</b></span>';
+  if(S.long)meta+='<span class="tag" title="Round vinti">'+ico('crown')+' <b>'+pl.pts+'</b></span>';
+  meta+='</div>';
+  var name='<div class="seat-name">'+esc(S.names[p])+(p===me?' <span class="hint">(tu)</span>':'')+flagH(p)+'</div>';
+  var inner=pos==='bottom'?tableauH(p)+name+meta+hand:(pos==='top'?hand+name+meta+tableauH(p):name+meta+tableauH(p)+hand);
+  var isLeader=S.phase==='play'&&!S.tdone&&S.leader===p&&S.trick.length>0,active=turnOf(S)===p,winner=S.tdone&&S.win===p&&S.phase!=='over';
+  return '<div class="seat '+pos+' '+(isLeader?'leader':'')+' '+(active?'active':'')+' '+(winner?'winner':'')+'">'+inner+'</div>';
+}
+function centerH(){
+  var tr=S.tdone?[]:S.trick,lead=tr.filter(function(x){return !x.c.paint})[0];
+  var ph={exchange:'scambio dei pennelli',bid:'puntate',score:'risultato',over:'fine'}[S.phase]||'';
+  return '<div class="center">'+(lead?'<div class="trump c'+lead.col+'">Colore di apertura: '+COLN[lead.col]+'</div>':'<div class="hint">'+(S.phase==='play'?'Il primo numero giocato stabilisce il colore di apertura':'Fase: '+ph)+'</div>')+
+    '<div>'+[0,1,2].map(swHtml).join(' ')+' <span class="sw pt" style="background:var(--paint);color:#fff">Pennello</span></div>'+
+    '<div>'+(S.long?'Round <b>'+(S.round+1)+'/'+S.rounds+'</b> · ':'')+'Presa <b>'+Math.min(S.trickNo,HAND)+'/'+HAND+'</b></div>'+
+    '<div class="hint">Viola &gt; Rosso &gt; Bianco &gt; Pennello · a pari colore vince il numero più alto</div>'+(S.variant?'<div class="hint">Variante: 2 pennelli a testa</div>':'')+'</div>';
+}
+function roundTableH(){
+  var rows=ordSeats().map(function(p){var r=S.show.rows[p];
+    return '<tr class="'+(p===me?'me':'')+'"><td>'+esc(S.names[p])+'</td><td>'+r.bid+'</td><td>'+r.won+'</td><td>'+Math.abs(r.won-r.bid)+'</td><td>'+(r.win?'<b class="pos">'+ico('trophy')+'</b>':'')+'</td></tr>'}).join('');
+  return '<table class="score"><tr><th></th><th>Puntata</th><th>Prese</th><th>Scarto</th><th></th></tr>'+rows+'</table>';
+}
+function totalTableH(){
+  var rows=ordSeats().map(function(p){var pl=S.pl[p];
+    return '<tr class="'+(p===me?'me':'')+'"><td>'+esc(S.names[p])+'</td><td>'+pl.hist.map(function(x){return x?'●':'○'}).join(' ')+'</td><td><b>'+pl.pts+'</b></td></tr>'}).join('');
+  return '<table class="score"><tr><th>Round vinti</th><th class="l">Per round</th><th>Totale</th></tr>'+rows+'</table>';
+}
+function xchgH(){
+  var x=S.xchg&&S.xchg[me];if(!x)return '';
+  return '<div><div class="xlbl">LA TUA MANO PRIMA DELLO SCAMBIO</div>'+rowHtml(x.before)+
+    '<div class="xlbl">DOPO LO SCAMBIO</div>'+rowHtml(x.after)+
+    '<div class="hint" style="margin-top:4px">'+x.lines.map(esc).join('<br>')+'</div></div>';
+}
+function msgH(){
+  if(S.phase==='over'){var w=gameWinners(S).map(function(i){return esc(S.names[i])}).join(' e ');return '<b>'+(gameWinners(S).length>1?'Vittoria condivisa: ':'Vince ')+w+'!</b>'}
+  if(S.phase==='score'){var ww=S.show.win;return (ww.length>1?'Vittoria condivisa: ':'Vince ')+ww.map(function(i){return esc(S.names[i])}).join(' e ')+'.'+(S.show.ended?' (partita finita in anticipo)':'')}
+  if(S.phase==='exchange'){
+    var k=needGive();
+    if(k)return 'Hai '+cntP(S,me)+' pennelli: devi cederne '+k+'. Scegli quali; al loro posto riceverai carte numero casuali.';
+    return S.gave[me]?'Hai scelto: aspetta gli altri giocatori…':'Scambio dei pennelli in corso: tocca agli altri.';
+  }
+  if(S.phase==='bid'){
+    var n=S.pl.filter(function(p){return p.bid>0}).length;
+    return S.pl[me].bid?'Puntata inviata ('+S.pl[me].bid+'). Aspetto gli altri… ('+n+'/'+S.n+')':'Puntata segreta e simultanea: quante prese farai (1–'+HAND+')? ('+n+'/'+S.n+' hanno puntato)';
+  }
+  var tn=turnOf(S);
+  if(S.tdone)return esc(S.rt)+' '+(tn===me?'Apri tu la presa successiva.':esc(S.names[tn])+' apre la presa successiva.');
+  return 'Presa '+S.trickNo+'/'+HAND+' · di mano: '+esc(S.names[S.leader])+'. '+(tn===me?'Tocca a te.':'Tocca a '+esc(S.names[tn])+'.');
+}
+function dockH(){
+  var h='<div class="dock-msg">'+msgH()+'</div>';
+  if(S.phase==='over')return h+(S.show?roundTableH():'')+(S.long?totalTableH():'')+'<div class="opts"><button class="opt" data-rematch="1">Rivincita</button></div>';
+  if(S.phase==='score')return h+roundTableH()+'<div class="opts"><button class="opt" data-next="1">'+(S.round>=S.rounds-1?'Mostra risultato finale':'Round successivo')+'</button></div>';
+  if(S.phase==='exchange'){
+    var k=needGive();
+    if(k)h+='<div class="hint">Tocca '+(k>1?'i '+k+' pennelli':'il pennello')+' da mettere sul tavolo (nell\'anteprima vedi i nuovi colori) (selezionati '+ui.pick.length+'/'+k+').</div><div class="opts"><button class="opt" data-give="1" '+(ui.pick.length===k?'':'disabled')+'>Conferma la cessione</button></div>';
+    return h;
+  }
+  if(S.phase==='bid'){
+    if(S.xchg)h+=xchgH();
+    if(!S.pl[me].bid){
+      h+='<div class="hint">La tua mano: '+esc(handStr(S.pl[me].hand))+'</div><div class="dock-title">QUANTE PRESE FARAI? (1–'+HAND+', LO 0 NON È AMMESSO)</div><div class="opts">'+
+        Array.from({length:HAND},function(_,i){return '<button class="opt num" data-bid="'+(i+1)+'">'+(i+1)+'</button>'}).join('')+'</div>';
+    }
+    return h;
+  }
+  var lg2=myLegal();
+  if(lg2){
+    h+='<div class="hint">Tocca a te: '+esc(humanHint())+'</div>';
+    if(ui.sel!==null){var c=S.pl[me].hand[ui.sel];h+='<div class="opts"><button class="opt" data-cf="1">Conferma: gioca '+esc(cardName(c,lg2.cols[ui.sel]))+'</button><button class="opt" data-cf="0">Annulla</button></div>'}
+  }
+  return h;
+}
+function roomLogH(){
+  return '<details class="log paper" '+(LOGOPEN?'open':'')+'><summary>LOG DELLA PARTITA ('+S.log.length+')</summary><div class="logbody">'+S.log.map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div></details>';
+}
+function gameBadge(){return S.phase==='over'||!S.long?'':'Round '+(S.round+1)+'/'+S.rounds}
+function gameMenu(){
+  return '<label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" '+(OPT.undo?'checked':'')+'> Abilita annulla</label>'+
+    '<label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" '+(OPT.a11y?'checked':'')+'> Modalità accessibile</label>';
+}
+function gameChange(e){
+  if(e.target.id==='optUndo'){OPT.undo=e.target.checked;try{localStorage.setItem('ob-undo',OPT.undo?'1':'0')}catch(x){}render()}
+  else if(e.target.id==='optA11y'){OPT.a11y=e.target.checked;try{localStorage.setItem('ob-a11y',OPT.a11y?'1':'0')}catch(x){}render()}
+}
+function lobbyExtra(d){
+  var o=d&&d.opts;if(!o)return '';
+  return '<p class="muted">'+(o.long?'Partita lunga (un round per giocatore)':'Partita corta (un round)')+' · '+(o.variant?'variante: 2 pennelli a testa':'regole standard (scambio dei pennelli)')+'</p>';
+}
+function gameRender(){
+  if(!(S.phase==='play'&&turnOf(S)===me))ui.sel=null;
+  if(S.phase!=='exchange'||!needGive())ui.pick=[];
+  var lb=document.querySelector('.logbody'),lbTop=lb?lb.scrollTop:0;
+  if(lbTop)setTimeout(function(){var n=document.querySelector('.logbody');if(n)n.scrollTop=lbTop},0);
+  return '<div class="dock paper">'+dockH()+'</div>'+
+    '<div class="table n'+S.n+'">'+ordSeats().map(function(p,i){return seatH(p,POS[S.n][i])}).join('')+centerH()+'</div>'+
+    (S.long&&S.pl.some(function(p){return p.hist.length})&&S.phase!=='over'?'<div class="dock paper" style="position:static">'+totalTableH()+'</div>':'')+
+    roomLogH()+recapHtml(S.n,S.variant)+RULES_HTML;
+}
+function playCard(i){
+  var id=S.pl[me].hand[i].id;
+  ui.sel=null;act({type:'play',id:id});
+}
+function gameClick(b){
+  var d=b.dataset;
+  if(d.bid!==undefined){act({type:'bid',n:Number(d.bid)});return}
+  if(d.pk!==undefined){
+    var k=needGive();if(!k)return;
+    var i=Number(d.pk),x=ui.pick.indexOf(i);
+    if(x>=0)ui.pick.splice(x,1);else if(ui.pick.length<k)ui.pick.push(i);
+    render();return;
+  }
+  if(d.give!==undefined){
+    var k2=needGive();if(!k2||ui.pick.length!==k2)return;
+    var idx=ui.pick.slice();ui.pick=[];act({type:'give',idx:idx});return;
+  }
+  if(d.p!==undefined){
+    var lgl=myLegal();if(!lgl)return;
+    var j=Number(d.p);if(lgl.lg.indexOf(j)<0)return;
+    if(OPT.undo){ui.sel=j;render()}else playCard(j);
+    return;
+  }
+  if(d.cf!==undefined){
+    if(d.cf==='1'){if(ui.sel!==null&&myLegal())playCard(ui.sel)}
+    else{ui.sel=null;render()}
+    return;
+  }
+  if(d.next!==undefined)act({type:'next',seed:newSeed()});
+  else if(d.rematch!==undefined)act({type:'rematch',seed:newSeed()});
+}
+document.getElementById('app').addEventListener('toggle',function(e){if(e.target.matches&&e.target.matches('details.log'))LOGOPEN=e.target.open},true);
+
+
+// ═══ KIT STANZE ═══
+// Stesso schema di tt/spy-team/online: rooms/$room con hostUid, members, lobby, state (le regole già pubblicate bastano).
+// Lo stato di gioco è un unico oggetto JSON salvato come stringa in state.s (+ contatore state.v); ogni azione è una
+// transazione che applica gameReduce() all'ultima versione. Le mani stanno nello stato (nascoste solo dall'interfaccia).
+var FIREBASE_CONFIG={
+  apiKey:"AIzaSyAoOMLytOqFY9GRXpi2kUGEyzLK-r00nvQ",
+  authDomain:"gachapon-trick.firebaseapp.com",
+  databaseURL:"https://gachapon-trick-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"gachapon-trick",
+  storageBucket:"gachapon-trick.firebasestorage.app",
+  messagingSenderId:"869677835302",
+  appId:"1:869677835302:web:85768d5a6ac0d94f8372e7"
+};
+function gameOpts(){var o=(window.NYLO_START&&NYLO_START.opts)||{};return {long:!!o.long,variant:!!o.variant}}
+var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+var SAVE_KEY=GAME.id+'-online-last';
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var rnd=function(n){return Math.floor(Math.random()*n)};
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+function getPlayerName(){
+  var name='';
+  try{
+    name=localStorage.getItem('nylo-player-name')||'';
+    if(!name){var last=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');name=last&&last.name||''}
+  }catch(e){}
+  return String(name||'Giocatore').trim().slice(0,18)||'Giocatore';
+}
+var playerName=getPlayerName();
+var db=null,user=null,roomRef=null,roomCode='',lobbyData=null,S=null,me=-1,listeners=[],startingGame=false;
+var statusText='',connText='',joinVal='',chosenCount=GAME.counts[0],MENUOPEN=false,connecting=false;
+try{var lastRoom=JSON.parse(localStorage.getItem(SAVE_KEY));if(lastRoom)joinVal=lastRoom.code||''}catch(e){}
+
+function setStatus(t){statusText=t;render()}
+function setConn(t){connText=t;var c=document.getElementById('conn');if(c)c.textContent=t}
+function showErr(t){
+  var e=document.getElementById('err');
+  if(!e){e=document.createElement('div');e.id='err';e.className='err';e.setAttribute('role','alert');document.body.appendChild(e)}
+  e.textContent=t;e.hidden=false;setConn('Errore');clearTimeout(showErr.t);showErr.t=setTimeout(function(){e.hidden=true},8000);
+}
+function genCode(){var b=new Uint8Array(12);crypto.getRandomValues(b);return Array.from(b,function(x){return ALPHABET[x%ALPHABET.length]}).join('')}
+function withTimeout(p,ms,msg){
+  return new Promise(function(res,rej){var t=setTimeout(function(){rej(new Error(msg))},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})});
+}
+function authMsg(e){
+  if(e.code==='auth/operation-not-allowed')return 'Attiva il provider Anonimo in Firebase Authentication.';
+  if(e.code==='auth/unauthorized-domain')return 'Dominio non autorizzato: aggiungilo in Authentication > Impostazioni > Domini autorizzati.';
+  if(e.code==='auth/network-request-failed')return 'Firebase non raggiungibile: controlla la connessione e che il sito sia in HTTPS.';
+  return e.message||'Errore di autenticazione Firebase.';
+}
+async function connect(){
+  if(!window.firebase)throw new Error('Firebase non caricato. Controlla la connessione.');
+  if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+  db=firebase.database();
+  if(user)return;
+  try{user=(await withTimeout(firebase.auth().signInAnonymously(),15000,'Autenticazione scaduta dopo 15 secondi.')).user}
+  catch(e){throw new Error(authMsg(e))}
+}
+function saveLast(name){try{localStorage.setItem(SAVE_KEY,JSON.stringify({code:roomCode,name:name}))}catch(e){}}
+
+// ─────────────── LOBBY ───────────────
+async function createRoom(){
+  try{
+    setStatus('Connessione a Firebase...');await connect();
+    var created=false,lastErr=null;
+    for(var i=0;i<5&&!created;i++){
+      roomCode=genCode();roomRef=db.ref('rooms/'+roomCode);
+      try{
+        await roomRef.child('hostUid').set(user.uid);
+        await roomRef.child('members/'+user.uid).set(true);
+        await roomRef.child('lobby').set({game:GAME.id,hostUid:user.uid,playerCount:chosenCount,started:false,closed:false,players:{}});
+        created=true;
+      }catch(e){lastErr=e;roomRef=null}
+    }
+    if(!created)throw lastErr||new Error('Impossibile creare la stanza. Verifica le regole del database.');
+    // opzioni di gioco (partita lunga, variante): scritte a parte e opzionali, se il database le rifiuta si usano quelle di chi avvia
+    try{await roomRef.child('lobby/opts').set(gameOpts())}catch(e){}
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;connecting=false;setStatus(e.message||'Errore durante la creazione della stanza.')}
+}
+async function joinRoom(){
+  try{
+    roomCode=joinVal.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(roomCode.length!==12)throw new Error('Il codice stanza è di 12 caratteri.');
+    setStatus('Connessione...');await connect();
+    roomRef=db.ref('rooms/'+roomCode);
+    await roomRef.child('members/'+user.uid).set(true);
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;connecting=false;setStatus(e.code==='PERMISSION_DENIED'?'Stanza non trovata o non accessibile.':(e.message||'Errore durante l\'accesso alla stanza.'))}
+}
+function reserveSeat(name){
+  var lobbyRef=roomRef.child('lobby');
+  return lobbyRef.once('value').then(function(snap){
+    if(!snap.exists())throw new Error('Lobby non trovata: controlla il codice.');
+    var initial=snap.val();
+    if(initial.game!==GAME.id)throw new Error('Questo codice appartiene a un altro gioco.');
+    return new Promise(function(resolve,reject){
+      lobbyRef.transaction(function(cur){
+        if(cur===null)cur=initial;
+        if(!cur||!cur.playerCount||cur.closed)return;
+        cur.players=cur.players||{};
+        if(cur.players[user.uid])return cur;            // rientro: il posto è già tuo
+        if(cur.started)return;
+        var occ={};Object.keys(cur.players).forEach(function(u){occ[cur.players[u].seat]=true});
+        var seat=1;while(seat<=cur.playerCount&&occ[seat])seat++;
+        if(seat>cur.playerCount)return;
+        cur.players[user.uid]={uid:user.uid,name:name,seat:seat};
+        return cur;
+      },function(err,committed,snap2){
+        if(err){reject(err);return}
+        var cur=snap2&&snap2.val();
+        if(!cur||!cur.players||!cur.players[user.uid]){
+          reject(new Error(cur&&cur.started?'La partita è già iniziata.':'La stanza è piena o non disponibile.'));return;
+        }
+        lobbyData=cur;saveLast(name);enterRoom();resolve();
+      },false);
+    });
+  });
+}
+function orderedPlayers(d){
+  return Object.keys(d.players||{}).map(function(u){return d.players[u]}).sort(function(a,b){return a.seat-b.seat});
+}
+function maybeStart(){
+  if(!lobbyData||S||startingGame||lobbyData.started||lobbyData.hostUid!==user.uid)return;
+  if(orderedPlayers(lobbyData).length===lobbyData.playerCount)startGame();
+}
+function startGame(){
+  startingGame=true;
+  var seated=orderedPlayers(lobbyData);   // i posti si assegnano a caso all'avvio
+  shuffle(seated);
+  var init=gameInitial(seated.map(function(p){return {uid:p.uid,name:p.name}}),undefined,(lobbyData&&lobbyData.opts)||gameOpts());
+  init.v=0;
+  roomRef.child('state').transaction(function(cur){if(cur!==null)return;return {v:0,s:JSON.stringify(init)}},function(err){
+    if(err){startingGame=false;showErr('Errore durante l\'avvio: '+err.message);return}
+    roomRef.child('lobby/started').set(true).catch(function(e){startingGame=false;showErr(e.message)});
+  },false);
+}
+
+// ─────────────── STANZA ───────────────
+function enterRoom(){
+  setConn('Lobby');
+  var lobbyRef=roomRef.child('lobby');
+  var lh=function(snap){if(!snap.exists())return;lobbyData=snap.val();if(!S){render();maybeStart()}};
+  lobbyRef.on('value',lh,function(e){showErr(e.message)});listeners.push({ref:lobbyRef,h:lh});
+  var stateRef=roomRef.child('state');
+  var sh=function(snap){
+    if(!snap.exists())return;
+    var raw=snap.val();
+    try{S=JSON.parse(raw.s)}catch(e){showErr('Stato della stanza non leggibile.');return}
+    me=S.uids.indexOf(user.uid);
+    if(me<0){showErr('Non risulti tra i giocatori di questa partita.');return}
+    setConn('Connesso');
+    render();
+  };
+  stateRef.on('value',sh,function(e){showErr('Connessione persa: '+e.message)});listeners.push({ref:stateRef,h:sh});
+  render();
+}
+function leave(dest){
+  var go=function(){if(dest)window.location.href=dest;else window.location.reload()};
+  listeners.forEach(function(l){l.ref.off('value',l.h)});
+  if(!roomRef||S||!user){go();return}
+  // prima dell'inizio libera il posto; a partita avviata si può rientrare con lo stesso codice
+  roomRef.child('lobby').transaction(function(cur){
+    if(!cur||cur.started)return;
+    cur.players=cur.players||{};delete cur.players[user.uid];
+    var rest=orderedPlayers(cur);
+    if(cur.hostUid===user.uid&&rest.length)cur.hostUid=rest[0].uid;
+    return cur;
+  },function(){
+    roomRef.child('members/'+user.uid).remove().catch(function(){}).then(go);
+  },false);
+}
+
+// azioni: ogni azione è una transazione sullo stato, validata da gameReduce() sull'ultima versione
+function act(a){
+  if(!roomRef||me<0)return;
+  var seat=me;
+  roomRef.child('state').transaction(function(cur){
+    if(!cur||!cur.s)return;
+    var st;try{st=JSON.parse(cur.s)}catch(e){return}
+    var r=gameReduce(st,seat,a);
+    if(!r)return;
+    r.v=(st.v||0)+1;
+    return {v:r.v,s:JSON.stringify(r)};
+  },function(err,committed){
+    if(err)showErr('Errore di sincronizzazione: '+err.message);
+    else if(!committed)setConn('Azione non più valida');
+  },false);
+}
+
+// ─────────────── RENDER ───────────────
+function lobbyHtml(){
+  var radios=GAME.counts.length<2?'':GAME.counts.map(function(n){
+    return '<label><input type="radio" name="pc" value="'+n+'" '+(chosenCount===n?'checked':'')+'> '+n+' giocatori'+(GAME.countNote&&GAME.countNote[n]?' · '+GAME.countNote[n]:'')+'</label>';
+  }).join('');
+  return '<section><p class="muted">Sei connesso come <b>'+esc(playerName)+'</b>.</p>'+
+    '<div class="panel"><h2>Crea una stanza</h2><p class="muted">'+GAME.lobbyNote+'</p>'+
+    (radios?'<div class="radios" role="radiogroup" aria-label="Numero di giocatori">'+radios+'</div>':'')+
+    '<button class="opt" id="createRoom" type="button" data-create="1">Crea stanza</button></div>'+
+    '<div class="panel"><h2>Unisciti a una stanza</h2>'+
+    '<input type="text" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(joinVal)+'">'+
+    '<button class="opt" type="button" data-join="1">Unisciti</button></div>'+
+    '<p class="status" role="status" aria-live="polite">'+esc(statusText)+'</p>'+
+    '<button class="btn btn-sm" type="button" data-ai="1">← Torna alla scelta</button></section>';
+}
+function connectingHtml(){
+  return '<section><div class="panel"><p class="muted" role="status" aria-live="polite">'+esc(statusText||'Connessione alla stanza...')+'</p></div></section>';
+}
+function waitingHtml(){
+  var d=lobbyData||{players:{},playerCount:GAME.counts[0]};
+  var players=orderedPlayers(d),full=players.length===d.playerCount,html='';
+  for(var seat=1;seat<=d.playerCount;seat++){
+    var p=players[seat-1];
+    html+='<li><span class="seat-n">'+seat+'.</span>'+
+      (p?'<span class="grow">'+esc(p.name)+(p.uid===user.uid?' (tu)':'')+'</span>':'<span class="grow soft">In attesa di un giocatore</span>')+
+      (p&&p.uid===d.hostUid?'<span class="flag first">HOST</span>':'')+'</li>';
+  }
+  return '<section><div class="panel"><h2>Stanza '+roomCode+'</h2><p class="muted">'+
+    (d.started?'La partita si sta caricando...':players.length+' / '+d.playerCount+' giocatori'+(full?' · avvio in corso':' · condividi il codice con gli altri'))+
+    '</p>'+(typeof lobbyExtra==='function'?lobbyExtra(d):'')+'<ul class="roster">'+html+'</ul></div></section>';
+}
+function kitMenuHtml(){
+  var extra=typeof gameMenu==='function'?gameMenu():'';
+  return '<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="'+MENUOPEN+'"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>'+
+    (MENUOPEN?'<div class="menu-pop">'+extra+'</div>':'')+'</div>';
+}
+function render(){
+  document.body.classList.toggle('a11y',!!(typeof OPT!=='undefined'&&OPT.a11y));
+  var focus=document.activeElement&&document.activeElement.id==='joinCode';
+  var badge=S&&typeof gameBadge==='function'?gameBadge():'';
+  var top='<div class="topbar"><div class="logo">'+GAME.logo+'</div>'+
+    (window.nyloBackBtn?nyloBackBtn(location.pathname,'alle opzioni del gioco'):'')+(window.nyloHomeBtn?nyloHomeBtn():'')+
+    (badge?'<span class="badge">'+badge+'</span>':'')+kitMenuHtml()+'</div>'+
+    (roomRef?'<div class="room-bar"><span class="room-code">'+roomCode+'</span><button class="btn btn-sm" type="button" data-copy="1">Copia codice</button><button class="btn btn-sm" type="button" data-leave="1">Esci</button><span class="conn" id="conn">'+esc(connText)+'</span></div>':'');
+  var body=!roomRef?(connecting?connectingHtml():lobbyHtml()):(!S?waitingHtml():gameRender());
+  document.getElementById('app').innerHTML=top+body;
+  if(focus){var j=document.getElementById('joinCode');if(j){j.focus();j.setSelectionRange(j.value.length,j.value.length)}}
+}
+var APP=document.getElementById('app');
+APP.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b||b.disabled)return;
+  var d=b.dataset;
+  if(d.back!==undefined){e.stopPropagation();if(!S||confirm('Tornare alle opzioni del gioco? Potrai rientrare nella stanza con lo stesso codice.'))leave(location.pathname);return}
+  if(d.menu){MENUOPEN=!MENUOPEN;render();return}
+  if(d.ai!==undefined){location.href=location.pathname;return}
+  if(d.create!==undefined){createRoom();return}
+  if(d.join!==undefined){joinRoom();return}
+  if(d.leave!==undefined){if(!S||confirm('Uscire dalla stanza? Potrai rientrare con lo stesso codice.'))leave();return}
+  if(d.copy!==undefined){
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(roomCode).then(function(){setConn('Codice copiato')});
+    else window.prompt('Copia il codice stanza:',roomCode);
+    return;
+  }
+  if(S&&typeof gameClick==='function')gameClick(b);
+});
+APP.addEventListener('input',function(e){if(e.target.id==='joinCode'){joinVal=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=joinVal}});
+APP.addEventListener('keydown',function(e){if(e.target.id==='joinCode'&&e.key==='Enter')joinRoom()});
+APP.addEventListener('change',function(e){
+  if(e.target.name==='pc'){chosenCount=Number(e.target.value);return}
+  if(typeof gameChange==='function')gameChange(e);
+});
+document.addEventListener('click',function(e){if(MENUOPEN&&!e.target.closest('.menu-wrap')){MENUOPEN=false;render()}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&MENUOPEN){MENUOPEN=false;render()}});
+connecting=!!(window.NYLO_START&&NYLO_START.mode==='room');
+render();
+if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosenCount;if(NYLO_START.name)playerName=NYLO_START.name.slice(0,18);if(NYLO_START.action==='join'){joinVal=NYLO_START.code||'';joinRoom()}else createRoom();}
+</script>
+<script>
+(function(){
+  run('src-common');
+  var P=window.NYLO_SETUP={id:'oboro',logo:'Oboro',counts:[3,4]};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  function run(id){var s=document.createElement('script');s.textContent=document.getElementById(id).textContent;document.body.appendChild(s)}
+  window.addEventListener('hashchange',function(){location.reload()});
+  window.NYLO_IN_SETUP=true;   // finché si sceglie, Home/Indietro escono senza avviso
+  var app=document.getElementById('app');
+  var st={n:P.counts[0],mode:location.hash==='#stanze'?'room':(location.hash==='#ai'?'ai':''),sub:'',code:'',name:'',see:false,long:false,vr:false};
+  var needName=false;
+  try{
+    st.name=localStorage.getItem('nylo-player-name')||'';st.long=localStorage.getItem('ob-long')==='1';st.vr=localStorage.getItem('ob-var')==='1';
+    var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
+  }catch(e){}
+  needName=!st.name;   // il nome arriva dalla sessione; il campo compare solo se manca
+  // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
+  var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
+  if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.n)rsm={n:sg.n}}}catch(e){}}
+  function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
+  function optsH(){
+    return '<div class="sx-label">TIPO DI PARTITA</div><div class="sx-row">'+btn('data-len="0"','','Corta (un round)',!st.long)+btn('data-len="1"','','Lunga (un round per giocatore)',st.long)+'</div>'+
+      '<div class="sx-label">VARIANTE PENNELLI</div><div class="sx-row">'+btn('data-vr="0"','','Standard (scambio dei pennelli)',!st.vr)+btn('data-vr="1"','','2 pennelli a testa (mano mescolata, niente scambio)',st.vr)+'</div>';
+  }
+  function draw(){
+    var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
+    h+='<div class="sx-card">';
+    if(needName)h+='<label class="sx-label" for="sxName">IL TUO NOME</label><input class="sx-in" id="sxName" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(st.name)+'">';
+    if(P.counts.length>1){
+      h+='<div class="sx-label">GIOCATORI</div><div class="sx-row">'+P.counts.map(function(n){return btn('data-n="'+n+'"','',n+' giocatori',st.n===n)}).join('')+'</div>';
+    }
+    h+='<div class="sx-label">MODALITÀ</div><div class="sx-row">'+btn('data-mode="ai"','','Contro l’AI',st.mode==='ai')+btn('data-mode="room"','','A stanze',st.mode==='room')+'</div>';
+    if(st.mode==='ai'){
+      h+='<div class="sx-sub">'+optsH()+'<div class="sx-row">'+btn('data-go="ai"','sx-go','Inizia',false)+'</div></div>';
+    }else if(st.mode==='room'){
+      h+='<div class="sx-label">OPZIONI STANZA</div><div class="sx-sub"><div class="sx-row">'+btn('data-sub="create"','','Crea nuova',st.sub==='create')+btn('data-sub="join"','','Unisciti',st.sub==='join')+'</div>';
+      if(st.sub==='create')h+=optsH()+'<div class="sx-row">'+btn('data-go="create"','sx-go','Inizia',false)+'</div>';
+      if(st.sub==='join')h+='<input class="sx-in code" id="sxCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(st.code)+'"><div class="sx-row"><button type="button" class="sx-opt sx-go" id="sxJoin" data-go="join" '+(st.code.length===12?'':'disabled')+'>Inizia</button></div>';
+      h+='</div>';
+    }
+    h+='</div>';
+    app.innerHTML=h;
+  }
+  function loadRoom(){
+    var libs=['app','auth','database'].map(function(n){return 'https://www.gstatic.com/firebasejs/10.12.2/firebase-'+n+'-compat.js'});
+    (function next(i){
+      if(i===libs.length){run('src-room');return}
+      var s=document.createElement('script');s.src=libs[i];s.onload=function(){next(i+1)};
+      s.onerror=function(){app.innerHTML='<p style="padding:20px;color:#fff">Firebase non raggiungibile: controlla la connessione.</p>'};
+      document.head.appendChild(s);
+    })(0);
+  }
+  function go(kind){
+    var nm=document.getElementById('sxName'),name=((nm&&nm.value)||st.name||'').trim().slice(0,16);
+    window.NYLO_IN_SETUP=false;
+    if(name){try{localStorage.setItem('nylo-player-name',name)}catch(e){}}
+    var cfg={name:name,n:st.n,opts:{long:st.long,variant:st.vr}};
+    if(kind==='ai'){cfg.mode='ai';window.NYLO_START=cfg;run('src-ai');return}
+    cfg.mode='room';cfg.action=kind;if(kind==='join')cfg.code=st.code;
+    window.NYLO_START=cfg;app.innerHTML='';loadRoom();
+  }
+  app.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b||b.disabled)return;
+    var d=b.dataset;
+    if(d.len!==undefined){st.long=d.len==='1';try{localStorage.setItem('ob-long',st.long?'1':'0')}catch(x){}draw()}
+    else if(d.vr!==undefined){st.vr=d.vr==='1';try{localStorage.setItem('ob-var',st.vr?'1':'0')}catch(x){}draw()}
+    else if(d.n){st.n=Number(d.n);draw()}
+    else if(d.mode){st.mode=d.mode;st.sub='';draw()}
+    else if(d.sub){st.sub=d.sub;draw();var c=document.getElementById('sxCode');if(c)c.focus()}
+    else if(d.go)go(d.go);
+  });
+  app.addEventListener('input',function(e){
+    if(e.target.id==='sxName')st.name=e.target.value;
+    else if(e.target.id==='sxCode'){
+      st.code=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=st.code;
+      var j=document.getElementById('sxJoin');if(j)j.disabled=st.code.length!==12;
+    }
+  });
+  app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-ai');return}
+  draw();
+  if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
+})();
 </script>
 </body>
 </html>
