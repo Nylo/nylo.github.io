@@ -224,6 +224,8 @@ button.fc.cf.pc:hover:not(:disabled){transform:translateY(-4px) scale(1.06)}
 .seat-name{color:var(--ink)}
 .topbar .nylo-home,.sx-nav .nylo-home{background:#fff;color:var(--ink);border:2px solid var(--ink);font-weight:600}
 .topbar .nylo-home:hover,.sx-nav .nylo-home:hover{background:#ffe08a;color:var(--ink)}
+.seat-flag{display:flex;justify-content:center;margin-top:-2px}
+.seat-flag .flag{margin-left:0;padding:2px 12px;font-size:11px;border-width:2px;box-shadow:0 2px 0 var(--ink)}
 /* stanze online (kit condiviso) */
 .panel{background:linear-gradient(160deg,#fffaf0 0%,#f5e7d0 60%,#ecd7b5 100%);border:3px solid var(--ink);border-radius:16px;padding:18px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;color:var(--text);box-shadow:0 4px 0 var(--ink)}
 .panel h2{font-size:16px;font-weight:700}
@@ -267,8 +269,10 @@ body .app>section>p.muted{color:var(--topc);margin-bottom:10px}
 @media(max-width:600px){
   :root{--cw:30px;--ch:44px}
   .fc{font-size:14px;border-width:2px;border-radius:5px;gap:0}
-  .fc i{font-size:12px}
+  .fc:not(.cf) i{display:none}
+  .fc .v{font-size:15px;line-height:1}
   .fc.mini{width:22px;height:32px;font-size:11px}
+  .fc.mini .v{font-size:11px}
   .table{padding:8px;gap:6px;min-height:0}
   .back{width:9px;height:14px}
   .pile{width:15px;height:22px}
@@ -676,7 +680,7 @@ function seatHtml(p,pos){
   const got=`<div class="rw" title="Caffè vinti">${S.got[p].map(mini).join('')||'<span class="hint">nessuna tazzina vinta</span>'}</div>`;
   const t=sumOf(S.got[p]);
   const meta=`<div class="seat-meta"><span class="tag">carte <b>${S.hands[p].length}</b></span><span class="tag" title="Valore dei caffè vinti (limite ${S.L})">caffè <b style="${t>S.L?'color:#b3261e':''}">${t}</b>/${S.L}</span><span class="tag">punti <b>${pl.total}</b></span></div>`;
-  const name=`<div class="seat-name" style="background:${SEATC[p]}">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const name=`<div class="seat-name" style="background:${SEATC[p]}">${esc(pl.name)}</div>${flagHtml(p)?`<div class="seat-flag">${flagHtml(p)}</div>`:''}`;
   const inner=pos==='bottom'?`${name}${meta}<div class="lbl2">DAVANTI A TE</div>${col}<div class="lbl2">VINTE</div>${got}${hand}`:`${hand}${name}${meta}<div class="lbl2">DAVANTI A TE</div>${col}<div class="lbl2">VINTE</div>${got}`;
   return `<div class="seat ${pos} ${S.phase==='play'&&S.lead===p&&!S.trick.length?'leader':''} ${active?'active':''}">${inner}</div>`;
 }
@@ -919,7 +923,7 @@ function seatH(p,pos){
   var got='<div class="rw" title="Caffè vinti">'+(S.got[p].map(mini).join('')||'<span class="hint">nessuna tazzina vinta</span>')+'</div>';
   var t=sumOf(S.got[p]);
   var meta='<div class="seat-meta"><span class="tag">carte <b>'+S.hands[p].length+'</b></span><span class="tag" title="Valore dei caffè vinti (limite '+S.L+')">caffè <b style="'+(t>S.L?'color:#b3261e':'')+'">'+t+'</b>/'+S.L+'</span><span class="tag">punti <b>'+S.total[p]+'</b></span></div>';
-  var name='<div class="seat-name" style="background:'+SEATC[p]+'">'+esc(S.names[p])+(p===me?' <span class="hint">(tu)</span>':'')+flagH(p)+'</div>';
+  var name='<div class="seat-name" style="background:'+SEATC[p]+'">'+esc(S.names[p])+(p===me?' <span class="hint">(tu)</span>':'')+'</div>'+(flagH(p)?'<div class="seat-flag">'+flagH(p)+'</div>':'');
   var inner=pos==='bottom'?name+meta+'<div class="lbl2">DAVANTI A TE</div>'+col+'<div class="lbl2">VINTE</div>'+got+hand:hand+name+meta+'<div class="lbl2">DAVANTI A TE</div>'+col+'<div class="lbl2">VINTE</div>'+got;
   var lead=S.phase==='play'&&S.lead===p&&!S.trick.length;
   return '<div class="seat '+pos+' '+(lead?'leader':'')+' '+(turnOf(S)===p?'active':'')+'">'+inner+'</div>';
