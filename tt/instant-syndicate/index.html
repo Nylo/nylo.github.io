@@ -481,9 +481,11 @@ async function oneTrick(){
   G.res={st:stP,wk:wkP}; G.shown=pl.slice(); G.leader=stP;
   const t=`Presa ${G.trick}/${G.TT}: il più forte è ${nameOf(stP)} (${pl[sw.st].c.v}) e prende ${toSt.map(cname).join(', ')}; il più debole è ${nameOf(wkP)} (${pl[sw.wk].c.v}) e prende ${cname(cw)}.`;
   logMsg(t); status(t);
+  G.pend={p:stP,cs:toSt}; ckpt();   // punto sicuro anche subito dopo la presa, con l'investimento (facoltativo) ancora da proporre: alla ripresa run() lo ripropone (g.pend)
   await S_(1900);
   await dispatch(stP,toSt);
-  G.shown=null; G.plays=[]; G.res=null; G.fresh=-1;
+  G.pend=null; G.shown=null; G.plays=[]; G.res=null; G.fresh=-1;
+  ckpt();   // presa chiusa del tutto (serve per l'ultima presa del round: le prese successive la ricatturano comunque a inizio ciclo)
 }
 function detail(p,rk){
   const s=statsOf(G.acq[p]);
@@ -510,7 +512,10 @@ async function run(rs){
   try{
     let res=!!rs;
     for(let rd=res?g.rd:1;rd<=g.R;rd++){
-      if(res){ res=false; status(`Partita ripresa: round ${rd}/${g.R}, presa ${g.trick+1}/${g.TT}.`); }
+      if(res){
+        res=false; status(`Partita ripresa: round ${rd}/${g.R}, presa ${g.trick+1}/${g.TT}.`);
+        if(g.pend){ const pd=g.pend; await dispatch(pd.p,pd.cs); g.pend=null; g.shown=null; g.plays=[]; g.res=null; g.fresh=-1; ckpt(); }   // salvato subito dopo una presa: riproponi l'investimento
+      }
       else{
         g.rd=rd; g.starter=rd===1?rnd(g.n):nextStarter(); dealRound(); ckpt();
         logMsg(`— Round ${rd}/${g.R} —`);

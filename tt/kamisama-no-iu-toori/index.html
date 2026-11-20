@@ -370,11 +370,14 @@ function projection(){
 async function playRound(){
   const S=G.S, n=G.n;
   S.started=true;
-  while(S.done<HANDN){
-    S.trick=[]; S.res=null;
-    ckpt();
-    logMsg(`Presa ${S.done+1}: apre ${P(S.lead).name}.`);
-    for(let k=0;k<n;k++){
+  while(S.done<HANDN&&!S.moodC.some(complete)){
+    const rp=S.pend;   // ripresa subito dopo la chiusura di una presa: niente giocate, si riparte dalla distribuzione delle carte
+    if(!rp){
+      S.trick=[]; S.res=null;
+      ckpt();
+      logMsg(`Presa ${S.done+1}: apre ${P(S.lead).name}.`);
+    }
+    for(let k=0;k<(rp?0:n);k++){
       const p=(S.lead+k)%n; G.turn=p;
       status(p===HUM?'Tocca a te: gioca una carta.':`Tocca a ${P(p).name}.`);
       let c;
@@ -384,10 +387,15 @@ async function playRound(){
       logMsg(`${P(p).name} gioca ${cname(c)}.`);
     }
     G.turn=-1;
-    const fav=favOf(S.offC), r=resolve(S.trick,fav), w=S.trick[r.w].p, l=S.trick[r.l].p;
+    let w,l;
+    if(rp){ w=rp.w; l=rp.l; }
+    else{
+    const fav=favOf(S.offC), r=resolve(S.trick,fav); w=S.trick[r.w].p; l=S.trick[r.l].p;
     S.res=r;
     logMsg(`${P(w).name} vince la presa con ${cname(S.trick[r.w].c)}; ${P(l).name} perde con ${cname(S.trick[r.l].c)}${fav>=0?` (colore favorito: ${COL[fav].n})`:' (nessun colore favorito)'}.`);
     status(`${P(w).name} vince la presa e distribuisce le carte.`);
+    S.pend={w,l}; ckpt();   // punto sicuro anche subito dopo la presa, con la distribuzione ancora da fare: alla ripresa si riparte da lì (S.pend)
+    }
     await sleep(900);
     const cards=S.trick.map(e=>e.c);
     let a;
@@ -397,7 +405,8 @@ async function playRound(){
     const offs=cards.filter((_,i)=>i!==a.w&&i!==a.l&&!a.r.includes(i)).map(cname);
     logMsg(`${P(w).name} distribuisce: ${offs.join(', ')} all'Offerta; ${nm(a.w)} a ${w===HUM?'te':'sé'}; ${nm(a.l)} a ${P(l).name}${a.r.length?`; scarta ${nm(a.r[0])}`:''}.`);
     S.done++; S.lead=w;
-    S.trick=[]; S.res=null;
+    S.trick=[]; S.res=null; S.pend=null;
+    ckpt();   // presa chiusa del tutto (serve se il round finisce qui: alla ripresa il ciclo non riparte e si passa al punteggio)
     if(complete(S.moodC[w])||complete(S.moodC[l])){
       const who=[w,l].filter(q=>complete(S.moodC[q])).map(q=>P(q).name).join(' e ');
       logMsg(`${who} ${[w,l].filter(q=>complete(S.moodC[q])).length>1?'hanno':'ha'} tutti e 5 i colori nell'Area della Felicità: il round finisce subito.`);
