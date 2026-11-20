@@ -446,9 +446,10 @@ async function oneTrick(){
   P(win).won.sort(sortCards);
   const m=byLimit?`${P(win).name} raggiunge il limite (${G.sum}≥${G.limit}) e vince ${G.trick.length} carte.`
                   :`${P(win).name} vince ${G.trick.length} carte con la carta più alta del colore di mano (somma ${G.sum}).`;
-  status(m); logMsg(m);
-  await sleep(2200);
   G.leader=win;
+  status(m); logMsg(m);
+  if(!G.pl.some(p=>p.hand.length===0)) ckpt();   // punto sicuro subito dopo la presa (non se è l'ultima: lì la ripresa riaprirebbe una presa a mani vuote)
+  await sleep(2200);
 }
 async function tricks(res){
   if(!res) G.leader=G.first;

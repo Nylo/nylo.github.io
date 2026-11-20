@@ -629,6 +629,7 @@ async function oneTrick(){
   const zeroHit=pw.zero?' (la sua puntata zero è fallita)':'';
   const m=`${pw.name} vince la presa con ${cname(wc)}${wc.s===G.trump?' (briscola)':''}${dbl?' e ottiene DUE vittorie (carta 4/6)':''}${zeroHit}. Prese: ${pw.wins}.`;
   status(m); logMsg(m);
+  if(pw.zero||pw.wins<=bidOf(pw)){ G.leader=w; ckpt(); }   // punto sicuro subito dopo la presa (solo se non c'è da spostare un BiD COIN: quella scelta viene dopo la pausa)
   await sleep(1500);
   // aggiornamento della puntata: se le prese superano la puntata si sposta un altro BiD COIN
   if(!pw.zero&&pw.wins>bidOf(pw)){

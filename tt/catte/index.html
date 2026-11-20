@@ -597,6 +597,9 @@ async function playRound(rs){
     const cc=S.center.c, has=S.trick.some(e=>e.play.col===cc);
     status(`${P(w).name} vince la presa (${has?`colore del caffè: ${COLN[cc]}`:`colore d'apertura: ${COLN[S.trick[0].play.col]}`}).`);
     logMsg(`${P(w).name} vince la presa e prende ${cname(S.center)}.`);
+    { const sc=S.center; S.got[w].push(sc);   // punto sicuro subito dopo la presa (stato = inizio della prossima), solo se il round continua; poi si ripristina lo stato mostrato
+      if(sumOf(S.got[w])<=S.L&&!S.hands.some(h=>h.length===0)){ const sv=[S.trick,S.res,S.done]; S.center=null; S.lead=w; S.trick=[]; S.res=null; S.done++; ckpt(); S.center=sc; S.lead=l; S.trick=sv[0]; S.res=sv[1]; S.done=sv[2]; }
+      S.got[w].pop(); }
     await sleep(1000);
     S.got[w].push(S.center); S.center=null; S.lead=w; S.done++;
     const t=sumOf(S.got[w]);

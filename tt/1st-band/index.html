@@ -453,6 +453,7 @@ async function audition(rs){
     }
     G.note={c,p,text:t,removed:e.selfRemoved};
     logMsg(t); status(t);
+    if(!bandFull(G)){ const np=nextWithCards(G,p); if(np>=0){ const ot=G.turn, of=G.fresh; G.turn=np; G.fresh=-1; ckpt(); G.turn=ot; G.fresh=of; } }   // punto sicuro subito dopo la giocata (stato = inizio del turno successivo)
     await sleep(p===HUM?900:1100);
     if(bandFull(G)) return true;
     p=nextWithCards(G,p);
@@ -489,6 +490,7 @@ async function exhibition(rs){
     }else{ await sleep(800); c=aiPick(p,avail); }
     G.area[p].push(c); picked[p].push(c); G.bandLeft.delete(c.id);
     logMsg(`${r.r}° posto: ${P(p).name} prende ${cname(c)}.`);
+    { const oi=G.ri, ot=G.turn, on=G.note; G.ri=ri+1; G.turn=ri+1<G.rank.length?G.rank[ri+1].p:-1; G.note=null; ckpt(); G.ri=oi; G.turn=ot; G.note=on; }   // punto sicuro subito dopo la scelta (stato = inizio della scelta successiva)
     await sleep(p===HUM?500:700);
   }
   G.turn=-1; G.occ=emptyOcc(); G.bandLeft=null; G.rank=null; G.own=new Array(50).fill(-1); G.picked=null;

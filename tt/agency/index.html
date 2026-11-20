@@ -422,6 +422,7 @@ async function oneTrick(){
   g.res={w,pts}; g.shown=g.plays.slice();
   const t=`Presa ${g.trick}: vince ${nameOf(w)} con ${cname(g.plays[wi].c)} e porta ${pts} ${plural(pts,'punto','punti')} a ${TEAMN(tm)} (${g.rp[tm]}/${TARGET}).`;
   logMsg(t); status(t);
+  if(g.rp[tm]<TARGET){ const sv=[g.shown,g.plays,g.res,g.fresh,g.lead,g.wallIn]; g.shown=null; g.plays=[]; g.res=null; g.fresh=-1; g.lead=-1; g.wallIn=false; ckpt(); [g.shown,g.plays,g.res,g.fresh,g.lead,g.wallIn]=sv; }   // punto sicuro subito dopo la presa (stato = inizio della prossima); non se il round è finito
   await S_(1900);
   g.shown=null; g.plays=[]; g.res=null; g.fresh=-1; g.lead=-1; g.wallIn=false;
   if(g.rp[tm]>=TARGET){ g.endReason=`${TEAMN(tm)} raggiunge ${TARGET} punti: il round finisce.`; logMsg(g.endReason); return true; }

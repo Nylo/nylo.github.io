@@ -764,9 +764,10 @@ async function playRound(){
     const w=trickWinner(G.trick), pw=P(w);
     G.win=w; pw.won++;
     logMsg(`${pw.name} vince la presa ${t} (${winTier(G.trick,w)}): ${pw.won} ${pw.won===1?'presa':'prese'}, puntata ${pw.bid===0?'Zero':pw.bid}.`);
-    status(`${pw.name} vince la presa ${t}.`);
-    await sleep(1600);
     G.leader=w;
+    status(`${pw.name} vince la presa ${t}.`);
+    ckpt();   // punto sicuro anche subito dopo la presa (stato = inizio della prossima)
+    await sleep(1600);
   }
 }
 async function scoreRound(){
