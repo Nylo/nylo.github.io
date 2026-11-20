@@ -1,8 +1,8 @@
 // ═══ NOTA LEGALE (in fondo, al centro, di ogni pagina di gioco o strumento): modifica qui il testo ═══
 // Per cambiare la frase basta cambiare NYLO_DISCLAIMER. Per nasconderla su una pagina: <html data-no-disclaimer>.
-var NYLO_DISCLAIMER = 'Questo gioco (o strumento di supporto), le sue idee, regole, immagini e marchi appartengono ai rispettivi autori ed editori. ' +
-  'Qui viene riprodotto esclusivamente come test e per studio personale, senza alcuno scopo di lucro; ' +
-  'su richiesta dei legittimi titolari dei diritti verrà rimosso.';
+var NYLO_DISCLAIMER = 'Questo gioco o strumento di supporto, le sue idee, regole, immagini e marchi appartengono ai rispettivi autori ed editori. ' +
+  'Qui viene riprodotto esclusivamente per uso personale, senza alcuno scopo di lucro. ' +
+  'Su richiesta dei legittimi titolari dei diritti verrà rimosso.';
 
 // Pulsante "casetta" per tornare alla home: chiede conferma con una finestra modale.
 // Nelle pagine con <html data-home-inline> il pulsante è nella barra in alto (window.nyloHomeBtn());
