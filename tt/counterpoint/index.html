@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="it" data-home-inline>
+<head>
+<script src="/auth-gate.js"></script>
+<script src="/home-btn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Counterpoint</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f3b2e;
+  --ink:#1a2520;
+  --surface:#fbf7ee;
+  --paper:#f4efe1;
+  --accent:#b0262f;
+  --accent-soft:rgba(176,38,47,0.13);
+  --gold:#e2be62;
+  --text:#1a2520;
+  --text-soft:#5b6358;
+  --danger:#b3261e;
+  --success:#1e7a4d;
+  --border:rgba(26,37,32,0.3);
+  --radius:10px;
+  --cw:50px; --ch:72px;
+}
+html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{background:#0f3b2e radial-gradient(ellipse at 50% -10%,#1d5642 0%,#0f3b2e 52%,#0a2a21 100%) fixed}
+.app{max-width:980px;margin:0 auto;padding:0 12px 48px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
+.logo{font-family:'Playfair Display',serif;font-size:30px;font-weight:900;line-height:1;flex:1;color:var(--surface);letter-spacing:0.01em;min-width:150px}
+.logo small{display:block;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.06em;color:var(--gold);margin-top:6px;text-transform:uppercase}
+.badge{background:var(--gold);color:var(--ink);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn{border-radius:7px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--ink);border:1px solid var(--ink)}
+.btn:hover{background:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}
+.nylo-home{color:var(--ink);border-color:var(--ink);background:var(--surface)}
+.nylo-home:hover{background:#fff;color:var(--ink)}
+.opt-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);cursor:pointer;border:0;border-radius:20px;padding:4px 10px;user-select:none}
+.opt-toggle input{accent-color:var(--accent);cursor:pointer}
+.menu-wrap{position:relative;margin-left:auto}
+.hamb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;border-radius:7px;background:var(--surface);color:var(--ink);border:1px solid var(--ink);cursor:pointer}
+.hamb:hover{background:#fff}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:260px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(0,0,0,0.35)}
+.menu-pop .opt-toggle{border:0;border-radius:6px;padding:9px 10px;font-size:13px;color:var(--text);white-space:nowrap}
+.menu-pop .opt-toggle:hover{background:var(--accent-soft)}
+.flag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;vertical-align:middle;white-space:nowrap}
+.flag.first{background:var(--gold);color:var(--ink)}
+.flag.lead{background:var(--surface);color:var(--ink);border:1px solid rgba(0,0,0,0.35)}
+.paper{background:var(--paper)}
+.log{border:3px solid var(--ink);border-radius:var(--radius);padding:10px 14px;margin-top:12px;margin-bottom:12px;font-size:12px;color:var(--text-soft);line-height:1.6}
+.log summary{cursor:pointer;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.logbody{margin-top:8px;max-height:260px;overflow-y:auto;padding-right:6px}
+.logbody div{border-bottom:1px solid var(--border);padding:1px 0}
+.name-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);padding:16px}
+.name-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.name-box h3{font-family:'Playfair Display',serif;font-weight:900;font-size:18px}
+.name-box p{font-size:12px;color:var(--text-soft)}
+.name-box input{padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.name-box input:focus{border-color:var(--accent)}
+
+.dock{position:sticky;top:0;z-index:10;border:3px solid var(--ink);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,0.22)}
+.dock.static{position:static;z-index:auto}
+.dock-msg{font-size:13px;line-height:1.5}
+.dock-title{font-size:11px;font-weight:700;color:var(--text-soft);letter-spacing:0.05em}
+.opts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.opt{background:#fff;border:2px solid var(--ink);color:var(--text);border-radius:6px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s;text-align:left}
+.opt:hover:not(:disabled){background:var(--ink);color:#fff}
+.opt:disabled{opacity:0.35;cursor:not-allowed}
+.opt.on{background:var(--ink);color:#fff}
+.hint{font-size:12px;color:var(--text-soft)}
+table.score{border-collapse:collapse;font-size:12px;width:100%}
+table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+table.score td:first-child,table.score th:first-child{text-align:left}
+table.score td.l,table.score th.l{text-align:left}
+table.score tr.sub td{text-align:left;border-bottom:1px solid var(--border);padding-top:0;color:var(--text-soft)}
+table.score tr.sub td .pc{vertical-align:middle;margin-right:2px}
+table.score tr.me td{background:var(--accent-soft)}
+table.score th{font-size:11px;color:var(--text-soft);font-weight:600}
+
+/* tavolo (panno verde) */
+.table{display:grid;gap:10px;background:radial-gradient(ellipse at 50% 40%,#1f6a50 0%,#17503c 60%,#123f31 100%);border:4px solid #0a2a21;outline:3px solid var(--gold);border-radius:14px;padding:12px;margin-bottom:14px;color:#f4efe1;min-height:540px}
+.table.n3{grid-template-columns:1fr 1.25fr 1fr;grid-template-areas:"left center right" "bottom bottom bottom"}
+.table.n2{grid-template-columns:1fr;grid-template-areas:"top" "center" "bottom";min-height:560px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:10px;border:1px solid transparent;text-align:center;min-width:0}
+.seat.top{grid-area:top}
+.seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center}
+.seat.bottom{grid-area:bottom}
+.seat.leader{border-color:rgba(244,239,225,0.45);background:rgba(255,255,255,0.07)}
+.seat.active{border-color:var(--gold);background:rgba(226,190,98,0.17)}
+.seat.winner{border-color:#58c98c;background:rgba(88,201,140,0.2)}
+.seat-name{font-weight:700;font-size:13px}
+.seat-name .hint{color:#c7d3c4}
+.seat-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px}
+.tag{background:rgba(7,32,25,0.82);border-radius:4px;padding:2px 6px;color:#f4efe1;display:inline-flex;align-items:center;gap:4px}
+.tag b{color:var(--gold)}
+.backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
+.back{width:13px;height:19px;border-radius:3px;background:repeating-linear-gradient(45deg,#8c2531 0 3px,#6d1a25 3px 6px);border:1px solid #f4efe1}
+.seat.left .backs,.seat.right .backs{max-width:120px}
+.tableau{display:flex;gap:4px;align-items:center;justify-content:center;min-height:76px;padding:4px 6px;border-radius:8px;background:rgba(0,0,0,0.16);min-width:58px}
+.tableau .empty{width:44px;height:64px;border:1px dashed rgba(244,239,225,0.4);border-radius:6px}
+
+/* carte */
+.pc{width:var(--cw);height:var(--ch);border-radius:7px;border:1.5px solid #3b4136;background:#fffdf7;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;position:relative;flex-shrink:0;padding:0;font-family:'Playfair Display',serif;line-height:1;box-shadow:0 2px 4px rgba(0,0,0,0.42);color:var(--ink)}
+.pc b{font-weight:900;font-size:calc(var(--cw)*0.44)}
+.pc i{font-style:normal;font-family:'Segoe UI Symbol','Apple Symbols','Noto Sans Symbols 2',sans-serif;font-size:calc(var(--cw)*0.5);line-height:1}
+.pc small{font-family:'Inter',sans-serif;font-size:9px;font-weight:700;color:#7a7f6f;height:10px;line-height:10px}
+.pc em{position:absolute;top:-7px;right:-7px;width:17px;height:17px;border-radius:50%;background:var(--gold);color:var(--ink);font-style:normal;font-family:'Inter',sans-serif;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;border:1px solid var(--ink);line-height:1}
+.pc.s0,.pc.s2{color:var(--accent)}
+.pc.mini{width:42px;height:60px}
+.pc.mini b{font-size:18px}.pc.mini i{font-size:21px}.pc.mini small{font-size:8px;height:8px;line-height:8px}
+.pc.tiny{width:30px;height:38px;border-radius:5px;gap:0}
+.pc.tiny b{font-size:13px}.pc.tiny i{font-size:14px}.pc.tiny small{display:none}
+button.pc{cursor:pointer;transition:transform 0.12s}
+button.pc:hover:not(:disabled){transform:translateY(-6px)}
+button.pc:disabled{cursor:default}
+.pc.dim{opacity:0.45;filter:saturate(0.5)}
+.pc.legal{box-shadow:0 0 0 3px var(--gold),0 2px 4px rgba(0,0,0,0.42)}
+.pc.sel{transform:translateY(-12px);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent)}
+.pc.win{box-shadow:0 0 0 3px #3fb97a,0 2px 4px rgba(0,0,0,0.42)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding-top:12px}
+
+.center{grid-area:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;font-size:12px;line-height:1.5}
+.center b{color:var(--gold)}
+.center .pc b,.seat .pc b{color:inherit}
+.upbox{display:flex;align-items:center;gap:10px;border:1px solid rgba(244,239,225,0.35);border-radius:10px;padding:6px 10px;background:rgba(0,0,0,0.18);text-align:left}
+.upbox .upt{font-size:11px;color:#dfe8dc}
+.legend{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.lg{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:12px;font-weight:700;font-size:11px;background:#fffdf7;color:var(--ink);border:1px solid rgba(0,0,0,0.4)}
+.lg.s0,.lg.s2{color:var(--accent)}
+.legend.big .lg{font-size:12px;padding:3px 10px}
+.panel .legend,.dock .legend{justify-content:flex-start}
+.center .hint{color:#c7d3c4}
+
+.unseen{display:flex;flex-direction:column;gap:6px}
+.unseen .ur{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.unseen .ur .l{width:78px;font-size:11px;font-weight:700}
+.l.s0,.l.s2{color:var(--accent)}
+.nc{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:24px;padding:0 3px;border-radius:5px;background:#fffdf7;border:1px solid #9aa090;font-weight:800;font-size:11px;line-height:1;color:var(--ink)}
+.nc.s0,.nc.s2{color:var(--accent)}
+.nc.gone{opacity:.28;text-decoration:line-through}
+.nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--accent);opacity:1;text-decoration:none}
+.nc.dsc{border:1px dashed var(--ink);box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--gold);opacity:1;text-decoration:none}
+.nc.upc{background:#f3e3b0}
+.recap{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.recap h3{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--ink)}
+.recap-row{display:block;font-size:12px;line-height:1.7}
+.recap-row > *{margin-right:6px}
+.recap-row .lbl{font-weight:600;color:var(--text-soft)}
+.recap-row .sw{display:inline-flex;align-items:center;gap:3px;padding:0 7px;border-radius:5px;font-weight:700;font-size:11px;border:1px solid rgba(0,0,0,0.4);background:#fffdf7;vertical-align:middle}
+.recap-row .sw.s0,.recap-row .sw.s2{color:var(--accent)}
+details.rules{border:3px solid var(--ink);border-radius:var(--radius);padding:14px 16px}
+details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0.05em}
+details.recap{display:block;padding:14px 16px}
+details.recap>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:0.05em}
+details.recap[open]>summary{margin-bottom:10px}
+details.recap[open]>:not(summary)+*{margin-top:10px}
+.rtext h4{font-family:'Playfair Display',serif;font-weight:900;font-size:16px;margin:14px 0 4px;letter-spacing:0.01em;color:var(--accent);display:inline-block}
+.rtext p,.rtext li{font-size:12px;line-height:1.6;color:var(--text-soft);margin-bottom:6px}
+.rtext a{color:var(--accent)}
+.rtext ul{padding-left:18px}
+
+@media(max-width:600px){
+  :root{--cw:32px;--ch:48px}
+  .pc{border-radius:5px;border-width:1px}
+  .pc b{font-size:15px}.pc i{font-size:16px}
+  .pc small{display:none}
+  .pc em{width:14px;height:14px;font-size:9px;top:-6px;right:-5px}
+  .pc.mini{width:34px;height:50px}.pc.mini b{font-size:15px}.pc.mini i{font-size:17px}
+  .pc.tiny{width:24px;height:32px}.pc.tiny b{font-size:11px}.pc.tiny i{font-size:12px}
+  .tableau .empty{width:34px;height:50px}
+  .tableau{min-height:62px}
+  .table{padding:8px;gap:6px;min-height:0}
+  .table.n3{grid-template-columns:1fr 1fr;grid-template-areas:"left right" "center center" "bottom bottom"}
+  .back{width:9px;height:14px}
+  .hand{gap:3px}
+  .logo{font-size:23px;min-width:0}
+  .center .hint{display:none}
+  .upbox{padding:4px 8px}
+  .unseen .ur .l{width:64px}
+}
+/* testata sul panno: pulsanti pieni (non trasparenti) */
+.topbar .btn,.topbar .nylo-home,.topbar .hamb{color:var(--ink);border-color:var(--ink);background:var(--surface)}
+.topbar .btn:hover,.topbar .nylo-home:hover,.topbar .hamb:hover{background:#fff;color:var(--ink)}
+/* Riepilogo: stesso colore di Log e Regolamento */
+details.recap>summary,details.rules>summary,details.log>summary{color:var(--ink)}
+/* stanze online (kit condiviso) */
+:root{--surface-raised:#ebe4d0}
+.panel,.sx-card{background:var(--paper);border:3px solid var(--ink);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:12px;color:var(--text);box-shadow:0 4px 0 rgba(0,0,0,0.2)}
+.panel{margin-bottom:14px}
+.panel h2{font-size:16px;font-weight:700}
+.muted{color:var(--text-soft);font-size:12px;line-height:1.5}
+body .app>section>p.muted{color:var(--surface);margin-bottom:10px}
+.status{font-size:13px;min-height:20px;line-height:1.5;color:var(--surface)}
+.panel input[type=text]{background:#fff;border:2px solid var(--ink);color:#222;border-radius:6px;padding:9px 11px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none;letter-spacing:1px}
+.panel input[type=text]:focus{border-color:var(--accent)}
+.radios{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.radios label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.roster{list-style:none;display:flex;flex-direction:column;gap:8px}
+.roster li{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:2px solid var(--ink);border-radius:8px;font-size:13px}
+.roster .seat-n{width:20px;color:var(--text-soft)}
+.roster .grow{flex:1}
+.roster .soft{color:var(--text-soft)}
+.room-code{padding:4px 8px;border:2px solid var(--ink);background:#fff;border-radius:6px;font-family:Consolas,monospace;letter-spacing:1px;font-size:12px;color:var(--ink)}
+.conn{font-size:11px;color:var(--surface)}
+.room-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.room-bar .room-code,.room-bar .btn{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 10px;line-height:1;box-sizing:border-box;white-space:nowrap}
+.room-bar .btn{color:var(--ink);border-color:var(--ink);background:var(--surface)}
+.room-bar .btn:hover{background:#fff}
+.room-bar .conn{margin-left:auto}
+.err{position:fixed;left:12px;right:12px;bottom:12px;max-width:680px;margin:0 auto;padding:12px 14px;border:1px solid rgba(217,107,107,0.6);border-radius:8px;background:#3a1d22;color:#fff;font-size:13px;line-height:1.4;z-index:200}
+.sx-label{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text-soft);margin-top:2px}
+.sx-row{display:flex;gap:8px;flex-wrap:wrap}
+.sx-opt{padding:10px 16px;border-radius:7px;border:2px solid var(--ink);background:#fff;color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;transition:border-color .12s,background .12s}
+.sx-opt:hover:not(:disabled){background:var(--surface-raised)}
+.sx-opt.on{background:var(--ink);color:#fff}
+.sx-opt.on:hover:not(:disabled){background:var(--ink);filter:brightness(1.3)}
+.sx-opt:disabled{opacity:.4;cursor:not-allowed}
+.sx-row .sx-opt{flex:1 1 0;min-width:0}
+.sx-go{background:var(--accent);border-color:var(--ink);color:#fff;margin-top:1rem}
+.sx-go:hover:not(:disabled){background:var(--accent);filter:brightness(1.12)}
+.sx-in{background:#fff;border:2px solid var(--ink);color:#222;border-radius:6px;padding:10px 12px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none}
+.sx-in:focus{border-color:var(--accent)}
+.sx-in.code{letter-spacing:2px;text-transform:uppercase;font-family:Consolas,monospace}
+.sx-nav{display:flex;gap:8px;align-items:center;margin-left:auto}
+.sx-sub{display:flex;flex-direction:column;gap:10px;padding-top:2px}
+.panel .opt:hover:not(:disabled){background:var(--ink);color:#fff}
+@media(max-width:600px){.sx-nav{margin-left:0}table.score{font-size:11px}table.score td,table.score th{padding:4px 3px;overflow-wrap:anywhere}}
+</style>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0f3b2e">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="/pwa.js" defer></script>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script src="/tt/shared/core.js"></script>
+<script type="text/plain" id="src-common">
+// ═════════════════════════ COMUNE (modalità AI e stanze) ═════════════════════════
+// Carte = interi 0..35: id = seme*9 + grado. Semi: 0 ♦ Quadri, 1 ♠ Picche, 2 ♥ Cuori, 3 ♣ Fiori. Gradi: 0..8 = 6 7 8 9 J Q K 10 A.
+// A 3 giocatori il Jolly è «una copia della carta scoperta»: in gioco c'è sempre una sola carta con quell'id (la scoperta resta fuori),
+// quindi nelle mani il Jolly è semplicemente l'id della carta scoperta (S.up). A 2 giocatori: 32 carte (gradi 1..8), niente Jolly.
+const SUITS = ['Quadri','Picche','Cuori','Fiori'];
+const SG = ['♦︎','♠︎','♥︎','♣︎'];
+const SV = [0,10,20,30];                       // valore di puntata del seme di una carta scartata
+const RL = ['6','7','8','9','J','Q','K','10','A'];
+const RP = [0,0,0,0,2,3,4,10,11];              // punti carta per grado (30 per seme)
+const TRICKS = {2:13,3:9};                     // prese per mano
+const DEALN = {2:16,3:12};                     // carte distribuite a testa
+const SHOW_ORDER = [1,2,3,0];                  // in mano i semi si alternano nero/rosso: ♠ ♥ ♣ ♦
+const sOf = id => (id/9)|0;
+const rOf = id => id%9;
+const ptsOf = id => RP[id%9];
+const nameOf = id => RL[rOf(id)]+SG[sOf(id)];
+const handSort = (a,b) => SHOW_ORDER.indexOf(sOf(a))-SHOW_ORDER.indexOf(sOf(b)) || rOf(b)-rOf(a);
+const ico = n => `<i class="ph-fill ph-${n}"></i>`;
+const bidSum = ids => ids.reduce((a,id)=>a+SV[sOf(id)],0);
+
+// ═════════════════════════ GENERATORE CASUALE CON SEME (stanze: gli stati devono essere riproducibili) ═════════════════════════
+function mkRng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function newSeed(){return Math.floor(Math.random()*4294967296)}
+function validSeed(x){return typeof x==='number'&&x%1===0&&x>=0&&x<4294967296}
+
+// ═════════════════════════ REGOLE (funzioni pure sullo stato S) ═════════════════════════
+function alog(S,t){ S.log.unshift(t); if(S.log.length>300) S.log.pop(); }
+function newState(names,uids,len){
+  const n=names.length;
+  return {n,names,uids:uids||null,len,
+    deals:n===3?len:(len||0), target:(n===2&&!len)?99:0,     // 3 giocatori: 3/6/9 mani · 2 giocatori: a 99 punti (len 0) o 4/6 mani
+    deal:0,start:0,phase:'bid',hands:[],disc:[],bids:[],hi:[],up:-1,upJ:false,trump:-1,
+    leader:0,trick:[],tdone:false,win:-1,trickNo:0,tricks:[],take:[],won:[],
+    total:names.map(()=>0),hist:names.map(()=>[]),show:null,winners:[],log:[],rt:''};
+}
+// rng: funzione () => [0,1)
+function beginGame(S,rng){
+  S.deal=0; S.start=Math.floor(rng()*S.n); S.total=S.names.map(()=>0); S.hist=S.names.map(()=>[]); S.winners=[];
+  dealDeal(S,rng);
+}
+function dealDeal(S,rng){
+  const n=S.n, deck=[];
+  for(let s=0;s<4;s++) for(let r=(n===2?1:0);r<9;r++) deck.push(s*9+r);
+  if(n===3) deck.push(36);                                   // 37ª carta: il Jolly
+  for(let i=deck.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); const t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
+  const k=DEALN[n];
+  S.hands=[];S.disc=[];S.bids=[];S.hi=[];S.take=[];S.won=[];
+  for(let p=0;p<n;p++){ S.hands.push(deck.slice(p*k,(p+1)*k)); S.disc.push([]); S.bids.push(null); S.hi.push(false); S.take.push(0); S.won.push(0); }
+  S.up=-1; S.upJ=false; S.trump=-1;
+  let tx='';
+  if(n===3){
+    const t=deck[36];
+    if(t===36){ S.upJ=true; tx='La carta scoperta è il Jolly: mano senza briscola.'; }
+    else{
+      S.up=t; S.hands.forEach(h=>{ const i=h.indexOf(36); if(i>=0) h[i]=t; });   // il Jolly vale come copia esatta della scoperta
+      if(rOf(t)===3) tx='Carta scoperta: '+nameOf(t)+' (un Nove): mano senza briscola.';
+      else{ S.trump=sOf(t); tx='Carta scoperta: '+nameOf(t)+' · briscola '+SG[S.trump]+' '+SUITS[S.trump]+'.'; }
+    }
+  }else tx='Due giocatori: nessuna briscola, vince il grado più alto.';
+  S.hands.forEach(h=>h.sort(handSort));
+  S.phase='bid'; S.trick=[]; S.tdone=false; S.win=-1; S.trickNo=0; S.tricks=[]; S.leader=S.start; S.show=null; S.rt='';
+  alog(S,'— '+dealTag(S)+': apre '+S.names[S.start]+' —');
+  alog(S,tx);
+}
+function dealTag(S){ return S.deals?'Mano '+(S.deal+1)+'/'+S.deals:'Mano '+(S.deal+1); }
+function turnOf(S){ return S.phase!=='play'?-1:(S.tdone?S.leader:(S.leader+S.trick.length)%S.n); }
+function clearTrick(S){ S.trick=[]; S.win=-1; S.tdone=false; }
+// carte giocabili (hand = id; trick = carte già sul tavolo nella presa corrente)
+function legalIds(hand,trick){
+  if(!trick.length) return hand.slice();
+  const ls=sOf(trick[0].c), f=hand.filter(c=>sOf(c)===ls);
+  return f.length?f:hand.slice();
+}
+// la carta a (giocata dopo) batte la carta b (che al momento vince la presa)?
+function beats(a,b,trump,n){
+  if(n===2){ const ra=rOf(a), rb=rOf(b); return ra!==rb ? ra>rb : ra<4; }   // 2 giocatori: grado più alto di qualsiasi seme; a pari grado vince la carta di mano se è un contatore (A,10,K,Q,J), altrimenti la seconda
+  const ta=trump>=0&&sOf(a)===trump, tb=trump>=0&&sOf(b)===trump;
+  if(ta!==tb) return ta;
+  if(sOf(a)!==sOf(b)) return false;
+  return rOf(a)>rOf(b);
+}
+function trickWinIdx(trick,trump,n){
+  let b=0;
+  for(let i=1;i<trick.length;i++) if(beats(trick[i].c,trick[b].c,trump,n)) b=i;
+  return b;
+}
+// puntata: 3 carte scartate coperte; la somma dei valori dei semi è la puntata; 0/10/20 può leggersi alta (100/110/120). Ritorna false se non valida.
+function actBid(S,seat,ids,high){
+  if(S.phase!=='bid'||!(seat>=0&&seat<S.n)||S.bids[seat]!=null||!Array.isArray(ids)||ids.length!==3) return false;
+  const h=S.hands[seat], seen=[];
+  for(const id of ids){ if(!Number.isInteger(id)||h.indexOf(id)<0||seen.indexOf(id)>=0) return false; seen.push(id); }
+  const sum=bidSum(ids);
+  if(high&&sum>=30) return false;
+  S.disc[seat]=ids.slice().sort(handSort); S.hands[seat]=h.filter(c=>ids.indexOf(c)<0);
+  S.bids[seat]=sum+(high?100:0); S.hi[seat]=!!high;
+  alog(S,S.names[seat]+' ha scartato le tre carte della puntata.');
+  if(S.bids.every(b=>b!=null)){
+    S.phase='play'; S.leader=S.start;
+    alog(S,'Puntate fatte (restano segrete fino a fine mano). Si parte: apre '+S.names[S.start]+'.');
+  }
+  return true;
+}
+function actPlay(S,seat,id){
+  if(S.phase!=='play'||turnOf(S)!==seat||!Number.isInteger(id)) return false;
+  const h=S.hands[seat]; if(h.indexOf(id)<0) return false;
+  if(legalIds(h,S.tdone?[]:S.trick).indexOf(id)<0) return false;
+  if(S.tdone) clearTrick(S);
+  if(!S.trick.length) S.trickNo++;
+  S.hands[seat]=h.filter(c=>c!==id);
+  S.trick.push({p:seat,c:id});
+  alog(S,S.names[seat]+' gioca '+nameOf(id)+(id===S.up?' (è il Jolly)':'')+'.');
+  if(S.trick.length===S.n) resolveTrick(S);
+  return true;
+}
+function resolveTrick(S){
+  const wi=trickWinIdx(S.trick,S.trump,S.n), w=S.trick[wi].p;
+  let pts=0; S.trick.forEach(x=>pts+=ptsOf(x.c));
+  S.tdone=true; S.win=w; S.take[w]+=pts; S.won[w]++; S.leader=w;
+  S.tricks.push({ps:S.trick.map(x=>x.p),cs:S.trick.map(x=>x.c),w});
+  S.rt=S.names[w]+' vince la presa '+S.trickNo+' con '+nameOf(S.trick[wi].c)+(pts?' ('+pts+' punt'+(pts===1?'o':'i')+')':' (nessun punto)')+'.';
+  alog(S,S.rt);
+  if(S.trickNo>=TRICKS[S.n]) endDeal(S);
+}
+function bonusOf(n,m){ return n===3?(m===0?30:m<=2?20:m<=5?10:0):(m===0?30:m===1?20:m===2?10:0); }
+function endDeal(S){
+  const n=S.n, miss=S.bids.map((b,p)=>Math.abs(b-S.take[p]));
+  const rows=S.bids.map((b,p)=>{
+    const oth=miss.reduce((a,m,q)=>q===p?a:a+m,0), bo=bonusOf(n,miss[p]);
+    return {p,bid:b,hi:!!S.hi[p],take:S.take[p],won:S.won[p],miss:miss[p],oth,bonus:bo,score:oth+bo,disc:S.disc[p].slice()};
+  });
+  rows.forEach(r=>{ S.total[r.p]+=r.score; S.hist[r.p].push(r.score); });
+  S.show={rows}; S.phase='score';
+  alog(S,dealTag(S)+' conclusa. '+rows.map(r=>S.names[r.p]+': puntata '+r.bid+', presi '+r.take+' → '+r.score+' punti').join(' · ')+'.');
+}
+function gameDone(S){
+  if(S.deals) return S.deal+1>=S.deals;                       // numero di mani fisso
+  const mx=Math.max.apply(null,S.total);
+  return mx>=S.target&&S.total.filter(t=>t===mx).length===1;  // a punti: finisce quando qualcuno ha raggiunto il bersaglio e c'è un solo primo
+}
+function actNext(S,rng){
+  if(S.phase!=='score') return false;
+  if(gameDone(S)){
+    const mx=Math.max.apply(null,S.total);
+    S.winners=S.total.map((t,i)=>t===mx?i:-1).filter(i=>i>=0); S.phase='over';
+    alog(S,'Partita conclusa: '+(S.winners.length>1?'vittoria condivisa di ':'vince ')+S.winners.map(i=>S.names[i]).join(' e ')+' ('+S.total.join(' · ')+').');
+  }else{ S.deal++; S.start=(S.start+1)%S.n; dealDeal(S,rng); }
+  return true;
+}
+
+// ═════════════════════════ GRAFICA (condivisa) ═════════════════════════
+function cardH(id,cls,tag,attrs,st){
+  tag=tag||'span';
+  const s=sOf(id), r=rOf(id), p=RP[r], jk=!!(st&&st.up>=0&&id===st.up);
+  return `<${tag} class="pc s${s} ${cls||''}" ${attrs||''} title="${RL[r]} di ${SUITS[s].toLowerCase()}${p?' · '+p+' punti':''}${jk?' · Jolly: copia della carta scoperta':''}"><b>${RL[r]}</b><i>${SG[s]}</i><small>${p||''}</small>${jk?'<em>J</em>':''}</${tag}>`;
+}
+// mano di chi guarda: mode 'play' (legal = Set di id, sel = id) · 'pick' (sel = array di id) · null (sola visione)
+function handH(st,hand,o){
+  o=o||{};
+  return '<div class="hand">'+hand.map(id=>{
+    if(o.mode==='pick') return cardH(id,o.sel.indexOf(id)>=0?'sel':'legal','button',`data-c="${id}"`,st);
+    if(o.mode==='play'){ const ok=o.legal.has(id); return cardH(id,(ok?'legal':'dim')+(o.sel===id?' sel':''),'button',`${ok?'':'disabled'} data-c="${id}"`,st); }
+    return cardH(id,'','span','',st);
+  }).join('')+'</div>';
+}
+function backsH(n){ return '<div class="backs">'+Array.from({length:n},()=>'<span class="back"></span>').join('')+'</div>'; }
+function tableauH(st,p){
+  const x=st.trick.find(t=>t.p===p);
+  return '<div class="tableau">'+(x?cardH(x.c,'mini '+(st.tdone&&st.win===p?'win':''),'span','',st):'<span class="empty"></span>')+'</div>';
+}
+function leaderNow(st){ return st.tdone?st.leader:(st.trick.length?st.trick[0].p:st.leader); }
+function flagH(st,p){
+  if(st.phase==='over') return st.winners.indexOf(p)>=0?'<span class="flag first">Vince</span>':'';
+  if(st.phase==='score') return '';
+  if(st.phase==='play') return leaderNow(st)===p?'<span class="flag lead">Di mano</span>':'';
+  return st.start===p?'<span class="flag first">Apre</span>':'';
+}
+// me = il tuo posto (le puntate altrui restano segrete fino a fine mano)
+function seatH(st,me,p,pos,handHtml){
+  const rv=st.phase==='score'||st.phase==='over', b=st.bids[p];
+  let meta='<div class="seat-meta">';
+  if(rv&&st.show){ const r=st.show.rows[p]; meta+=`<span class="tag" title="Puntata">${ico('target')} <b>${r.bid}</b></span><span class="tag" title="Punti presi">${ico('coins')} <b>${r.take}</b></span>`; }
+  else if(st.phase!=='bid'||b!=null){
+    meta+=p===me?`<span class="tag" title="La tua puntata (segreta)">${ico('target')} <b>${b}</b></span>`:`<span class="tag" title="Puntata segreta fino a fine mano">${ico('lock-simple')} <b>${b!=null?'✓':'?'}</b></span>`;
+    if(st.phase==='play') meta+=`<span class="tag" title="Prese vinte">${ico('stack')} <b>${st.won[p]}</b></span>`;
+    if(st.phase==='play'&&p===me) meta+=`<span class="tag" title="Punti carta presi finora (solo tu li vedi)">${ico('coins')} <b>${st.take[p]}</b></span>`;
+  }
+  meta+=`<span class="tag" title="Punti totali della partita">${ico('crown')} <b>${st.total[p]}</b></span></div>`;
+  const name=`<div class="seat-name">${esc(st.names[p])}${p===me?' <span class="hint">(tu)</span>':''}${flagH(st,p)}</div>`;
+  const inner=pos==='bottom'?`${tableauH(st,p)}${name}${meta}${handHtml}`:(pos==='top'?`${handHtml}${name}${meta}${tableauH(st,p)}`:`${name}${meta}${tableauH(st,p)}${handHtml}`);
+  const t=turnOf(st), winner=st.tdone&&st.win===p&&st.phase!=='over';
+  return `<div class="seat ${pos} ${st.phase==='play'&&!st.tdone&&leaderNow(st)===p&&st.trick.length?'leader':''} ${t===p?'active':''} ${winner?'winner':''}">${inner}</div>`;
+}
+function centerH(st){
+  let up='';
+  if(st.n===3){
+    if(st.up>=0) up=`<div class="upbox">${cardH(st.up,'mini','span','',null)}<div class="upt">Carta scoperta<br><b>${st.trump>=0?'Briscola '+SG[st.trump]+' '+SUITS[st.trump]:'Senza briscola (è un Nove)'}</b></div></div>`;
+    else if(st.upJ) up='<div class="upbox"><div class="upt">Carta scoperta: <b>Jolly</b><br><b>Senza briscola</b></div></div>';
+  }else up='<div class="upbox"><div class="upt"><b>Senza briscola</b><br>vince il grado più alto, di qualsiasi seme</div></div>';
+  const ph={bid:'puntate',score:'risultato',over:'fine'}[st.phase]||'';
+  return `<div class="center">${up}
+    <div>${dealTag(st)}${st.target?` · a ${st.target} punti`:''} · ${st.phase==='play'||st.phase==='score'?`presa <b>${Math.min(Math.max(st.trickNo,1),TRICKS[st.n])}/${TRICKS[st.n]}</b>`:`fase: ${ph}`}</div>
+    <div class="legend">${[0,1,2,3].map(s=>`<span class="lg s${s}">${SG[s]} ${SV[s]}</span>`).join('')}</div>
+    <div class="hint">Gli scarti coperti formano la puntata: ${SG[0]} 0 · ${SG[1]} 10 · ${SG[2]} 20 · ${SG[3]} 30</div></div>`;
+}
+function scoreH(st,me){
+  const order=[]; for(let i=0;i<st.n;i++) order.push((me>=0?me+i:i)%st.n);
+  const rows=order.map(p=>{
+    const r=st.show.rows[p];
+    return `<tr class="${p===me?'me':''}"><td>${esc(st.names[p])}</td><td>${r.bid}${r.hi?' <small title="letta alta">↑</small>':''}</td><td>${r.take}</td><td>${r.miss}</td><td>${r.oth}${r.bonus?` + ${r.bonus}`:''}</td><td><b>${r.score}</b></td></tr>
+      <tr class="sub ${p===me?'me':''}"><td colspan="6">Scarti: ${r.disc.map(c=>cardH(c,'tiny','span','',null)).join('')} <span class="hint">= ${bidSum(r.disc)}${r.hi?' letto alto: '+r.bid:''}</span></td></tr>`;
+  }).join('');
+  return `<table class="score"><tr><th></th><th>Puntata</th><th>Presi</th><th>Scarto</th><th>Errori altrui + bonus</th><th>Mano</th></tr>${rows}</table>`;
+}
+function totalH(st,me){
+  const order=[]; for(let i=0;i<st.n;i++) order.push((me>=0?me+i:i)%st.n);
+  const rows=order.map(p=>`<tr class="${p===me?'me':''}"><td>${esc(st.names[p])}</td><td class="l">${st.hist[p].join(' · ')||'–'}</td><td><b>${st.total[p]}</b></td></tr>`).join('');
+  return `<table class="score"><tr><th>Totale</th><th class="l">Punti per mano</th><th>Tot.</th></tr>${rows}</table>`;
+}
+function humanHint(st,me){
+  const h=st.hands[me], tr=st.tdone?[]:st.trick;
+  if(!tr.length) return 'Sei di mano: puoi giocare qualsiasi carta.';
+  const ls=sOf(tr[0].c), has=h.some(c=>sOf(c)===ls);
+  return has?`Seme di mano: ${SG[ls]} ${SUITS[ls]}. Hai carte di quel seme: devi giocarne una.`
+            :`Seme di mano: ${SG[ls]} ${SUITS[ls]}. Non ne hai: puoi giocare qualsiasi carta${st.trump>=0?` (anche una briscola ${SG[st.trump]})`:''}.`;
+}
+// selettore della puntata (tre carte da scartare): sel = id scelti; i pulsanti data-bid="0|1" confermano (1 = lettura alta)
+function bidPickerH(st,sel){
+  const sum=bidSum(sel), ok=sel.length===3;
+  let h=`<div class="dock-title">SCEGLI LE 3 CARTE DA SCARTARE: IL LORO SEME È LA TUA PUNTATA</div>
+    <div class="legend big">${[0,1,2,3].map(s=>`<span class="lg s${s}">${SG[s]} ${SUITS[s]} = ${SV[s]}</span>`).join('')}</div>
+    <div class="hint">Gli scarti escono dal gioco con i loro punti. Scartati: <b>${sel.length}/3</b>${sel.length?' · '+sel.map(nameOf).join(' '):''}${ok?` · puntata <b>${sum}</b>`:''}</div>`;
+  if(ok){
+    h+=`<div class="opts"><button class="opt" data-bid="0">Conferma la puntata: ${sum}</button>${sum<30?`<button class="opt" data-bid="1">Leggila alta: ${sum+100}</button>`:''}<button class="opt" data-bid="x">Azzera la scelta</button></div>`;
+  }else if(sel.length) h+=`<div class="opts"><button class="opt" data-bid="x">Azzera la scelta</button></div>`;
+  return h;
+}
+function recapHtml(n){
+  const sw=s=>`<span class="sw s${s}">${SG[s]} ${SUITS[s]} ${SV[s]}</span>`;
+  return `<details class="recap paper"><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Carte</span>${n===3?'37 carte: 6–A di ogni seme più il Jolly · 12 a testa, la 37ª scoperta':'32 carte: 7–A di ogni seme · 16 a testa'} · ${TRICKS[n]} prese dopo i 3 scarti</div>
+    <div class="recap-row"><span class="lbl">Punti carta</span>A 11 · 10 10 · K 4 · Q 3 · J 2 · 9 8 7 6 valgono 0 (30 per seme, 120 in tutto)</div>
+    <div class="recap-row"><span class="lbl">Puntata</span>Scarta 3 carte coperte: il seme di ciascuna vale ${[0,1,2,3].map(sw).join(' ')}; la somma è la tua puntata. Con 0, 10 o 20 puoi leggerla alta: 100, 110, 120. I punti scartati escono dal gioco.</div>
+    <div class="recap-row"><span class="lbl">Presa</span>${n===3?'Rispondi al seme se puoi, altrimenti qualsiasi carta. Vince la briscola più alta, o il seme di mano più alto. Il Jolly vale come copia della carta scoperta; Nove o Jolly scoperti = senza briscola.':'Rispondi al seme se puoi. Vince il grado più alto, di qualsiasi seme; a parità vince la carta di mano se è un contatore (A 10 K Q J), altrimenti la seconda.'}</div>
+    <div class="recap-row"><span class="lbl">Punteggio</span>Scarto = |puntata − punti presi|. Fai la somma ${n===3?'degli scarti dei due avversari':'dello scarto dell’avversario'} più un bonus per la tua puntata: ${n===3?'esatta +30 · fuori di 1–2 +20 · di 3–5 +10':'esatta +30 · fuori di 1 +20 · di 2 +10'}.</div>
+    <div class="recap-row"><span class="lbl">Fine</span>${n===3?'Dopo 3, 6 o 9 mani vince chi ha più punti.':'A 99 punti (o dopo 4 o 6 mani) vince chi ha più punti.'}</div></details>`;
+}
+const RULES_HTML = `
+<details class="rules paper"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Panoramica</h4>
+<p>Counterpoint è un gioco di prese di <b>David Parlett</b> (serie «Original Card Games»), pensato come versione «a punti» del suo Ninety-Nine; l'edizione digitale per iPhone, <i>Counterpoint Solo</i>, è di <b>Sista Labs</b>. Non si punta sul numero di prese ma sui <b>punti carta</b> che si pensa di raccogliere, e la puntata si «scrive» scartando tre carte coperte. Il punteggio dipende soprattutto da quanto <i>gli altri</i> sbagliano la propria puntata, più un bonus se centri la tua: c'è quindi un po' di bluff («so che tu sai che io so…»).</p>
+<h4>Carte e punti</h4>
+<p>In ogni seme l'ordine è A, 10, K, Q, J, 9, 8, 7, 6 (il 10 sta subito sotto l'Asso). Valgono punti solo cinque gradi: <b>A 11 · 10 10 · K 4 · Q 3 · J 2</b>; 9, 8, 7 e 6 valgono 0. Sono 30 punti per seme, 120 in tutto.</p>
+<h4>Preparazione a 3 giocatori</h4>
+<p>37 carte: A-10-K-Q-J-9-8-7-6 dei quattro semi più un Jolly. Se ne distribuiscono 12 a testa e la 37ª si gira scoperta: il suo seme è la <b>briscola</b> della mano. Se la scoperta è un Nove o il Jolly, la mano si gioca <b>senza briscola</b>. Chi ha il Jolly lo gioca (o lo scarta) come se fosse <b>una copia esatta della carta scoperta</b>, stesso seme, grado e punti: nell'app la carta compare uguale alla scoperta con un bollino «J». Il primo giocatore e il mazziere ruotano a sinistra a ogni mano.</p>
+<h4>Preparazione a 2 giocatori</h4>
+<p>32 carte (dal 7 all'Asso, senza 6 e senza Jolly), 16 a testa, <b>senza briscola</b>. Il mazziere alterna a ogni mano e comincia chi non dà.</p>
+<h4>La puntata</h4>
+<p>Prima di giocare ognuno scarta, <b>coperte</b>, tre carte: il loro seme dice quanti punti carta si impegna a prendere. <b>Quadri 0 · Picche 10 · Cuori 20 · Fiori 30</b>, e si sommano: tre cuori fanno 60; fiori + picche + quadri fanno 40. Con una somma di 0, 10 o 20 si può <b>leggere la puntata alta</b>, cioè 100, 110 o 120, per chi ha una mano fortissima. I punti delle carte scartate escono dal gioco per tutti: conviene scartare carte di poco valore e che «scrivano» la puntata giusta. Le puntate restano segrete fino a fine mano.</p>
+<h4>Il gioco: 3 giocatori</h4>
+<p>Si giocano 9 prese. Apre chi sta a sinistra del mazziere; si deve rispondere al seme di mano se si può, altrimenti si gioca qualsiasi carta, briscola compresa. La presa va alla briscola più alta; se non ci sono briscole, alla carta più alta del seme di mano. Chi vince la presa apre la successiva.</p>
+<h4>Il gioco: 2 giocatori</h4>
+<p>Si giocano 13 prese. Si risponde al seme se si può, ma <b>la presa è del grado più alto, di qualsiasi seme</b> (puoi quindi «tagliare» con una carta più alta di un altro seme). A parità di grado vince la carta di mano se il grado è un contatore (A, 10, K, Q, J); se non lo è (9, 8, 7) vince la seconda carta giocata. Chi vince la presa apre la successiva.</p>
+<h4>Punteggio di una mano</h4>
+<p>A fine mano ognuno conta i punti carta delle sue prese. Lo <b>scarto</b> di un giocatore è la differenza (in valore assoluto) tra la puntata e i punti presi. <i>3 giocatori:</i> ciascuno segna la somma degli scarti dei due avversari, più un bonus sul proprio scarto: <b>+30</b> se esatto, <b>+20</b> se di 1–2, <b>+10</b> se di 3–5. <i>2 giocatori:</i> ciascuno segna lo scarto dell'avversario, più <b>+30</b> se il proprio è 0, <b>+20</b> se 1, <b>+10</b> se 2.</p>
+<p>Esempio a 3: Anna punta 20 e prende 22 (scarto 2), Beppe punta 30 e prende 38 (scarto 8), Carla punta 40 e prende 39 (scarto 1). Anna segna 8+1+20 = 29, Beppe 2+1 = 3, Carla 2+8+20 = 30.</p>
+<h4>Fine della partita</h4>
+<p>A 3 giocatori si gioca un numero fisso di mani, 3, 6 o 9, e vince chi ha più punti. A 2 giocatori si gioca fino a <b>99 punti</b> (oppure per 4 o 6 mani). In caso di parità dopo il numero fisso di mani la vittoria è condivisa; nella partita «a 99 punti» si prosegue con un'altra mano finché c'è un solo primo.</p>
+<h4>Fonti e scelte di questa versione</h4>
+<p>Le regole seguite sono quelle di <a href="https://www.parlettgames.uk/oricards/countpnt.html" target="_blank" rel="noopener">David Parlett</a> (3 e 2 giocatori) e dell'edizione <a href="https://sistalabs.com/counterpoint/support/" target="_blank" rel="noopener">Sista Labs</a> (3 giocatori): le due fonti coincidono sulle regole di gioco; il testo qui sopra è una riscrittura in parole nostre. Dove le fonti lasciano margine ho scelto così: (1) a 3 giocatori la durata è di <b>3, 6 o 9 mani</b> (Sista Labs; Parlett lascia libero anche un punteggio-bersaglio); (2) le puntate sono sempre <b>multipli di 10</b> (somma esatta dei valori dei semi, come negli esempi di Sista Labs «tre cuori = 60», «fiori + picche + quadri = 40»), anche se il testo di Parlett parla di fasce («0–9»); (3) la lettura alta 100/110/120 è ammessa sia a 2 sia a 3 giocatori (Parlett la descrive per 2, Sista Labs per 3) e va <b>scelta al momento della puntata</b>, in segreto; (4) il Jolly si può anche scartare come carta di puntata, con il seme della scoperta.</p>
+<p><i>Nell'app:</i> le carte e le mani degli altri restano coperte; delle prese altrui vedi solo il numero, mentre i tuoi punti raccolti sono sempre visibili. Contro l'AI puoi consultare le carte già uscite dal menu. L'AI sceglie le puntate e le carte simulando molte distribuzioni possibili di ciò che non può vedere, come farebbe un giocatore al suo posto.</p>
+<p><i>Nelle stanze online</i> si gioca solo tra persone (2 o 3): i posti e chi apre sono assegnati a caso, le mani restano visibili solo al proprietario, le puntate sono simultanee e si rivelano tutte a fine mano. Chiunque può passare alla mano successiva.</p>
+</div></details>`;
+</script>
+<script type="text/plain" id="src-ai">
+// ═════════════════════════ AI ═════════════════════════
+// Monte-Carlo con determinizzazione: l'AI vede solo ciò che vedrebbe un giocatore al suo posto (la propria mano, i propri scarti, le prese già
+// giocate, la carta scoperta e quante carte hanno gli altri). Le carte che non vede si ridistribuiscono a caso tra gli avversari, rispettando
+// i «vuoti» dimostrati (chi non ha risposto al seme di mano non ha quel seme) e lasciando 3 carte a testa come scarti della puntata; poi si
+// simula il resto della mano con una politica che punta alla propria puntata («chase»). Ogni scelta è il candidato con il punteggio medio migliore.
+const AIP = {N:26,B:16,noise:0.08};
+const argmax = a => a.reduce((b,x,i)=>x>a[b]?i:b,0);
+const round10 = x => Math.round(x/10)*10;
+function minBy(a,f){ let b=a[0],bv=f(b); for(let i=1;i<a.length;i++){ const v=f(a[i]); if(v<bv){ bv=v; b=a[i]; } } return b; }
+function maxBy(a,f){ let b=a[0],bv=f(b); for(let i=1;i<a.length;i++){ const v=f(a[i]); if(v>bv){ bv=v; b=a[i]; } } return b; }
+
+// ── politica di simulazione ──
+function chooseSim(R,p,lg,tr){
+  if(lg.length===1) return lg[0];
+  if(Math.random()<R.noise) return lg[(Math.random()*lg.length)|0];
+  const need=R.bid[p]-R.take[p], n=R.n, tmp=R.trump;
+  if(!tr.length){
+    if(need>=3) return maxBy(lg,c=>rOf(c)+(tmp>=0&&sOf(c)===tmp?-3:0)+Math.random()*0.5);           // voglio punti: apro forte, tenendo le briscole
+    return minBy(lg,c=>ptsOf(c)*3+rOf(c)+(tmp>=0&&sOf(c)===tmp?5:0)+Math.random()*0.5);               // altrimenti apro basso
+  }
+  let best=tr[0].c, tp=ptsOf(best);
+  for(let i=1;i<tr.length;i++){ tp+=ptsOf(tr[i].c); if(beats(tr[i].c,best,tmp,n)) best=tr[i].c; }
+  const win=[], lose=[];
+  for(const c of lg) (beats(c,best,tmp,n)?win:lose).push(c);
+  if(need>=3){
+    if(win.length&&(tp>0||need>=10)) return minBy(win,c=>ptsOf(c)*1.5+rOf(c)+(tmp>=0&&sOf(c)===tmp&&sOf(best)!==tmp?3:0));
+    return minBy(lg,c=>ptsOf(c)*3+rOf(c)+(tmp>=0&&sOf(c)===tmp?4:0));
+  }
+  if(lose.length) return maxBy(lose,c=>rOf(c)+ptsOf(c)*0.3+Math.random()*0.5);
+  return minBy(win,c=>ptsOf(c)*2+rOf(c));
+}
+// prosegue la mano da una presa a metà (tr = carte già sul tavolo, p = chi gioca ora); R.h = mani (modificate), R.take = punti presi
+function simFrom(R,tr,p){
+  const n=R.n;
+  for(;;){
+    while(tr.length<n){
+      const h=R.h[p], lg=legalIds(h,tr), c=chooseSim(R,p,lg,tr);
+      h.splice(h.indexOf(c),1); tr.push({p,c}); p=(p+1)%n;
+    }
+    const w=tr[trickWinIdx(tr,R.trump,n)].p;
+    let pts=0; for(const x of tr) pts+=ptsOf(x.c);
+    R.take[w]+=pts; tr=[]; p=w;
+    if(R.h[w].length===0) return;
+  }
+}
+// utilità di p a fine mano: il suo punteggio meno la media di quello degli altri (i propri scarti regalano punti agli avversari, quindi contano)
+function dealScore(R,me){
+  const n=R.n, miss=[], bo=[]; let sm=0;
+  for(let q=0;q<n;q++){ miss[q]=Math.abs(R.bid[q]-R.take[q]); sm+=miss[q]; bo[q]=bonusOf(n,miss[q]); }
+  let o=0; for(let q=0;q<n;q++) if(q!==me) o+=sm-miss[q]+bo[q];
+  return (sm-miss[me]+bo[me])-o/(n-1);
+}
+
+// ── conoscenza di p: carte non viste e vuoti ──
+function knowledge(S,p){
+  const seen=new Uint8Array(36);
+  S.hands[p].forEach(c=>seen[c]=1); S.disc[p].forEach(c=>seen[c]=1);
+  S.tricks.forEach(t=>t.cs.forEach(c=>seen[c]=1)); S.trick.forEach(x=>seen[x.c]=1);
+  const unseen=[]; for(let c=0;c<36;c++) if(!seen[c]&&(S.n===3||rOf(c)>=1)) unseen.push(c);
+  const vd=Array.from({length:S.n},()=>[false,false,false,false]);
+  const scan=(ps,cs)=>{ const ls=sOf(cs[0]); for(let i=1;i<cs.length;i++) if(sOf(cs[i])!==ls) vd[ps[i]][ls]=true; };
+  S.tricks.forEach(t=>scan(t.ps,t.cs));
+  if(S.trick.length&&!S.tdone) scan(S.trick.map(x=>x.p),S.trick.map(x=>x.c));
+  return {unseen,vd};
+}
+// una distribuzione possibile delle carte non viste: ritorna le mani di tutti i posti (la propria è quella vera)
+function sampleHands(S,p,kn){
+  const n=S.n, opp=[]; for(let q=0;q<n;q++) if(q!==p) opp.push(q);
+  const cap={}; let tot=0; opp.forEach(q=>{ cap[q]=S.hands[q].length; tot+=cap[q]; });
+  const dcap0=kn.unseen.length-tot;                              // carte che restano fuori (scarti degli avversari)
+  let hs=null;
+  for(let att=0;att<40&&!hs;att++){
+    const u=kn.unseen.slice(); for(let i=u.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0, t=u[i]; u[i]=u[j]; u[j]=t; }
+    const h={}, cl={}; opp.forEach(q=>{ h[q]=[]; cl[q]=cap[q]; }); let dl=dcap0, ok=true;
+    const strict=att<36;
+    for(const c of u){
+      const s=sOf(c); let t=0; const w=[];
+      for(const q of opp){ const x=(cl[q]>0&&(!strict||!kn.vd[q][s]))?cl[q]:0; w.push(x); t+=x; }
+      const wd=dl>0?dl*(ptsOf(c)>=10?0.15:ptsOf(c)>0?0.5:1):0;
+      t+=wd;
+      if(t<=0){ ok=false; break; }
+      let r=Math.random()*t, k=-1;
+      for(let i=0;i<opp.length;i++){ if(r<w[i]){ k=i; break; } r-=w[i]; }
+      if(k<0) dl--; else{ h[opp[k]].push(c); cl[opp[k]]--; }
+    }
+    if(ok) hs=h;
+  }
+  if(!hs){ // ripiego: ignoro i vuoti
+    const u=kn.unseen.slice(); for(let i=u.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0, t=u[i]; u[i]=u[j]; u[j]=t; }
+    hs={}; let k=0; opp.forEach(q=>{ hs[q]=u.slice(k,k+cap[q]); k+=cap[q]; });
+  }
+  return S.hands.map((h,q)=>q===p?h.slice():hs[q]);
+}
+// puntate presunte degli avversari: quanto prenderebbero giocando «al meglio» verso 40 (simulazione senza la mia mossa)
+function estBids(S,p,hands,tr,nextP){
+  const R={n:S.n,trump:S.trump,h:hands.map(h=>h.slice()),bid:S.bids.map((b,q)=>q===p?b:40),take:S.take.slice(),noise:AIP.noise};
+  simFrom(R,tr.map(x=>({p:x.p,c:x.c})),nextP);
+  return S.bids.map((b,q)=>q===p?b:Math.max(0,round10(R.take[q])));
+}
+
+// ── giocata ──
+function aiPlay(S,p){
+  const tr0=S.tdone?[]:S.trick, lg=legalIds(S.hands[p],tr0);
+  if(lg.length===1) return lg[0];
+  const kn=knowledge(S,p), sc=lg.map(()=>0), n=S.n;
+  for(let k=0;k<AIP.N;k++){
+    const hs=sampleHands(S,p,kn);
+    const bid=estBids(S,p,hs,tr0,p);
+    lg.forEach((c,j)=>{
+      const R={n,trump:S.trump,h:hs.map(h=>h.slice()),bid,take:S.take.slice(),noise:AIP.noise};
+      R.h[p].splice(R.h[p].indexOf(c),1);
+      const tr=tr0.map(x=>({p:x.p,c:x.c})); tr.push({p,c});
+      simFrom(R,tr,(p+1)%n);
+      sc[j]+=dealScore(R,p);
+    });
+  }
+  return lg[argmax(sc)];
+}
+
+// ── puntata ──
+// quanto «vale tenere» una carta (più è alto meno conviene scartarla)
+function keepVal(S,c){ return ptsOf(c)+rOf(c)*0.35+(S.trump>=0&&sOf(c)===S.trump?2+rOf(c)*0.3:0); }
+function triplesOf(hand){
+  const out=[];
+  for(let i=0;i<hand.length;i++) for(let j=i+1;j<hand.length;j++) for(let k=j+1;k<hand.length;k++) out.push([hand[i],hand[j],hand[k]]);
+  return out;
+}
+function aiBid(S,p){
+  const hand=S.hands[p], n=S.n;
+  // candidati: per ogni somma (0..90) le due terne con il minor «valore di mantenimento»
+  const by={};
+  for(const t of triplesOf(hand)){
+    const sum=bidSum(t), cost=keepVal(S,t[0])+keepVal(S,t[1])+keepVal(S,t[2]);
+    (by[sum]||(by[sum]=[])).push({ids:t,sum,cost});
+  }
+  const cands=[];
+  Object.keys(by).forEach(k=>{
+    by[k].sort((a,b)=>a.cost-b.cost);
+    by[k].slice(0,2).forEach(c=>{
+      cands.push({ids:c.ids,high:false,bid:c.sum,cost:c.cost});
+      if(c.sum<30){
+        const keepPts=hand.reduce((a,x)=>a+ptsOf(x),0)-c.ids.reduce((a,x)=>a+ptsOf(x),0);
+        if(keepPts>=(n===3?55:60)) cands.push({ids:c.ids,high:true,bid:c.sum+100,cost:c.cost});
+      }
+    });
+  });
+  const kn=knowledge(S,p), sc=cands.map(()=>0), tk=cands.map(()=>0);
+  const base=cands.reduce((b,c)=>c.cost<b.cost?c:b,cands[0]);
+  for(let k=0;k<AIP.B;k++){
+    const hs=sampleHands(S,p,kn);
+    // gli avversari scartano le 3 carte che valgono meno
+    const oh=hs.map((h,q)=>q===p?null:(S.hands[q].length<DEALN[n]?h.slice():h.slice().sort((a,b)=>keepVal(S,a)-keepVal(S,b)).slice(3)));   // chi ha già scartato ha 3 carte in meno
+    const mk=(mine,bid)=>({n,trump:S.trump,h:hs.map((h,q)=>q===p?mine:oh[q].slice()),bid,take:S.take.map(()=>0),noise:AIP.noise});
+    const keepBase=hand.filter(c=>base.ids.indexOf(c)<0);
+    const R0=mk(keepBase.slice(),S.bids.map(()=>40));
+    simFrom(R0,[],S.start);
+    const est=R0.take.map(x=>Math.max(0,round10(x)));
+    cands.forEach((cd,j)=>{
+      const bid=est.slice(); bid[p]=cd.bid;
+      const R=mk(hand.filter(c=>cd.ids.indexOf(c)<0),bid);
+      simFrom(R,[],S.start);
+      sc[j]+=dealScore(R,p); tk[j]+=R.take[p];
+    });
+  }
+  const bi=argmax(sc.map((x,i)=>x+Math.random()*0.01)), b=cands[bi];
+  return {ids:b.ids.slice(),high:b.high,pred:tk[bi]/AIP.B,predScore:sc[bi]/AIP.B};
+}
+
+// ── giocatore casuale (solo per i test) ──
+function randBid(S,p){
+  const h=S.hands[p].slice(); for(let i=h.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0, t=h[i]; h[i]=h[j]; h[j]=t; }
+  return {ids:h.slice(0,3),high:false};
+}
+function randPlay(S,p){ const lg=legalIds(S.hands[p],S.tdone?[]:S.trick); return lg[(Math.random()*lg.length)|0]; }
+
+// ═════════════════════════ MODALITÀ CONTRO L'AI ═════════════════════════
+const HUM = 0;
+const NAMES = ['Tu','AI Bach','AI Fux'];
+const POS = {2:['bottom','top'],3:['bottom','left','right']};
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null, MENUOPEN = false, LOGOPEN = false;
+const OPT = {undo:true,memo:false};
+try{ const s=localStorage.getItem('cp-undo'); if(s!==null) OPT.undo=s==='1'; OPT.memo=localStorage.getItem('cp-memo')==='1'; }catch(e){}
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+// scelta delle 3 carte da scartare: PR.sel = id selezionati; si conferma con i pulsanti data-bid (vedi bidPickerH)
+function askBid(){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'bid',sel:[],res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+
+// ═════════════════════════ PARTITA ═════════════════════════
+function newMatch(){
+  if(PR){ const r=PR.rej; PR=null; r(ABORT); }
+  NYLO_CK=null;
+  const o=(window.NYLO_START&&NYLO_START.opts)||{}, n=NYLO_START.n;
+  const len=n===3?([3,6,9].indexOf(Number(o.len))>=0?Number(o.len):3):([0,4,6].indexOf(Number(o.len))>=0?Number(o.len):0);
+  G=newState(NAMES.slice(0,n),null,len);
+  G.msg=''; G.over=null;
+  beginGame(G,()=>Math.random());
+  ckpt();
+  run();
+}
+async function bidStep(){
+  status('Scegli le tre carte da scartare, coperte: il loro seme è la tua puntata.');
+  const v=await askBid();
+  actBid(G,HUM,v.ids,v.high);
+  status('Gli avversari scelgono la puntata…');
+  await sleep(500);
+  for(let q=1;q<G.n;q++){
+    const b=aiBid(G,q);
+    actBid(G,q,b.ids,b.high);
+    render();
+    await sleep(350);
+  }
+  ckpt();                                   // punto sicuro: puntate fatte, prima carta da giocare
+}
+async function playStep(){
+  while(G.phase==='play'){
+    if(G.tdone){                            // ripresa subito dopo una presa conclusa
+      status(G.rt); await sleep(900);
+      if(G.phase==='play') clearTrick(G);
+      continue;
+    }
+    const p=turnOf(G), tn=G.trick.length?G.trickNo:G.trickNo+1;
+    status(`Presa ${tn}/${TRICKS[G.n]} · tocca a ${G.names[p]}${G.trick.length?'':' (di mano)'}.`);
+    let id;
+    if(p===HUM){
+      const hand=G.hands[HUM], lg=legalIds(hand,G.trick), idxs=lg.map(c=>hand.indexOf(c));
+      const i=await askCard(idxs,humanHint(G,HUM));
+      id=hand[i];
+    }else{ await sleep(650); id=aiPlay(G,p); }
+    actPlay(G,p,id);
+    render();
+    if(G.tdone){
+      ckpt();                               // punto sicuro anche subito dopo la presa (salvando durante la pausa non si perde la presa appena chiusa)
+      status(G.rt);
+      await sleep(1700);
+      if(G.phase==='play') clearTrick(G);
+    }
+  }
+}
+async function scoreStep(){
+  if(G.tdone) clearTrick(G);
+  const last=gameDone(G);
+  status(`${dealTag(G)} conclusa: ecco le puntate rivelate e il punteggio.`);
+  await ask(HUM,'Risultato della mano',[{label:last?'Mostra risultato finale':'Mano successiva',value:1}]);
+  actNext(G,()=>Math.random());
+  if(G.phase!=='over'){ ckpt(); status(`${dealTag(G)}: apre ${G.names[G.start]}.`); }
+  render();
+}
+async function run(rs){
+  const g=G;
+  try{
+    if(!rs) await ask(HUM,`Buona partita a Counterpoint, ${NAMES[HUM]}!`,[{label:'Ok, si parte',value:1}]);
+    else{ ckpt(); status('Partita ripresa.'); }     // il primo ckpt dopo la ripresa è il punto di ripresa stesso (serve per salvare di nuovo prima della prossima presa)
+    for(;;){
+      if(G.phase==='bid') await bidStep();
+      if(G.phase==='play') await playStep();
+      if(G.phase==='score') await scoreStep();
+      if(G.phase==='over') break;
+    }
+    G.over={winners:G.winners.slice()};
+    render();
+  }catch(e){
+    if(e===ABORT||g!==G) return;
+    console.error(e); G.log.unshift('Errore: '+e.message); render();
+  }
+}
+
+// ═════════════════════════ RENDER ═════════════════════════
+function myHandH(){
+  const hand=G.hands[HUM];
+  if(PR&&PR.type==='bid') return handH(G,hand,{mode:'pick',sel:PR.sel});
+  if(PR&&PR.type==='card') return handH(G,hand,{mode:'play',legal:new Set([...PR.legal].map(i=>hand[i])),sel:PR.sel!=null?hand[PR.sel]:null});
+  return handH(G,hand,{});
+}
+function dockHtml(){
+  if(!G) return '';
+  if(G.over){
+    const w=G.over.winners.map(i=>esc(G.names[i])).join(' e ');
+    return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>`;
+  }
+  let h=`<div class="dock-msg">${esc(G.msg)}</div>`;
+  if(PR&&PR.type==='choose'){
+    h+=`<div class="dock-title">${esc(PR.title).toUpperCase()}</div><div class="opts">${PR.options.map((o,i)=>`<button class="opt" ${o.disabled?'disabled':''} data-i="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+  }else if(PR&&PR.type==='card'){
+    h+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
+    if(PR.sel!=null) h+=`<div class="opts"><button class="opt" data-cf="1">Conferma: gioca ${esc(nameOf(G.hands[HUM][PR.sel]))}</button><button class="opt" data-cf="0">Annulla</button></div>`;
+  }else if(PR&&PR.type==='bid') h+=bidPickerH(G,PR.sel);
+  return h;
+}
+// carte uscite (sbarrate), tue (contorno) e tuoi scarti (tratteggio); sotto, i punti presi finora da ciascuno
+function memoHtml(){
+  const played=new Set(); G.tricks.forEach(t=>t.cs.forEach(c=>played.add(c))); if(!G.tdone) G.trick.forEach(x=>played.add(x.c));
+  const mine=new Set(G.hands[HUM]), disc=new Set(G.disc[HUM]);
+  const lo=G.n===2?1:0;
+  const rows=SHOW_ORDER.map(s=>`<div class="ur"><span class="l s${s}">${SG[s]} ${SUITS[s]}</span>${[8,7,6,5,4,3,2,1,0].filter(r=>r>=lo).map(r=>{ const id=s*9+r;
+    return `<span class="nc s${s} ${played.has(id)?'gone':''} ${mine.has(id)?'own':''} ${disc.has(id)?'dsc':''} ${id===G.up?'upc':''}" title="${RL[r]}${SG[s]}${RP[r]?' · '+RP[r]+' punti':''}">${RL[r]}</span>`; }).join('')}</div>`).join('');
+  const pts=`<div class="hint">Punti presi finora: ${G.names.map((n,i)=>`${esc(n)} <b>${G.take[i]}</b>`).join(' · ')}</div>`;
+  return `<div class="recap paper"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO) · TUOI SCARTI (TRATTEGGIO)</h3><div class="unseen">${rows}</div>${pts}</div>`;
+}
+function menuHtml(){
+  return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
+    ${MENUOPEN?`<div class="menu-pop">
+      <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <button type="button" class="opt-toggle" title="Mostra le carte già uscite, le tue e i tuoi scarti" id="optMemo">${OPT.memo?'Nascondi':'Mostra'} le carte uscite</button>
+    </div>`:''}</div>`;
+}
+function logHtml(){
+  return `<details class="log paper" ${LOGOPEN?'open':''}><summary>LOG DELLA PARTITA (${G.log.length})</summary><div class="logbody">${G.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div></details>`;
+}
+document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matches&&e.target.matches('details.log')) LOGOPEN=e.target.open; },true);
+function render(){
+  const app=document.getElementById('app');
+  const top=`<div class="topbar"><div class="logo">Counterpoint<small>David Parlett · Sista Labs</small></div>
+    ${window.nyloBackBtn?nyloBackBtn():''}${nyloHomeBtn()}
+    ${G&&!G.over?`<span class="badge">${dealTag(G)}</span>`:''}
+    ${G?`<button class="btn btn-sm" data-new="1">Nuova partita</button>`:''}
+    ${menuHtml()}</div>`;
+  let body='';
+  if(G){
+    const n=G.n, showScore=(G.phase==='score'||G.over)&&G.show;
+    body=`<div class="table n${n}">${G.hands.map((h,i)=>seatH(G,HUM,i,POS[n][i],i===HUM?myHandH():backsH(h.length))).join('')}${centerH(G)}</div>
+      ${showScore?`<div class="dock paper static">${scoreH(G,HUM)}</div>`:''}
+      ${G.hist[0].length&&(G.deals!==1)?`<div class="dock paper static">${totalH(G,HUM)}</div>`:''}
+      ${OPT.memo&&!G.over&&(G.phase==='bid'||G.phase==='play')?memoHtml():''}
+      ${logHtml()}
+      ${recapHtml(n)}
+      ${RULES_HTML}`;
+  }
+  app.innerHTML=top+`<div class="dock paper">${dockHtml()}</div>`+body;
+}
+
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
+  if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); return; }
+  if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
+  else if(b.dataset.c!==undefined){
+    const id=Number(b.dataset.c);
+    if(PR&&PR.type==='bid'){
+      const k=PR.sel.indexOf(id);
+      if(k>=0) PR.sel.splice(k,1); else if(PR.sel.length<3) PR.sel.push(id);
+      render();
+    }else if(PR&&PR.type==='card') playIdx(G.hands[HUM].indexOf(id));
+  }
+  else if(b.dataset.bid!==undefined){
+    if(!PR||PR.type!=='bid') return;
+    if(b.dataset.bid==='x'){ PR.sel=[]; render(); return; }
+    if(PR.sel.length!==3) return;
+    const high=b.dataset.bid==='1', ids=PR.sel.slice(), r=PR.res; PR=null; render(); r({ids,high});
+  }
+  else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
+});
+document.getElementById('app').addEventListener('change',e=>{
+  if(e.target.id==='optMemo'){
+    OPT.memo=e.target.checked;
+    try{ localStorage.setItem('cp-memo',OPT.memo?'1':'0'); }catch(err){}
+    render(); return;
+  }
+  if(e.target.id!=='optUndo') return;
+  OPT.undo=e.target.checked;
+  try{ localStorage.setItem('cp-undo',OPT.undo?'1':'0'); }catch(err){}
+  if(PR&&PR.type==='card'&&PR.sel!=null&&!OPT.undo){ const i=PR.sel,r=PR.res; PR=null; render(); r(i); return; }
+  render();
+});
+document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
+render();
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('counterpoint',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){ NAMES[0]=NYLO_START.name||'Tu'; newMatch(); }
+}
+
+</script>
+<script type="text/plain" id="src-room">
+// ═════════════════════════ COUNTERPOINT · ONLINE ═════════════════════════
+// Si gioca solo tra persone (2 o 3). Stato = un unico oggetto JSON (S); ogni azione passa da gameReduce(). Costanti e regole pure arrivano dal blocco comune.
+var GAME={id:'counterpoint',logo:'Counterpoint',counts:[2,3],
+  lobbyNote:'Servono 2 o 3 giocatori. Quando la stanza è piena, i posti e chi apre vengono assegnati a caso. Le puntate (le 3 carte scartate) sono simultanee e restano segrete fino a fine mano. Le opzioni di durata sono quelle scelte da chi crea la stanza.',
+  countNote:{2:'regole di Parlett a due, senza briscola',3:'con briscola e Jolly'}};
+var OPT={undo:true};
+try{var _u=localStorage.getItem('cp-undo');if(_u!==null)OPT.undo=_u==='1'}catch(e){}
+var ui={sel:null,pick:[],sent:false};
+var LOGOPEN=false;
+var POS={2:['bottom','top'],3:['bottom','left','right']};
+
+// ─────────────── REGOLE (le funzioni pure stanno nel blocco comune) ───────────────
+function lenOf(n,o){
+  var v=Number(o&&o.len);
+  return n===3?([3,6,9].indexOf(v)>=0?v:3):([0,4,6].indexOf(v)>=0?v:0);
+}
+function gameInitial(players,seed,opts){
+  var names=[];
+  players.forEach(function(p){var n=String(p.name||'Giocatore').slice(0,18),x=n,c=2;while(names.indexOf(x)>=0)x=n+' '+(c++);names.push(x)});
+  var S=newState(names,players.map(function(p){return p.uid}),lenOf(players.length,opts));
+  beginGame(S,mkRng(validSeed(seed)?seed:newSeed()));
+  return S;
+}
+function gameWinners(S){return S.winners||[]}
+// ritorna il nuovo stato oppure null se l'azione non è valida
+function gameReduce(S,seat,a){
+  if(!a||typeof a.type!=='string'||!(seat>=0&&seat<S.n))return null;
+  if(a.type==='bid')return actBid(S,seat,a.ids,a.high===true)?S:null;
+  if(a.type==='play')return actPlay(S,seat,a.id)?S:null;
+  if(a.type==='next'){
+    if(S.phase!=='score'||!validSeed(a.seed))return null;
+    return actNext(S,mkRng(a.seed))?S:null;
+  }
+  if(a.type==='rematch'){
+    if(S.phase!=='over'||!validSeed(a.seed))return null;
+    alog(S,'— Rivincita —');
+    beginGame(S,mkRng(a.seed));return S;
+  }
+  return null;
+}
+
+// ─────────────── INTERFACCIA ───────────────
+function ordSeats(){var o=[],i;for(i=0;i<S.n;i++)o.push((me+i)%S.n);return o}
+function myLegalIds(){
+  if(S.phase!=='play'||turnOf(S)!==me)return null;
+  return legalIds(S.hands[me],S.tdone?[]:S.trick);
+}
+function picking(){return S.phase==='bid'&&S.bids[me]==null}
+function myHandR(){
+  var h=S.hands[me];
+  if(picking())return handH(S,h,{mode:'pick',sel:ui.pick});
+  var lg=myLegalIds();
+  if(lg)return handH(S,h,{mode:'play',legal:new Set(lg),sel:ui.sel});
+  return handH(S,h,{});
+}
+function msgH(){
+  if(S.phase==='over'){var w=gameWinners(S).map(function(i){return esc(S.names[i])}).join(' e ');return '<b>'+(gameWinners(S).length>1?'Vittoria condivisa: ':'Vince ')+w+'!</b>'}
+  if(S.phase==='score')return esc(dealTag(S))+' conclusa: puntate rivelate e punteggio qui sotto.';
+  if(S.phase==='bid'){
+    var k=S.bids.filter(function(b){return b!=null}).length;
+    return S.bids[me]!=null?'Puntata inviata. Aspetto gli altri… ('+k+'/'+S.n+')':'Puntata segreta e simultanea: scegli le 3 carte da scartare. ('+k+'/'+S.n+' hanno scelto)';
+  }
+  var tn=turnOf(S);
+  if(S.tdone)return esc(S.rt)+' '+(tn===me?'Apri tu la presa successiva.':esc(S.names[tn])+' apre la presa successiva.');
+  return 'Presa '+(S.trick.length?S.trickNo:S.trickNo+1)+'/'+TRICKS[S.n]+' · '+(tn===me?'tocca a te':'tocca a '+esc(S.names[tn]))+(S.trick.length?'':' (di mano)')+'.';
+}
+function dockH(){
+  var h='<div class="dock-msg">'+msgH()+'</div>';
+  if(S.phase==='over')return h+'<div class="opts"><button class="opt" data-rematch="1">Rivincita</button></div>';
+  if(S.phase==='score')return h+'<div class="opts"><button class="opt" data-next="1">'+(gameDone(S)?'Mostra risultato finale':'Mano successiva')+'</button></div>';
+  if(S.phase==='bid'){
+    if(picking())h+=ui.sent?'<div class="hint">Invio della puntata…</div>':bidPickerH(S,ui.pick);
+    return h;
+  }
+  var lg=myLegalIds();
+  if(lg){
+    h+='<div class="hint">Tocca a te: '+esc(humanHint(S,me))+'</div>';
+    if(ui.sel!==null)h+='<div class="opts"><button class="opt" data-cf="1">Conferma: gioca '+esc(nameOf(ui.sel))+'</button><button class="opt" data-cf="0">Annulla</button></div>';
+  }
+  return h;
+}
+function roomLogH(){
+  return '<details class="log paper" '+(LOGOPEN?'open':'')+'><summary>LOG DELLA PARTITA ('+S.log.length+')</summary><div class="logbody">'+S.log.map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div></details>';
+}
+function gameBadge(){return S.phase==='over'?'':dealTag(S)}
+function gameMenu(){
+  return '<label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" '+(OPT.undo?'checked':'')+'> Abilita annulla</label>';
+}
+function gameChange(e){
+  if(e.target.id==='optUndo'){OPT.undo=e.target.checked;try{localStorage.setItem('cp-undo',OPT.undo?'1':'0')}catch(x){}render()}
+}
+function lobbyExtra(d){
+  var o=d&&d.opts;if(!o)return '';
+  var n=d.playerCount,len=lenOf(n,o);
+  return '<p class="muted">'+(n===3?'Partita di '+len+' mani':(len?'Partita di '+len+' mani':'Partita a 99 punti'))+'</p>';
+}
+function gameRender(){
+  if(!(S.phase==='play'&&turnOf(S)===me)||(ui.sel!==null&&S.hands[me].indexOf(ui.sel)<0))ui.sel=null;
+  if(!picking()){ui.pick=[];ui.sent=false}
+  var lb=document.querySelector('.logbody'),lbTop=lb?lb.scrollTop:0;
+  if(lbTop)setTimeout(function(){var n=document.querySelector('.logbody');if(n)n.scrollTop=lbTop},0);
+  var showScore=(S.phase==='score'||S.phase==='over')&&S.show;
+  return '<div class="dock paper">'+dockH()+'</div>'+
+    '<div class="table n'+S.n+'">'+ordSeats().map(function(p,i){return seatH(S,me,p,POS[S.n][i],p===me?myHandR():backsH(S.hands[p].length))}).join('')+centerH(S)+'</div>'+
+    (showScore?'<div class="dock paper static">'+scoreH(S,me)+'</div>':'')+
+    (S.hist[0].length&&S.deals!==1?'<div class="dock paper static">'+totalH(S,me)+'</div>':'')+
+    roomLogH()+recapHtml(S.n)+RULES_HTML;
+}
+function playCard(id){
+  ui.sel=null;act({type:'play',id:id});
+}
+function gameClick(b){
+  var d=b.dataset;
+  if(d.c!==undefined){
+    var id=Number(d.c);
+    if(picking()){
+      var x=ui.pick.indexOf(id);
+      if(x>=0)ui.pick.splice(x,1);else if(ui.pick.length<3)ui.pick.push(id);
+      render();return;
+    }
+    var lg=myLegalIds();if(!lg||lg.indexOf(id)<0)return;
+    if(OPT.undo){ui.sel=id;render()}else playCard(id);
+    return;
+  }
+  if(d.bid!==undefined){
+    if(!picking())return;
+    if(d.bid==='x'){ui.pick=[];render();return}
+    if(ui.pick.length!==3)return;
+    ui.sent=true;render();
+    act({type:'bid',ids:ui.pick.slice(),high:d.bid==='1'});return;
+  }
+  if(d.cf!==undefined){
+    if(d.cf==='1'){if(ui.sel!==null&&myLegalIds())playCard(ui.sel)}
+    else{ui.sel=null;render()}
+    return;
+  }
+  if(d.next!==undefined)act({type:'next',seed:newSeed()});
+  else if(d.rematch!==undefined)act({type:'rematch',seed:newSeed()});
+}
+document.getElementById('app').addEventListener('toggle',function(e){if(e.target.matches&&e.target.matches('details.log'))LOGOPEN=e.target.open},true);
+
+
+// ═══ KIT STANZE ═══
+// Stesso schema di tt/spy-team/online: rooms/$room con hostUid, members, lobby, state (le regole già pubblicate bastano).
+// Lo stato di gioco è un unico oggetto JSON salvato come stringa in state.s (+ contatore state.v); ogni azione è una
+// transazione che applica gameReduce() all'ultima versione. Le mani stanno nello stato (nascoste solo dall'interfaccia).
+var FIREBASE_CONFIG={
+  apiKey:"AIzaSyAoOMLytOqFY9GRXpi2kUGEyzLK-r00nvQ",
+  authDomain:"gachapon-trick.firebaseapp.com",
+  databaseURL:"https://gachapon-trick-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"gachapon-trick",
+  storageBucket:"gachapon-trick.firebasestorage.app",
+  messagingSenderId:"869677835302",
+  appId:"1:869677835302:web:85768d5a6ac0d94f8372e7"
+};
+function gameOpts(){var o=(window.NYLO_START&&NYLO_START.opts)||{};return {len:Number(o.len)||0}}
+var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+var SAVE_KEY=GAME.id+'-online-last';
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var rnd=function(n){return Math.floor(Math.random()*n)};
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+function getPlayerName(){
+  var name='';
+  try{
+    name=localStorage.getItem('nylo-player-name')||'';
+    if(!name){var last=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');name=last&&last.name||''}
+  }catch(e){}
+  return String(name||'Giocatore').trim().slice(0,18)||'Giocatore';
+}
+var playerName=getPlayerName();
+var db=null,user=null,roomRef=null,roomCode='',lobbyData=null,S=null,me=-1,listeners=[],startingGame=false;
+var statusText='',connText='',joinVal='',chosenCount=GAME.counts[0],MENUOPEN=false,connecting=false;
+try{var lastRoom=JSON.parse(localStorage.getItem(SAVE_KEY));if(lastRoom)joinVal=lastRoom.code||''}catch(e){}
+
+function setStatus(t){statusText=t;render()}
+function setConn(t){connText=t;var c=document.getElementById('conn');if(c)c.textContent=t}
+function showErr(t){
+  var e=document.getElementById('err');
+  if(!e){e=document.createElement('div');e.id='err';e.className='err';e.setAttribute('role','alert');document.body.appendChild(e)}
+  e.textContent=t;e.hidden=false;setConn('Errore');clearTimeout(showErr.t);showErr.t=setTimeout(function(){e.hidden=true},8000);
+}
+function genCode(){var b=new Uint8Array(12);crypto.getRandomValues(b);return Array.from(b,function(x){return ALPHABET[x%ALPHABET.length]}).join('')}
+function withTimeout(p,ms,msg){
+  return new Promise(function(res,rej){var t=setTimeout(function(){rej(new Error(msg))},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})});
+}
+function authMsg(e){
+  if(e.code==='auth/operation-not-allowed')return 'Attiva il provider Anonimo in Firebase Authentication.';
+  if(e.code==='auth/unauthorized-domain')return 'Dominio non autorizzato: aggiungilo in Authentication > Impostazioni > Domini autorizzati.';
+  if(e.code==='auth/network-request-failed')return 'Firebase non raggiungibile: controlla la connessione e che il sito sia in HTTPS.';
+  return e.message||'Errore di autenticazione Firebase.';
+}
+async function connect(){
+  if(!window.firebase)throw new Error('Firebase non caricato. Controlla la connessione.');
+  if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+  db=firebase.database();
+  if(user)return;
+  try{user=(await withTimeout(firebase.auth().signInAnonymously(),15000,'Autenticazione scaduta dopo 15 secondi.')).user}
+  catch(e){throw new Error(authMsg(e))}
+}
+function saveLast(name){try{localStorage.setItem(SAVE_KEY,JSON.stringify({code:roomCode,name:name}))}catch(e){}}
+
+// ─────────────── LOBBY ───────────────
+async function createRoom(){
+  try{
+    setStatus('Connessione a Firebase...');await connect();
+    var created=false,lastErr=null;
+    for(var i=0;i<5&&!created;i++){
+      roomCode=genCode();roomRef=db.ref('rooms/'+roomCode);
+      try{
+        await roomRef.child('hostUid').set(user.uid);
+        await roomRef.child('members/'+user.uid).set(true);
+        await roomRef.child('lobby').set({game:GAME.id,hostUid:user.uid,playerCount:chosenCount,started:false,closed:false,players:{}});
+        created=true;
+      }catch(e){lastErr=e;roomRef=null}
+    }
+    if(!created)throw lastErr||new Error('Impossibile creare la stanza. Verifica le regole del database.');
+    // opzioni di gioco (partita lunga, variante): scritte a parte e opzionali, se il database le rifiuta si usano quelle di chi avvia
+    try{await roomRef.child('lobby/opts').set(gameOpts())}catch(e){}
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;connecting=false;setStatus(e.message||'Errore durante la creazione della stanza.')}
+}
+async function joinRoom(){
+  try{
+    roomCode=joinVal.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(roomCode.length!==12)throw new Error('Il codice stanza è di 12 caratteri.');
+    setStatus('Connessione...');await connect();
+    roomRef=db.ref('rooms/'+roomCode);
+    await roomRef.child('members/'+user.uid).set(true);
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;connecting=false;setStatus(e.code==='PERMISSION_DENIED'?'Stanza non trovata o non accessibile.':(e.message||'Errore durante l\'accesso alla stanza.'))}
+}
+function reserveSeat(name){
+  var lobbyRef=roomRef.child('lobby');
+  return lobbyRef.once('value').then(function(snap){
+    if(!snap.exists())throw new Error('Lobby non trovata: controlla il codice.');
+    var initial=snap.val();
+    if(initial.game!==GAME.id)throw new Error('Questo codice appartiene a un altro gioco.');
+    return new Promise(function(resolve,reject){
+      lobbyRef.transaction(function(cur){
+        if(cur===null)cur=initial;
+        if(!cur||!cur.playerCount||cur.closed)return;
+        cur.players=cur.players||{};
+        if(cur.players[user.uid])return cur;            // rientro: il posto è già tuo
+        if(cur.started)return;
+        var occ={};Object.keys(cur.players).forEach(function(u){occ[cur.players[u].seat]=true});
+        var seat=1;while(seat<=cur.playerCount&&occ[seat])seat++;
+        if(seat>cur.playerCount)return;
+        cur.players[user.uid]={uid:user.uid,name:name,seat:seat};
+        return cur;
+      },function(err,committed,snap2){
+        if(err){reject(err);return}
+        var cur=snap2&&snap2.val();
+        if(!cur||!cur.players||!cur.players[user.uid]){
+          reject(new Error(cur&&cur.started?'La partita è già iniziata.':'La stanza è piena o non disponibile.'));return;
+        }
+        lobbyData=cur;saveLast(name);enterRoom();resolve();
+      },false);
+    });
+  });
+}
+function orderedPlayers(d){
+  return Object.keys(d.players||{}).map(function(u){return d.players[u]}).sort(function(a,b){return a.seat-b.seat});
+}
+function maybeStart(){
+  if(!lobbyData||S||startingGame||lobbyData.started||lobbyData.hostUid!==user.uid)return;
+  if(orderedPlayers(lobbyData).length===lobbyData.playerCount)startGame();
+}
+function startGame(){
+  startingGame=true;
+  var seated=orderedPlayers(lobbyData);   // i posti si assegnano a caso all'avvio
+  shuffle(seated);
+  var init=gameInitial(seated.map(function(p){return {uid:p.uid,name:p.name}}),undefined,(lobbyData&&lobbyData.opts)||gameOpts());
+  init.v=0;
+  roomRef.child('state').transaction(function(cur){if(cur!==null)return;return {v:0,s:JSON.stringify(init)}},function(err){
+    if(err){startingGame=false;showErr('Errore durante l\'avvio: '+err.message);return}
+    roomRef.child('lobby/started').set(true).catch(function(e){startingGame=false;showErr(e.message)});
+  },false);
+}
+
+// ─────────────── STANZA ───────────────
+function enterRoom(){
+  setConn('Lobby');
+  var lobbyRef=roomRef.child('lobby');
+  var lh=function(snap){if(!snap.exists())return;lobbyData=snap.val();if(!S){render();maybeStart()}};
+  lobbyRef.on('value',lh,function(e){showErr(e.message)});listeners.push({ref:lobbyRef,h:lh});
+  var stateRef=roomRef.child('state');
+  var sh=function(snap){
+    if(!snap.exists())return;
+    var raw=snap.val();
+    try{S=JSON.parse(raw.s)}catch(e){showErr('Stato della stanza non leggibile.');return}
+    me=S.uids.indexOf(user.uid);
+    if(me<0){showErr('Non risulti tra i giocatori di questa partita.');return}
+    setConn('Connesso');
+    render();
+  };
+  stateRef.on('value',sh,function(e){showErr('Connessione persa: '+e.message)});listeners.push({ref:stateRef,h:sh});
+  render();
+}
+function leave(dest){
+  var go=function(){if(dest)window.location.href=dest;else window.location.reload()};
+  listeners.forEach(function(l){l.ref.off('value',l.h)});
+  if(!roomRef||S||!user){go();return}
+  // prima dell'inizio libera il posto; a partita avviata si può rientrare con lo stesso codice
+  roomRef.child('lobby').transaction(function(cur){
+    if(!cur||cur.started)return;
+    cur.players=cur.players||{};delete cur.players[user.uid];
+    var rest=orderedPlayers(cur);
+    if(cur.hostUid===user.uid&&rest.length)cur.hostUid=rest[0].uid;
+    return cur;
+  },function(){
+    roomRef.child('members/'+user.uid).remove().catch(function(){}).then(go);
+  },false);
+}
+
+// azioni: ogni azione è una transazione sullo stato, validata da gameReduce() sull'ultima versione
+function act(a){
+  if(!roomRef||me<0)return;
+  var seat=me;
+  roomRef.child('state').transaction(function(cur){
+    if(!cur||!cur.s)return;
+    var st;try{st=JSON.parse(cur.s)}catch(e){return}
+    var r=gameReduce(st,seat,a);
+    if(!r)return;
+    r.v=(st.v||0)+1;
+    return {v:r.v,s:JSON.stringify(r)};
+  },function(err,committed){
+    if(err)showErr('Errore di sincronizzazione: '+err.message);
+    else if(!committed)setConn('Azione non più valida');
+  },false);
+}
+
+// ─────────────── RENDER ───────────────
+function lobbyHtml(){
+  var radios=GAME.counts.length<2?'':GAME.counts.map(function(n){
+    return '<label><input type="radio" name="pc" value="'+n+'" '+(chosenCount===n?'checked':'')+'> '+n+' giocatori'+(GAME.countNote&&GAME.countNote[n]?' · '+GAME.countNote[n]:'')+'</label>';
+  }).join('');
+  return '<section><p class="muted">Sei connesso come <b>'+esc(playerName)+'</b>.</p>'+
+    '<div class="panel"><h2>Crea una stanza</h2><p class="muted">'+GAME.lobbyNote+'</p>'+
+    (radios?'<div class="radios" role="radiogroup" aria-label="Numero di giocatori">'+radios+'</div>':'')+
+    '<button class="opt" id="createRoom" type="button" data-create="1">Crea stanza</button></div>'+
+    '<div class="panel"><h2>Unisciti a una stanza</h2>'+
+    '<input type="text" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(joinVal)+'">'+
+    '<button class="opt" type="button" data-join="1">Unisciti</button></div>'+
+    '<p class="status" role="status" aria-live="polite">'+esc(statusText)+'</p>'+
+    '<button class="btn btn-sm" type="button" data-ai="1">← Torna alla scelta</button></section>';
+}
+function connectingHtml(){
+  return '<section><div class="panel"><p class="muted" role="status" aria-live="polite">'+esc(statusText||'Connessione alla stanza...')+'</p></div></section>';
+}
+function waitingHtml(){
+  var d=lobbyData||{players:{},playerCount:GAME.counts[0]};
+  var players=orderedPlayers(d),full=players.length===d.playerCount,html='';
+  for(var seat=1;seat<=d.playerCount;seat++){
+    var p=players[seat-1];
+    html+='<li><span class="seat-n">'+seat+'.</span>'+
+      (p?'<span class="grow">'+esc(p.name)+(p.uid===user.uid?' (tu)':'')+'</span>':'<span class="grow soft">In attesa di un giocatore</span>')+
+      (p&&p.uid===d.hostUid?'<span class="flag first">HOST</span>':'')+'</li>';
+  }
+  return '<section><div class="panel"><h2>Stanza '+roomCode+'</h2><p class="muted">'+
+    (d.started?'La partita si sta caricando...':players.length+' / '+d.playerCount+' giocatori'+(full?' · avvio in corso':' · condividi il codice con gli altri'))+
+    '</p>'+(typeof lobbyExtra==='function'?lobbyExtra(d):'')+'<ul class="roster">'+html+'</ul></div></section>';
+}
+function kitMenuHtml(){
+  var extra=typeof gameMenu==='function'?gameMenu():'';
+  return '<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="'+MENUOPEN+'"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>'+
+    (MENUOPEN?'<div class="menu-pop">'+extra+'</div>':'')+'</div>';
+}
+function render(){
+  document.body.classList.toggle('a11y',!!(typeof OPT!=='undefined'&&OPT.a11y));
+  var focus=document.activeElement&&document.activeElement.id==='joinCode';
+  var badge=S&&typeof gameBadge==='function'?gameBadge():'';
+  var top='<div class="topbar"><div class="logo">'+GAME.logo+'</div>'+
+    (window.nyloBackBtn?nyloBackBtn(location.pathname,'alle opzioni del gioco'):'')+(window.nyloHomeBtn?nyloHomeBtn():'')+
+    (badge?'<span class="badge">'+badge+'</span>':'')+kitMenuHtml()+'</div>'+
+    (roomRef?'<div class="room-bar"><span class="room-code">'+roomCode+'</span><button class="btn btn-sm" type="button" data-copy="1">Copia codice</button><button class="btn btn-sm" type="button" data-leave="1">Esci</button><span class="conn" id="conn">'+esc(connText)+'</span></div>':'');
+  var body=!roomRef?(connecting?connectingHtml():lobbyHtml()):(!S?waitingHtml():gameRender());
+  document.getElementById('app').innerHTML=top+body;
+  if(focus){var j=document.getElementById('joinCode');if(j){j.focus();j.setSelectionRange(j.value.length,j.value.length)}}
+}
+var APP=document.getElementById('app');
+APP.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b||b.disabled)return;
+  var d=b.dataset;
+  if(d.back!==undefined){e.stopPropagation();if(!S||confirm('Tornare alle opzioni del gioco? Potrai rientrare nella stanza con lo stesso codice.'))leave(location.pathname);return}
+  if(d.menu){MENUOPEN=!MENUOPEN;render();return}
+  if(d.ai!==undefined){location.href=location.pathname;return}
+  if(d.create!==undefined){createRoom();return}
+  if(d.join!==undefined){joinRoom();return}
+  if(d.leave!==undefined){if(!S||confirm('Uscire dalla stanza? Potrai rientrare con lo stesso codice.'))leave();return}
+  if(d.copy!==undefined){
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(roomCode).then(function(){setConn('Codice copiato')});
+    else window.prompt('Copia il codice stanza:',roomCode);
+    return;
+  }
+  if(S&&typeof gameClick==='function')gameClick(b);
+});
+APP.addEventListener('input',function(e){if(e.target.id==='joinCode'){joinVal=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=joinVal}});
+APP.addEventListener('keydown',function(e){if(e.target.id==='joinCode'&&e.key==='Enter')joinRoom()});
+APP.addEventListener('change',function(e){
+  if(e.target.name==='pc'){chosenCount=Number(e.target.value);return}
+  if(typeof gameChange==='function')gameChange(e);
+});
+document.addEventListener('click',function(e){if(MENUOPEN&&!e.target.closest('.menu-wrap')){MENUOPEN=false;render()}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&MENUOPEN){MENUOPEN=false;render()}});
+connecting=!!(window.NYLO_START&&NYLO_START.mode==='room');
+render();
+if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosenCount;if(NYLO_START.name)playerName=NYLO_START.name.slice(0,18);if(NYLO_START.action==='join'){joinVal=NYLO_START.code||'';joinRoom()}else createRoom();}
+</script>
+<script>
+(function(){
+  run('src-common');
+  var P=window.NYLO_SETUP={id:'counterpoint',logo:'Counterpoint',counts:[2,3]};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  function run(id){var s=document.createElement('script');s.textContent=document.getElementById(id).textContent;document.body.appendChild(s)}
+  window.addEventListener('hashchange',function(){location.reload()});
+  window.NYLO_IN_SETUP=true;   // finché si sceglie, Home/Indietro escono senza avviso
+  var app=document.getElementById('app');
+  var st={n:3,mode:location.hash==='#stanze'?'room':(location.hash==='#ai'?'ai':''),sub:'',code:'',name:'',see:false,len3:3,len2:0};
+  var needName=false;
+  try{
+    st.name=localStorage.getItem('nylo-player-name')||'';var l3=Number(localStorage.getItem('cp-len3')),l2=localStorage.getItem('cp-len2');if([3,6,9].indexOf(l3)>=0)st.len3=l3;if(l2!==null&&[0,4,6].indexOf(Number(l2))>=0)st.len2=Number(l2);
+    var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
+  }catch(e){}
+  needName=!st.name;   // il nome arriva dalla sessione; il campo compare solo se manca
+  // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
+  var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
+  if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.n)rsm={n:sg.n}}}catch(e){}}
+  function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
+  function optsH(){
+    if(st.n===3)return '<div class="sx-label">DURATA DELLA PARTITA</div><div class="sx-row">'+btn('data-len="3"','','Corta (3 mani)',st.len3===3)+btn('data-len="6"','','Media (6 mani)',st.len3===6)+btn('data-len="9"','','Lunga (9 mani)',st.len3===9)+'</div>';
+    return '<div class="sx-label">DURATA DELLA PARTITA</div><div class="sx-row">'+btn('data-len="0"','','A 99 punti',st.len2===0)+btn('data-len="4"','','4 mani',st.len2===4)+btn('data-len="6"','','6 mani',st.len2===6)+'</div>';
+  }
+  function draw(){
+    var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
+    h+='<div class="sx-card">';
+    if(needName)h+='<label class="sx-label" for="sxName">IL TUO NOME</label><input class="sx-in" id="sxName" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(st.name)+'">';
+    if(P.counts.length>1){
+      h+='<div class="sx-label">GIOCATORI</div><div class="sx-row">'+P.counts.map(function(n){return btn('data-n="'+n+'"','',n+' giocatori',st.n===n)}).join('')+'</div>';
+    }
+    h+='<div class="sx-label">MODALITÀ</div><div class="sx-row">'+btn('data-mode="ai"','','Contro l’AI',st.mode==='ai')+btn('data-mode="room"','','A stanze',st.mode==='room')+'</div>';
+    if(st.mode==='ai'){
+      h+='<div class="sx-sub">'+optsH()+'<div class="sx-row">'+btn('data-go="ai"','sx-go','Inizia',false)+'</div></div>';
+    }else if(st.mode==='room'){
+      h+='<div class="sx-label">OPZIONI STANZA</div><div class="sx-sub"><div class="sx-row">'+btn('data-sub="create"','','Crea nuova',st.sub==='create')+btn('data-sub="join"','','Unisciti',st.sub==='join')+'</div>';
+      if(st.sub==='create')h+=optsH()+'<div class="sx-row">'+btn('data-go="create"','sx-go','Inizia',false)+'</div>';
+      if(st.sub==='join')h+='<input class="sx-in code" id="sxCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(st.code)+'"><div class="sx-row"><button type="button" class="sx-opt sx-go" id="sxJoin" data-go="join" '+(st.code.length===12?'':'disabled')+'>Inizia</button></div>';
+      h+='</div>';
+    }
+    h+='</div>';
+    app.innerHTML=h;
+  }
+  function loadRoom(){
+    var libs=['app','auth','database'].map(function(n){return 'https://www.gstatic.com/firebasejs/10.12.2/firebase-'+n+'-compat.js'});
+    (function next(i){
+      if(i===libs.length){run('src-room');return}
+      var s=document.createElement('script');s.src=libs[i];s.onload=function(){next(i+1)};
+      s.onerror=function(){app.innerHTML='<p style="padding:20px;color:#fff">Firebase non raggiungibile: controlla la connessione.</p>'};
+      document.head.appendChild(s);
+    })(0);
+  }
+  function go(kind){
+    var nm=document.getElementById('sxName'),name=((nm&&nm.value)||st.name||'').trim().slice(0,16);
+    window.NYLO_IN_SETUP=false;
+    if(name){try{localStorage.setItem('nylo-player-name',name)}catch(e){}}
+    var cfg={name:name,n:st.n,opts:{len:st.n===3?st.len3:st.len2}};
+    if(kind==='ai'){cfg.mode='ai';window.NYLO_START=cfg;run('src-ai');return}
+    cfg.mode='room';cfg.action=kind;if(kind==='join')cfg.code=st.code;
+    window.NYLO_START=cfg;app.innerHTML='';loadRoom();
+  }
+  app.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b||b.disabled)return;
+    var d=b.dataset;
+    if(d.len!==undefined){var lv=Number(d.len);if(st.n===3){st.len3=lv;try{localStorage.setItem('cp-len3',String(lv))}catch(x){}}else{st.len2=lv;try{localStorage.setItem('cp-len2',String(lv))}catch(x){}}draw()}
+    else if(d.n){st.n=Number(d.n);draw()}
+    else if(d.mode){st.mode=d.mode;st.sub='';draw()}
+    else if(d.sub){st.sub=d.sub;draw();var c=document.getElementById('sxCode');if(c)c.focus()}
+    else if(d.go)go(d.go);
+  });
+  app.addEventListener('input',function(e){
+    if(e.target.id==='sxName')st.name=e.target.value;
+    else if(e.target.id==='sxCode'){
+      st.code=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=st.code;
+      var j=document.getElementById('sxJoin');if(j)j.disabled=st.code.length!==12;
+    }
+  });
+  app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-ai');return}
+  draw();
+  if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
+})();
+</script>
+</body>
+</html>
+</body>
+</html>
