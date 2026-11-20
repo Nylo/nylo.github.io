@@ -144,6 +144,7 @@ button.fc:disabled{cursor:default}
 .sw{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:10px;font-weight:700;background-color:var(--kb);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
 .sw i{font-size:14px}
 .cols{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.cols .sw{padding:4px 12px}
 
 .mv{display:flex;flex-direction:column;gap:8px}
 .mvrow{gap:10px}
@@ -168,6 +169,12 @@ button.fc:disabled{cursor:default}
 .nc{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 3px;border-radius:6px;background-color:var(--kb);color:#fff;font-weight:700;font-size:12px;line-height:1;text-shadow:0 1px 1px rgba(0,0,0,.25)}
 .nc.gone{opacity:.2;text-decoration:line-through}
 .nc.own{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
+/* modalità accessibile: una filigrana diversa per ogni colore (si vedono anche senza distinguere i colori) */
+body.a11y .fc.k0,body.a11y .sw.k0,body.a11y .rchip.k0,body.a11y .nc.k0{background-image:radial-gradient(rgba(0,0,0,0.26) 22%,transparent 24%);background-size:9px 9px}
+body.a11y .fc.k1,body.a11y .sw.k1,body.a11y .rchip.k1,body.a11y .nc.k1{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k2,body.a11y .sw.k2,body.a11y .rchip.k2,body.a11y .nc.k2{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.22) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k3,body.a11y .sw.k3,body.a11y .rchip.k3,body.a11y .nc.k3{background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.3) 0 3px,transparent 3px 8px)}
+body.a11y .fc.k4,body.a11y .sw.k4,body.a11y .rchip.k4,body.a11y .nc.k4{background-image:repeating-linear-gradient(135deg,rgba(0,0,0,0.2) 0 3px,transparent 3px 8px)}
 details.rules{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 details.rules summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text);letter-spacing:0.05em}
 details.recap{display:block;padding:14px 16px}
@@ -385,8 +392,8 @@ function centerHtml(X){
   return `<div class="center">
     <div>${bh}</div>
     <div><span class="chk">Presa <b>${Math.min(X.done+(X.table.length?1:0)||1,TRICKS)}/${TRICKS}</b></span></div>
-    <div class="cols">${X.cols.map(k=>`<span class="sw k${k}" title="${COLS[k].a}">${ico(COLS[k].icon)}</span>`).join('')}</div>
-    <div class="hint" style="color:inherit">${X.cols.length} colori in gioco</div></div>`;
+    <div class="hint" style="color:inherit">${X.cols.length} colori in gioco:</div>
+    <div class="cols">${X.cols.map(k=>`<span class="sw k${k}" title="${COLS[k].a}">${ico(COLS[k].icon)}</span>`).join('')}</div></div>`;
 }
 // classifica finale/corrente. ord = ordine dei posti; me = posto da evidenziare (-1 nessuno)
 function scoreTable(X,ord,me,final){
@@ -459,8 +466,8 @@ const HUM = 0;
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,memo:false};
-try{ const s=localStorage.getItem('mofu-undo'); if(s!==null) OPT.undo=s==='1'; OPT.memo=localStorage.getItem('mofu-memo')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('mofu-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('mofu-a11y')==='1'; OPT.memo=localStorage.getItem('mofu-memo')==='1'; }catch(e){}
 
 // <AI-PURE>
 // ═════════════════════════ AI ═════════════════════════
@@ -617,6 +624,7 @@ function menuHtml(){
   return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
+      <label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
       <button type="button" class="opt-toggle" title="Mostra le carte già uscite e quelle che hai in mano" id="optMemo">${OPT.memo?'Nascondi':'Mostra'} le carte uscite</button>
     </div>`:''}</div>`;
 }
@@ -645,6 +653,7 @@ document.getElementById('app').addEventListener('toggle',e=>{ if(e.target.matche
 let MENUOPEN=false;
 function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
 function render(){
+  document.body.classList.toggle('a11y',OPT.a11y);
   const app=document.getElementById('app');
   const top=`<div class="topbar"><div class="logo"><span class="l1">Mofu</span><span class="l2">chip</span><small>モフチップ</small></div>
     ${window.nyloBackBtn?nyloBackBtn():""}${nyloHomeBtn()}
@@ -688,6 +697,11 @@ document.getElementById('app').addEventListener('change',e=>{
     try{ localStorage.setItem('mofu-memo',OPT.memo?'1':'0'); }catch(err){}
     render(); return;
   }
+  if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;
+    try{ localStorage.setItem('mofu-a11y',OPT.a11y?'1':'0'); }catch(err){}
+    render(); return;
+  }
   if(e.target.id!=='optUndo') return;
   OPT.undo=e.target.checked;
   try{ localStorage.setItem('mofu-undo',OPT.undo?'1':'0'); }catch(err){}
@@ -709,8 +723,8 @@ if(window.NYLO_START&&NYLO_START.mode==='ai'){
 // Si gioca solo tra persone (3–5). Stato = un unico oggetto JSON (S); ogni azione passa da gameReduce(). Costanti e regole pure arrivano dal blocco comune.
 var GAME={id:'mofuchip',logo:'<span class="l1">Mofu</span><span class="l2">chip</span><small>モフチップ</small>',counts:[3,4,5],
   lobbyNote:'Servono da 3 a 5 giocatori. Quando la stanza è piena, i colori in gioco, i posti al tavolo e il primo giocatore vengono assegnati a caso. Nelle stanze non c\'è «Mostra le carte uscite».'};
-var OPT={undo:true};
-try{var _u=localStorage.getItem('mofu-undo');if(_u!==null)OPT.undo=_u==='1'}catch(e){}
+var OPT={undo:true,a11y:false};
+try{var _u=localStorage.getItem('mofu-undo');if(_u!==null)OPT.undo=_u==='1';OPT.a11y=localStorage.getItem('mofu-a11y')==='1'}catch(e){}
 var ui={mv:null};
 var LOGOPEN=false;
 
@@ -812,12 +826,16 @@ function roomLogH(){
 }
 function gameBadge(){return S.phase==='over'?'':'Presa '+Math.min(S.done+1,TRICKS)+'/'+TRICKS}
 function gameMenu(){
-  return '<label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" '+(OPT.undo?'checked':'')+'> Abilita annulla</label>';
+  return '<label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" '+(OPT.undo?'checked':'')+'> Abilita annulla</label>'+
+    '<label class="opt-toggle" title="Aggiunge una filigrana ai colori per distinguerli senza i colori"><input type="checkbox" id="optA11y" '+(OPT.a11y?'checked':'')+'> Modalità accessibile</label>';
 }
 function gameChange(e){
   if(e.target.id==='optUndo'){
     OPT.undo=e.target.checked;try{localStorage.setItem('mofu-undo',OPT.undo?'1':'0')}catch(x){}
     if(!OPT.undo&&ui.mv&&myTurn()&&mvNoChoice(S.pl[me].hand,S.pl[me].chips,myBase(),ui.mv.sel)){submitMove();return}
+    render();
+  }else if(e.target.id==='optA11y'){
+    OPT.a11y=e.target.checked;try{localStorage.setItem('mofu-a11y',OPT.a11y?'1':'0')}catch(x){}
     render();
   }
 }
@@ -1077,6 +1095,7 @@ function kitMenuHtml(){
     (MENUOPEN?'<div class="menu-pop">'+extra+'</div>':'')+'</div>';
 }
 function render(){
+  document.body.classList.toggle('a11y',!!(typeof OPT!=='undefined'&&OPT.a11y));
   var focus=document.activeElement&&document.activeElement.id==='joinCode';
   var badge=S&&typeof gameBadge==='function'?gameBadge():'';
   var top='<div class="topbar"><div class="logo">'+GAME.logo+'</div>'+
