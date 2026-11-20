@@ -691,13 +691,15 @@ async function oneTrick(){
     resolveMM(G,mi);
     const msg=`Matchmaking! ${nameOf(pl[mi].s)} e ${nameOf(last.s)} hanno giocato ${cname(last.c)}: le due carte si scartano${oth.length?`, ${oth.map(x=>`${cname(x.c)} ${x.c.t?'torna all\'ufficio':`va al campeggio di ${tname(team(x.s)).toLowerCase()}`}`).join('; ')}`:''}. Apre ${nameOf(last.s)}.`;
     status(msg); logMsg(msg);
+    G.plays=[]; ckpt();   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa
     await sleep(2800);
   }else{
     const inf=analyze(G);
     if(inf.allT){
       G.res={w:-1,l:-1,allT:true};
       const msg='Quattro guide nella stessa presa: la presa viene scartata.'; status(msg); logMsg(msg);
-      applyRes(G,inf,{}); await sleep(2400);
+      applyRes(G,inf,{}); G.plays=[]; ckpt();   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa
+      await sleep(2400);
     }else{
       G.res={w:inf.w,l:inf.l};
       const wc=pl.find(x=>x.s===inf.w), lcc=pl.find(x=>x.s===inf.l);
@@ -728,6 +730,7 @@ async function oneTrick(){
       }
       applyRes(G,inf,{trump:tk,collect:cc});
       G.res.tk=tk; G.res.cc=cc;
+      G.plays=[]; ckpt();   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa
       status(`${nameOf(inf.w)} aggiunge ${cc?cname(cc):'nessuna carta'} al campeggio${tk?` · ${nameOf(inf.l)} ${tk.kind==='office'?'prende':'ruba'} la guida ${TV[tk.ti]}`:''}.`);
       await sleep(1800);
     }

@@ -462,10 +462,11 @@ async function playGame(rs){
     G.win=w.p;
     const nextL=ex?(w.p+1)%G.n:w.p;
     const m=`${P(w.p).name} vince la presa (${cname(w.c)}) e raccoglie ${cards.length} carte.${ex?` Ha un gruppo da 4+: guida ${P(nextL).name}, alla sua sinistra.`:` Guida ${P(nextL).name}.`}`;
-    status(m); logMsg(m);
-    await sleep(1900);
     G.leader=nextL;
     if(t===HAND-1) G.lastW=w.p;
+    status(m); logMsg(m);
+    ckpt();   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa
+    await sleep(1900);
   }
   G.win=-1;
 }

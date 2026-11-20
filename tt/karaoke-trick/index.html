@@ -458,6 +458,7 @@ async function playRound(){
     G.res={plays:ts.plays.slice(),pass:ts.pass.slice(),suit:ts.suit,w:r.w};
     const msg=`${P(r.w).name} vince la presa e raccoglie ${plu(r.n,'carta','carte')}.`;
     status(msg); logMsg(msg);
+    { const gr=G.res; G.res=null; S.ts=null; ckpt(); G.res=gr; S.ts=ts; }   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa (stato identico a inizio presa successiva)
     await sleep(2200);
     G.res=null; S.ts=null; render();
   }

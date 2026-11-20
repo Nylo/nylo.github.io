@@ -490,9 +490,10 @@ async function oneTrick(){
   if(second) wp.post++; else wp.pre++;
   const sunny=wp.umb===wc.k;
   const m=`${wp.name} vince la presa con ${cname(wc)}${sunny?' (Soleggiato)':''}.`;
-  status(m); logMsg(m);
-  await sleep(2100);
   G.leader=w; G.lastWinner=w;
+  status(m); logMsg(m);
+  if(out){ G.t++; ckpt(); G.t--; }   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa (solo nell'Andata: nel Ritorno le chiusure ombrello vengono dopo la pausa; G.t+1 = come a inizio presa successiva)
+  await sleep(2100);
 }
 // Ritorno a casa: dopo ogni presa chi ha ancora l'ombrello può chiuderlo (decidono per primi i colori con meno puntini); dopo l'ultima presa lo chiudono tutti
 function closeUmb(p,last){
