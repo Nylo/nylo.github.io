@@ -409,6 +409,7 @@ async function oneTrick(){
   G.won[r.w]++; G.res={w:r.w}; G.shown=G.plays.slice(); G.leader=r.w;
   let t=`Presa ${G.trick}/${HS}: vince ${nameOf(r.w)} con ${cname(wc)} (${rkOf(wc,m0)}).`;
   if(r.flip){ G.mode=G.mode==='F'?'N':'F'; t+=` Il canale cambia: ${MODE[G.mode]}.`; }
+  { const sv=[G.shown,G.plays,G.res,G.fresh]; G.shown=null; G.plays=[]; G.res=null; G.fresh=-1; ckpt(); [G.shown,G.plays,G.res,G.fresh]=sv; }   // punto sicuro subito dopo la presa (stato = inizio presa successiva, come dopo la pulizia qui sotto), prima della pausa di visualizzazione
   logMsg(t); status(t);
   await S_(1700);
   G.shown=null; G.plays=[]; G.res=null; G.fresh=-1;

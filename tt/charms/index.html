@@ -485,9 +485,10 @@ async function tricks(cont){
     const w=winnerOf(ssOf(),snOf(),order,G.trump,G.led);
     G.winner=w; P(w).won++;
     const m=`${P(w).name} vince la presa (${SUITS[P(w).sh.s].n} ${P(w).sh.n}).`;
+    G.leader=w;
+    { const sv=[G.t,G.fresh,G.winner,G.led,G.done]; G.t=t+1; G.fresh={}; G.winner=-1; G.led=null; G.done=[]; ckpt(); [G.t,G.fresh,G.winner,G.led,G.done]=sv; }   // punto sicuro subito dopo la presa (stato = inizio presa successiva), prima della pausa di visualizzazione
     status(m); logMsg(m);
     await sleep(1900);
-    G.leader=w;
   }
   G.winner=-1; G.turn=-1;
 }
@@ -508,7 +509,7 @@ async function run(rs){
     let res=!!rs;
     for(let k=res?g.game:0;k<HANDS;k++){
       let cont=false;
-      if(res){ res=false; cont=g.stage==='play'; status(`Partita ripresa: round ${k+1}/${HANDS}${cont?`, presa ${g.t+1}/${TRICKS}`:' (puntate)'}.`); }
+      if(res){ res=false; cont=g.stage==='play'; status(`Partita ripresa: round ${k+1}/${HANDS}${cont?`, presa ${Math.min(g.t+1,TRICKS)}/${TRICKS}`:' (puntate)'}.`); }
       else{
         g.game=k; g.start=(g.start0+k)%g.n;
         deal(); g.stage='bid'; ckpt();

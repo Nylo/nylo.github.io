@@ -434,12 +434,11 @@ async function oneTrick(){
   if(areas[w].x){ if(G.pool>0){ pw.crystals++; G.pool--; cx=' e prende 1 cristallo'; }else cx=' (cristalli esauriti)'; }
   const rew=G.rew; pw.grims.push(rew);
   const m=`${pw.name} vince la presa con ${areaText(areas[w])}${cx} e prende il grimorio ${sg(rew.v)}.`;
+  const fin=()=>{ pw.pile+=pw.slots.reduce((a,s)=>a+(s?1+(s.under||0):0),0); pw.slots=[null,null]; G.rew=G.gdeck.length?G.gdeck.shift():null; G.leader=w; };
+  { const sv=[pw.pile,pw.slots,G.rew,G.gdeck,G.leader]; G.gdeck=G.gdeck.slice(); fin(); ckpt(); [pw.pile,pw.slots,G.rew,G.gdeck,G.leader]=sv; }   // punto sicuro subito dopo la presa (stato = inizio presa successiva), prima della pausa di visualizzazione
   status(m); logMsg(m);
   await sleep(1800);
-  pw.pile+=pw.slots.reduce((a,s)=>a+(s?1+(s.under||0):0),0);
-  pw.slots=[null,null];
-  G.rew=G.gdeck.length?G.gdeck.shift():null;
-  G.leader=w;
+  fin();
 }
 async function tricks(){
   if(!G.trickNo) G.leader=G.start;

@@ -399,6 +399,7 @@ async function playRound(res){
     const w=wins(G.trick), pw=P(w), slack=isSlacker(G.trick,w);
     pw.won++; if(slack) pw.horiz++; else pw.vert++;
     G.win=w;
+    { const sv=[G.trickNo,G.trick,G.win,G.leader]; G.trickNo=t+2; G.trick=[]; G.win=-1; G.leader=w; ckpt(); [G.trickNo,G.trick,G.win,G.leader]=sv; }   // punto sicuro subito dopo la presa (stato = inizio presa successiva, trickNo già avanzato), prima della pausa di visualizzazione
     const txt=`${pw.name} vince la presa ${G.trickNo}: ${slack?'compito accettato ma non svolto (6 pigrone)':'compito svolto'}.`;
     logMsg(txt); status(txt);
     await sleep(1500);
