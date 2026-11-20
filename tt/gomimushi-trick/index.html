@@ -558,6 +558,7 @@ async function playRound(){
     S.res=wi; S.won[w]++;
     logMsg(`${P(w).name} vince la presa n° ${S.done+1} con ${cname(wc)}${S.trick[wi].p===S.sas&&wc.s!==S.trick[0].c.s?' (carta di Sasaki conta come '+SUITS[S.trick[0].c.s].n+')':''}: «Ho vinto io» (prese: ${S.won[w]}).`,`${P(w).name}: «Ho vinto io» (prese: ${S.won[w]}).`);
     status(`${P(w).name} vince la presa.`);
+    { const t=S.trick, r=S.res, l=S.lead; S.done++; S.lead=w; S.trick=[]; S.res=null; ckpt(); S.done--; S.lead=l; S.trick=t; S.res=r; }   // punto sicuro anche subito dopo la presa: stato di fine presa nello snapshot, tavolo e risultato intatti durante la pausa
     await sleep(1300);
     S.done++; S.lead=w; S.trick=[]; S.res=null;
   }
