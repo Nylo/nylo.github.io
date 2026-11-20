@@ -94,6 +94,8 @@ table.score .neg{color:var(--danger)}
 .tag b{color:#ffd54a}
 .tok{display:inline-flex;align-items:center;justify-content:center;width:24px;min-width:24px;height:24px;padding:0;flex:0 0 24px;border-radius:50%;background:#fff;color:#111;font-weight:800;font-size:12px;border:2px solid #111}
 .tok.dk{background:#111;color:#fff;border-color:#fff}
+.tok.hit{background:#1f9d55;color:#fff;border-color:#fff}
+.tok.miss{background:#d12a3c;color:#fff;border-color:#fff}
 .backs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:230px}
 .back{width:12px;height:18px;border-radius:3px;background:#3f6fb8;border:1px solid #fff}
 .seat.top .backs,.seat.left .backs,.seat.right .backs{max-width:130px}
@@ -104,7 +106,8 @@ table.score .neg{color:var(--danger)}
 
 .fc{width:var(--cw);height:var(--ch);border-radius:7px;border:2px solid #111;background:#fff;color:#111;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:'Oswald',sans-serif;font-weight:700;font-size:22px;line-height:1;position:relative;flex-shrink:0;padding:0;box-shadow:0 2px 4px rgba(0,0,0,0.4)}
 .fc .sy{width:24px;height:24px}
-.fc .ey{position:absolute;top:2px;font-size:10px;color:#111}
+.fc.z0::after{content:'';position:absolute;right:3px;bottom:3px;width:11px;height:11px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M12,0 V9 A3,3 0 0 1 9,12 H0 Z' fill='%23111'/%3E%3C/svg%3E") no-repeat center/100% 100%}
+.fc.z0.sm::after{right:2px;bottom:2px;width:8px;height:8px}
 .fc.mini{width:42px;height:62px;font-size:19px}
 .fc.mini .sy{width:20px;height:20px}
 .fc.bk{background:#3f6fb8;border-color:#fff;color:#fff}
@@ -156,6 +159,7 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
   :root{--cw:32px;--ch:48px}
   .fc{font-size:15px;border-width:1px;border-radius:5px;gap:1px}
   .fc .sy{width:16px;height:16px}
+  .fc.z0::after{right:2px;bottom:2px;width:9px;height:9px}
   .fc.mini{width:34px;height:50px;font-size:15px}
   .fc.mini .sy{width:15px;height:15px}
   .tableau .empty{width:34px;height:50px}
@@ -221,8 +225,8 @@ const resultOf = p => (RESULTS.find(r=>p>=r[0]&&p<=r[1])||RESULTS[0])[2];
 const rnd = n => Math.floor(Math.random()*n);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 let G = null, PR = null;
-const OPT = {undo:true,a11y:false,peek:false,memo:false};
-try{ const s=localStorage.getItem('esp-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('esp-a11y')==='1'; OPT.peek=localStorage.getItem('esp-peek')==='1'; OPT.memo=localStorage.getItem('esp-memo')==='1'; }catch(e){}
+const OPT = {undo:true,a11y:false,memo:false};
+try{ const s=localStorage.getItem('esp-undo'); if(s!==null) OPT.undo=s==='1'; OPT.a11y=localStorage.getItem('esp-a11y')==='1'; OPT.memo=localStorage.getItem('esp-memo')==='1'; }catch(e){}
 const cname = c => `${c.r} di ${SUITS[c.s].short}`;
 const isEye = c => c.r===c.s+1;
 const tokName = t => t.kind==='suit'?SUITS[t.v].n:`${t.v}`;
@@ -546,17 +550,16 @@ async function run(rs){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
-const kface=(c,cls='')=>`<span class="fc ${cls}" title="${cname(c)}">${isEye(c)?'<i class="ph-fill ph-eye ey"></i>':''}<span>${c.r}</span>${sym(c.s)}</span>`;
+const kface=(c,cls='')=>`<span class="fc ${isEye(c)?'z0 ':''}${cls}" title="${cname(c)}"><span>${c.r}</span>${sym(c.s)}</span>`;
 function handBtn(c,i,ok,sel){
-  return `<button class="fc ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}">${isEye(c)?'<i class="ph-fill ph-eye ey"></i>':''}<span>${c.r}</span>${sym(c.s)}</button>`;
+  return `<button class="fc ${isEye(c)?'z0 ':''}${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}"><span>${c.r}</span>${sym(c.s)}</button>`;
 }
 function fdBtn(i,c,ok,sel){
-  if(OPT.peek) return handBtn(c,i,ok,sel);
   return `<button class="fc bk ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="Carta coperta ${i+1}"><i class="ph-fill ph-eye"></i></button>`;
 }
-function tokHtml(t,dk){
+function tokHtml(t,dk,res){
   if(!t) return '<span class="tok dk">?</span>';
-  return `<span class="tok ${dk?'dk':''}" title="${t.kind==='suit'?'Seme '+SUITS[t.v].n:'Rango '+t.v}">${t.kind==='suit'?sym(t.v):t.v}</span>`;
+  return `<span class="tok ${dk?'dk':''} ${res||''}" title="${t.kind==='suit'?'Seme '+SUITS[t.v].n:'Rango '+t.v}${res==='hit'?' · indovinato':res==='miss'?' · sbagliato':''}">${t.kind==='suit'?sym(t.v):t.v}</span>`;
 }
 function tableauHtml(p){
   const x=G.table.find(t=>t.p===p);
@@ -580,13 +583,13 @@ function seatHtml(p,pos){
     }).join('')}</div>`;
     if(pl.fd.length) fd=`<div class="fdrow"><span class="fdl">coperte:</span>${pl.fd.map((c,i)=>{
       if(fdPhase) return fdBtn(i,c,PR.legal.has(i),PR.sel===i);
-      return OPT.peek?kface(c,'sm'):'<span class="fc bk sm"><i class="ph-fill ph-eye"></i></span>';
+      return '<span class="fc bk sm"><i class="ph-fill ph-eye"></i></span>';
     }).join('')}</div>`;
   }else{
     hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
     if(pl.fd.length) fd=`<div class="fdrow"><span class="fdl">coperte:</span><div class="backs">${pl.fd.map(()=>'<span class="back"></span>').join('')}</div></div>`;
   }
-  const meta=`<div class="seat-meta"><span class="tag">previsione ${pl.pred?tokHtml(pl.pred):'–'}</span><span class="tag">prese <b>${pl.won}</b></span><span class="tag">punti <b>${pl.total}</b></span></div>`;
+  const meta=`<div class="seat-meta"><span class="tag">previsione ${pl.pred?tokHtml(pl.pred,false,G.vrev&&G.predPts?(G.predPts[p]?'hit':'miss'):''):'–'}</span><span class="tag">prese <b>${pl.won}</b></span><span class="tag">punti <b>${pl.total}</b></span></div>`;
   const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
   const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${fd}${hand}`
     :(pos==='top'?`${hand}${fd}${name}${meta}${tableauHtml(p)}`:`${name}${meta}${tableauHtml(p)}${fd}${hand}`);
@@ -607,10 +610,10 @@ function centerHtml(){
     <div>Presa <b>${Math.min(G.trickNo,5)}/5</b> · Round <b>${Math.min(G.round+1,ROUNDS)}/${ROUNDS}</b></div>
     <div class="hint">${FD[Math.min(G.round,ROUNDS-1)]} carte coperte per giocatore in questo round</div></div>`;
 }
-// carte uscite: solo informazione pubblica (carte giocate nel round, coperte comprese una volta giocate; Carta Visione dopo la rivelazione) + la mano dell'umano (le coperte solo se «Mostra le mie carte coperte» è attivo)
+// carte uscite: solo informazione pubblica (carte giocate nel round, coperte comprese una volta giocate; Carta Visione dopo la rivelazione) + la mano dell'umano
 function memoHtml(){
   const seen=new Set(G.played.map(c=>c.id)); if(G.vrev&&G.vision) seen.add(G.vision.id);
-  const hum=P(HUM), mine=new Set(hum.hand.map(c=>c.id)); if(OPT.peek) hum.fd.forEach(c=>mine.add(c.id));
+  const hum=P(HUM), mine=new Set(hum.hand.map(c=>c.id));
   const rows=SUITS.map((su,s)=>{
     const cs=fullDeck().filter(c=>c.s===s);
     return `<div class="ur"><span class="l">${sym(s)} ${su.n}</span>${cs.map(c=>`<span class="nc ${seen.has(c.id)?'gone':''} ${mine.has(c.id)?'own':''}" title="${cname(c)}">${c.r}</span>`).join('')}</div>`;
@@ -640,7 +643,7 @@ function dockHtml(){
     html+=`<div class="hint">Tocca a te: ${esc(PR.hint)}</div>`;
     if(PR.sel!=null){
       const pl=P(HUM);
-      const lbl=PR.src==='fd'&&!OPT.peek?`la carta coperta ${PR.sel+1}`:cname((PR.src==='fd'?pl.fd:pl.hand)[PR.sel]);
+      const lbl=PR.src==='fd'?`la carta coperta ${PR.sel+1}`:cname(pl.hand[PR.sel]);
       html+=`<div class="opts"><button class="opt" data-cf="1">Conferma: ${PR.src==='hand'&&pl.fd.length<FD[G.round]&&G.trickNo===0?'metti coperta':'gioca'} ${lbl}</button><button class="opt" data-cf="0">Annulla</button></div>`;
     }
   }
@@ -653,7 +656,7 @@ function recapHtml(){
     <div class="recap-row"><span class="lbl">Visione</span><span class="rv" style="margin-left:0">ognuno prevede un seme O un rango diverso per la Carta Visione coperta · chi indovina +1 punto · il seme o rango indovinato diventa <b>Soprannaturale</b> (se indovinati entrambi, il rango è <b>Super-soprannaturale</b>)</span></div>
     <div class="recap-row"><span class="lbl">Ipotesi</span><span class="rv" style="margin-left:0">metti 2/3/4/5 carte coperte (round 1–4) e tieni le altre in mano · non puoi più guardare le coperte · si giocano prima le carte in mano, poi le coperte (senza obbligo di seme) · l'ultima coperta è la puntata</span></div>
     <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">5 prese · devi seguire il seme se puoi (solo con le carte in mano) · vince il rango più alto del seme di mano, a meno che sia stata giocata una carta Soprannaturale (la più alta; se è un rango, l'ultima giocata) · il Super-soprannaturale batte il Soprannaturale (a parità l'ultimo)</span></div>
-    <div class="recap-row"><span class="lbl">Punti</span><span class="rv" style="margin-left:0">1 per ogni presa + 3 se la puntata è corretta (rango o valore del seme della carta = prese; la carta con l'occhio può valere 0)</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv" style="margin-left:0">1 per ogni presa + 3 se la puntata è corretta (rango o valore del seme della carta = prese; la carta con l'occhio può valere 0: in questa implementazione l'occhio (zero) è rappresentato dal <b>triangolino nell'angolo in basso a destra</b> della carta)</span></div>
     <div class="recap-row"><span class="lbl">Fine</span><span class="rv" style="margin-left:0">4 round · vince il punteggio totale più alto</span></div></details>`;
 }
 const RULES_HTML = `
@@ -696,7 +699,6 @@ function menuHtml(){
   return `<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="${MENUOPEN}"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>
     ${MENUOPEN?`<div class="menu-pop">
       <label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" ${OPT.undo?'checked':''}> Abilita annulla</label>
-      <label class="opt-toggle" title="Per regolamento le carte coperte non si possono guardare: questo è un aiuto di memoria"><input type="checkbox" id="optPeek" ${OPT.peek?'checked':''}> Mostra le mie carte coperte</label>
       <label class="opt-toggle" title="Le carte si distinguono già per forma"><input type="checkbox" id="optA11y" ${OPT.a11y?'checked':''}> Modalità accessibile</label>
       <button type="button" class="opt-toggle" title="Mostra le carte già uscite in questo round e quelle che hai in mano" id="optMemo">${OPT.memo?'Nascondi':'Mostra'} le carte uscite</button>
     </div>`:''}</div>`;
@@ -740,11 +742,6 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='optMemo'){
     OPT.memo=e.target.checked;
     try{ localStorage.setItem('esp-memo',OPT.memo?'1':'0'); }catch(err){}
-    render(); return;
-  }
-  if(e.target.id==='optPeek'){
-    OPT.peek=e.target.checked;
-    try{ localStorage.setItem('esp-peek',OPT.peek?'1':'0'); }catch(err){}
     render(); return;
   }
   if(e.target.id!=='optUndo') return;
