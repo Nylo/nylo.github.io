@@ -27,7 +27,7 @@
         <p class="mt-1 text-sm text-slate-400">Scegli il gioco e come giocarlo: contro l'AI o contro gli amici, in una stanza online.</p>
         <div class="mt-6 flex flex-wrap items-center justify-between gap-2">
                 <div class="flex items-center gap-3"><label class="relative block max-w-sm"><span class="sr-only">Cerca un titolo</span><i class="ph-fill ph-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true"></i><input id="q" type="search" autocomplete="off" placeholder="Cerca un titolo…" class="w-full rounded-lg border border-slate-700 bg-white/[0.04] py-2 pl-9 pr-3 text-sm text-slate-100 placeholder-slate-500 focus:border-teal-500 focus:outline-none"></label><span id="count" class="hidden whitespace-nowrap text-sm font-semibold tabular-nums text-slate-400" title="Giochi mostrati / totale"></span></div>
-                <!-- TEMPORANEO, solo admin: filtro per stato (Beta / Alpha); rimuovere questo blocco e il codice "stateFilter" nello script -->
+                <!-- TEMPORANEO, solo admin: filtro per stato (ok / Beta / Alpha); rimuovere questo blocco e il codice "stateFilter" nello script -->
                 <div id="stateFilter" class="hidden flex-wrap justify-end gap-2" role="group" aria-label="Filtra per stato"></div>
         </div>
                 <div class="mt-4 overflow-x-auto rounded-xl border border-slate-700/60">
@@ -639,7 +639,7 @@
         function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
         GAMES.sort(function (a, b) { return a.name.localeCompare(b.name, 'it', { sensitivity: 'base' }); });
                 var BADGE_STYLE = {
-                        beta: 'border-amber-500/60 bg-amber-500/10 text-amber-300',
+                        ok: 'border-emerald-500/60 bg-emerald-500/10 text-emerald-300', beta: 'border-amber-500/60 bg-amber-500/10 text-amber-300',
                         alpha: 'border-red-500/60 bg-red-500/10 text-red-400'
                 };
                 function badge(label, style) {
@@ -735,13 +735,13 @@
                 }
                 // ricerca live sul titolo (senza accenti, maiuscole indifferenti)
                 function norm(t) { return String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
-                // TEMPORANEO (stateFilter): tre interruttori sì/no; se almeno uno è attivo si mostrano i giochi con uno qualunque degli stati attivi
-                var stateOn = { beta: false, alpha: false };
-                var STATE_BTN = { beta: ['Beta', 'beta'], alpha: ['Alpha', 'alpha'] };
+                // TEMPORANEO (stateFilter): interruttori sì/no; «ok» (verde) mostra solo i giochi senza Alpha né Beta ed è alternativo agli altri due; Beta/Alpha si possono combinare
+                var stateOn = { ok: false, beta: false, alpha: false };
+                var STATE_BTN = { ok: ['ok', 'ok'], beta: ['Beta', 'beta'], alpha: ['Alpha', 'alpha'] };
                 function gameStates(g) {
                         var r = [];
                         if (g.alpha) r.push('alpha');
-                        else if (g.beta) r.push('beta');
+                        else if (g.beta) r.push('beta'); else r.push('ok');
                         return r;
                 }
                 function stateMatch(g) {
@@ -759,13 +759,13 @@
                         document.getElementById('stateFilter').classList.replace('hidden', 'flex');
                         document.getElementById('stateFilter').innerHTML = Object.keys(STATE_BTN).map(function (k) {
                                 var on = stateOn[k], st = BADGE_STYLE[STATE_BTN[k][1]];
-                                var fill = { beta: 'bg-amber-400', alpha: 'bg-red-400' }[k];
+                                var fill = { ok: 'bg-emerald-400', beta: 'bg-amber-400', alpha: 'bg-red-400' }[k];
                                 return '<button type="button" data-state="' + k + '" aria-pressed="' + on + '" class="inline-flex rounded border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ' + (on ? 'border-transparent text-slate-950 ' + fill : st) + '">' + STATE_BTN[k][0] + '</button>';
                         }).join('');
                 }
                 document.getElementById('stateFilter').addEventListener('click', function (e) {
                         var b = e.target.closest('button[data-state]'); if (!b) return;
-                        stateOn[b.getAttribute('data-state')] = !stateOn[b.getAttribute('data-state')];
+                        var k = b.getAttribute('data-state'), on = !stateOn[k]; if (on) Object.keys(stateOn).forEach(function (o) { if ((o === 'ok') !== (k === 'ok')) stateOn[o] = false; }); stateOn[k] = on;   // «ok» esclude Alpha e Beta (e viceversa)
                         drawStateFilter(); show();
                 });
                 drawStateFilter();
