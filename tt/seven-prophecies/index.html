@@ -506,6 +506,7 @@ async function oneTrick(){
   logMsg(`Piazzamenti: ${entries.map(e=>`${ORD[e.rank-1]} ${P(e.p).name} ${cname(e.c)}`).join(' · ')}.`);
   logMsg(moved.length?`Profezie avverate: ${moved.join(', ')}.`:'Nessuna profezia si è avverata in questa presa.');
   const m=`${P(entries[0].p).name} è 1º e apre la prossima presa. ${moved.length?`Cubi spostati: ${moved.join(', ')}.`:'Nessun cubo si sposta.'}`;
+  try{ const T=nyloDes(nyloSer(G)); T.cur={leader:entries[0].p,plays:[],rank:null,winner:-1}; T.fresh=G.fresh; if(T.cub.some(a=>sumA(a)===0)||T.trickNo>=TRICKS) T.done=true; NYLO_CK=nyloSer(T); }catch(e){}   // punto sicuro anche subito dopo la presa: copia di G come all'inizio della presa successiva (la vista resta com'è durante la pausa)
   status(m); await sleep(2600);
   G.cur.leader=entries[0].p;
   G.cur={leader:entries[0].p,plays:[],rank:null,winner:-1};

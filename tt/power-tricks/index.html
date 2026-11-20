@@ -848,6 +848,7 @@ async function trickPhase(){
     const w=wi>=0?S.trick[wi].p:-1, cr=1+S.curDouble;
     logMsg(`Presa ${v}: ${S.trick.map(e=>`${who(e.p)} ${e.c.r}${SUITS[e.c.s].ab}${e.v!==e.c.r?`(=${e.v})`:''}`).join(' · ')} → ${w>=0?`vince ${who(w)}${cr>1?` (vale ${cr} prese)`:''}`:'pareggio: la presa è annullata'}.`);
     status(w>=0?`${who(w)} vince la presa${cr>1?` (vale ${cr})`:''}.`:'Presa annullata: nessuno la vince.');
+    try{ const T=nyloDes(nyloSer(G)); T.S.shown=null; endTrick(T.S); NYLO_CK=nyloSer(T); }catch(e){}   // punto sicuro anche subito dopo la presa: copia di G con la presa già chiusa (la vista resta com'è durante la pausa)
     await sleep(1700);
     endTrick(S); S.shown=null;
   }

@@ -442,6 +442,7 @@ async function playTricks(){
     if(w===HUM) pick=await humanPick(pool); else { await sleep(500); pick=aiPick(w,pool); }
     S.ptsCards[w].push(pick); S.T[w]+=pick.v; S.vals[w].push(pick.v);
     logMsg(`${P(w).name} sceglie ${cname(pick)}: +${pick.v} punti presa (totale ${S.T[w]}).`);
+    try{ const T=nyloDes(nyloSer(G)), U=T.S; U.done++; U.lead=w; U.trick=[]; U.res=null; U.extra=null; NYLO_CK=nyloSer(T); }catch(e){}   // punto sicuro anche subito dopo la scelta dei punti presa: copia di G come all'inizio della presa successiva (la vista resta com'è durante la pausa)
     await sleep(600);
     S.done++; S.lead=w; S.trick=[]; S.res=null; S.extra=null;
   }
