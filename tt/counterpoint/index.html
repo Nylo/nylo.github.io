@@ -260,6 +260,7 @@ const rOf = id => id%9;
 const ptsOf = id => RP[id%9];
 const nameOf = id => RL[rOf(id)]+SG[sOf(id)];
 const handSort = (a,b) => SHOW_ORDER.indexOf(sOf(a))-SHOW_ORDER.indexOf(sOf(b)) || rOf(b)-rOf(a);
+const dispSort = (a,b) => SHOW_ORDER.indexOf(sOf(a))-SHOW_ORDER.indexOf(sOf(b)) || rOf(a)-rOf(b);   // solo per la vista: stessi semi, ma per forza crescente (dal 6 all'Asso)
 const ico = n => `<i class="ph-fill ph-${n}"></i>`;
 const bidSum = ids => ids.reduce((a,id)=>a+SV[sOf(id)],0);
 
@@ -401,7 +402,7 @@ function cardH(id,cls,tag,attrs,st){
 // mano di chi guarda: mode 'play' (legal = Set di id, sel = id) · 'pick' (sel = array di id) · null (sola visione)
 function handH(st,hand,o){
   o=o||{};
-  return '<div class="hand">'+hand.map(id=>{
+  return '<div class="hand">'+hand.slice().sort(dispSort).map(id=>{
     if(o.mode==='pick') return cardH(id,o.sel.indexOf(id)>=0?'sel':'legal','button',`data-c="${id}"`,st);
     if(o.mode==='play'){ const ok=o.legal.has(id); return cardH(id,(ok?'legal':'dim')+(o.sel===id?' sel':''),'button',`${ok?'':'disabled'} data-c="${id}"`,st); }
     return cardH(id,'','span','',st);
@@ -452,7 +453,7 @@ function scoreH(st,me){
   const rows=order.map(p=>{
     const r=st.show.rows[p];
     return `<tr class="${p===me?'me':''}"><td>${esc(st.names[p])}</td><td>${r.bid}${r.hi?' <small title="letta alta">↑</small>':''}</td><td>${r.take}</td><td>${r.miss}</td><td>${r.oth}${r.bonus?` + ${r.bonus}`:''}</td><td><b>${r.score}</b></td></tr>
-      <tr class="sub ${p===me?'me':''}"><td colspan="6">Scarti: ${r.disc.map(c=>cardH(c,'tiny','span','',null)).join('')} <span class="hint">= ${bidSum(r.disc)}${r.hi?' letto alto: '+r.bid:''}</span></td></tr>`;
+      <tr class="sub ${p===me?'me':''}"><td colspan="6">Scarti: ${r.disc.slice().sort(dispSort).map(c=>cardH(c,'tiny','span','',null)).join('')} <span class="hint">= ${bidSum(r.disc)}${r.hi?' letto alto: '+r.bid:''}</span></td></tr>`;
   }).join('');
   return `<table class="score"><tr><th></th><th>Puntata</th><th>Presi</th><th>Scarto</th><th>Errori altrui + bonus</th><th>Mano</th></tr>${rows}</table>`;
 }
@@ -493,7 +494,7 @@ const RULES_HTML = `
 <details class="rules paper"><summary>REGOLAMENTO</summary>
 <div class="rtext">
 <h4>Panoramica</h4>
-<p>Counterpoint è un gioco di prese di <b>David Parlett</b> (serie «Original Card Games»), pensato come versione «a punti» del suo Ninety-Nine; l'edizione digitale per iPhone, <i>Counterpoint Solo</i>, è di <b>Sista Labs</b>. Non si punta sul numero di prese ma sui <b>punti carta</b> che si pensa di raccogliere, e la puntata si «scrive» scartando tre carte coperte. Il punteggio dipende soprattutto da quanto <i>gli altri</i> sbagliano la propria puntata, più un bonus se centri la tua: c'è quindi un po' di bluff («so che tu sai che io so…»).</p>
+<p>Counterpoint è un gioco di prese di <b>David Parlett</b> (serie «Original Card Games»), pensato come versione «a punti» del suo Ninety-Nine. Non si punta sul numero di prese ma sui <b>punti carta</b> che si pensa di raccogliere, e la puntata si «scrive» scartando tre carte coperte. Il punteggio dipende soprattutto da quanto <i>gli altri</i> sbagliano la propria puntata, più un bonus se centri la tua: c'è quindi un po' di bluff («so che tu sai che io so…»).</p>
 <h4>Carte e punti</h4>
 <p>In ogni seme l'ordine è A, 10, K, Q, J, 9, 8, 7, 6 (il 10 sta subito sotto l'Asso). Valgono punti solo cinque gradi: <b>A 11 · 10 10 · K 4 · Q 3 · J 2</b>; 9, 8, 7 e 6 valgono 0. Sono 30 punti per seme, 120 in tutto.</p>
 <h4>Preparazione a 3 giocatori</h4>
@@ -512,7 +513,7 @@ const RULES_HTML = `
 <h4>Fine della partita</h4>
 <p>A 3 giocatori si gioca un numero fisso di mani, 3, 6 o 9, e vince chi ha più punti. A 2 giocatori si gioca fino a <b>99 punti</b> (oppure per 4 o 6 mani). In caso di parità dopo il numero fisso di mani la vittoria è condivisa; nella partita «a 99 punti» si prosegue con un'altra mano finché c'è un solo primo.</p>
 <h4>Fonti e scelte di questa versione</h4>
-<p>Le regole seguite sono quelle di <a href="https://www.parlettgames.uk/oricards/countpnt.html" target="_blank" rel="noopener">David Parlett</a> (3 e 2 giocatori) e dell'edizione <a href="https://sistalabs.com/counterpoint/support/" target="_blank" rel="noopener">Sista Labs</a> (3 giocatori): le due fonti coincidono sulle regole di gioco; il testo qui sopra è una riscrittura in parole nostre. Dove le fonti lasciano margine ho scelto così: (1) a 3 giocatori la durata è di <b>3, 6 o 9 mani</b> (Sista Labs; Parlett lascia libero anche un punteggio-bersaglio); (2) le puntate sono sempre <b>multipli di 10</b> (somma esatta dei valori dei semi, come negli esempi di Sista Labs «tre cuori = 60», «fiori + picche + quadri = 40»), anche se il testo di Parlett parla di fasce («0–9»); (3) la lettura alta 100/110/120 è ammessa sia a 2 sia a 3 giocatori (Parlett la descrive per 2, Sista Labs per 3) e va <b>scelta al momento della puntata</b>, in segreto; (4) il Jolly si può anche scartare come carta di puntata, con il seme della scoperta.</p>
+<p>Le regole seguite sono quelle di <a href="https://www.parlettgames.uk/oricards/countpnt.html" target="_blank" rel="noopener">David Parlett</a> (3 e 2 giocatori): il testo qui sopra è una riscrittura in parole nostre. Dove la fonte lascia margine ho scelto così: (1) a 3 giocatori la durata è di <b>3, 6 o 9 mani</b> (Parlett lascia libero anche un punteggio-bersaglio); (2) le puntate sono sempre <b>multipli di 10</b> (somma esatta dei valori dei semi, come negli esempi «tre cuori = 60», «fiori + picche + quadri = 40»), anche se il testo di Parlett parla di fasce («0–9»); (3) la lettura alta 100/110/120 è ammessa sia a 2 sia a 3 giocatori (Parlett la descrive per 2) e va <b>scelta al momento della puntata</b>, in segreto; (4) il Jolly si può anche scartare come carta di puntata, con il seme della scoperta.</p>
 <p><i>Nell'app:</i> le carte e le mani degli altri restano coperte; delle prese altrui vedi solo il numero, mentre i tuoi punti raccolti sono sempre visibili. Contro l'AI puoi consultare le carte già uscite dal menu. L'AI sceglie le puntate e le carte simulando molte distribuzioni possibili di ciò che non può vedere, come farebbe un giocatore al suo posto.</p>
 <p><i>Nelle stanze online</i> si gioca solo tra persone (2 o 3): i posti e chi apre sono assegnati a caso, le mani restano visibili solo al proprietario, le puntate sono simultanee e si rivelano tutte a fine mano. Chiunque può passare alla mano successiva.</p>
 </div></details>`;
@@ -816,7 +817,7 @@ function memoHtml(){
   const played=new Set(); G.tricks.forEach(t=>t.cs.forEach(c=>played.add(c))); if(!G.tdone) G.trick.forEach(x=>played.add(x.c));
   const mine=new Set(G.hands[HUM]), disc=new Set(G.disc[HUM]);
   const lo=G.n===2?1:0;
-  const rows=SHOW_ORDER.map(s=>`<div class="ur"><span class="l s${s}">${SG[s]} ${SUITS[s]}</span>${[8,7,6,5,4,3,2,1,0].filter(r=>r>=lo).map(r=>{ const id=s*9+r;
+  const rows=SHOW_ORDER.map(s=>`<div class="ur"><span class="l s${s}">${SG[s]} ${SUITS[s]}</span>${[0,1,2,3,4,5,6,7,8].filter(r=>r>=lo).map(r=>{ const id=s*9+r;
     return `<span class="nc s${s} ${played.has(id)?'gone':''} ${mine.has(id)?'own':''} ${disc.has(id)?'dsc':''} ${id===G.up?'upc':''}" title="${RL[r]}${SG[s]}${RP[r]?' · '+RP[r]+' punti':''}">${RL[r]}</span>`; }).join('')}</div>`).join('');
   const pts=`<div class="hint">Punti presi finora: ${G.names.map((n,i)=>`${esc(n)} <b>${G.take[i]}</b>`).join(' · ')}</div>`;
   return `<div class="recap paper"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO) · TUOI SCARTI (TRATTEGGIO)</h3><div class="unseen">${rows}</div>${pts}</div>`;
