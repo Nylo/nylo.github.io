@@ -31,7 +31,7 @@
 }
 html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
 /* cover: rombi arlecchino rossi, gialli, azzurri e grigi */
-body{background-color:var(--bg);background-image:var(--harl);background-size:48px 72px;background-attachment:fixed}
+body{background-color:var(--bg);background-image:var(--harl);background-size:144px 216px;background-attachment:fixed}
 .app{max-width:960px;margin:0 auto;padding:0 12px 48px}
 
 .topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
@@ -420,6 +420,7 @@ async function oneMove(){
   G.last=mv.key; G.moveNo++; G.turn=-1;
   const msg=placeLog(p,id,mv.key,info);
   logMsg(msg); status(msg);
+  ckpt();   // punto sicuro anche subito dopo la mossa (salvando durante la pausa non si perde la mossa appena giocata)
   await sleep(p===HUM?500:900);
 }
 async function scoring(){
@@ -529,7 +530,7 @@ function roundTable(){
 }
 function dockHtml(){
   if(!G) return `<div class="dock-msg">Gem's Pyramid: si gioca in 3, tu contro 2 AI.</div>
-    <div class="opts"><button class="opt" data-n="3">Inizia (tu + 2 AI)</button></div>`;
+    <div class="opts"><button class="opt" data-n="3">Inizia (tu + 2 AI)</button><a class="opt" href="/tt/shihou-dealer/" style="text-decoration:none;display:inline-block">← Cambia gioco</a></div>`;
   if(G.over){
     const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
     return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b></div>${scoreTable()}`;

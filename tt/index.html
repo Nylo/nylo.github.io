@@ -486,16 +486,9 @@
         {
                 "name": "Shihou Dealer",
                 "players": "3–4",
-                "desc": "Vince la presa il numero più alto, di qualunque colore. Chi vince mette le carte in pile per colore con la più bassa in cima: a fine round contano solo le carte in cima, e solo la cifra delle unità (nessun punto = 15).",
+                "desc": "Vince la presa il numero più alto, di qualunque colore. Chi vince mette le carte in pile per colore con la più bassa in cima: a fine round contano solo le carte in cima, e solo la cifra delle unità (nessun punto = 15). Include anche il bonus Gem's Pyramid (3 giocatori): si sceglie all'avvio.",
                 "ai": "/tt/shihou-dealer/",
-                "online": null,
-                "alpha": true
-        },
-        {
-                "name": "Gem's Pyramid",
-                "players": "3",
-                "desc": "Si costruisce insieme una piramide di 36 carte (8 in base, 7, 6…): in alto servono due carte di sostegno e, se possibile, accanto allo stesso colore. Una pedina sulla carta più alta di ogni gruppo di un colore decide chi lo vince; conta la cifra delle unità della più bassa (0 punti = 15, 21 o più = 0).",
-                "ai": "/tt/gems-pyramid/",
+                "alt": ["/tt/gems-pyramid/"],
                 "online": null,
                 "alpha": true
         },
@@ -709,13 +702,21 @@
                 }
                 // partite salvate contro l'AI (una per gioco, localStorage 'nylo-saves', scritte da /home-btn.js): chiave = cartella del gioco
                 function savedFor(g) {
-                        var id = g.ai.split('#')[0].replace(/\/+$/, '').split('/').pop();
-                        try { var s = window.nyloSaveInfo ? window.nyloSaveInfo(id) : null; return s && s.id === id ? s : null; } catch (e) { return null; }
+                        return savedInfo(g) && savedInfo(g).s;
+                }
+                // un gioco può raccogliere più pagine (g.alt, es. Shihou Dealer + Gem's Pyramid): vale il salvataggio più recente
+                function savedInfo(g) {
+                        var best = null;
+                        [g.ai].concat(g.alt || []).forEach(function (u) {
+                                var base = u.split('#')[0], id = base.replace(/\/+$/, '').split('/').pop();
+                                try { var s = window.nyloSaveInfo ? window.nyloSaveInfo(id) : null; if (s && s.id === id && (!best || (s.ts || 0) > (best.s.ts || 0))) best = { s: s, base: base }; } catch (e) {}
+                        });
+                        return best;
                 }
                 function resumeBtn(g) {
-                        var s = savedFor(g);
-                        var base = g.ai.split('#')[0];
-                        if (!s) return '';
+                        var si = savedInfo(g);
+                        if (!si) return '';
+                        var base = si.base;
                         return '<button type="button" data-resume="' + esc(base) + '" title="Riprendi la partita salvata" class="mr-2 inline-flex items-center gap-1 rounded-md border border-teal-500/60 bg-teal-500/10 px-2 py-0.5 align-middle text-[11px] font-semibold uppercase tracking-wide text-teal-300 transition-colors hover:bg-teal-500/20"><i class="ph ph-play" aria-hidden="true"></i>Riprendi</button>';
                 }
                 function rowHtml(g, on) {
