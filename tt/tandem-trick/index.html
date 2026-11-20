@@ -487,10 +487,11 @@ async function oneTrick(){
   const r=finishTrick(G,T);
   if(!r){
     const m='Tutti hanno puntato: la presa non viene assegnata e resta di mano lo stesso giocatore.';
+    ckpt();   // punto sicuro anche subito dopo la presa (non assegnata): salvando durante la pausa non si perde
     status(m); logMsg(m); await sleep(2000);
     return;
   }
-  G.win=r.winners;
+  G.win=r.winners; ckpt();   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa
   const names=r.winners.map(q=>P(q).name).join(' e ');
   const m=r.winners.length>1
     ?`${names} vincono la presa in tandem (${r.best.cs.map(c=>c.v).join(' + ')} = ${r.best.val}) e prendono una presa a testa.`

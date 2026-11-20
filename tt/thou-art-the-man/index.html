@@ -461,6 +461,7 @@ async function oneTrick(){
   G.res={w}; G.shown=G.plays.slice(); G.leader=w;
   const ev=take.filter(isR8), wc=G.plays.find(x=>x.s===w).c;
   const t=`Presa ${G.trick}/${G.tl}: vince ${nameOf(w)} con ${cname(wc)}${ev.length?` e prende ${ev.map(cname).join(', ')} (prova decisiva ★)`:''}${isLast&&take.some(isPanic)?' e il Panic Time':''}.`;
+  { const dsp=[G.shown,G.plays,G.res,G.fresh]; G.shown=null; G.plays=[]; G.res=null; G.fresh=-1; ckpt(); [G.shown,G.plays,G.res,G.fresh]=dsp; }   // punto sicuro subito dopo la presa (stato = inizio presa successiva; il display della pausa resta): salvando durante la pausa non si perde
   logMsg(t); status(t);
   await S_(1800);
   G.shown=null; G.plays=[]; G.res=null; G.fresh=-1;

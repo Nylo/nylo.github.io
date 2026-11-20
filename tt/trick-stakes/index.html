@@ -481,6 +481,9 @@ async function racePhase(){
     finishTrick(S,bi);
     logMsg(`${P(e.p).name} vince con ${cname(e.c)}: ${HORSES[h].n} ${crossed?'ha già tagliato il traguardo':`avanza di ${prog(e.c.v)} (${S.pos[h]>=8?'TRAGUARDO!':`casella ${S.pos[h]}`})`}.`);
     status(`${P(e.p).name} vince la presa${S.fin.length?` · arrivati: ${S.fin.map(x=>HORSES[x].n).join(', ')}`:''}.`);
+    if(!raceOver(S)){   // punto sicuro anche subito dopo la presa (non dopo l'ultima: alla ripresa racePhase rigiocherebbe una presa): stato = inizio presa successiva, il display della pausa resta
+      const dsp=[S.done,S.lead,S.shown,S.res]; S.done++; S.lead=e.p; S.shown=null; S.res=null; ckpt(); [S.done,S.lead,S.shown,S.res]=dsp;
+    }
     await sleep(1300);
     S.done++;
     if(raceOver(S)) break;
