@@ -77,6 +77,12 @@ table.score{border-collapse:collapse;font-size:12px;width:100%}
 table.score td,table.score th{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
 table.score td:first-child,table.score th:first-child{text-align:left}
 table.score td.l,table.score th.l{text-align:left}
+table.score.rounds{table-layout:fixed}
+table.score.rounds th.l,table.score.rounds td.l{width:34%}
+table.score td.c,table.score th.c{text-align:center}
+table.score.rounds td.c{font-variant-numeric:tabular-nums;border-left:1px solid var(--border)}
+table.score.rounds td.dim{opacity:.45}
+table.score.rounds td.tot{background:rgba(0,0,0,.06)}
 table.score .neg{color:var(--danger)}
 table.score .pos{color:var(--success)}
 
@@ -322,10 +328,6 @@ function handBtn(c,i,ok,sel){
 function sw(s,extra=''){ return `<span class="sw k${s} ${extra}">${suitIcon(s)} ${SUITS[s].n}</span>`; }
 // scelta di un seme nel dock: solo il badge (cliccabile), con le carte in mano tra parentesi
 function swPick(s,n,attrs,dis){ return `<button type="button" class="sw pick k${s}" ${attrs} ${dis?'disabled':''}>${suitIcon(s)} ${SUITS[s].n}${n!=null?` (ne hai ${n} in mano)`:''}</button>`; }
-function pileHtml(pile,painSuit){
-  const cnt=[0,0,0,0,0]; pile.forEach(c=>cnt[c.s]++);
-  return `<div class="pile">${cnt.map((n,s)=>n?`<span class="sw k${s} ${painSuit===s?'pn':''}" title="${SUITS[s].n}: ${n}">${suitIcon(s)} ${n}</span>`:'').join('')}</div>`;
-}
 function wardsHtml(ward,names){
   return `<div class="wards">${SUITS.map((s,i)=>{
     const w=ward[i]||{};
@@ -574,6 +576,7 @@ function newMatch(){
 function startRound(){
   const deck=shuffle(fullDeck());
   G.pl.forEach((p,i)=>{ p.hand=sortHand(deck.slice(i*12,(i+1)*12)); p.pile=[]; p.score=0; });
+  G.disc=0;
   G.aside=deck.slice(48);
   G.pain=[-1,-1,-1,-1]; G.trump=-1; G.ward=[{},{},{},{},{}];
   G.trick=[]; G.played=[]; G.win=-1; G.turn=-1; G.trickNo=0; G.leader=G.dealer; G.show=null; G.order=[];
@@ -638,6 +641,7 @@ async function playRound(rs){
     const col=collectCards(G.trick,w.p,G.pain), wp=P(w.p);
     col.forEach(c=>{ wp.pile.push(c); wp.score+=painVal(c,G.pain[w.p]); });
     const all=[].concat(...G.trick.map(x=>x.cards)).length;
+    G.disc=(G.disc||0)+all-col.length;
     const hasPain=G.pain[w.p]>=0&&col.some(c=>c.s===G.pain[w.p]);
     const m=hasPain
       ?`${wp.name} vince con ${w.total}: nella presa c'era il suo seme maledetto, raccoglie ${col.length<all?'solo ':''}${col.length} ${col.length===1?'carta':'carte'} (−${col.length})${col.length<all?' e scarta le altre':''}.`
@@ -716,17 +720,18 @@ function seatHtml(p,pos){
     }).join('')}</div>`;
   }else hand=`<div class="backs">${pl.hand.map(()=>'<span class="back"></span>').join('')}</div>`;
   const pain=G.pain[p]>=0?`<span class="tag pain" title="Seme maledetto"><span>Seme maledetto</span>${sw(G.pain[p])}</span>`:'';
-  const meta=`<div class="seat-meta">${pain}<span class="tag" title="Punteggio del round (carte raccolte: +1, seme maledetto: −1)">${ico('tree')} <b>${sg(pl.score)}</b></span><span class="tag" title="Punti partita">${ico('crown')} <b>${pl.tot}</b></span></div>`;
+  const meta=`<div class="seat-meta">${pain}<span class="tag" title="Carte raccolte">${ico('cards')} <b>${pl.pile.length}</b></span></div>`;
   const name=`<div class="seat-name">${esc(pl.name)}${flagHtml(p)}</div>`;
-  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${pileHtml(pl.pile,G.pain[p])}${hand}`
-    :(pos==='top'?`${hand}${name}${meta}${pileHtml(pl.pile,G.pain[p])}${tableauHtml(p)}`:`${name}${meta}${pileHtml(pl.pile,G.pain[p])}${tableauHtml(p)}${hand}`);
+  const inner=pos==='bottom'?`${tableauHtml(p)}${name}${meta}${hand}`
+    :(pos==='top'?`${hand}${name}${meta}${tableauHtml(p)}`:`${name}${meta}${tableauHtml(p)}${hand}`);
   return `<div class="seat ${pos} ${isLeader?'leader':''} ${active?'active':''} ${winner?'winner':''}">${inner}</div>`;
 }
 function centerHtml(){
   return `<div class="center">
     ${G.trump>=0?`<div class="trump">${suitIcon(G.trump)} Briscola: ${SUITS[G.trump].n}</div>`:'<div class="hint">Si scelgono i semi maledetti…</div>'}
     ${wardsHtml(G.ward,G.pl.map(p=>p.name))}
-    <div>Round <b>${G.round+1}/3</b>${G.trickNo?` · Presa <b>${G.trickNo}</b>`:''}</div></div>`;
+    <div>Round <b>${G.round+1}/3</b>${G.trickNo?` · Presa <b>${G.trickNo}</b>`:''}</div>
+    <div class="hint" title="Carte non raccolte perché in una presa con il seme maledetto del vincitore">Carte scartate <b>${G.disc||0}</b></div></div>`;
 }
 function memoHtml(){
   const mine=new Set(P(HUM).hand.map(c=>c.id)), seen=new Set(G.played.map(c=>c.id));
@@ -734,8 +739,8 @@ function memoHtml(){
   return `<div class="recap paper"><h3>CARTE USCITE (SBARRATE) · TUE (CONTORNO)</h3><div class="unseen">${rows}</div></div>`;
 }
 function scoreTable(){
-  const rows=G.pl.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.hist.map(sg).join(' ')||'–'}</td><td><b>${p.tot}</b></td></tr>`).join('');
-  return `<table class="score"><tr><th>Punti partita</th><th class="l">Punti per round</th><th>Totale</th></tr>${rows}</table>`;
+  const rows=G.pl.map(p=>`<tr><td class="l">${esc(p.name)}</td>${[0,1,2].map(i=>i<p.hist.length?`<td class="c">${p.hist[i]}</td>`:'<td class="c dim">–</td>').join('')}<td class="c tot"><b>${p.tot}</b></td></tr>`).join('');
+  return `<table class="score rounds"><tr><th class="l">Punti partita</th><th class="c">Round 1</th><th class="c">Round 2</th><th class="c">Round 3</th><th class="c">Totale</th></tr>${rows}</table>`;
 }
 function dockHtml(){
   if(!G) return '';
@@ -849,7 +854,7 @@ function trickOrder(S,leader){var o=[],k,p;for(k=0;k<4;k++){p=(leader+k)%4;if(S.
 function pickOrder(S){var o=[],k;for(k=1;k<=4;k++)o.push(((S.dealer-k)%4+4)%4);return o}
 function dealRound(S,rng){
   var deck=sshuffle(fullDeck(),rng);
-  S.pl.forEach(function(p,i){p.hand=sortHand(deck.slice(i*12,(i+1)*12));p.pile=[];p.score=0});
+  S.pl.forEach(function(p,i){p.hand=sortHand(deck.slice(i*12,(i+1)*12));p.pile=[];p.score=0});S.disc=0;
   S.pain=[-1,-1,-1,-1];S.trump=-1;S.ward=[{},{},{},{},{}];
   S.trick=[];S.win=-1;S.tdone=false;S.trickNo=0;S.leader=S.dealer;S.order=[];S.show=null;S.rt='';
   S.wi=0;S.phase='ward';
@@ -888,7 +893,7 @@ function resolveTrick(S){
   var w=trickWin(S.trick,S.trump);S.win=w.p;
   var col=collectCards(S.trick,w.p,S.pain),wp=S.pl[w.p];
   col.forEach(function(c){wp.pile.push(c);wp.score+=painVal(c,S.pain[w.p])});
-  var all=0;S.trick.forEach(function(x){all+=x.cards.length});
+  var all=0;S.trick.forEach(function(x){all+=x.cards.length});S.disc=(S.disc||0)+all-col.length;
   var hasPain=S.pain[w.p]>=0&&col.some(function(c){return c.s===S.pain[w.p]});
   var m=hasPain
     ?S.names[w.p]+' vince con '+w.total+': nella presa c\'era il suo seme maledetto, raccoglie '+(col.length<all?'solo ':'')+col.length+' '+(col.length===1?'carta':'carte')+' (−'+col.length+')'+(col.length<all?' e scarta le altre':'')+'.'
@@ -1003,23 +1008,24 @@ function seatH(p,pos){
     }).join('')+'</div>';
   }else hand='<div class="backs">'+pl.hand.map(function(){return '<span class="back"></span>'}).join('')+'</div>';
   var pain=S.pain[p]>=0?'<span class="tag pain" title="Seme maledetto"><span>Seme maledetto</span>'+sw(S.pain[p])+'</span>':'';
-  var meta='<div class="seat-meta">'+pain+'<span class="tag" title="Punteggio del round (carte raccolte: +1, seme maledetto: −1)">'+ico('tree')+' <b>'+sg(pl.score)+'</b></span><span class="tag" title="Punti partita">'+ico('crown')+' <b>'+pl.tot+'</b></span></div>';
+  var meta='<div class="seat-meta">'+pain+'<span class="tag" title="Carte raccolte">'+ico('cards')+' <b>'+pl.pile.length+'</b></span></div>';
   var name='<div class="seat-name">'+esc(S.names[p])+(p===me?' <span class="hint">(tu)</span>':'')+flagH(p)+'</div>';
-  var pile=pileHtml(pl.pile,S.pain[p]);
-  var inner=pos==='bottom'?tableauH(p)+name+meta+pile+hand:(pos==='top'?hand+name+meta+pile+tableauH(p):name+meta+pile+tableauH(p)+hand);
+    var inner=pos==='bottom'?tableauH(p)+name+meta+hand:(pos==='top'?hand+name+meta+tableauH(p):name+meta+tableauH(p)+hand);
   var isLeader=S.phase==='play'&&!S.tdone&&S.trick.length>0&&S.order[0]===p,active=turnOf(S)===p,winner=S.tdone&&S.win===p&&S.phase!=='over';
   return '<div class="seat '+pos+' '+(isLeader?'leader':'')+' '+(active?'active':'')+' '+(winner?'winner':'')+'">'+inner+'</div>';
 }
 function centerH(){
   return '<div class="center">'+(S.trump>=0?'<div class="trump">'+suitIcon(S.trump)+' Briscola: '+SUITS[S.trump].n+'</div>':'<div class="hint">Si scelgono i semi maledetti…</div>')+
     wardsHtml(S.ward,S.names)+
-    '<div>Round <b>'+(S.round+1)+'/3</b>'+(S.trickNo?' · Presa <b>'+S.trickNo+'</b>':'')+'</div></div>';
+    '<div>Round <b>'+(S.round+1)+'/3</b>'+(S.trickNo?' · Presa <b>'+S.trickNo+'</b>':'')+'</div><div class="hint" title="Carte non raccolte perché in una presa con il seme maledetto del vincitore">Carte scartate <b>'+(S.disc||0)+'</b></div></div>';
 }
 function scoreTableH(){
   var rows=ordSeats().map(function(p){
-    return '<tr class="'+(p===me?'me':'')+'"><td>'+esc(S.names[p])+'</td><td>'+(S.pl[p].hist.map(sg).join(' ')||'–')+'</td><td><b>'+S.pl[p].tot+'</b></td></tr>';
+    var h=S.pl[p].hist,c='';
+    for(var i=0;i<3;i++)c+=i<h.length?'<td class="c">'+h[i]+'</td>':'<td class="c dim">–</td>';
+    return '<tr class="'+(p===me?'me':'')+'"><td class="l">'+esc(S.names[p])+'</td>'+c+'<td class="c tot"><b>'+S.pl[p].tot+'</b></td></tr>';
   }).join('');
-  return '<table class="score"><tr><th>Punti partita</th><th class="l">Punti per round</th><th>Totale</th></tr>'+rows+'</table>';
+  return '<table class="score rounds"><tr><th class="l">Punti partita</th><th class="c">Round 1</th><th class="c">Round 2</th><th class="c">Round 3</th><th class="c">Totale</th></tr>'+rows+'</table>';
 }
 function msgH(){
   if(S.phase==='over'){var w=gameWinners(S).map(function(i){return esc(S.names[i])}).join(' e ');return '<b>'+(gameWinners(S).length>1?'Vittoria condivisa: ':'Vince ')+w+'!</b>'}
