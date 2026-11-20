@@ -491,7 +491,7 @@ async function playRound(){
     if(w<0){
       const m='Tutte le carte sono state annullate: nessun vincitore, aprirà di nuovo '+P(first).name+'.';
       status(m); logMsg(m);
-      G.leader=first;
+      G.leader=first; ckpt();   // punto sicuro anche subito dopo la presa (salvando durante la pausa non si perde la presa appena chiusa)
       await sleep(1800);
       continue;
     }
@@ -515,9 +515,10 @@ async function playRound(){
       pw.right.push(c);
       logMsg(`${pw.name} vince la presa ${G.trickNo} e mette ${cardName(c)} a destra (penalità ${pen(c.v)}).`);
     }
-    status(`${pw.name} vince la presa e prende ${cardName(c)}.`);
-    await sleep(1700);
     G.leader=w;
+    status(`${pw.name} vince la presa e prende ${cardName(c)}.`);
+    ckpt();   // punto sicuro anche subito dopo la presa (salvando durante la pausa non si perde la presa appena chiusa)
+    await sleep(1700);
   }
 }
 async function scoreRound(){
