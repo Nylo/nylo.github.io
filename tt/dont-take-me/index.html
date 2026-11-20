@@ -28,7 +28,10 @@
   --cw:46px; --ch:68px;
 }
 html,body{min-height:100%;color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
-body{background:radial-gradient(ellipse at 50% 0%,#e8f1cd 0%,#b3cf84 100%) fixed;background-color:var(--bg)}
+body{--cw3:100vw;background:linear-gradient(rgba(250,246,232,.74),rgba(250,246,232,.74)),url(cover.jpg) left top/var(--cw3) auto repeat fixed;background-color:#f4ecd8}
+@media(min-width:700px){body{--cw3:50vw}}
+@media(min-width:1100px){body{--cw3:33.4vw}}
+@media(min-width:1700px){body{--cw3:25vw}}
 .app{max-width:960px;margin:0 auto;padding:0 12px 48px}
 
 .topbar{display:flex;align-items:center;gap:10px;padding:14px 0;margin-bottom:10px;flex-wrap:wrap}
@@ -499,9 +502,10 @@ async function oneTrick(){
   const pw=P(win), keep=cards.filter(c=>isKO(win,c.n));
   pw.kept.push(...keep);
   const m=`${ran?'RUN AWAY! ':''}${pw.name} vince la presa${keep.length?` e tiene ${keep.length} ${keep.length===1?'carta':'carte'} Keep Out (${keep.map(c=>c.n).join(', ')})`:' senza tenere carte'}.`;
+  G.leader=win;
+  if(G.pl.every(p=>p.hand.length>0)) ckpt();   // punto sicuro subito dopo la presa (stato = inizio presa successiva), prima della pausa; non dopo l'ultima presa: tricks() esegue sempre almeno una presa alla ripresa
   status(m); logMsg(m);
   await sleep(2300);
-  G.leader=win;
 }
 async function tricks(){
   const resumed=G.ph==='tricks';   // già in fase prese = ripresa a inizio presa (G.leader è quello della presa)
