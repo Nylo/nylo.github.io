@@ -174,6 +174,47 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
   .logo .eye{font-size:22px;padding:2px 16px}
   .logo small{display:none}
 }
+/* stanze online (kit condiviso) */
+:root{--ink:#111}
+.panel,.sx-card{background-color:var(--surface);background-image:linear-gradient(rgba(231,160,120,0.22) 1px,transparent 1px),linear-gradient(90deg,rgba(231,160,120,0.22) 1px,transparent 1px);background-size:14px 14px;border:2px solid #111;border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:12px;color:var(--text);box-shadow:0 6px 0 rgba(0,0,0,0.2)}
+.panel{margin-bottom:14px}
+.panel h2{font-size:16px;font-weight:700}
+.muted{color:var(--text-soft);font-size:12px;line-height:1.5}
+body .app>section>p.muted{color:#fff;margin-bottom:10px}
+.status{font-size:13px;min-height:20px;line-height:1.5;color:#fff}
+.panel input[type=text]{background:#fff;border:2px solid #111;color:#222;border-radius:6px;padding:9px 11px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none;letter-spacing:1px}
+.panel input[type=text]:focus{border-color:var(--accent)}
+.radios{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.radios label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.roster{list-style:none;display:flex;flex-direction:column;gap:8px}
+.roster li{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:2px solid #111;border-radius:8px;font-size:13px}
+.roster .seat-n{width:20px;color:var(--text-soft)}
+.roster .grow{flex:1}
+.roster .soft{color:var(--text-soft)}
+.room-code{padding:4px 8px;border:2px solid #111;background:#fff;border-radius:6px;font-family:Consolas,monospace;letter-spacing:1px;font-size:12px;color:#111}
+.conn{font-size:11px;color:#fff}
+.room-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.room-bar .room-code,.room-bar .btn{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 10px;line-height:1;box-sizing:border-box;white-space:nowrap}
+.room-bar .conn{margin-left:auto}
+.seat-name .hint{color:rgba(255,255,255,.65);font-weight:400}
+.err{position:fixed;left:12px;right:12px;bottom:12px;max-width:680px;margin:0 auto;padding:12px 14px;border:1px solid rgba(217,107,107,0.6);border-radius:8px;background:#3a1d22;color:#fff;font-size:13px;line-height:1.4;z-index:200}
+.sx-label{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text-soft);margin-top:2px}
+.sx-row{display:flex;gap:8px;flex-wrap:wrap}
+.sx-opt{padding:10px 16px;border-radius:7px;border:2px solid #111;background:#fff;color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;transition:border-color .12s,background .12s}
+.sx-opt:hover:not(:disabled){background:var(--surface-raised)}
+.sx-opt.on{background:#111;color:#fff}
+.sx-opt.on:hover:not(:disabled){background:#111;filter:brightness(1.3)}
+.sx-opt:disabled{opacity:.4;cursor:not-allowed}
+.sx-row .sx-opt{flex:1 1 0;min-width:0}
+.sx-go{background:#111;border-color:#111;color:#fff;margin-top:1rem}
+.sx-go:hover:not(:disabled){background:#111;filter:brightness(1.3)}
+.sx-in{background:#fff;border:2px solid #111;color:#222;border-radius:6px;padding:10px 12px;font-family:'Inter',sans-serif;font-size:14px;width:100%;outline:none}
+.sx-in:focus{border-color:var(--accent)}
+.sx-in.code{letter-spacing:2px;text-transform:uppercase;font-family:Consolas,monospace}
+.sx-nav{display:flex;gap:8px;align-items:center;margin-left:auto}
+.sx-sub{display:flex;flex-direction:column;gap:10px;padding-top:2px}
+table.score tr.me td{background:rgba(63,111,184,.16)}
+@media(max-width:600px){.sx-nav{margin-left:0}table.score{font-size:11px}table.score td,table.score th{padding:4px 3px;overflow-wrap:anywhere}}
 </style>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -185,8 +226,8 @@ details.recap[open]>:not(summary)+*{margin-top:10px}
 <div class="app" id="app"></div>
 
 <script src="/tt/shared/core.js"></script>
-<script>
-// ═════════════════════════ COSTANTI ═════════════════════════
+<script type="text/plain" id="src-common">
+// ═════════════════════════ COMUNE (modalità AI e stanze) ═════════════════════════
 const SUITS = [
   {n:'Cerchio',  short:'Cerchi'},
   {n:'Croce',    short:'Croci'},
@@ -205,8 +246,6 @@ const sym = s => `<svg class="sy" viewBox="0 0 24 24" aria-hidden="true">${SYM[s
 const FD = [2,3,4,5];                                    // carte coperte nei 4 round
 const ROUNDS = 4;
 const POS = {3:['bottom','left','right'], 4:['bottom','left','top','right']};
-const NAMES = ['Tu','AI Zener','AI Rhine','AI Cardner'];
-const HUM = 0;
 const RESULTS = [
   [0,0,'Nessuna capacità psichica'],
   [1,4,'Entro il margine d\'errore; riprova'],
@@ -221,28 +260,9 @@ const RESULTS = [
 ];
 const resultOf = p => (RESULTS.find(r=>p>=r[0]&&p<=r[1])||RESULTS[0])[2];
 
-// ═════════════════════════ UTILITÀ ═════════════════════════
-const rnd = n => Math.floor(Math.random()*n);
-const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-let G = null, PR = null;
-const OPT = {undo:true,memo:false};
-try{ const s=localStorage.getItem('esp-undo'); if(s!==null) OPT.undo=s==='1'; OPT.memo=localStorage.getItem('esp-memo')==='1'; }catch(e){}
 const cname = c => `${c.r} di ${SUITS[c.s].short}`;
 const isEye = c => c.r===c.s+1;
 const tokName = t => t.kind==='suit'?SUITS[t.v].n:`${t.v}`;
-
-// ═════════════════════════ INTERAZIONE ═════════════════════════
-async function ask(p,title,options){
-  const ok=options.filter(x=>!x.disabled);
-  if(!ok.length) return null;
-  const g=G;
-  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
-}
-// src: 'hand' (indici nella mano) oppure 'fd' (indici tra le carte coperte)
-function askCard(legal,hint,src){
-  const g=G;
-  return new Promise((res,rej)=>{ PR={type:'card',src:src||'hand',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
-}
 
 // ═════════════════════════ REGOLE (funzioni pure) ═════════════════════════
 function fullDeck(){
@@ -281,6 +301,77 @@ function winnerOf(table,lead,asp){
 }
 // puntata: rango o valore del seme (1–5) uguale alle prese; le carte con l'occhio possono valere 0
 const bidOk = (c,t) => c.r===t || c.s+1===t || (isEye(c)&&t===0);
+
+// ═════════════════════════ GRAFICA ═════════════════════════
+const kface=(c,cls='')=>`<span class="fc ${isEye(c)?'z0 ':''}${cls}" title="${cname(c)}"><span>${c.r}</span>${sym(c.s)}</span>`;
+function tokHtml(t,dk,res){
+  if(!t) return '<span class="tok dk">?</span>';
+  return `<span class="tok ${dk?'dk':''} ${res||''}" title="${t.kind==='suit'?'Seme '+SUITS[t.v].n:'Rango '+t.v}${res==='hit'?' · indovinato':res==='miss'?' · sbagliato':''}">${t.kind==='suit'?sym(t.v):t.v}</span>`;
+}
+function recapHtml(){
+  return `<details class="recap paper"><summary>RIEPILOGO</summary>
+    <div class="recap-row"><span class="lbl">Carte</span>${[0,1,2,3,4].map(s=>`<span class="tag" style="background:#111">${sym(s)} ${SUITS[s].n} = ${s+1}</span>`).join('')}<span class="rv">25 carte Zener (ranghi 1–5 in 5 semi) · 6 carte a testa</span></div>
+    <div class="recap-row"><span class="lbl">Visione</span><span class="rv" style="margin-left:0">ognuno prevede un seme O un rango diverso per la Carta Visione coperta · chi indovina +1 punto · il seme o rango indovinato diventa <b>Soprannaturale</b> (se indovinati entrambi, il rango è <b>Super-soprannaturale</b>)</span></div>
+    <div class="recap-row"><span class="lbl">Ipotesi</span><span class="rv" style="margin-left:0">metti 2/3/4/5 carte coperte (round 1–4) e tieni le altre in mano · non puoi più guardare le coperte · si giocano prima le carte in mano, poi le coperte (senza obbligo di seme) · l'ultima coperta è la puntata</span></div>
+    <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">5 prese · devi seguire il seme se puoi (solo con le carte in mano) · vince il rango più alto del seme di mano, a meno che sia stata giocata una carta Soprannaturale (la più alta; se è un rango, l'ultima giocata) · il Super-soprannaturale batte il Soprannaturale (a parità l'ultimo)</span></div>
+    <div class="recap-row"><span class="lbl">Punti</span><span class="rv" style="margin-left:0">1 per ogni presa + 3 se la puntata è corretta (rango o valore del seme della carta = prese; la carta con l'occhio può valere 0: in questa implementazione l'occhio (zero) è rappresentato dal <b>triangolino nell'angolo in basso a destra</b> della carta)</span></div>
+    <div class="recap-row"><span class="lbl">Fine</span><span class="rv" style="margin-left:0">4 round · vince il punteggio totale più alto</span></div></details>`;
+}
+const RULES_HTML = `
+<details class="rules paper"><summary>REGOLAMENTO</summary>
+<div class="rtext">
+<h4>Abstract</h4>
+<p>Negli anni '30 gli scienziati della Duke University Karl Zener e J.B. Rhine condussero esperimenti per verificare la <b>percezione extrasensoriale</b> (ESP). Uno dei più famosi usava un mazzo di carte disegnato da Zener: Rhine mostrava una carta con il dorso verso il soggetto, che doveva intuire il simbolo sulla faccia. Questo «Esperimento di Perspicacia Supersensoriale» ne amplia il lavoro: invece di presentare carte singole, il test di chiaroveggenza si svolge attraverso un gioco di prese.</p>
+<h4>Materiali</h4>
+<p>25 carte Zener (ranghi 1–5 in 5 semi: Cerchio 1, Croce 2, Onda 3, Quadrato 4, Stella 5), 10 gettoni Previsione (uno per rango e per seme), 1 gettone Primo Veggente, 16 dischi punteggio (valore 1), 12 stelle punteggio (valore 5), 1 carta riassuntiva.</p>
+<h4>Preparazione</h4>
+<ul>
+<li>Il gettone Primo Veggente va al giocatore con la vista migliore (qui a caso).</li>
+<li>Si mescolano le 25 carte e se ne distribuiscono 6 a testa. Una carta non distribuita si mette coperta al centro senza guardarla: è la <b>Carta Visione</b>. Le altre carte avanzate non si usano in questo round.</li>
+</ul>
+<h4>Condividi la tua visione</h4>
+<p>Partendo dal Primo Veggente e in senso orario, ognuno prevede cosa c'è sulla Carta Visione: deve nominare un <b>seme</b> (Cerchio, Croce, Onda, Quadrato, Stella) <b>OPPURE</b> un <b>rango</b> (1–5) e prende il gettone corrispondente. Tutti devono prevedere qualcosa di diverso: nessuno può ripetere un seme o rango già scelto.</p>
+<p>Poi si scopre la Carta Visione. Ogni giocatore che ha previsto un seme o rango corretto guadagna 1 punto. Se qualche caratteristica della Carta Visione è stata prevista, quel seme o rango diventa l'<b>Aspetto Soprannaturale</b> del round. Se sono stati previsti <b>sia</b> il rango sia il seme, il seme è l'Aspetto Soprannaturale e il rango è l'<b>Aspetto Super-soprannaturale</b>. Se nessuno dei due è stato previsto, non c'è Aspetto Soprannaturale. La Carta Visione viene messa da parte.</p>
+<h4>Sviluppa un'ipotesi</h4>
+<p>Ogni giocatore mette alcune carte coperte in fila davanti a sé e tiene le altre in mano. <b>Una volta messa coperta, una carta non si può più guardare finché non viene giocata in una presa o rivelata come puntata.</b> Carte coperte: round 1: 2 (4 in mano); round 2: 3; round 3: 4; round 4: 5. Le carte in mano vanno giocate per prime; poi le prese restanti si giocano con le carte coperte. Dopo cinque prese l'ultima carta coperta di ciascuno è la sua <b>puntata</b>.</p>
+<p>Ogni carta ha due possibili valori di puntata da 0 a 5: il <b>rango</b> (il numero sulla carta) oppure il <b>seme</b> (Cerchio 1, Croce 2, Onda 3, Quadrato 4, Stella 5). Se rango e valore del seme coincidono (1 di Cerchi, 2 di Croci, 3 di Onde, 4 di Quadrati, 5 di Stelle) la carta può valere anche <b>0</b>: queste carte hanno l'icona dell'occhio.</p>
+<h4>Esegui il test</h4>
+<p>Ogni round ha cinque prese. Partendo dal Primo Veggente e in senso orario, ognuno gioca una carta. La carta di mano determina il seme della presa: bisogna <b>rispondere se possibile</b> con una carta dello stesso seme; chi non ha carte del seme di mano può giocare qualsiasi carta della mano. Quando si giocano le carte coperte non c'è obbligo di seguire il seme, e se ne può giocare una qualsiasi.</p>
+<p><b>Vincere la presa:</b> vince la carta di rango più alto del seme di mano, a meno che sia stata giocata una carta con l'Aspetto Soprannaturale: in tal caso vince la carta Soprannaturale di rango più alto. Se è attivo un Aspetto Super-soprannaturale, qualsiasi carta Super-soprannaturale batte una Soprannaturale. Se l'Aspetto Soprannaturale è un rango, o se due carte Super-soprannaturali sono giocate nella stessa presa, vince la carta <b>giocata dopo</b>. Il vincitore prende le carte (non si giocano più in questo round) e apre la presa successiva.</p>
+<h4>Valuta i risultati</h4>
+<p>Dopo le cinque prese ognuno rivela la carta coperta rimasta come puntata. Se il valore del rango <b>o</b> del seme della puntata coincide con il numero di prese catturate, la puntata è corretta (le carte con l'occhio possono valere 0). Si guadagna <b>1 punto per ogni presa</b> e <b>3 punti per una puntata corretta</b>. (Esempio: 2 di Onde con 2 prese = 3+2 = 5 punti; con 3 prese puntando 3 = 3+3 = 6 punti.)</p>
+<h4>Nuovo round</h4>
+<p>Il gettone Primo Veggente passa al giocatore successivo in senso orario. Si rimescolano <b>tutte</b> le carte (comprese le avanzate e la Carta Visione) e si ricomincia distribuendo 6 carte a testa, aumentando di una il numero di carte coperte.</p>
+<h4>Dopo 4 round</h4>
+<p>Controlla il tuo esito: 0 = nessuna capacità psichica · 1-4 = entro il margine d'errore · 5-7 = capacità offuscata dalle onde radio · 8-10 = una certa attitudine · 11-12 = chiaroveggente novizio · 13-14 = medium di media capacità · 15-16 = intermedio competente · 17-18 = in sintonia con l'universo · 19 = dotato, ma lo sapevi già · 20 o più = un vero visionario; considera di visitare un casinò.</p>
+<p><i>Interpretazioni nell'app:</i> il PDF non indica come si decide il vincitore: qui vince il punteggio totale più alto (a parità vittoria condivisa), e l'esito del test è mostrato per ognuno. Il Primo Veggente iniziale è scelto a caso. Le carte coperte non si possono guardare: nell'app restano nascoste.</p>
+<p><i>Nelle stanze online</i> si gioca solo tra persone (3–4): i posti al tavolo e il Primo Veggente sono assegnati a caso, le mani e le carte coperte restano visibili solo al proprietario, le previsioni si fanno a turno (partendo dal Primo Veggente) e le carte coperte si scelgono in contemporanea. Alla fine di ogni round chiunque può passare al successivo.</p>
+</div></details>`;
+</script>
+<script type="text/plain" id="src-ai">
+// ═════════════════════════ COSTANTI ═════════════════════════
+const NAMES = ['Tu','AI Zener','AI Rhine','AI Cardner'];
+const HUM = 0;
+
+// ═════════════════════════ UTILITÀ ═════════════════════════
+const rnd = n => Math.floor(Math.random()*n);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+let G = null, PR = null;
+const OPT = {undo:true,memo:false};
+try{ const s=localStorage.getItem('esp-undo'); if(s!==null) OPT.undo=s==='1'; OPT.memo=localStorage.getItem('esp-memo')==='1'; }catch(e){}
+
+// ═════════════════════════ INTERAZIONE ═════════════════════════
+async function ask(p,title,options){
+  const ok=options.filter(x=>!x.disabled);
+  if(!ok.length) return null;
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'choose',title,options,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
+// src: 'hand' (indici nella mano) oppure 'fd' (indici tra le carte coperte)
+function askCard(legal,hint,src){
+  const g=G;
+  return new Promise((res,rej)=>{ PR={type:'card',src:src||'hand',legal:new Set(legal),hint,sel:null,res,rej}; render(); }).then(v=>{ if(g!==G) throw ABORT; return v; });
+}
 
 // ═════════════════════════ AI ═════════════════════════
 // Previsione: euristica sulla probabilità che la Carta Visione abbia quel seme/rango; carte coperte e giocate: Monte-Carlo con determinizzazione (mani avversarie campionate tra le carte non viste, giocate casuali nel resto del round)
@@ -494,9 +585,9 @@ async function oneTrick(){
   const w=winnerOf(G.table,G.lead,G.asp), pw=P(w);
   G.win=w; pw.won++;
   const m=`${pw.name} vince la presa con ${cname(G.table.find(x=>x.p===w).c)} (prese: ${pw.won}).`;
+  G.leader=w; ckpt();   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa
   status(m); logMsg(m);
   await sleep(1600);
-  G.leader=w;
 }
 async function tricks(){
   if(!G.trickNo) G.leader=G.start;
@@ -550,16 +641,11 @@ async function run(rs){
 }
 
 // ═════════════════════════ RENDER ═════════════════════════
-const kface=(c,cls='')=>`<span class="fc ${isEye(c)?'z0 ':''}${cls}" title="${cname(c)}"><span>${c.r}</span>${sym(c.s)}</span>`;
 function handBtn(c,i,ok,sel){
   return `<button class="fc ${isEye(c)?'z0 ':''}${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="${cname(c)}"><span>${c.r}</span>${sym(c.s)}</button>`;
 }
 function fdBtn(i,c,ok,sel){
   return `<button class="fc bk ${ok?'legal':'dim'} ${sel?'sel':''}" ${ok?'':'disabled'} data-p="${i}" title="Carta coperta ${i+1}"><i class="ph-fill ph-eye"></i></button>`;
-}
-function tokHtml(t,dk,res){
-  if(!t) return '<span class="tok dk">?</span>';
-  return `<span class="tok ${dk?'dk':''} ${res||''}" title="${t.kind==='suit'?'Seme '+SUITS[t.v].n:'Rango '+t.v}${res==='hit'?' · indovinato':res==='miss'?' · sbagliato':''}">${t.kind==='suit'?sym(t.v):t.v}</span>`;
 }
 function tableauHtml(p){
   const x=G.table.find(t=>t.p===p);
@@ -626,8 +712,6 @@ function scoreTable(){
   return `<table class="score"><tr><th>Punteggio</th>${Array.from({length:ROUNDS},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Totale</th>${fin?'<th class="l">Esito del test</th>':''}</tr>${rows}</table>`;
 }
 function dockHtml(){
-  if(!G) return `<div class="dock-msg">ESP contro l'AI. Quanti giocatori in tutto?</div>
-    <div class="opts">${[3,4].map(n=>`<button class="opt" data-n="${n}">${n} giocatori (tu + ${n-1} AI)</button>`).join('')}</div>`;
   if(G.over){
     const w=G.over.winners.map(i=>esc(P(i).name)).join(' e ');
     return `<div class="dock-msg"><b>${G.over.winners.length>1?'Vittoria condivisa: ':'Vince '}${w}!</b> (vince il punteggio totale più alto)</div>${scoreTable()}`;
@@ -649,45 +733,6 @@ function dockHtml(){
   }
   return html;
 }
-function recapHtml(){
-  const n=G.n;
-  return `<details class="recap paper"><summary>RIEPILOGO</summary>
-    <div class="recap-row"><span class="lbl">Carte</span>${[0,1,2,3,4].map(s=>`<span class="tag" style="background:#111">${sym(s)} ${SUITS[s].n} = ${s+1}</span>`).join('')}<span class="rv">25 carte Zener (ranghi 1–5 in 5 semi) · 6 carte a testa</span></div>
-    <div class="recap-row"><span class="lbl">Visione</span><span class="rv" style="margin-left:0">ognuno prevede un seme O un rango diverso per la Carta Visione coperta · chi indovina +1 punto · il seme o rango indovinato diventa <b>Soprannaturale</b> (se indovinati entrambi, il rango è <b>Super-soprannaturale</b>)</span></div>
-    <div class="recap-row"><span class="lbl">Ipotesi</span><span class="rv" style="margin-left:0">metti 2/3/4/5 carte coperte (round 1–4) e tieni le altre in mano · non puoi più guardare le coperte · si giocano prima le carte in mano, poi le coperte (senza obbligo di seme) · l'ultima coperta è la puntata</span></div>
-    <div class="recap-row"><span class="lbl">Presa</span><span class="rv" style="margin-left:0">5 prese · devi seguire il seme se puoi (solo con le carte in mano) · vince il rango più alto del seme di mano, a meno che sia stata giocata una carta Soprannaturale (la più alta; se è un rango, l'ultima giocata) · il Super-soprannaturale batte il Soprannaturale (a parità l'ultimo)</span></div>
-    <div class="recap-row"><span class="lbl">Punti</span><span class="rv" style="margin-left:0">1 per ogni presa + 3 se la puntata è corretta (rango o valore del seme della carta = prese; la carta con l'occhio può valere 0: in questa implementazione l'occhio (zero) è rappresentato dal <b>triangolino nell'angolo in basso a destra</b> della carta)</span></div>
-    <div class="recap-row"><span class="lbl">Fine</span><span class="rv" style="margin-left:0">4 round · vince il punteggio totale più alto</span></div></details>`;
-}
-const RULES_HTML = `
-<details class="rules paper"><summary>REGOLAMENTO</summary>
-<div class="rtext">
-<h4>Abstract</h4>
-<p>Negli anni '30 gli scienziati della Duke University Karl Zener e J.B. Rhine condussero esperimenti per verificare la <b>percezione extrasensoriale</b> (ESP). Uno dei più famosi usava un mazzo di carte disegnato da Zener: Rhine mostrava una carta con il dorso verso il soggetto, che doveva intuire il simbolo sulla faccia. Questo «Esperimento di Perspicacia Supersensoriale» ne amplia il lavoro: invece di presentare carte singole, il test di chiaroveggenza si svolge attraverso un gioco di prese.</p>
-<h4>Materiali</h4>
-<p>25 carte Zener (ranghi 1–5 in 5 semi: Cerchio 1, Croce 2, Onda 3, Quadrato 4, Stella 5), 10 gettoni Previsione (uno per rango e per seme), 1 gettone Primo Veggente, 16 dischi punteggio (valore 1), 12 stelle punteggio (valore 5), 1 carta riassuntiva.</p>
-<h4>Preparazione</h4>
-<ul>
-<li>Il gettone Primo Veggente va al giocatore con la vista migliore (qui a caso).</li>
-<li>Si mescolano le 25 carte e se ne distribuiscono 6 a testa. Una carta non distribuita si mette coperta al centro senza guardarla: è la <b>Carta Visione</b>. Le altre carte avanzate non si usano in questo round.</li>
-</ul>
-<h4>Condividi la tua visione</h4>
-<p>Partendo dal Primo Veggente e in senso orario, ognuno prevede cosa c'è sulla Carta Visione: deve nominare un <b>seme</b> (Cerchio, Croce, Onda, Quadrato, Stella) <b>OPPURE</b> un <b>rango</b> (1–5) e prende il gettone corrispondente. Tutti devono prevedere qualcosa di diverso: nessuno può ripetere un seme o rango già scelto.</p>
-<p>Poi si scopre la Carta Visione. Ogni giocatore che ha previsto un seme o rango corretto guadagna 1 punto. Se qualche caratteristica della Carta Visione è stata prevista, quel seme o rango diventa l'<b>Aspetto Soprannaturale</b> del round. Se sono stati previsti <b>sia</b> il rango sia il seme, il seme è l'Aspetto Soprannaturale e il rango è l'<b>Aspetto Super-soprannaturale</b>. Se nessuno dei due è stato previsto, non c'è Aspetto Soprannaturale. La Carta Visione viene messa da parte.</p>
-<h4>Sviluppa un'ipotesi</h4>
-<p>Ogni giocatore mette alcune carte coperte in fila davanti a sé e tiene le altre in mano. <b>Una volta messa coperta, una carta non si può più guardare finché non viene giocata in una presa o rivelata come puntata.</b> Carte coperte: round 1: 2 (4 in mano); round 2: 3; round 3: 4; round 4: 5. Le carte in mano vanno giocate per prime; poi le prese restanti si giocano con le carte coperte. Dopo cinque prese l'ultima carta coperta di ciascuno è la sua <b>puntata</b>.</p>
-<p>Ogni carta ha due possibili valori di puntata da 0 a 5: il <b>rango</b> (il numero sulla carta) oppure il <b>seme</b> (Cerchio 1, Croce 2, Onda 3, Quadrato 4, Stella 5). Se rango e valore del seme coincidono (1 di Cerchi, 2 di Croci, 3 di Onde, 4 di Quadrati, 5 di Stelle) la carta può valere anche <b>0</b>: queste carte hanno l'icona dell'occhio.</p>
-<h4>Esegui il test</h4>
-<p>Ogni round ha cinque prese. Partendo dal Primo Veggente e in senso orario, ognuno gioca una carta. La carta di mano determina il seme della presa: bisogna <b>rispondere se possibile</b> con una carta dello stesso seme; chi non ha carte del seme di mano può giocare qualsiasi carta della mano. Quando si giocano le carte coperte non c'è obbligo di seguire il seme, e se ne può giocare una qualsiasi.</p>
-<p><b>Vincere la presa:</b> vince la carta di rango più alto del seme di mano, a meno che sia stata giocata una carta con l'Aspetto Soprannaturale: in tal caso vince la carta Soprannaturale di rango più alto. Se è attivo un Aspetto Super-soprannaturale, qualsiasi carta Super-soprannaturale batte una Soprannaturale. Se l'Aspetto Soprannaturale è un rango, o se due carte Super-soprannaturali sono giocate nella stessa presa, vince la carta <b>giocata dopo</b>. Il vincitore prende le carte (non si giocano più in questo round) e apre la presa successiva.</p>
-<h4>Valuta i risultati</h4>
-<p>Dopo le cinque prese ognuno rivela la carta coperta rimasta come puntata. Se il valore del rango <b>o</b> del seme della puntata coincide con il numero di prese catturate, la puntata è corretta (le carte con l'occhio possono valere 0). Si guadagna <b>1 punto per ogni presa</b> e <b>3 punti per una puntata corretta</b>. (Esempio: 2 di Onde con 2 prese = 3+2 = 5 punti; con 3 prese puntando 3 = 3+3 = 6 punti.)</p>
-<h4>Nuovo round</h4>
-<p>Il gettone Primo Veggente passa al giocatore successivo in senso orario. Si rimescolano <b>tutte</b> le carte (comprese le avanzate e la Carta Visione) e si ricomincia distribuendo 6 carte a testa, aumentando di una il numero di carte coperte.</p>
-<h4>Dopo 4 round</h4>
-<p>Controlla il tuo esito: 0 = nessuna capacità psichica · 1-4 = entro il margine d'errore · 5-7 = capacità offuscata dalle onde radio · 8-10 = una certa attitudine · 11-12 = chiaroveggente novizio · 13-14 = medium di media capacità · 15-16 = intermedio competente · 17-18 = in sintonia con l'universo · 19 = dotato, ma lo sapevi già · 20 o più = un vero visionario; considera di visitare un casinò.</p>
-<p><i>Interpretazioni nell'app:</i> il PDF non indica come si decide il vincitore: qui vince il punteggio totale più alto (a parità vittoria condivisa), e l'esito del test è mostrato per ognuno. Il Primo Veggente iniziale è scelto a caso. Le carte coperte non si possono guardare: nell'app restano nascoste (puoi attivare «Mostra le mie carte coperte» dal menu come aiuto di memoria).</p>
-</div></details>`;
 
 let LOGOPEN=false;
 function logHtml(){
@@ -719,14 +764,13 @@ function render(){
       ${recapHtml()}
       ${RULES_HTML}`;
   }
-  app.innerHTML=top+`<div class="dock paper">${dockHtml()}</div>`+body;
+  app.innerHTML=top+(G?`<div class="dock paper">${dockHtml()}</div>`:'')+body;
 }
 
 document.getElementById('app').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   if(b.dataset.menu){ MENUOPEN=!MENUOPEN; render(); return; }
-  if(b.dataset.n){ const n=Number(b.dataset.n); if(G) newMatch(n); else askName(n); }
-  else if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
+  if(b.dataset.new){ if(confirm('Iniziare una nuova partita?')) toSetup(); }
   else if(b.dataset.i!==undefined) answer(Number(b.dataset.i));
   else if(b.dataset.p!==undefined) playIdx(Number(b.dataset.p));
   else if(b.dataset.cf!==undefined) confirmCard(b.dataset.cf==='1');
@@ -745,9 +789,691 @@ document.getElementById('app').addEventListener('change',e=>{
 });
 document.addEventListener('click',e=>{ if(MENUOPEN&&!e.target.closest('.menu-wrap')){ MENUOPEN=false; render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&MENUOPEN){ MENUOPEN=false; render(); } });
-render();
-nyloSaveInit('esp',snap=>{ G=snap; PR=null; render(); run(true); });
+function toSetup(){ if(PR){ const r=PR.rej; PR=null; r(ABORT); } location.href=location.pathname+'#ai'; location.reload(); }
+if(window.NYLO_START&&NYLO_START.mode==='ai'){
+  nyloSaveInit('esp',snap=>{ G=snap; PR=null; MENUOPEN=false; render(); run(true); });
+  if(!NYLO_START.resume){ NAMES[0]=NYLO_START.name||'Tu'; newMatch(NYLO_START.n); }
+}
 
+</script>
+<script type="text/plain" id="src-room">
+// ═════════════════════════ ESP · ONLINE ═════════════════════════
+// Si gioca solo tra persone (3–4). Stato = un unico oggetto JSON (S); ogni azione passa da gameReduce(). Costanti e regole pure arrivano dal blocco comune.
+var GAME={id:'esp',logo:'<span class="eye">ESP</span><small>Experiment in Supersensory Perspicacity</small>',counts:[3,4],
+  lobbyNote:'Servono 3 o 4 giocatori. Quando la stanza è piena, i posti al tavolo e il Primo Veggente vengono assegnati a caso. Le previsioni si fanno a turno; le carte coperte si scelgono in contemporanea.'};
+var OPT={undo:true};
+try{var _u=localStorage.getItem('esp-undo');if(_u!==null)OPT.undo=_u==='1'}catch(e){}
+var ui={sel:null,pick:[]};
+var LOGOPEN=false;
+
+// ─────────────── REGOLE (funzioni pure, usate dentro le transazioni) ───────────────
+function mkRng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function sshuffle(a,rng){for(var i=a.length-1;i>0;i--){var j=Math.floor(rng()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function newSeed(){return Math.floor(Math.random()*4294967296)}
+function validSeed(x){return typeof x==='number'&&x%1===0&&x>=0&&x<4294967296}
+function lg(S,t){S.log.unshift(t);if(S.log.length>200)S.log.pop()}
+function rotOrder(S,from){var o=[],k;for(k=0;k<S.n;k++)o.push((from+k)%S.n);return o}
+function aspLabel(a){return a.kind==='suit'?SUITS[a.v].n:'rango '+a.v}
+// nuovo round: si rimescolano tutte le 25 carte, 6 a testa + la Carta Visione coperta (le altre non si usano)
+function dealRound(S,rng){
+  var deck=sshuffle(fullDeck(),rng);
+  S.pl.forEach(function(p,i){p.hand=sortHand(deck.slice(i*6,(i+1)*6));p.fd=[];p.won=0;p.pred=null});
+  S.vision=deck[S.n*6];S.vrev=false;S.asp={sup:null,sd:null};S.predPts=S.pl.map(function(){return 0});S.taken=[];
+  S.trick=[];S.lead=null;S.win=-1;S.tdone=false;S.trickNo=0;S.order=[];S.leader=S.start;S.show=null;S.rt='';
+  S.phase='pred';
+  lg(S,'— Round '+(S.round+1)+'/'+ROUNDS+': primo veggente '+S.names[S.start]+' · '+FD[S.round]+' carte coperte —');
+}
+function newGame(S,rng){
+  S.round=0;S.start=Math.floor(rng()*S.n);S.winners=[];
+  S.pl=S.names.map(function(){return {hand:[],fd:[],won:0,pred:null,total:0,rs:[]}});
+  dealRound(S,rng);
+}
+function gameInitial(players,seed,opts){
+  var names=[];
+  players.forEach(function(p){var n=String(p.name||'Giocatore').slice(0,18),x=n,c=2;while(names.indexOf(x)>=0)x=n+' '+(c++);names.push(x)});
+  var n=players.length;
+  var S={n:n,uids:players.map(function(p){return p.uid}),names:names,log:[]};
+  newGame(S,mkRng(validSeed(seed)?seed:newSeed()));
+  return S;
+}
+// di chi è il turno (-1 = nessuno)
+function turnOf(S){
+  if(S.phase==='pred')return (S.start+S.taken.length)%S.n;
+  if(S.phase!=='play')return -1;
+  return S.tdone?S.leader:S.order[S.trick.length];
+}
+function gameWinners(S){return S.winners||[]}
+// quando tutti hanno previsto si scopre la Carta Visione
+function revealVision(S){
+  var vc=S.vision,hits=[];
+  S.vrev=true;
+  S.pl.forEach(function(pl,i){
+    var t=pl.pred,ok=t.kind==='suit'?t.v===vc.s:t.v===vc.r;
+    S.predPts[i]=ok?1:0;if(ok)hits.push(i);
+  });
+  S.asp=aspectsOf(vc,S.pl.map(function(p){return p.pred}));
+  lg(S,'La Carta Visione è '+cname(vc)+'.');
+  hits.forEach(function(i){lg(S,S.names[i]+' ha indovinato ('+tokName(S.pl[i].pred)+'): +1 punto.')});
+  var a=S.asp;
+  lg(S,a.sup?'Aspetto Soprannaturale: '+aspLabel(a.sup)+(a.sd?' · Super-soprannaturale: rango '+a.sd.v:'')+'.':'Nessun aspetto Soprannaturale in questo round.');
+  S.phase='fd';
+}
+function scoreRound(S){
+  var rows=S.pl.map(function(pl,i){
+    var b=pl.fd[0],ok=bidOk(b,pl.won),pts=S.predPts[i]+pl.won+(ok?3:0);
+    pl.rs.push(pts);pl.total+=pts;
+    return {p:i,bid:b,won:pl.won,ok:ok,pred:S.predPts[i],pts:pts,total:pl.total};
+  });
+  S.show={rows:rows};
+  rows.forEach(function(r){lg(S,'Round '+(S.round+1)+': '+S.names[r.p]+' rivela '+cname(r.bid)+' come puntata (valori '+r.bid.r+'/'+(r.bid.s+1)+(isEye(r.bid)?'/0':'')+') con '+r.won+' prese: puntata '+(r.ok?'corretta (+3)':'sbagliata')+' · previsione +'+r.pred+' · prese +'+r.won+' → '+r.pts+' punti (totale '+r.total+').')});
+  S.phase='score';
+}
+function resolveTrick(S){
+  var w=winnerOf(S.trick,S.lead,S.asp),pw=S.pl[w],wc=S.trick.filter(function(x){return x.p===w})[0];
+  pw.won++;S.win=w;S.tdone=true;
+  S.rt=S.names[w]+' vince la presa con '+cname(wc.c)+' (prese: '+pw.won+').';
+  lg(S,S.rt);
+  S.leader=w;S.order=rotOrder(S,w);
+  if(S.trickNo>=5)scoreRound(S);
+}
+// ritorna il nuovo stato oppure null se l'azione non è valida
+function gameReduce(S,seat,a){
+  if(!a||typeof a.type!=='string'||!(seat>=0&&seat<S.n))return null;
+  var pl=S.pl[seat],i;
+  if(a.type==='pred'){
+    if(S.phase!=='pred'||turnOf(S)!==seat)return null;
+    if((a.kind!=='suit'&&a.kind!=='rank')||!Number.isInteger(a.v))return null;
+    if(a.kind==='suit'?(a.v<0||a.v>4):(a.v<1||a.v>5))return null;
+    if(S.taken.some(function(x){return x.kind===a.kind&&x.v===a.v}))return null;
+    var t={kind:a.kind,v:a.v};
+    pl.pred=t;S.taken.push(t);
+    lg(S,S.names[seat]+' prevede '+(t.kind==='suit'?'il seme':'il rango')+' '+tokName(t)+'.');
+    if(S.taken.length===S.n)revealVision(S);
+    return S;
+  }
+  if(a.type==='fd'){
+    if(S.phase!=='fd'||pl.fd.length||!Array.isArray(a.ids))return null;
+    var need=FD[S.round],idxs=[];
+    if(a.ids.length!==need)return null;
+    for(i=0;i<a.ids.length;i++){
+      var id=a.ids[i],hi=-1;
+      pl.hand.forEach(function(c,j){if(c.id===id)hi=j});
+      if(hi<0||idxs.indexOf(hi)>=0)return null;
+      idxs.push(hi);
+    }
+    idxs.sort(function(x,y){return x-y});
+    pl.fd=idxs.map(function(j){return pl.hand[j]});
+    pl.hand=pl.hand.filter(function(c,j){return idxs.indexOf(j)<0});
+    lg(S,S.names[seat]+' mette '+need+' carte coperte e ne tiene '+pl.hand.length+' in mano.');
+    if(S.pl.every(function(p){return p.fd.length>0})){
+      S.phase='play';S.leader=S.start;S.order=rotOrder(S,S.start);S.trick=[];S.lead=null;S.win=-1;S.tdone=false;S.trickNo=0;
+      lg(S,'Inizia la prima presa: di mano '+S.names[S.start]+'.');
+    }
+    return S;
+  }
+  if(a.type==='play'){
+    if(S.phase!=='play'||turnOf(S)!==seat)return null;
+    if(S.tdone){S.trick=[];S.win=-1;S.lead=null;S.tdone=false}      // la presa precedente è finita: comincia la successiva
+    var card,fromFd=false;
+    if(pl.hand.length){
+      if(a.src!=='hand'||!Number.isInteger(a.id))return null;
+      var h=-1;pl.hand.forEach(function(c,j){if(c.id===a.id)h=j});
+      if(h<0||legalHand(pl.hand,S.lead).indexOf(h)<0)return null;
+      card=pl.hand.splice(h,1)[0];
+    }else{
+      if(a.src!=='fd'||!Number.isInteger(a.i)||a.i<0||a.i>=pl.fd.length||pl.fd.length<2)return null;
+      card=pl.fd.splice(a.i,1)[0];fromFd=true;
+    }
+    if(!S.trick.length)S.trickNo++;
+    if(S.lead==null)S.lead=card.s;
+    S.trick.push({p:seat,c:card});
+    lg(S,S.names[seat]+' gioca '+cname(card)+(fromFd?' (coperta)':'')+'.');
+    if(S.trick.length===S.n)resolveTrick(S);
+    return S;
+  }
+  if(a.type==='next'){
+    if(S.phase!=='score'||!validSeed(a.seed))return null;
+    if(S.round>=ROUNDS-1){
+      var mx=Math.max.apply(null,S.pl.map(function(p){return p.total}));
+      S.winners=S.pl.map(function(p,j){return p.total===mx?j:-1}).filter(function(j){return j>=0});
+      S.phase='over';
+      lg(S,'Partita conclusa: '+(S.winners.length>1?'vittoria condivisa di ':'vince ')+S.winners.map(function(x){return S.names[x]}).join(' e ')+'.');
+    }else{
+      S.start=(S.start+1)%S.n;S.round++;dealRound(S,mkRng(a.seed));
+    }
+    return S;
+  }
+  if(a.type==='rematch'){
+    if(S.phase!=='over'||!validSeed(a.seed))return null;
+    lg(S,'— Rivincita —');
+    newGame(S,mkRng(a.seed));return S;
+  }
+  return null;
+}
+
+// ─────────────── INTERFACCIA ───────────────
+function ordSeats(){var o=[],i;for(i=0;i<S.n;i++)o.push((me+i)%S.n);return o}
+function needFd(){return S.phase==='fd'&&!S.pl[me].fd.length?FD[S.round]:0}
+// carte che posso giocare adesso: dalla mano (con obbligo di seme) e, a mano vuota, tra le coperte
+function myLegal(){
+  if(S.phase!=='play'||turnOf(S)!==me)return null;
+  var pl=S.pl[me];
+  if(pl.hand.length)return {src:'hand',lg:legalHand(pl.hand,S.tdone?null:S.lead)};
+  return {src:'fd',lg:pl.fd.map(function(_,j){return j})};
+}
+function humanHint(lgl){
+  var pl=S.pl[me],lead=S.tdone?null:S.lead;
+  if(lgl.src==='fd')return 'Ora giochi le carte coperte (nessun obbligo di seguire il seme). Ricorda: l\'ultima rimasta sarà la tua puntata.';
+  if(lead==null)return 'Sei di mano: gioca la carta che vuoi.';
+  return pl.hand.some(function(c){return c.s===lead})?'Devi rispondere al seme '+SUITS[lead].n+'.':'Non hai il seme '+SUITS[lead].n+': puoi giocare ciò che vuoi.';
+}
+function cardBtn(c,i,cls,attr){
+  return '<button class="fc '+(isEye(c)?'z0 ':'')+cls+'" '+attr+' title="'+cname(c)+'"><span>'+c.r+'</span>'+sym(c.s)+'</button>';
+}
+function handH(){
+  var pl=S.pl[me],k=needFd(),lgl=k?null:myLegal();
+  return '<div class="hand">'+pl.hand.map(function(c,i){
+    if(k)return cardBtn(c,i,'legal '+(ui.pick.indexOf(i)>=0?'sel':''),'data-pk="'+i+'"');
+    if(lgl&&lgl.src==='hand'){var ok=lgl.lg.indexOf(i)>=0,sel=ui.sel&&ui.sel.src==='hand'&&ui.sel.i===i;return cardBtn(c,i,(ok?'legal':'dim')+' '+(sel?'sel':''),(ok?'':'disabled')+' data-p="'+i+'"')}
+    return kface(c);
+  }).join('')+'</div>';
+}
+function fdRowH(p){
+  var pl=S.pl[p];
+  if(!pl.fd.length)return '';
+  if(p!==me)return '<div class="fdrow"><span class="fdl">coperte:</span><div class="backs">'+pl.fd.map(function(){return '<span class="back"></span>'}).join('')+'</div></div>';
+  var lgl=myLegal();
+  return '<div class="fdrow"><span class="fdl">coperte:</span>'+pl.fd.map(function(c,j){
+    if(lgl&&lgl.src==='fd'){var sel=ui.sel&&ui.sel.src==='fd'&&ui.sel.i===j;return '<button class="fc bk legal '+(sel?'sel':'')+'" data-fd="'+j+'" title="Carta coperta '+(j+1)+'"><i class="ph-fill ph-eye"></i></button>'}
+    return '<span class="fc bk sm"><i class="ph-fill ph-eye"></i></span>';
+  }).join('')+'</div>';
+}
+function tableauH(p){
+  var x=null;S.trick.forEach(function(t){if(t.p===p)x=t});
+  return '<div class="tableau">'+(x?kface(x.c,'mini '+(S.tdone&&S.win===p?'win':'')):'<span class="empty"></span>')+'</div>';
+}
+function flagH(p){
+  if(S.phase==='over')return gameWinners(S).indexOf(p)>=0?'<span class="flag first">Vince</span>':'';
+  if(S.phase==='score')return '';
+  if(S.phase==='play'&&!S.tdone&&S.leader===p)return '<span class="flag lead">Di mano</span>';
+  if((S.phase==='pred'||S.phase==='fd'||(S.phase==='play'&&S.trickNo===0&&!S.trick.length))&&S.start===p)return '<span class="flag first">Primo veggente</span>';
+  return '';
+}
+function seatH(p,pos){
+  var pl=S.pl[p],hand;
+  if(p===me)hand=handH();
+  else hand='<div class="backs">'+pl.hand.map(function(){return '<span class="back"></span>'}).join('')+'</div>';
+  var res=S.vrev?(S.predPts[p]?'hit':'miss'):'';
+  var meta='<div class="seat-meta"><span class="tag">previsione '+(pl.pred?tokHtml(pl.pred,false,res):'–')+'</span><span class="tag">prese <b>'+pl.won+'</b></span><span class="tag">punti <b>'+pl.total+'</b></span></div>';
+  var name='<div class="seat-name">'+esc(S.names[p])+(p===me?' <span class="hint">(tu)</span>':'')+flagH(p)+'</div>';
+  var fd=fdRowH(p);
+  var inner=pos==='bottom'?tableauH(p)+name+meta+fd+hand:(pos==='top'?hand+fd+name+meta+tableauH(p):name+meta+tableauH(p)+fd+hand);
+  var isLeader=S.phase==='play'&&!S.tdone&&S.leader===p,active=turnOf(S)===p,winner=S.tdone&&S.win===p&&S.phase!=='over';
+  return '<div class="seat '+pos+' '+(isLeader?'leader':'')+' '+(active?'active':'')+' '+(winner?'winner':'')+'">'+inner+'</div>';
+}
+function centerH(){
+  var a=S.asp,asp='';
+  if(S.vrev){
+    if(!a.sup)asp='<div>Nessun aspetto Soprannaturale</div>';
+    else asp='<div class="asp"><span>Soprannaturale:</span><b>'+(a.sup.kind==='suit'?sym(a.sup.v)+' '+SUITS[a.sup.v].n:'rango '+a.sup.v)+'</b></div>'+(a.sd?'<div class="asp"><span>Super-soprannaturale:</span><b>rango '+a.sd.v+'</b></div>':'');
+  }
+  var vis=S.vrev?kface(S.vision):'<span class="fc bk"><i class="ph-fill ph-eye"></i></span>';
+  var lead=S.tdone?null:S.lead;
+  return '<div class="center"><div>'+vis+'<div>Carta Visione</div></div>'+asp+
+    (lead!=null?'<div>Seme di mano: <b>'+sym(lead)+' '+SUITS[lead].n+'</b></div>':'<div>&nbsp;</div>')+
+    '<div>Presa <b>'+Math.min(S.trickNo,5)+'/5</b> · Round <b>'+Math.min(S.round+1,ROUNDS)+'/'+ROUNDS+'</b></div>'+
+    '<div class="hint">'+FD[Math.min(S.round,ROUNDS-1)]+' carte coperte per giocatore in questo round</div></div>';
+}
+function scoreTableH(){
+  var fin=S.phase==='over';
+  var rows=ordSeats().map(function(p){var pl=S.pl[p];
+    return '<tr class="'+(p===me?'me':'')+'"><td>'+esc(S.names[p])+'</td>'+Array.from({length:ROUNDS},function(_,i){return i<pl.rs.length?'<td>'+pl.rs[i]+'</td>':'<td>–</td>'}).join('')+'<td><b>'+pl.total+'</b></td>'+(fin?'<td class="l">'+esc(resultOf(pl.total))+'</td>':'')+'</tr>'}).join('');
+  return '<table class="score"><tr><th>Punteggio</th>'+Array.from({length:ROUNDS},function(_,i){return '<th>R'+(i+1)+'</th>'}).join('')+'<th>Totale</th>'+(fin?'<th class="l">Esito del test</th>':'')+'</tr>'+rows+'</table>';
+}
+function roundTableH(){
+  return '<table class="score"><tr><th></th><th class="l">Puntata</th><th>Prese</th><th>Esito</th><th>Previsione</th><th>Round</th><th>Totale</th></tr>'+ordSeats().map(function(p){var r=S.show.rows[p];
+    return '<tr class="'+(p===me?'me':'')+'"><td>'+esc(S.names[r.p])+'</td><td class="l">'+cname(r.bid)+' ('+r.bid.r+' / '+(r.bid.s+1)+(isEye(r.bid)?' / 0':'')+')</td><td>'+r.won+'</td><td class="'+(r.ok?'':'neg')+'">'+(r.ok?'+3 corretta':'sbagliata')+'</td><td>+'+r.pred+'</td><td><b>'+r.pts+'</b></td><td><b>'+r.total+'</b></td></tr>'}).join('')+'</table>';
+}
+function msgH(){
+  if(S.phase==='over'){var w=gameWinners(S).map(function(i){return esc(S.names[i])}).join(' e ');return '<b>'+(gameWinners(S).length>1?'Vittoria condivisa: ':'Vince ')+w+'!</b> (vince il punteggio totale più alto)'}
+  if(S.phase==='score')return 'Round '+(S.round+1)+' concluso.';
+  var tn=turnOf(S);
+  if(S.phase==='pred')return tn===me?'Condividi la tua visione: tocca a te.':'Condividi la tua visione: tocca a '+esc(S.names[tn])+'.';
+  if(S.phase==='fd'){
+    var done=S.pl.filter(function(p){return p.fd.length}).length;
+    return (S.pl[me].fd.length?'Carte coperte inviate. Aspetto gli altri… ':'Sviluppa un\'ipotesi: scegli le carte da mettere coperte. ')+'('+done+'/'+S.n+')';
+  }
+  if(S.tdone)return esc(S.rt)+' '+(tn===me?'Apri tu la presa successiva.':esc(S.names[tn])+' apre la presa successiva.');
+  return 'Presa '+S.trickNo+'/5 · di mano: '+esc(S.names[S.leader])+'. '+(tn===me?'Tocca a te.':'Tocca a '+esc(S.names[tn])+'.');
+}
+function dockH(){
+  var h='<div class="dock-msg">'+msgH()+'</div>';
+  if(S.phase==='over')return h+scoreTableH()+'<div class="opts"><button class="opt" data-rematch="1">Rivincita</button></div>';
+  if(S.phase==='score')return h+roundTableH()+'<div class="opts"><button class="opt" data-next="1">'+(S.round>=ROUNDS-1?'Mostra risultato finale':'Round successivo')+'</button></div>';
+  if(S.phase==='pred'){
+    if(turnOf(S)!==me)return h;
+    var all=[],v;
+    for(v=0;v<5;v++)all.push({kind:'suit',v:v});
+    for(v=1;v<=5;v++)all.push({kind:'rank',v:v});
+    var avail=all.filter(function(t){return !S.taken.some(function(x){return x.kind===t.kind&&x.v===t.v})});
+    return h+'<div class="dock-title">COSA C\'È SULLA CARTA VISIONE? SCEGLI UN SEME OPPURE UN RANGO (NON GIÀ SCELTO)</div><div class="opts">'+avail.map(function(t){
+      return '<button class="opt" data-pred="'+t.kind+':'+t.v+'">'+tokHtml(t)+(t.kind==='suit'?'Seme: '+SUITS[t.v].n:'Rango: '+t.v)+'</button>'}).join('')+'</div>';
+  }
+  if(S.phase==='fd'){
+    var k=needFd();
+    if(k)h+='<div class="hint">Tocca le carte da mettere coperte: dopo non potrai più guardarle (l\'ultima rimasta sarà la tua puntata). Selezionate '+ui.pick.length+'/'+k+'.</div><div class="opts"><button class="opt" data-fdok="1" '+(ui.pick.length===k?'':'disabled')+'>Conferma le '+k+' carte coperte</button></div>';
+    return h;
+  }
+  var lgl=myLegal();
+  if(lgl){
+    h+='<div class="hint">Tocca a te: '+esc(humanHint(lgl))+'</div>';
+    if(ui.sel){
+      var lbl=ui.sel.src==='fd'?'la carta coperta '+(ui.sel.i+1):cname(S.pl[me].hand[ui.sel.i]);
+      h+='<div class="opts"><button class="opt" data-cf="1">Conferma: gioca '+lbl+'</button><button class="opt" data-cf="0">Annulla</button></div>';
+    }
+  }
+  return h;
+}
+function roomLogH(){
+  return '<details class="log paper" '+(LOGOPEN?'open':'')+'><summary>LOG DELLA PARTITA ('+S.log.length+')</summary><div class="logbody">'+S.log.map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div></details>';
+}
+function gameBadge(){return S.phase==='over'?'':'Round '+(S.round+1)+'/'+ROUNDS}
+function gameMenu(){
+  return '<label class="opt-toggle" title="Chiede conferma e permette di annullare le carte giocate"><input type="checkbox" id="optUndo" '+(OPT.undo?'checked':'')+'> Abilita annulla</label>';
+}
+function gameChange(e){
+  if(e.target.id==='optUndo'){OPT.undo=e.target.checked;try{localStorage.setItem('esp-undo',OPT.undo?'1':'0')}catch(x){}ui.sel=null;render()}
+}
+function lobbyExtra(){return ''}
+function gameRender(){
+  if(!(S.phase==='play'&&turnOf(S)===me))ui.sel=null;
+  if(!needFd())ui.pick=[];
+  var lb=document.querySelector('.logbody'),lbTop=lb?lb.scrollTop:0;
+  if(lbTop)setTimeout(function(){var n=document.querySelector('.logbody');if(n)n.scrollTop=lbTop},0);
+  return '<div class="dock paper">'+dockH()+'</div>'+
+    '<div class="table">'+ordSeats().map(function(p,i){return seatH(p,POS[S.n][i])}).join('')+centerH()+'</div>'+
+    (S.pl.some(function(p){return p.rs.length})?'<div class="dock paper" style="position:static">'+scoreTableH()+'</div>':'')+
+    roomLogH()+recapHtml()+RULES_HTML;
+}
+function playSel(){
+  var s=ui.sel;if(!s||!myLegal())return;
+  ui.sel=null;
+  if(s.src==='hand')act({type:'play',src:'hand',id:S.pl[me].hand[s.i].id});
+  else act({type:'play',src:'fd',i:s.i});
+}
+function gameClick(b){
+  var d=b.dataset;
+  if(d.pred!==undefined){var pp=d.pred.split(':');act({type:'pred',kind:pp[0],v:Number(pp[1])});return}
+  if(d.pk!==undefined){
+    var k=needFd();if(!k)return;
+    var i=Number(d.pk),x=ui.pick.indexOf(i);
+    if(x>=0)ui.pick.splice(x,1);else if(ui.pick.length<k)ui.pick.push(i);
+    render();return;
+  }
+  if(d.fdok!==undefined){
+    var k2=needFd();if(!k2||ui.pick.length!==k2)return;
+    var ids=ui.pick.map(function(j){return S.pl[me].hand[j].id});ui.pick=[];act({type:'fd',ids:ids});return;
+  }
+  if(d.p!==undefined||d.fd!==undefined){
+    var lgl=myLegal();if(!lgl)return;
+    var src=d.p!==undefined?'hand':'fd',j=Number(d.p!==undefined?d.p:d.fd);
+    if(lgl.src!==src||lgl.lg.indexOf(j)<0)return;
+    ui.sel={src:src,i:j};
+    if(OPT.undo)render();else playSel();
+    return;
+  }
+  if(d.cf!==undefined){
+    if(d.cf==='1')playSel();else{ui.sel=null;render()}
+    return;
+  }
+  if(d.next!==undefined)act({type:'next',seed:newSeed()});
+  else if(d.rematch!==undefined)act({type:'rematch',seed:newSeed()});
+}
+document.getElementById('app').addEventListener('toggle',function(e){if(e.target.matches&&e.target.matches('details.log'))LOGOPEN=e.target.open},true);
+
+// ═══ KIT STANZE ═══
+// Stesso schema di tt/spy-team/online: rooms/$room con hostUid, members, lobby, state (le regole già pubblicate bastano).
+// Lo stato di gioco è un unico oggetto JSON salvato come stringa in state.s (+ contatore state.v); ogni azione è una
+// transazione che applica gameReduce() all'ultima versione. Le mani stanno nello stato (nascoste solo dall'interfaccia).
+var FIREBASE_CONFIG={
+  apiKey:"AIzaSyAoOMLytOqFY9GRXpi2kUGEyzLK-r00nvQ",
+  authDomain:"gachapon-trick.firebaseapp.com",
+  databaseURL:"https://gachapon-trick-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"gachapon-trick",
+  storageBucket:"gachapon-trick.firebasestorage.app",
+  messagingSenderId:"869677835302",
+  appId:"1:869677835302:web:85768d5a6ac0d94f8372e7"
+};
+function gameOpts(){return {}}
+var ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+var SAVE_KEY=GAME.id+'-online-last';
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var rnd=function(n){return Math.floor(Math.random()*n)};
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+function getPlayerName(){
+  var name='';
+  try{
+    name=localStorage.getItem('nylo-player-name')||'';
+    if(!name){var last=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');name=last&&last.name||''}
+  }catch(e){}
+  return String(name||'Giocatore').trim().slice(0,18)||'Giocatore';
+}
+var playerName=getPlayerName();
+var db=null,user=null,roomRef=null,roomCode='',lobbyData=null,S=null,me=-1,listeners=[],startingGame=false;
+var statusText='',connText='',joinVal='',chosenCount=GAME.counts[0],MENUOPEN=false,connecting=false;
+try{var lastRoom=JSON.parse(localStorage.getItem(SAVE_KEY));if(lastRoom)joinVal=lastRoom.code||''}catch(e){}
+
+function setStatus(t){statusText=t;render()}
+function setConn(t){connText=t;var c=document.getElementById('conn');if(c)c.textContent=t}
+function showErr(t){
+  var e=document.getElementById('err');
+  if(!e){e=document.createElement('div');e.id='err';e.className='err';e.setAttribute('role','alert');document.body.appendChild(e)}
+  e.textContent=t;e.hidden=false;setConn('Errore');clearTimeout(showErr.t);showErr.t=setTimeout(function(){e.hidden=true},8000);
+}
+function genCode(){var b=new Uint8Array(12);crypto.getRandomValues(b);return Array.from(b,function(x){return ALPHABET[x%ALPHABET.length]}).join('')}
+function withTimeout(p,ms,msg){
+  return new Promise(function(res,rej){var t=setTimeout(function(){rej(new Error(msg))},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})});
+}
+function authMsg(e){
+  if(e.code==='auth/operation-not-allowed')return 'Attiva il provider Anonimo in Firebase Authentication.';
+  if(e.code==='auth/unauthorized-domain')return 'Dominio non autorizzato: aggiungilo in Authentication > Impostazioni > Domini autorizzati.';
+  if(e.code==='auth/network-request-failed')return 'Firebase non raggiungibile: controlla la connessione e che il sito sia in HTTPS.';
+  return e.message||'Errore di autenticazione Firebase.';
+}
+async function connect(){
+  if(!window.firebase)throw new Error('Firebase non caricato. Controlla la connessione.');
+  if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+  db=firebase.database();
+  if(user)return;
+  try{user=(await withTimeout(firebase.auth().signInAnonymously(),15000,'Autenticazione scaduta dopo 15 secondi.')).user}
+  catch(e){throw new Error(authMsg(e))}
+}
+function saveLast(name){try{localStorage.setItem(SAVE_KEY,JSON.stringify({code:roomCode,name:name}))}catch(e){}}
+
+// ─────────────── LOBBY ───────────────
+async function createRoom(){
+  try{
+    setStatus('Connessione a Firebase...');await connect();
+    var created=false,lastErr=null;
+    for(var i=0;i<5&&!created;i++){
+      roomCode=genCode();roomRef=db.ref('rooms/'+roomCode);
+      try{
+        await roomRef.child('hostUid').set(user.uid);
+        await roomRef.child('members/'+user.uid).set(true);
+        await roomRef.child('lobby').set({game:GAME.id,hostUid:user.uid,playerCount:chosenCount,started:false,closed:false,players:{}});
+        created=true;
+      }catch(e){lastErr=e;roomRef=null}
+    }
+    if(!created)throw lastErr||new Error('Impossibile creare la stanza. Verifica le regole del database.');
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;connecting=false;setStatus(e.message||'Errore durante la creazione della stanza.')}
+}
+async function joinRoom(){
+  try{
+    roomCode=joinVal.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(roomCode.length!==12)throw new Error('Il codice stanza è di 12 caratteri.');
+    setStatus('Connessione...');await connect();
+    roomRef=db.ref('rooms/'+roomCode);
+    await roomRef.child('members/'+user.uid).set(true);
+    await reserveSeat(playerName);
+  }catch(e){roomRef=null;connecting=false;setStatus(e.code==='PERMISSION_DENIED'?'Stanza non trovata o non accessibile.':(e.message||'Errore durante l\'accesso alla stanza.'))}
+}
+function reserveSeat(name){
+  var lobbyRef=roomRef.child('lobby');
+  return lobbyRef.once('value').then(function(snap){
+    if(!snap.exists())throw new Error('Lobby non trovata: controlla il codice.');
+    var initial=snap.val();
+    if(initial.game!==GAME.id)throw new Error('Questo codice appartiene a un altro gioco.');
+    return new Promise(function(resolve,reject){
+      lobbyRef.transaction(function(cur){
+        if(cur===null)cur=initial;
+        if(!cur||!cur.playerCount||cur.closed)return;
+        cur.players=cur.players||{};
+        if(cur.players[user.uid])return cur;            // rientro: il posto è già tuo
+        if(cur.started)return;
+        var occ={};Object.keys(cur.players).forEach(function(u){occ[cur.players[u].seat]=true});
+        var seat=1;while(seat<=cur.playerCount&&occ[seat])seat++;
+        if(seat>cur.playerCount)return;
+        cur.players[user.uid]={uid:user.uid,name:name,seat:seat};
+        return cur;
+      },function(err,committed,snap2){
+        if(err){reject(err);return}
+        var cur=snap2&&snap2.val();
+        if(!cur||!cur.players||!cur.players[user.uid]){
+          reject(new Error(cur&&cur.started?'La partita è già iniziata.':'La stanza è piena o non disponibile.'));return;
+        }
+        lobbyData=cur;saveLast(name);enterRoom();resolve();
+      },false);
+    });
+  });
+}
+function orderedPlayers(d){
+  return Object.keys(d.players||{}).map(function(u){return d.players[u]}).sort(function(a,b){return a.seat-b.seat});
+}
+function maybeStart(){
+  if(!lobbyData||S||startingGame||lobbyData.started||lobbyData.hostUid!==user.uid)return;
+  if(orderedPlayers(lobbyData).length===lobbyData.playerCount)startGame();
+}
+function startGame(){
+  startingGame=true;
+  var seated=orderedPlayers(lobbyData);   // i posti si assegnano a caso all'avvio
+  shuffle(seated);
+  var init=gameInitial(seated.map(function(p){return {uid:p.uid,name:p.name}}),undefined,(lobbyData&&lobbyData.opts)||gameOpts());
+  init.v=0;
+  roomRef.child('state').transaction(function(cur){if(cur!==null)return;return {v:0,s:JSON.stringify(init)}},function(err){
+    if(err){startingGame=false;showErr('Errore durante l\'avvio: '+err.message);return}
+    roomRef.child('lobby/started').set(true).catch(function(e){startingGame=false;showErr(e.message)});
+  },false);
+}
+
+// ─────────────── STANZA ───────────────
+function enterRoom(){
+  setConn('Lobby');
+  var lobbyRef=roomRef.child('lobby');
+  var lh=function(snap){if(!snap.exists())return;lobbyData=snap.val();if(!S){render();maybeStart()}};
+  lobbyRef.on('value',lh,function(e){showErr(e.message)});listeners.push({ref:lobbyRef,h:lh});
+  var stateRef=roomRef.child('state');
+  var sh=function(snap){
+    if(!snap.exists())return;
+    var raw=snap.val();
+    try{S=JSON.parse(raw.s)}catch(e){showErr('Stato della stanza non leggibile.');return}
+    me=S.uids.indexOf(user.uid);
+    if(me<0){showErr('Non risulti tra i giocatori di questa partita.');return}
+    setConn('Connesso');
+    render();
+  };
+  stateRef.on('value',sh,function(e){showErr('Connessione persa: '+e.message)});listeners.push({ref:stateRef,h:sh});
+  render();
+}
+function leave(dest){
+  var go=function(){if(dest)window.location.href=dest;else window.location.reload()};
+  listeners.forEach(function(l){l.ref.off('value',l.h)});
+  if(!roomRef||S||!user){go();return}
+  // prima dell'inizio libera il posto; a partita avviata si può rientrare con lo stesso codice
+  roomRef.child('lobby').transaction(function(cur){
+    if(!cur||cur.started)return;
+    cur.players=cur.players||{};delete cur.players[user.uid];
+    var rest=orderedPlayers(cur);
+    if(cur.hostUid===user.uid&&rest.length)cur.hostUid=rest[0].uid;
+    return cur;
+  },function(){
+    roomRef.child('members/'+user.uid).remove().catch(function(){}).then(go);
+  },false);
+}
+
+// azioni: ogni azione è una transazione sullo stato, validata da gameReduce() sull'ultima versione
+function act(a){
+  if(!roomRef||me<0)return;
+  var seat=me;
+  roomRef.child('state').transaction(function(cur){
+    if(!cur||!cur.s)return;
+    var st;try{st=JSON.parse(cur.s)}catch(e){return}
+    var r=gameReduce(st,seat,a);
+    if(!r)return;
+    r.v=(st.v||0)+1;
+    return {v:r.v,s:JSON.stringify(r)};
+  },function(err,committed){
+    if(err)showErr('Errore di sincronizzazione: '+err.message);
+    else if(!committed)setConn('Azione non più valida');
+  },false);
+}
+
+// ─────────────── RENDER ───────────────
+function lobbyHtml(){
+  var radios=GAME.counts.length<2?'':GAME.counts.map(function(n){
+    return '<label><input type="radio" name="pc" value="'+n+'" '+(chosenCount===n?'checked':'')+'> '+n+' giocatori'+(GAME.countNote&&GAME.countNote[n]?' · '+GAME.countNote[n]:'')+'</label>';
+  }).join('');
+  return '<section><p class="muted">Sei connesso come <b>'+esc(playerName)+'</b>.</p>'+
+    '<div class="panel"><h2>Crea una stanza</h2><p class="muted">'+GAME.lobbyNote+'</p>'+
+    (radios?'<div class="radios" role="radiogroup" aria-label="Numero di giocatori">'+radios+'</div>':'')+
+    '<button class="opt" id="createRoom" type="button" data-create="1">Crea stanza</button></div>'+
+    '<div class="panel"><h2>Unisciti a una stanza</h2>'+
+    '<input type="text" id="joinCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(joinVal)+'">'+
+    '<button class="opt" type="button" data-join="1">Unisciti</button></div>'+
+    '<p class="status" role="status" aria-live="polite">'+esc(statusText)+'</p>'+
+    '<button class="btn btn-sm" type="button" data-ai="1">← Torna alla scelta</button></section>';
+}
+function connectingHtml(){
+  return '<section><div class="panel"><p class="muted" role="status" aria-live="polite">'+esc(statusText||'Connessione alla stanza...')+'</p></div></section>';
+}
+function waitingHtml(){
+  var d=lobbyData||{players:{},playerCount:GAME.counts[0]};
+  var players=orderedPlayers(d),full=players.length===d.playerCount,html='';
+  for(var seat=1;seat<=d.playerCount;seat++){
+    var p=players[seat-1];
+    html+='<li><span class="seat-n">'+seat+'.</span>'+
+      (p?'<span class="grow">'+esc(p.name)+(p.uid===user.uid?' (tu)':'')+'</span>':'<span class="grow soft">In attesa di un giocatore</span>')+
+      (p&&p.uid===d.hostUid?'<span class="flag first">HOST</span>':'')+'</li>';
+  }
+  return '<section><div class="panel"><h2>Stanza '+roomCode+'</h2><p class="muted">'+
+    (d.started?'La partita si sta caricando...':players.length+' / '+d.playerCount+' giocatori'+(full?' · avvio in corso':' · condividi il codice con gli altri'))+
+    '</p>'+(typeof lobbyExtra==='function'?lobbyExtra(d):'')+'<ul class="roster">'+html+'</ul></div></section>';
+}
+function kitMenuHtml(){
+  var extra=typeof gameMenu==='function'?gameMenu():'';
+  return '<div class="menu-wrap"><button class="hamb" type="button" data-menu="1" aria-label="Opzioni" aria-expanded="'+MENUOPEN+'"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1h16M1 7h16M1 13h16"/></svg></button>'+
+    (MENUOPEN?'<div class="menu-pop">'+extra+'</div>':'')+'</div>';
+}
+function render(){
+  var focus=document.activeElement&&document.activeElement.id==='joinCode';
+  var badge=S&&typeof gameBadge==='function'?gameBadge():'';
+  var top='<div class="topbar"><div class="logo">'+GAME.logo+'</div>'+
+    (window.nyloBackBtn?nyloBackBtn(location.pathname,'alle opzioni del gioco'):'')+(window.nyloHomeBtn?nyloHomeBtn():'')+
+    (badge?'<span class="badge">'+badge+'</span>':'')+kitMenuHtml()+'</div>'+
+    (roomRef?'<div class="room-bar"><span class="room-code">'+roomCode+'</span><button class="btn btn-sm" type="button" data-copy="1">Copia codice</button><button class="btn btn-sm" type="button" data-leave="1">Esci</button><span class="conn" id="conn">'+esc(connText)+'</span></div>':'');
+  var body=!roomRef?(connecting?connectingHtml():lobbyHtml()):(!S?waitingHtml():gameRender());
+  document.getElementById('app').innerHTML=top+body;
+  if(focus){var j=document.getElementById('joinCode');if(j){j.focus();j.setSelectionRange(j.value.length,j.value.length)}}
+}
+var APP=document.getElementById('app');
+APP.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b||b.disabled)return;
+  var d=b.dataset;
+  if(d.back!==undefined){e.stopPropagation();if(!S||confirm('Tornare alle opzioni del gioco? Potrai rientrare nella stanza con lo stesso codice.'))leave(location.pathname);return}
+  if(d.menu){MENUOPEN=!MENUOPEN;render();return}
+  if(d.ai!==undefined){location.href=location.pathname;return}
+  if(d.create!==undefined){createRoom();return}
+  if(d.join!==undefined){joinRoom();return}
+  if(d.leave!==undefined){if(!S||confirm('Uscire dalla stanza? Potrai rientrare con lo stesso codice.'))leave();return}
+  if(d.copy!==undefined){
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(roomCode).then(function(){setConn('Codice copiato')});
+    else window.prompt('Copia il codice stanza:',roomCode);
+    return;
+  }
+  if(S&&typeof gameClick==='function')gameClick(b);
+});
+APP.addEventListener('input',function(e){if(e.target.id==='joinCode'){joinVal=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=joinVal}});
+APP.addEventListener('keydown',function(e){if(e.target.id==='joinCode'&&e.key==='Enter')joinRoom()});
+APP.addEventListener('change',function(e){
+  if(e.target.name==='pc'){chosenCount=Number(e.target.value);return}
+  if(typeof gameChange==='function')gameChange(e);
+});
+document.addEventListener('click',function(e){if(MENUOPEN&&!e.target.closest('.menu-wrap')){MENUOPEN=false;render()}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&MENUOPEN){MENUOPEN=false;render()}});
+connecting=!!(window.NYLO_START&&NYLO_START.mode==='room');
+render();
+if(window.NYLO_START&&NYLO_START.mode==='room'){chosenCount=NYLO_START.n||chosenCount;if(NYLO_START.name)playerName=NYLO_START.name.slice(0,18);if(NYLO_START.action==='join'){joinVal=NYLO_START.code||'';joinRoom()}else createRoom();}
+</script>
+<script>
+(function(){
+  run('src-common');
+  var P=window.NYLO_SETUP={id:'esp',logo:'<span class="eye">ESP</span><small>Experiment in Supersensory Perspicacity</small>',counts:[3,4]};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  function run(id){var s=document.createElement('script');s.textContent=document.getElementById(id).textContent;document.body.appendChild(s)}
+  window.addEventListener('hashchange',function(){location.reload()});
+  window.NYLO_IN_SETUP=true;   // finché si sceglie, Home/Indietro escono senza avviso
+  var app=document.getElementById('app');
+  var st={n:P.counts[0],mode:location.hash==='#stanze'?'room':(location.hash==='#ai'?'ai':''),sub:'',code:'',name:'',see:false};
+  var needName=false;
+  try{
+    st.name=localStorage.getItem('nylo-player-name')||'';
+    var last=JSON.parse(localStorage.getItem(P.id+'-online-last')||'null');if(last&&last.code)st.code=last.code;
+  }catch(e){}
+  needName=!st.name;   // il nome arriva dalla sessione; il campo compare solo se manca
+  // accesso rapido dalla home: #join=CODICE apre direttamente la stanza
+  var jm=/^#join=([A-Za-z0-9]{12})$/.exec(location.hash);
+  if(jm){st.mode='room';st.sub='join';st.code=jm[1].toUpperCase()}
+  // #resume (dal pulsante Riprendi della lista): se c'è una partita salvata di questo gioco si rientra direttamente
+  var rsm=null;
+  if(location.hash==='#resume'){try{var sd=window.nyloSaveData&&nyloSaveData(P.id);if(sd){var sg=JSON.parse(sd);if(sg&&sg.n)rsm={n:sg.n}}}catch(e){}}
+  function btn(attrs,cls,label,on){return '<button type="button" class="sx-opt '+cls+(on?' on':'')+'" '+attrs+'>'+label+'</button>'}
+  function draw(){
+    var h='<div class="topbar"><div class="logo">'+P.logo+'</div><div class="sx-nav">'+(window.nyloBackBtn?nyloBackBtn():'')+(window.nyloHomeBtn?nyloHomeBtn():'')+'</div></div>';
+    h+='<div class="sx-card">';
+    if(needName)h+='<label class="sx-label" for="sxName">IL TUO NOME</label><input class="sx-in" id="sxName" maxlength="16" placeholder="Il tuo nome" autocomplete="off" value="'+esc(st.name)+'">';
+    if(P.counts.length>1){
+      h+='<div class="sx-label">GIOCATORI</div><div class="sx-row">'+P.counts.map(function(n){return btn('data-n="'+n+'"','',n+' giocatori',st.n===n)}).join('')+'</div>';
+    }
+    h+='<div class="sx-label">MODALITÀ</div><div class="sx-row">'+btn('data-mode="ai"','','Contro l’AI',st.mode==='ai')+btn('data-mode="room"','','A stanze',st.mode==='room')+'</div>';
+    if(st.mode==='ai'){
+      h+='<div class="sx-sub"><div class="sx-row">'+btn('data-go="ai"','sx-go','Inizia',false)+'</div></div>';
+    }else if(st.mode==='room'){
+      h+='<div class="sx-label">OPZIONI STANZA</div><div class="sx-sub"><div class="sx-row">'+btn('data-sub="create"','','Crea nuova',st.sub==='create')+btn('data-sub="join"','','Unisciti',st.sub==='join')+'</div>';
+      if(st.sub==='create')h+='<div class="sx-row">'+btn('data-go="create"','sx-go','Inizia',false)+'</div>';
+      if(st.sub==='join')h+='<input class="sx-in code" id="sxCode" maxlength="12" placeholder="Codice stanza" autocomplete="off" value="'+esc(st.code)+'"><div class="sx-row"><button type="button" class="sx-opt sx-go" id="sxJoin" data-go="join" '+(st.code.length===12?'':'disabled')+'>Inizia</button></div>';
+      h+='</div>';
+    }
+    h+='</div>';
+    app.innerHTML=h;
+  }
+  function loadRoom(){
+    var libs=['app','auth','database'].map(function(n){return 'https://www.gstatic.com/firebasejs/10.12.2/firebase-'+n+'-compat.js'});
+    (function next(i){
+      if(i===libs.length){run('src-room');return}
+      var s=document.createElement('script');s.src=libs[i];s.onload=function(){next(i+1)};
+      s.onerror=function(){app.innerHTML='<p style="padding:20px;color:#fff">Firebase non raggiungibile: controlla la connessione.</p>'};
+      document.head.appendChild(s);
+    })(0);
+  }
+  function go(kind){
+    var nm=document.getElementById('sxName'),name=((nm&&nm.value)||st.name||'').trim().slice(0,16);
+    window.NYLO_IN_SETUP=false;
+    if(name){try{localStorage.setItem('nylo-player-name',name)}catch(e){}}
+    var cfg={name:name,n:st.n,opts:{}};
+    if(kind==='ai'){cfg.mode='ai';window.NYLO_START=cfg;run('src-ai');return}
+    cfg.mode='room';cfg.action=kind;if(kind==='join')cfg.code=st.code;
+    window.NYLO_START=cfg;app.innerHTML='';loadRoom();
+  }
+  app.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b||b.disabled)return;
+    var d=b.dataset;
+    if(d.n){st.n=Number(d.n);draw()}
+    else if(d.mode){st.mode=d.mode;st.sub='';draw()}
+    else if(d.sub){st.sub=d.sub;draw();var c=document.getElementById('sxCode');if(c)c.focus()}
+    else if(d.go)go(d.go);
+  });
+  app.addEventListener('input',function(e){
+    if(e.target.id==='sxName')st.name=e.target.value;
+    else if(e.target.id==='sxCode'){
+      st.code=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.target.value=st.code;
+      var j=document.getElementById('sxJoin');if(j)j.disabled=st.code.length!==12;
+    }
+  });
+  app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sxCode'&&st.code.length===12)go('join')});
+  if(rsm){window.NYLO_IN_SETUP=false;window.NYLO_START={mode:'ai',name:st.name,n:rsm.n,resume:true};run('src-ai');return}
+  draw();
+  if(jm&&!needName){try{history.replaceState(null,'',location.pathname+'#stanze')}catch(e){}go('join')}
+})();
 </script>
 </body>
 </html>
