@@ -211,11 +211,19 @@ table.score tr.me td{background:rgba(255,224,138,.5)}
 /* tazzine: icona Phosphor «coffee» con il numero dentro (CUP_MODE='svg' riporta alle tazzine disegnate) */
 .fc.cf.pc{--s:54px;width:var(--s);height:var(--s);display:inline-flex;align-items:center;justify-content:center;overflow:visible}
 .fc.cf.pc i{font-size:var(--s);line-height:1;color:var(--k);filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1.5px var(--ink))}
-.fc.cf.pc .v{position:absolute;left:42%;top:63%;transform:translate(-50%,-50%);margin:0;font-size:calc(var(--s)*.4);z-index:1}
+.fc.cf.pc .v{position:absolute;left:45%;top:60%;transform:translate(-50%,-50%);margin:0;font-size:calc(var(--s)*.4);z-index:1}
 .fc.cf.pc.mini{--s:42px;width:var(--s);height:var(--s)}
 .fc.cf.pc.mini .v{font-size:calc(var(--s)*.4);margin:0}
 .fav .fc.cf.pc{--s:66px}
 button.fc.cf.pc:hover:not(:disabled){transform:translateY(-4px) scale(1.06)}
+/* contrasto: testi secondari più scuri; pulsanti Home/Indietro pieni */
+:root{--text:#1f140d;--text-soft:#3a281c}
+.hint,.dock-title,.lbl2,.tcell .acc,.recap h3,.recap-row .lbl,.recap-row .rv,.rtext p,.rtext li,details.rules summary,details.recap>summary,.log,.log summary,.logbody div,.scorebox h3{color:var(--text-soft)}
+.dock-title,.lbl2,.recap h3,details.rules summary,details.recap>summary,.log summary,.scorebox h3{font-weight:700}
+.dock-msg,table.score{color:var(--text)}
+.seat-name{color:var(--ink)}
+.topbar .nylo-home,.sx-nav .nylo-home{background:#fff;color:var(--ink);border:2px solid var(--ink);font-weight:600}
+.topbar .nylo-home:hover,.sx-nav .nylo-home:hover{background:#ffe08a;color:var(--ink)}
 /* stanze online (kit condiviso) */
 .panel{background:linear-gradient(160deg,#fffaf0 0%,#f5e7d0 60%,#ecd7b5 100%);border:3px solid var(--ink);border-radius:16px;padding:18px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;color:var(--text);box-shadow:0 4px 0 var(--ink)}
 .panel h2{font-size:16px;font-weight:700}
@@ -668,7 +676,7 @@ function seatHtml(p,pos){
   const got=`<div class="rw" title="Caffè vinti">${S.got[p].map(mini).join('')||'<span class="hint">nessuna tazzina vinta</span>'}</div>`;
   const t=sumOf(S.got[p]);
   const meta=`<div class="seat-meta"><span class="tag">carte <b>${S.hands[p].length}</b></span><span class="tag" title="Valore dei caffè vinti (limite ${S.L})">caffè <b style="${t>S.L?'color:#b3261e':''}">${t}</b>/${S.L}</span><span class="tag">punti <b>${pl.total}</b></span></div>`;
-  const name=`<div class="seat-name" style="border-bottom:3px solid ${SEATC[p]}">${esc(pl.name)}${flagHtml(p)}</div>`;
+  const name=`<div class="seat-name" style="background:${SEATC[p]}">${esc(pl.name)}${flagHtml(p)}</div>`;
   const inner=pos==='bottom'?`${name}${meta}<div class="lbl2">DAVANTI A TE</div>${col}<div class="lbl2">VINTE</div>${got}${hand}`:`${hand}${name}${meta}<div class="lbl2">DAVANTI A TE</div>${col}<div class="lbl2">VINTE</div>${got}`;
   return `<div class="seat ${pos} ${S.phase==='play'&&S.lead===p&&!S.trick.length?'leader':''} ${active?'active':''}">${inner}</div>`;
 }
@@ -911,7 +919,7 @@ function seatH(p,pos){
   var got='<div class="rw" title="Caffè vinti">'+(S.got[p].map(mini).join('')||'<span class="hint">nessuna tazzina vinta</span>')+'</div>';
   var t=sumOf(S.got[p]);
   var meta='<div class="seat-meta"><span class="tag">carte <b>'+S.hands[p].length+'</b></span><span class="tag" title="Valore dei caffè vinti (limite '+S.L+')">caffè <b style="'+(t>S.L?'color:#b3261e':'')+'">'+t+'</b>/'+S.L+'</span><span class="tag">punti <b>'+S.total[p]+'</b></span></div>';
-  var name='<div class="seat-name" style="border-bottom:3px solid '+SEATC[p]+'">'+esc(S.names[p])+(p===me?' <span class="hint">(tu)</span>':'')+flagH(p)+'</div>';
+  var name='<div class="seat-name" style="background:'+SEATC[p]+'">'+esc(S.names[p])+(p===me?' <span class="hint">(tu)</span>':'')+flagH(p)+'</div>';
   var inner=pos==='bottom'?name+meta+'<div class="lbl2">DAVANTI A TE</div>'+col+'<div class="lbl2">VINTE</div>'+got+hand:hand+name+meta+'<div class="lbl2">DAVANTI A TE</div>'+col+'<div class="lbl2">VINTE</div>'+got;
   var lead=S.phase==='play'&&S.lead===p&&!S.trick.length;
   return '<div class="seat '+pos+' '+(lead?'leader':'')+' '+(turnOf(S)===p?'active':'')+'">'+inner+'</div>';
