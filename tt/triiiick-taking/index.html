@@ -436,6 +436,7 @@ async function playRound(){
     S.won[w]++; S.lastWin=wi;
     logMsg(`${P(w).name} vince la presa ${S.done+1} con ${cname(S.trick[wi].c)}.`);
     status(`${P(w).name} vince la presa e apre la prossima.`);
+    { const tr=S.trick, lw=S.lastWin, ol=S.lead; S.done++; S.lead=w; S.trick=[]; S.lastWin=-1; ckpt(); S.done--; S.lead=ol; S.trick=tr; S.lastWin=lw; }   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa (stato = inizio della presa successiva)
     await sleep(1500);
     S.done++; S.lead=w;
   }

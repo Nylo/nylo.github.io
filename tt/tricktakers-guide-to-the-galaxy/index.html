@@ -624,6 +624,7 @@ async function trickPhase(){
     logMsg(`Presa ${S.done+1}: ${S.trick.map(e=>`${who(e.p)} ${csym(e.c)}`).join(' · ')} → vince ${who(w)}.`);
     for(let q=0;q<N;q++) for(const r of S.act[q]) if(!r.failed&&ev(r.d,S.st[q],left).f){ r.failed=true; logMsg(`✗ ${who(q)} ha fallito la regola ${r.d.L} (${r.d.sh})${r.n>1?` e tutta la pila di ${r.n}`:''}: ${pen(r.n)} punti a fine round.`); }
     status(`${who(w)} vince la presa.`);
+    { const tr=S.trick, rs=S.res, tn=S.turn, ol=S.leader; S.leader=w; S.trick=[]; S.res=null; S.turn=-1; S.done++; ckpt(); S.done--; S.trick=tr; S.res=rs; S.turn=tn; S.leader=ol; }   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa (stato = inizio della presa successiva)
     await sleep(1500);
     S.leader=w;
   }

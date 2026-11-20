@@ -376,6 +376,7 @@ async function playRound(){
     S.piles[w].push({n:n,up:e.up?wc:null});
     logMsg(`${P(w).name} vince la presa n° ${e.w} con ${cname(wc)}: ${e.up?`giorno promesso! ${cname(wc)} va scoperta sulla pila`:hit?`giorno promesso, ma ${SUITS[wc.s].n} è già scoperto (regola avanzata): pila coperta`:'pila coperta'}.`);
     status(`${P(w).name} vince la presa${e.up?' e centra il giorno promesso':''}.`);
+    { const tr=S.trick, rs=S.res, od=S.done, ol=S.lead; S.done++; S.lead=w; S.trick=[]; S.res=null; ckpt(); S.done=od; S.lead=ol; S.trick=tr; S.res=rs; }   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa (stato = inizio della presa successiva)
     await sleep(1300);
     S.done++; S.lead=w; S.trick=[]; S.res=null;
   }

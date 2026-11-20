@@ -426,6 +426,7 @@ async function playRound(){
     G.turn=-1; S.k=0;
     const last=(S.lead+n-1)%n;
     status(`Fine presa ${S.done+1}: l'ultimo a giocare, ${P(last).name}, apre la prossima.`);
+    { const od=S.done, ol=S.lead; S.done++; S.lead=last; ckpt(); S.done=od; S.lead=ol; }   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa (stato = inizio della presa successiva)
     await sleep(1300);
     S.done++; S.lead=last;
   }

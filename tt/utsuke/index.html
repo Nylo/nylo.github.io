@@ -489,6 +489,7 @@ async function playRound(rs){
     S.res=wi; S.wins[w]++;
     logMsg(`${mname(w)} vince la presa n° ${S.done+1} con ${cname(S.trick[wi].c)}${S.trick.some(e=>e.c.s===S.tc)?` (briscola ${COLORS[S.tc].n})`:''}.`);
     status(`${mname(w)} vince la presa.`);
+    { const tr=S.trick, rs=S.res, od=S.done, ol=S.lead, of=S.firstFlag; S.done++; S.lead=w; S.firstFlag=false; S.trick=[]; S.res=null; ckpt(); S.done=od; S.lead=ol; S.firstFlag=of; S.trick=tr; S.res=rs; }   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa (stato = inizio della presa successiva)
     await sleep(1300);
     S.done++; S.lead=w; S.firstFlag=false; S.trick=[]; S.res=null;
   }
@@ -527,7 +528,7 @@ async function run(rs){
     let res=!!rs;
     if(!res) await choose(`Buona partita a Utsuke, ${G.pl[HUM].name}!`,[{label:'Ok, si parte',value:1}]);
     for(let r=res?g.round:0;;r++){
-      if(res) status(`Partita ripresa: round ${r+1}${g.S.phase==='play'?`, presa ${g.S.done+1}/${g.S.T}`:''}.`);
+      if(res) status(`Partita ripresa: round ${r+1}${g.S.phase==='play'?`, presa ${Math.min(g.S.done+1,g.S.T)}/${g.S.T}`:''}.`);
       else{ g.round=r; deal(); ckpt(); logMsg(`— Round ${r+1} —`); }
       if(g.S.phase==='guess') await guessPhase();
       await playRound(res); res=false;

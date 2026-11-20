@@ -478,6 +478,7 @@ async function playRound(rs){
     const ev=markOut(S);
     ev.forEach(e=>logMsg(`${P(e.p).name} va a curare le lapidi${e.a&&e.b?' (4+ lapidi e mano vuota)':e.a?` (${S.grave[e.p].length} lapidi: le carte restanti vanno sulla Chiesa)`:' (mano vuota)'} e lascia il round.`));
     S.lastP=tr[tr.length-1].p; S.lead=nextLead(S,w);
+    { const od=S.done, rs=S.res; S.done++; S.trick=[]; S.res=null; ckpt(); S.done=od; S.trick=tr; S.res=rs; }   // punto sicuro anche subito dopo la presa: salvando durante la pausa non si perde la presa appena chiusa (presa risolta con effetto applicato; stato = inizio della presa successiva)
     await sleep(900);
     S.done++; S.trick=[]; S.res=null;
   }
